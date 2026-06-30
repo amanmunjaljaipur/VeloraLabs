@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "information-pipeline",
+    "name": "Information Pipeline",
+    "shortDescription": "See data flowing through stages — input, transform, output.",
+    "description": "The Information Pipeline mental model treats any system as a series of connected stages where data enters, gets transformed, and exits as useful output. This works for understanding APIs, ML models, and even how you learn new concepts. Instead of seeing a black box, you map each stage and ask: what goes in, what changes, and what comes out?",
+    "difficulty": "Beginner",
+    "relatedSlugs": ["how-llms-work", "transformers-pipeline"]
+  },
+  {
+    "slug": "compression-lens",
+    "name": "Compression Lens",
+    "shortDescription": "Complex ideas are compressed representations of simpler patterns.",
+    "description": "The Compression Lens helps you understand why experts can explain complex topics briefly — they've compressed years of pattern recognition into mental shortcuts. When learning AI, ask: what pattern is this concept compressing? What would I need to know to decompress it fully?",
+    "difficulty": "Beginner",
+    "relatedSlugs": ["neural-networks-analogy", "chatgpt-for-students"]
+  },
+  {
+    "slug": "feedback-loop",
+    "name": "Feedback Loop",
+    "shortDescription": "Systems that learn improve through cycles of action and correction.",
+    "description": "The Feedback Loop model explains how machine learning, personal growth, and organizational improvement all share the same structure: act, observe results, adjust, repeat. Understanding this loop helps you see why training data matters, why iteration beats perfection, and how to design learning systems.",
+    "difficulty": "Intermediate",
+    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics"]
+  },
+  {
+    "slug": "abstraction-ladder",
+    "name": "Abstraction Ladder",
+    "shortDescription": "Move up for big picture, down for details — know which rung you need.",
+    "description": "The Abstraction Ladder teaches you to consciously choose your level of detail. At the bottom: code and equations. In the middle: architecture and workflows. At the top: business outcomes and user needs. Great engineers and leaders know when to climb up or down.",
+    "difficulty": "Intermediate",
+    "relatedSlugs": ["ai-for-decision-makers", "ai-risk-assessment"]
+  },
+  {
+    "slug": "constraint-box",
+    "name": "Constraint Box",
+    "shortDescription": "Every solution lives inside boundaries — find them first.",
+    "description": "The Constraint Box model says every system has limits: compute, data, time, money, ethics. Before solving a problem, map the box. AI projects fail when teams ignore constraints. This model helps you evaluate what's actually possible.",
+    "difficulty": "Advanced",
+    "relatedSlugs": ["rag-vs-finetuning", "ai-risk-assessment"]
+  },
+  {
+    "slug": "map-not-territory",
+    "name": "Map vs. Territory",
+    "shortDescription": "Models approximate reality — know where the map ends.",
+    "description": "All mental models, AI included, are maps of reality — useful simplifications, not perfect copies. This model prevents over-trusting outputs and helps you ask: where does this model's map diverge from the actual territory?",
+    "difficulty": "Advanced",
+    "relatedSlugs": ["how-llms-work", "ai-for-decision-makers"]
+  }
+]

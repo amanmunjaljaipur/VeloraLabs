@@ -1,0 +1,98 @@
+[
+  {
+    "id": "1",
+    "slug": "how-llms-work",
+    "title": "How Large Language Models Actually Work",
+    "description": "A clarity-first walkthrough of tokens, attention, and prediction — without the math overwhelm.",
+    "duration": "18 min",
+    "level": "Beginner",
+    "audience": "all",
+    "type": "Article",
+    "featured": true,
+    "thumbnail": "gradient-teal-1"
+  },
+  {
+    "id": "2",
+    "slug": "transformers-pipeline",
+    "title": "Transformers as Information Pipelines",
+    "description": "Visual mental model for understanding encoder-decoder architecture.",
+    "duration": "24 min",
+    "level": "Intermediate",
+    "audience": "engineers",
+    "type": "Guide",
+    "featured": true,
+    "thumbnail": "gradient-teal-2"
+  },
+  {
+    "id": "3",
+    "slug": "ai-for-decision-makers",
+    "title": "AI Decision Frameworks for Leaders",
+    "description": "When to adopt, when to wait, and how to evaluate AI tools systematically.",
+    "duration": "15 min",
+    "level": "Beginner",
+    "audience": "professionals",
+    "type": "Article",
+    "featured": true,
+    "thumbnail": "gradient-teal-3"
+  },
+  {
+    "id": "4",
+    "slug": "chatgpt-for-students",
+    "title": "ChatGPT Explained for Students",
+    "description": "Friendly analogies that make AI assistants understandable and safe to use.",
+    "duration": "12 min",
+    "level": "Beginner",
+    "audience": "students",
+    "type": "Video",
+    "featured": true,
+    "thumbnail": "gradient-teal-4"
+  },
+  {
+    "id": "5",
+    "slug": "rag-vs-finetuning",
+    "title": "RAG vs. Fine-Tuning: A Practical Guide",
+    "description": "Choose the right approach for your use case with clear decision criteria.",
+    "duration": "22 min",
+    "level": "Advanced",
+    "audience": "engineers",
+    "type": "Guide",
+    "featured": false,
+    "thumbnail": "gradient-teal-1"
+  },
+  {
+    "id": "6",
+    "slug": "neural-networks-analogy",
+    "title": "Neural Networks as Pattern Recognizers",
+    "description": "Build intuition for how networks learn — using everyday examples.",
+    "duration": "16 min",
+    "level": "Beginner",
+    "audience": "students",
+    "type": "Workshop",
+    "featured": false,
+    "thumbnail": "gradient-teal-2"
+  },
+  {
+    "id": "7",
+    "slug": "prompt-engineering-basics",
+    "title": "Prompt Engineering Without the Hype",
+    "description": "Practical techniques grounded in how models actually process instructions.",
+    "duration": "20 min",
+    "level": "Intermediate",
+    "audience": "all",
+    "type": "Article",
+    "featured": false,
+    "thumbnail": "gradient-teal-3"
+  },
+  {
+    "id": "8",
+    "slug": "ai-risk-assessment",
+    "title": "AI Risk Assessment for Teams",
+    "description": "A structured framework for evaluating AI deployment risks in your organization.",
+    "duration": "14 min",
+    "level": "Intermediate",
+    "audience": "professionals",
+    "type": "Guide",
+    "featured": false,
+    "thumbnail": "gradient-teal-4"
+  }
+]

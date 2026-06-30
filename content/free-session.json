@@ -1,0 +1,83 @@
+{
+  "headline": "Book Your Free 2-Hour Introductory Session",
+  "description": "Experience how Velora Labs teaches — through clarity, mental models, and deep understanding. No sales pitch. Just a focused session that shows you what's possible.",
+  "benefits": [
+    {
+      "title": "Core mental model framework",
+      "description": "Learn our clarity-first approach to breaking down any complex topic."
+    },
+    {
+      "title": "Live AI concept walkthrough",
+      "description": "See how we explain AI fundamentals without jargon or hand-waving."
+    },
+    {
+      "title": "Personalized learning path",
+      "description": "Get recommendations tailored to your audience and goals."
+    },
+    {
+      "title": "Interactive Q&A",
+      "description": "Ask anything — we prioritize understanding over covering slides."
+    },
+    {
+      "title": "Resource starter pack",
+      "description": "Leave with curated materials to continue learning on your own."
+    },
+    {
+      "title": "Zero commitment",
+      "description": "The session is genuinely free. Explore the full course only if it resonates."
+    }
+  ],
+  "agenda": [
+    {
+      "time": "0:00",
+      "title": "Welcome & context setting",
+      "description": "Understand your goals and what clarity-first learning means."
+    },
+    {
+      "time": "0:15",
+      "title": "Mental models primer",
+      "description": "A live demonstration of how we map complex ideas to understandable frameworks."
+    },
+    {
+      "time": "0:45",
+      "title": "AI deep-dive (audience-tailored)",
+      "description": "Walk through a core AI concept adapted to your background and level."
+    },
+    {
+      "time": "1:15",
+      "title": "Hands-on exercise",
+      "description": "Apply the framework to a real problem — together."
+    },
+    {
+      "time": "1:45",
+      "title": "Your learning path & Q&A",
+      "description": "Personalized next steps and open discussion."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Is the session really free?",
+      "answer": "Yes — completely free with no hidden fees. We want you to experience our teaching style before considering the full course."
+    },
+    {
+      "question": "Who is this session for?",
+      "answer": "School students (Classes 6–12), college engineers, and working professionals. Content is tailored based on your audience selection."
+    },
+    {
+      "question": "What do I need to prepare?",
+      "answer": "Just bring curiosity and a stable internet connection. No prior AI knowledge required."
+    },
+    {
+      "question": "How long is the session?",
+      "answer": "Exactly 2 hours, including a short break. We respect your time."
+    },
+    {
+      "question": "What happens after the free session?",
+      "answer": "You'll receive a summary and optional next steps. If the full course fits your goals, we'll share enrollment details — no pressure."
+    },
+    {
+      "question": "Can I reschedule?",
+      "answer": "Yes. Use the link in your confirmation email to reschedule up to 24 hours before your session."
+    }
+  ]
+}

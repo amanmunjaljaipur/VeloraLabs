@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "quote": "I finally understood how AI works — not just memorized definitions. The mental models made everything click.",
+    "name": "Priya Sharma",
+    "role": "Class 10 Student",
+    "audience": "students"
+  },
+  {
+    "id": "2",
+    "quote": "The free session showed me a way of learning I never had in college. I enrolled in the full course the same week.",
+    "name": "Arjun Mehta",
+    "role": "CS Engineering Student",
+    "audience": "engineers"
+  },
+  {
+    "id": "3",
+    "quote": "As a product manager, I needed to evaluate AI vendors intelligently. Velora gave me frameworks I use every week.",
+    "name": "Sarah Chen",
+    "role": "Senior Product Manager",
+    "audience": "professionals"
+  },
+  {
+    "id": "4",
+    "quote": "My daughter went from confused to confident about technology. The friendly approach made all the difference.",
+    "name": "Rajesh Kumar",
+    "role": "Parent of Class 8 Student",
+    "audience": "students"
+  },
+  {
+    "id": "5",
+    "quote": "The transformer explanation alone was worth it. I aced my ML interview questions after the full course.",
+    "name": "David Okonkwo",
+    "role": "Final Year EE Student",
+    "audience": "engineers"
+  },
+  {
+    "id": "6",
+    "quote": "I started with the free session skeptical. Left with a clear roadmap for AI adoption in my team.",
+    "name": "Maria Gonzalez",
+    "role": "Engineering Director",
+    "audience": "professionals"
+  }
+]

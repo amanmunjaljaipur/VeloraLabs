@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "students",
+    "title": "For School Students (Classes 6–12)",
+    "shortTitle": "School Students",
+    "heroTitle": "Make AI and tech click — without the jargon",
+    "heroSubtitle": "Friendly explanations, fun examples, and mental models that help you understand how the digital world really works.",
+    "tone": "friendly",
+    "benefits": [
+      "Understand AI concepts with everyday analogies",
+      "Build confidence before exams and projects",
+      "Learn how to ask better questions about technology",
+      "Explore safe, age-appropriate examples"
+    ],
+    "examples": [
+      "How ChatGPT is like a very well-read friend",
+      "Why your phone knows what song you like",
+      "What 'training data' means in plain English"
+    ],
+    "icon": "graduation-cap"
+  },
+  {
+    "slug": "engineers",
+    "title": "For College Engineers",
+    "shortTitle": "College Engineers",
+    "heroTitle": "Go beyond tutorials — build real understanding",
+    "heroSubtitle": "Strengthen your mental models for AI, systems, and software so you can ship projects and stand out in interviews.",
+    "tone": "technical",
+    "benefits": [
+      "Connect theory to hands-on projects",
+      "Understand how modern AI systems actually work",
+      "Develop frameworks for debugging and design",
+      "Prepare for internships and technical interviews"
+    ],
+    "examples": [
+      "Transformers explained as information pipelines",
+      "When to use fine-tuning vs. RAG",
+      "System design mental models for scalable apps"
+    ],
+    "icon": "code"
+  },
+  {
+    "slug": "professionals",
+    "title": "For Professionals",
+    "shortTitle": "Professionals",
+    "heroTitle": "Make better decisions in an AI-driven world",
+    "heroSubtitle": "Practical frameworks for leaders, managers, and builders who need clarity — not hype — to drive real outcomes.",
+    "tone": "executive",
+    "benefits": [
+      "Evaluate AI tools and vendors with confidence",
+      "Communicate technical concepts to stakeholders",
+      "Apply decision-making frameworks to real problems",
+      "Stay current without drowning in noise"
+    ],
+    "examples": [
+      "Build vs. buy frameworks for AI adoption",
+      "Risk assessment for deploying LLMs",
+      "How to run effective AI pilots in your org"
+    ],
+    "icon": "briefcase"
+  }
+]

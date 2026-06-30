@@ -1,0 +1,77 @@
+{
+  "title": "Velora Labs Full Program",
+  "subtitle": "From mental models to mastery",
+  "description": "A structured 8-week program that takes you from confused to confident — with clarity-first teaching, hands-on projects, and a community of thoughtful learners.",
+  "price": "₹24,999",
+  "duration": "8 weeks · 2 sessions/week",
+  "curriculum": [
+    {
+      "title": "Week 1–2: Foundations of Clarity",
+      "topics": [
+        "Mental model frameworks",
+        "How to learn complex topics effectively",
+        "AI landscape without the hype"
+      ]
+    },
+    {
+      "title": "Week 3–4: How AI Systems Work",
+      "topics": [
+        "Tokens, embeddings, and attention",
+        "Training vs. inference",
+        "Hands-on: building with APIs"
+      ]
+    },
+    {
+      "title": "Week 5–6: Applied AI",
+      "topics": [
+        "RAG, fine-tuning, and tool use",
+        "Prompt design as interface design",
+        "Project: solve a real problem"
+      ]
+    },
+    {
+      "title": "Week 7–8: Integration & Next Steps",
+      "topics": [
+        "Decision frameworks for AI adoption",
+        "Portfolio project presentation",
+        "Personalized learning roadmap"
+      ]
+    }
+  ],
+  "audiences": [
+    {
+      "slug": "students",
+      "description": "Age-appropriate pacing with fun projects and exam-relevant foundations."
+    },
+    {
+      "slug": "engineers",
+      "description": "Technical depth with portfolio projects and interview preparation."
+    },
+    {
+      "slug": "professionals",
+      "description": "Executive-friendly sessions with real-world case studies and frameworks."
+    }
+  ],
+  "comparison": {
+    "free": {
+      "title": "Free 2-Hour Session",
+      "items": [
+        "One mental model deep-dive",
+        "Personalized learning path overview",
+        "Live Q&A",
+        "Starter resource pack"
+      ]
+    },
+    "paid": {
+      "title": "Full 8-Week Program",
+      "items": [
+        "16 live sessions with recordings",
+        "Complete curriculum across 4 modules",
+        "Hands-on projects with feedback",
+        "Private community access",
+        "1:1 office hours",
+        "Certificate of completion"
+      ]
+    }
+  }
+}

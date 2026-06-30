@@ -1,0 +1,31 @@
+{
+  "name": "Velora Labs",
+  "tagline": "Understand complex ideas with clarity",
+  "description": "A clarity-first learning platform that helps people deeply understand complex ideas — especially AI and technology — through strong mental models.",
+  "nav": [
+    { "label": "Free Session", "href": "/free-session" },
+    { "label": "Courses", "href": "/courses" },
+    { "label": "Library", "href": "/library" },
+    { "label": "Mental Models", "href": "/mental-models" },
+    { "label": "About", "href": "/about" }
+  ],
+  "footer": {
+    "tagline": "Clarity-first learning for builders, students, and professionals.",
+    "links": [
+      { "label": "Free Session", "href": "/free-session" },
+      { "label": "Courses", "href": "/courses" },
+      { "label": "Resources", "href": "/resources" },
+      { "label": "Contact", "href": "/contact" }
+    ],
+    "social": [
+      { "label": "LinkedIn", "href": "#" },
+      { "label": "YouTube", "href": "#" },
+      { "label": "Newsletter", "href": "#newsletter" }
+    ]
+  },
+  "newsletter": {
+    "title": "Stay sharp on AI and technology",
+    "description": "Weekly mental models, frameworks, and clarity-first insights — no noise.",
+    "cta": "Subscribe"
+  }
+}
