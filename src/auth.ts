@@ -1,12 +1,12 @@
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import { getRoleForEmail } from "@/lib/roles";
 import { DEFAULT_ROLE } from "@/types/roles";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthConfig = {
   trustHost: true,
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
@@ -32,4 +32,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-});
+};
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authOptions);

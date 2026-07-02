@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
 import { RoleAssignmentPanel } from "@/components/admin/RoleAssignmentPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { isAdminRole } from "@/lib/session-access";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Role Assignment",
+  title: "Admin Panel",
   description: "Assign user roles across Verlin Labs.",
 };
 
@@ -16,17 +17,26 @@ export default async function RoleAssignmentPage() {
     redirect("/login?callbackUrl=/admin/role-assignment");
   }
 
-  if (session.user.role !== "super_admin") {
+  if (!isAdminRole(session.user.role)) {
     redirect("/");
   }
+
+  const isSuperAdmin = session.user.role === "super_admin";
 
   return (
     <>
       <PageHeader
-        title="Role Assignment"
-        subtitle="Assign roles to users by email. Only Super Admins can access this page."
+        title="Admin Panel"
+        subtitle={
+          isSuperAdmin
+            ? "Assign any of the five roles to users by email."
+            : "Assign Student, Engineer, or Professional roles to users by email."
+        }
       />
-      <RoleAssignmentPanel currentUserEmail={session.user.email ?? ""} />
+      <RoleAssignmentPanel
+        currentUserEmail={session.user.email ?? ""}
+        actorRole={session.user.role}
+      />
     </>
   );
 }

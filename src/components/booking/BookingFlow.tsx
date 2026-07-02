@@ -151,53 +151,62 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
         ))}
       </ol>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className={cn("grid gap-8", selectedDate && "lg:grid-cols-2")}>
         <div>
           <h3 className="text-base font-semibold mb-4">1. Select a date</h3>
           <Calendar
             selected={selectedDate}
             onSelect={setSelectedDate}
           />
-        </div>
-        <div>
-          <h3 className="text-base font-semibold mb-4">
-            {selectedDate ? `2. Time slots — ${formatDate(selectedDate)}` : "2. Select a time"}
-          </h3>
-          {loadingSlots && (
-            <div className="flex items-center justify-center py-16">
-              <Spinner />
-            </div>
-          )}
-          {!loadingSlots && selectedDate && slots.length === 0 && (
-            <EmptyState
-              title="All slots booked for this day"
-              description="Try selecting another date. Weekends are typically unavailable."
-              cta={{ label: "View next week", href: "#book" }}
-            />
-          )}
-          {!loadingSlots && selectedDate && slots.length > 0 && availableSlots.length === 0 && (
-            <EmptyState
-              title="All slots for today are booked"
-              description="Every time slot is full. Please try another date."
-            />
-          )}
-          {!loadingSlots && availableSlots.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              {slots.map((slot) => (
-                <TimeSlotCard
-                  key={slot.id}
-                  time={slot.time}
-                  available={slot.available}
-                  total={slot.total}
-                  selected={selectedSlot?.id === slot.id}
-                  onClick={() => setSelectedSlot(slot)}
-                />
-              ))}
-            </div>
+          {!selectedDate && (
+            <p className="mt-4 text-sm text-text-secondary">
+              Pick a date to see available time slots.
+            </p>
           )}
         </div>
+
+        {selectedDate && (
+          <div>
+            <h3 className="text-base font-semibold mb-4">
+              2. Time slots — {formatDate(selectedDate)}
+            </h3>
+            {loadingSlots && (
+              <div className="flex items-center justify-center py-16">
+                <Spinner />
+              </div>
+            )}
+            {!loadingSlots && slots.length === 0 && (
+              <EmptyState
+                title="All slots booked for this day"
+                description="Try selecting another date. Weekends are typically unavailable."
+                cta={{ label: "View next week", href: "#book" }}
+              />
+            )}
+            {!loadingSlots && slots.length > 0 && availableSlots.length === 0 && (
+              <EmptyState
+                title="All slots for today are booked"
+                description="Every time slot is full. Please try another date."
+              />
+            )}
+            {!loadingSlots && availableSlots.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {slots.map((slot) => (
+                  <TimeSlotCard
+                    key={slot.id}
+                    time={slot.time}
+                    available={slot.available}
+                    total={slot.total}
+                    selected={selectedSlot?.id === slot.id}
+                    onClick={() => setSelectedSlot(slot)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
+      {selectedSlot && (
       <form onSubmit={onRequestConfirm} className="rounded-2xl border border-border bg-muted/40 p-6 space-y-6">
         <h3 className="text-base font-semibold">3. Your details</h3>
         <div className="grid gap-6 md:grid-cols-2">
@@ -215,10 +224,11 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
           error={errors.audience?.message}
           {...register("audience")}
         />
-        <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!selectedDate || !selectedSlot}>
+        <Button type="submit" size="lg" className="w-full sm:w-auto">
           Confirm booking
         </Button>
       </form>
+      )}
 
       <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="Confirm Your Booking">
         <div className="space-y-4">

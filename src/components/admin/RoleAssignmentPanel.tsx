@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
+import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -16,18 +16,33 @@ interface Assignment {
   label: string;
 }
 
-const roleOptions = USER_ROLES.map((role) => ({
-  value: role,
-  label: ROLE_LABELS[role],
-}));
+function getAssignableRoles(actorRole: UserRole) {
+  const roles = actorRole === "super_admin" ? USER_ROLES : LEARNER_ROLES;
+  return roles.map((role) => ({
+    value: role,
+    label: ROLE_LABELS[role],
+  }));
+}
 
-export function RoleAssignmentPanel({ currentUserEmail }: { currentUserEmail: string }) {
+function canManageAssignment(actorRole: UserRole, targetRole: UserRole): boolean {
+  if (actorRole === "super_admin") return true;
+  return (LEARNER_ROLES as readonly UserRole[]).includes(targetRole);
+}
+
+export function RoleAssignmentPanel({
+  currentUserEmail,
+  actorRole,
+}: {
+  currentUserEmail: string;
+  actorRole: UserRole;
+}) {
   const { toast } = useToast();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
+  const roleOptions = getAssignableRoles(actorRole);
+  const [role, setRole] = useState<UserRole>(roleOptions[0]?.value ?? "student");
 
   const fetchAssignments = useCallback(async () => {
     const res = await fetch("/api/roles");
@@ -139,6 +154,7 @@ export function RoleAssignmentPanel({ currentUserEmail }: { currentUserEmail: st
           <ul className="mt-6 divide-y divide-border">
             {assignments.map((assignment) => {
               const isSelf = assignment.email === currentUserEmail.toLowerCase();
+              const canRemove = !isSelf && canManageAssignment(actorRole, assignment.role);
               return (
                 <li
                   key={assignment.email}
@@ -150,7 +166,7 @@ export function RoleAssignmentPanel({ currentUserEmail }: { currentUserEmail: st
                       <Badge>{assignment.label}</Badge>
                     </div>
                   </div>
-                  {!isSelf && (
+                  {canRemove && (
                     <button
                       type="button"
                       onClick={() => handleRemove(assignment.email)}

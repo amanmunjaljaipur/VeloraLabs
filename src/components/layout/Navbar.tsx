@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const SUPER_ADMIN_NAV = { label: "Role Assignment", href: "/admin/role-assignment" };
+const ADMIN_PANEL_NAV = { label: "Admin Panel", href: "/admin/role-assignment" };
 const ADMIN_SESSIONS_NAV = { label: "Session Videos", href: "/admin/sessions" };
 
 interface NavbarProps {
@@ -22,11 +22,9 @@ export function Navbar({ nav }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const role = session?.user?.role;
-  const isSuperAdmin = role === "super_admin";
-  const isAdmin = role === "admin" || isSuperAdmin;
+  const isAdmin = role === "admin" || role === "super_admin";
   const adminNav = [
-    ...(isAdmin ? [ADMIN_SESSIONS_NAV] : []),
-    ...(isSuperAdmin ? [SUPER_ADMIN_NAV] : []),
+    ...(isAdmin ? [ADMIN_PANEL_NAV, ADMIN_SESSIONS_NAV] : []),
   ];
   const navItems = adminNav.length > 0 ? [...nav, ...adminNav] : nav;
 
@@ -43,24 +41,26 @@ export function Navbar({ nav }: NavbarProps) {
         scrolled ? "border-b border-border bg-background/90 backdrop-blur-md shadow-sm" : "bg-transparent"
       )}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 md:gap-6 md:px-8">
         <VerlinLogo />
-        <div className="hidden items-center gap-8 lg:flex">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-x-5 xl:gap-x-6 lg:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-text-secondary hover:text-teal transition-colors"
+              className="whitespace-nowrap text-sm font-medium text-text-secondary hover:text-teal transition-colors"
             >
               {item.label}
             </Link>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <AuthButton />
           <Link href="/free-session" className="hidden sm:block">
-            <Button size="sm">Book Free Session</Button>
+            <Button size="sm" className="whitespace-nowrap">
+              Book Free Session
+            </Button>
           </Link>
           <button
             className="rounded-xl p-2 text-text-secondary hover:bg-muted lg:hidden"

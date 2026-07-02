@@ -8,7 +8,7 @@ interface VerlinLogoProps {
 
 export function VerlinLogo({ variant = "full", className }: VerlinLogoProps) {
   return (
-    <Link href="/" className={cn("flex items-center gap-3 group", className)}>
+    <Link href="/" className={cn("flex shrink-0 items-center gap-3 group", className)}>
       <svg viewBox="0 0 40 40" className="h-9 w-9 shrink-0" aria-hidden="true">
         <defs>
           <linearGradient id="verlin-grad-1" x1="0%" y1="100%" x2="100%" y2="0%">
