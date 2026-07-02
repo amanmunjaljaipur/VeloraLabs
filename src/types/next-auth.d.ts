@@ -1,4 +1,5 @@
 import { DefaultSession } from "next-auth";
+import type { AuthProvider } from "@/lib/known-users";
 import type { UserRole } from "@/types/roles";
 
 declare module "next-auth" {
@@ -16,6 +17,7 @@ declare module "next-auth/jwt" {
     role?: UserRole;
     maxAge?: number;
     enrolledLearner?: boolean;
+    authProvider?: AuthProvider;
   }
 }
 

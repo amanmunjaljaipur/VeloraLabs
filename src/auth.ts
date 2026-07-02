@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { signInSchema } from "@/lib/auth-validation";
 import { isEnrolledLearner } from "@/lib/enrollment";
-import { recordKnownUser, type AuthProvider } from "@/lib/known-users";
+import { ensureKnownUser, recordKnownUser, type AuthProvider } from "@/lib/known-users";
 import { getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -23,6 +23,23 @@ const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 if (!authSecret) {
   throw new Error("AUTH_SECRET or NEXTAUTH_SECRET environment variable is required.");
+}
+
+function resolveAuthProvider(accountProvider?: string | null): AuthProvider {
+  return accountProvider === "google" ? "google" : "credentials";
+}
+
+function resolveSignInEmail(
+  user?: { email?: string | null; name?: string | null },
+  token?: { email?: string | null; name?: string | null },
+  profile?: { email?: string | null }
+): { email: string; name: string | null } | null {
+  const email = user?.email ?? token?.email ?? profile?.email;
+  if (!email) return null;
+  return {
+    email,
+    name: user?.name ?? token?.name ?? null,
+  };
 }
 
 export const authOptions: NextAuthConfig = {
@@ -78,12 +95,33 @@ export const authOptions: NextAuthConfig = {
   pages: {
     signIn: "/login",
   },
+  events: {
+    signIn({ user, account, profile }) {
+      const identity = resolveSignInEmail(user, undefined, profile as { email?: string });
+      if (!identity) return;
+
+      recordKnownUser(
+        identity.email,
+        identity.name,
+        resolveAuthProvider(account?.provider)
+      );
+    },
+  },
   callbacks: {
-    jwt({ token, user, account }) {
-      if (user?.email) {
-        const provider: AuthProvider =
-          account?.provider === "google" ? "google" : "credentials";
-        recordKnownUser(user.email, user.name, provider);
+    jwt({ token, user, account, profile, trigger }) {
+      const isAuthSignIn =
+        trigger === "signIn" || trigger === "signUp" || Boolean(account);
+
+      if (isAuthSignIn) {
+        const identity = resolveSignInEmail(user, token, profile as { email?: string });
+        if (identity) {
+          recordKnownUser(
+            identity.email,
+            identity.name,
+            resolveAuthProvider(account?.provider)
+          );
+          token.authProvider = resolveAuthProvider(account?.provider);
+        }
       }
 
       const email = user?.email ?? token.email;
@@ -106,7 +144,13 @@ export const authOptions: NextAuthConfig = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }
-      if (session.user) {
+      if (session.user?.email) {
+        ensureKnownUser(
+          session.user.email,
+          session.user.name,
+          token.authProvider as AuthProvider | undefined
+        );
+
         const role = getRoleForEmail(session.user.email) ?? DEFAULT_ROLE;
         session.user.role = role;
         session.user.enrolledLearner =
