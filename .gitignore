@@ -46,6 +46,7 @@ next-env.d.ts
 # sensitive runtime data (password hashes, learner progress)
 /content/manual-users.json
 /content/course-progress.json
+/content/video-progress.json
 
 .vercel
 .env*

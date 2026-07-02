@@ -33,6 +33,14 @@ export function getCourseProgress(email: string | null | undefined): UserCourseP
   );
 }
 
+export function isDayCompleted(
+  email: string | null | undefined,
+  day: number
+): boolean {
+  if (!email) return false;
+  return getCourseProgress(email).completedDays.includes(day);
+}
+
 export function markDayComplete(
   email: string,
   audience: AudienceSlug,

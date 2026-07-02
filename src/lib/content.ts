@@ -39,12 +39,32 @@ export interface Audience {
   image: string;
 }
 
+export interface AgendaItem {
+  time: string;
+  title: string;
+  description: string;
+  duration?: string;
+  image?: string;
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+  bullets?: string[];
+}
+
+export interface FaqCategory {
+  title: string;
+  description: string;
+  items: FaqItem[];
+}
+
 export interface FreeSessionContent {
   headline: string;
   description: string;
   benefits: { title: string; description: string }[];
-  agenda: { time: string; title: string; description: string }[];
-  faqs: { question: string; answer: string }[];
+  agenda: AgendaItem[];
+  faqCategories: FaqCategory[];
 }
 
 export interface Testimonial {

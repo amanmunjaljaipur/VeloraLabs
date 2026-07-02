@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { AudienceCoursePage } from "@/components/sections/AudienceCoursePage";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAudience, getAudiences, getCourseTrack, type AudienceSlug } from "@/lib/content";
+import { getCourseProgress } from "@/lib/course-progress";
+import { getAllVideoProgressForUser } from "@/lib/video-progress";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -35,11 +37,23 @@ export default async function AudiencePage({
     ? isEnrolledLearner(session.user.email, session.user.role)
     : false;
 
+  const videoProgressMap: Record<string, number> = {};
+  let completedDays: number[] = [];
+  if (isEnrolled && session?.user?.email) {
+    const progress = getAllVideoProgressForUser(session.user.email);
+    for (const [sessionId, record] of Object.entries(progress)) {
+      videoProgressMap[sessionId] = record.percent;
+    }
+    completedDays = getCourseProgress(session.user.email).completedDays;
+  }
+
   return (
     <AudienceCoursePage
       slug={slug as AudienceSlug}
       course={course}
       isEnrolled={isEnrolled}
+      videoProgressMap={videoProgressMap}
+      completedDays={completedDays}
     />
   );
 }

@@ -1,12 +1,13 @@
 import { auth } from "@/auth";
 import { SessionVideoAdmin } from "@/components/sessions/SessionVideoAdmin";
-import { YouTubeEmbed } from "@/components/sessions/YouTubeEmbed";
+import { SessionVideoPlayer } from "@/components/sessions/SessionVideoPlayer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { markDayComplete } from "@/lib/course-progress";
-import { getCourseTrack } from "@/lib/content";
+import { isDayCompleted } from "@/lib/course-progress";
+import { isEnrolledLearner } from "@/lib/enrollment";
 import { canAccessSessionVideo, isAdminRole } from "@/lib/session-access";
 import { getSessionMeta, getSessionVideo } from "@/lib/session-videos";
+import { getVideoProgress } from "@/lib/video-progress";
 import { Lock, Video } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -50,22 +51,27 @@ export default async function SessionPage({
   }
 
   const hasAccess = canAccessSessionVideo(authSession.user.role, meta.audience);
-
-  if (hasAccess && authSession.user.email) {
-    const course = getCourseTrack(meta.audience);
-    const validDays = course.phases.flatMap((phase) => phase.days.map((day) => day.day));
-    markDayComplete(authSession.user.email, meta.audience, meta.day, validDays);
-  }
+  const videoProgress =
+    hasAccess && authSession.user.email
+      ? getVideoProgress(authSession.user.email, sessionId)
+      : null;
+  const reviewMode =
+    hasAccess && authSession.user.email
+      ? isDayCompleted(authSession.user.email, meta.day)
+      : false;
+  const isEnrolled = isEnrolledLearner(authSession.user.email, authSession.user.role);
+  const courseBackHref = isEnrolled ? "/my-course" : `/for/${meta.audience}#curriculum`;
+  const courseBackLabel = isEnrolled ? "My Course" : `${audienceLabels[meta.audience]} course`;
 
   return (
     <div className="pb-16 md:pb-24">
       <section className="border-b border-border bg-muted/30 py-10 md:py-14">
         <div className="mx-auto max-w-4xl px-4 md:px-8">
           <Link
-            href={`/for/${meta.audience}#curriculum`}
+            href={courseBackHref}
             className="text-sm font-medium text-teal hover:underline"
           >
-            ← Back to {audienceLabels[meta.audience]} course
+            ← Back to {courseBackLabel}
           </Link>
           <p className="mt-4 text-sm font-medium text-teal">{meta.phaseTitle}</p>
           <h1 className="mt-2 text-3xl md:text-4xl font-semibold text-foreground">
@@ -102,7 +108,15 @@ export default async function SessionPage({
               <Video className="h-5 w-5 text-teal" />
               <h2 className="text-lg font-semibold text-foreground">Session recording</h2>
             </div>
-            <YouTubeEmbed videoId={video.youtubeId} title={meta.title} />
+            <SessionVideoPlayer
+              sessionId={sessionId}
+              videoId={video.youtubeId}
+              title={meta.title}
+              initialWatchedSeconds={videoProgress?.watchedSeconds}
+              initialDurationSeconds={videoProgress?.durationSeconds}
+              initialPercent={videoProgress?.percent}
+              reviewMode={reviewMode}
+            />
           </div>
         )}
 
@@ -118,8 +132,10 @@ export default async function SessionPage({
 
         {!isAdmin && (
           <div className="pt-4">
-            <Link href={`/for/${meta.audience}#curriculum`}>
-              <Button variant="secondary">View full curriculum</Button>
+            <Link href={courseBackHref}>
+              <Button variant="secondary">
+                {isEnrolled ? "Back to My Course" : "View full curriculum"}
+              </Button>
             </Link>
           </div>
         )}

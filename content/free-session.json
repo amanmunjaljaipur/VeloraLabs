@@ -30,54 +30,141 @@
   "agenda": [
     {
       "time": "0:00",
+      "duration": "15 min",
       "title": "Welcome & context setting",
-      "description": "Understand your goals and what clarity-first learning means."
+      "description": "Understand your goals and what clarity-first learning means.",
+      "image": "/images/collaboration.jpg"
     },
     {
       "time": "0:15",
+      "duration": "30 min",
       "title": "Mental models primer",
-      "description": "A live demonstration of how we map complex ideas to understandable frameworks."
+      "description": "A live demonstration of how we map complex ideas to understandable frameworks.",
+      "image": "/images/mental-models.jpg"
     },
     {
       "time": "0:45",
+      "duration": "30 min",
       "title": "AI deep-dive (audience-tailored)",
-      "description": "Walk through a core AI concept adapted to your background and level."
+      "description": "Walk through a core AI concept adapted to your background and level.",
+      "image": "/images/ai-learning.jpg"
     },
     {
       "time": "1:15",
+      "duration": "30 min",
       "title": "Hands-on exercise",
-      "description": "Apply the framework to a real problem — together."
+      "description": "Apply the framework to a real problem — together.",
+      "image": "/images/workshop.jpg"
     },
     {
       "time": "1:45",
+      "duration": "15 min",
       "title": "Your learning path & Q&A",
-      "description": "Personalized next steps and open discussion."
+      "description": "Personalized next steps and open discussion.",
+      "image": "/images/presentation.jpg"
     }
   ],
-  "faqs": [
+  "faqCategories": [
     {
-      "question": "Is the session really free?",
-      "answer": "Yes — completely free with no hidden fees. We want you to experience our teaching style before considering the full course."
+      "title": "About the session",
+      "description": "What to expect from your free introductory session",
+      "items": [
+        {
+          "question": "Is the introductory session really free?",
+          "answer": "Yes — the full 2-hour introductory session is completely free. There is no enrollment fee, no credit card required to book, and no hidden charges during or after the session.\n\nWe offer this session so you can experience how Verlin Labs teaches — through clarity, mental models, and live interaction — before making any decision about a paid program. Many learning platforms use a short sales call; we use a structured teaching session instead.",
+          "bullets": [
+            "No payment information is collected when you book",
+            "You are never auto-enrolled in a paid program",
+            "Enrollment in the full track is optional and only discussed if it fits your goals"
+          ]
+        },
+        {
+          "question": "Who is this session designed for?",
+          "answer": "The session is designed for learners at different stages who want to understand AI and technology with clarity — not hype. When you book, you select the audience track that best matches your background so examples, pace, and exercises feel relevant to you.\n\nEach track covers the same clarity-first framework, but the scenarios and depth are adapted for your context.",
+          "bullets": [
+            "School students (Classes 6–12) — intuitive explanations, relatable examples, confidence-building pace",
+            "College engineers — structured frameworks, technical depth, bridge from theory to application",
+            "Working professionals & product managers — decision-ready mental models, product and strategy context",
+            "Parents or educators booking for a student are welcome — note the learner's level when booking"
+          ]
+        },
+        {
+          "question": "How long is the session?",
+          "answer": "The session is scheduled for 2 hours in total. We follow a published agenda with timed segments so you always know what is coming next and how long each part will take.\n\nA short comfort break is built into the flow. If you need to step away briefly, you can rejoin without missing the overall structure — we recap key transitions at each segment.",
+          "bullets": [
+            "0:00–0:15 — Welcome and goal alignment",
+            "0:15–0:45 — Mental models primer (live demonstration)",
+            "0:45–1:15 — Audience-tailored AI deep-dive",
+            "1:15–1:45 — Guided hands-on exercise",
+            "1:45–2:00 — Personalized learning path and open Q&A"
+          ]
+        }
+      ]
     },
     {
-      "question": "Who is this session for?",
-      "answer": "School students (Classes 6–12), college engineers, and working professionals. Content is tailored based on your audience selection."
+      "title": "Before you book",
+      "description": "Requirements and how to get the most from your session",
+      "items": [
+        {
+          "question": "What should I prepare beforehand?",
+          "answer": "Very little preparation is required — the session is designed to be accessible on the day you join. Most attendees spend fewer than 10 minutes getting ready.\n\nWe recommend joining from a quiet space with a stable internet connection so you can participate in discussion and the hands-on segment comfortably.",
+          "bullets": [
+            "Laptop or tablet with camera/microphone (either is optional but helpful for interaction)",
+            "Stable internet connection — wired or strong Wi‑Fi is ideal for screen sharing moments",
+            "Notebook or digital notes if you like capturing frameworks (not required)",
+            "One question you would like clarity on — AI, learning, or your career path",
+            "No pre-reading, coding environment, or paid tools required"
+          ]
+        },
+        {
+          "question": "Do I need a technical or AI background?",
+          "answer": "No prior AI or programming background is required. The session is intentionally clarity-first: we start with mental models and build understanding step by step rather than assuming specialist knowledge.\n\nIf you do have a technical background, you will still benefit — we go deeper on application and trade-offs in the engineer and professional tracks. If you are completely new, you will not be left behind; jargon is introduced only after the underlying idea is clear.",
+          "bullets": [
+            "Beginners receive plain-language explanations and visual frameworks",
+            "Engineers explore how concepts connect to systems, data, and implementation choices",
+            "Professionals focus on product decisions, communication, and stakeholder context",
+            "All tracks include live Q&A — ask at whatever level makes sense for you"
+          ]
+        }
+      ]
     },
     {
-      "question": "What do I need to prepare?",
-      "answer": "Just bring curiosity and a stable internet connection. No prior AI knowledge required."
-    },
-    {
-      "question": "How long is the session?",
-      "answer": "Exactly 2 hours, including a short break. We respect your time."
-    },
-    {
-      "question": "What happens after the free session?",
-      "answer": "You'll receive a summary and optional next steps. If the full course fits your goals, we'll share enrollment details — no pressure."
-    },
-    {
-      "question": "Can I reschedule?",
-      "answer": "Yes. Use the link in your confirmation email to reschedule up to 24 hours before your session."
+      "title": "Booking & next steps",
+      "description": "Scheduling, follow-up, and what happens after",
+      "items": [
+        {
+          "question": "Can I reschedule or cancel?",
+          "answer": "Yes — you can reschedule or cancel from the link in your confirmation email. We ask for at least 24 hours' notice so the slot can be offered to another learner on the waitlist.\n\nIf you need to change plans inside the 24-hour window due to an emergency, contact us and we will do our best to accommodate you. Late cancellations may be limited to one free change per booking.",
+          "bullets": [
+            "Reschedule or cancel via the confirmation email link (no login required)",
+            "Free changes up to 24 hours before your scheduled start time",
+            "You will receive an updated calendar invite after rescheduling",
+            "No-show without notice may require rebooking through the contact page"
+          ]
+        },
+        {
+          "question": "What happens after the session ends?",
+          "answer": "After the session, you receive a concise follow-up by email within 1–2 business days. This summarizes what we covered, highlights the frameworks we used, and outlines sensible next steps based on your audience track and goals.\n\nIf the full program is a good fit, we share enrollment information and syllabus details — but there is no hard sell and no time-limited pressure. Many attendees use only the free session and resources to continue learning independently.",
+          "bullets": [
+            "Session summary and key mental models recap",
+            "Personalized learning path recommendation for your track",
+            "Optional overview of the full Verlin Labs program structure",
+            "Invitation to book office hours or contact support if you have follow-up questions",
+            "No obligation to enroll — you decide if and when to continue"
+          ]
+        },
+        {
+          "question": "Will I receive resources afterward?",
+          "answer": "Yes. Every attendee receives a curated starter pack of resources selected for their audience track. These are meant to help you keep momentum after the live session, not replace it.\n\nResources typically include reading links, framework cheat-sheets, and suggested practice prompts. Full program learners later get access to session recordings, structured modules, and progress tracking through the My Course dashboard.",
+          "bullets": [
+            "Starter reading list and framework reference sheet (PDF or Notion-style summary)",
+            "Practice prompts based on the hands-on segment from your session",
+            "Links to relevant Verlin Labs library and mental model guides",
+            "Live session recordings are not shared by default to protect open discussion",
+            "Enrolled program learners access recordings and syllabus via My Course"
+          ]
+        }
+      ]
     }
   ]
 }

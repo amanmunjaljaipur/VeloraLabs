@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { VideoProgressBar } from "@/components/ui/VideoProgressBar";
 import type { AudienceSlug, CoursePhase } from "@/lib/content";
 import { buildSessionId } from "@/lib/session-videos";
 import { PlayCircle, Video } from "lucide-react";
@@ -9,14 +10,19 @@ interface CourseCurriculumProps {
   phases: CoursePhase[];
   audience: AudienceSlug;
   sessionVideoIds?: string[];
+  videoProgressMap?: Record<string, number>;
+  completedDays?: number[];
 }
 
 export function CourseCurriculum({
   phases,
   audience,
   sessionVideoIds = [],
+  videoProgressMap = {},
+  completedDays = [],
 }: CourseCurriculumProps) {
   const videoSet = new Set(sessionVideoIds);
+  const completedSet = new Set(completedDays);
 
   return (
     <div className="space-y-16">
@@ -27,6 +33,8 @@ export function CourseCurriculum({
             {phase.days.map((day) => {
               const sessionId = buildSessionId(audience, day.day);
               const hasVideo = videoSet.has(sessionId);
+              const isCompleted = completedSet.has(day.day);
+              const videoPercent = isCompleted ? 100 : (videoProgressMap[sessionId] ?? 0);
 
               return (
                 <Link key={day.day} href={`/sessions/${sessionId}`} className="block h-full group">
@@ -50,6 +58,9 @@ export function CourseCurriculum({
                       )}
                     </div>
                     <p className="text-sm text-text-secondary leading-relaxed mb-4">{day.description}</p>
+                    {hasVideo && (
+                      <VideoProgressBar percent={videoPercent} className="mb-4" />
+                    )}
                     <div className="mt-auto">
                       <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2">
                         {day.activities ? "Activities" : "Topics"}
@@ -68,7 +79,13 @@ export function CourseCurriculum({
                         </Badge>
                       )}
                       <p className="mt-4 text-xs font-medium text-teal opacity-0 group-hover:opacity-100 transition-opacity">
-                        {hasVideo ? "Watch session →" : "Open session →"}
+                        {hasVideo
+                          ? isCompleted
+                            ? "Review session →"
+                            : videoPercent > 0 && videoPercent < 100
+                              ? "Resume session →"
+                              : "Watch session →"
+                          : "Open session →"}
                       </p>
                     </div>
                   </Card>

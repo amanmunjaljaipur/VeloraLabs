@@ -4,7 +4,7 @@ import { FreeSessionHero } from "@/components/sections/FreeSessionHero";
 import { SessionAgenda } from "@/components/sections/SessionAgenda";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
-import { Accordion } from "@/components/ui/Accordion";
+import { SessionFaq } from "@/components/sections/SessionFaq";
 import { FreeSessionBooking } from "./FreeSessionBooking";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAudiences, getFreeSession, getTestimonials } from "@/lib/content";
@@ -76,14 +76,7 @@ export default async function FreeSessionPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 border-t border-border">
-        <div className="mx-auto max-w-3xl px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">
-            Frequently asked questions
-          </h2>
-          <Accordion items={freeSession.faqs} />
-        </div>
-      </section>
+      <SessionFaq categories={freeSession.faqCategories} />
     </>
   );
 }

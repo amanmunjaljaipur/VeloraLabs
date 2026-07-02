@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { VideoProgressBar } from "@/components/ui/VideoProgressBar";
 import type { LearnerDashboardData } from "@/lib/learner-dashboard";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
@@ -71,7 +72,7 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-sm font-medium uppercase tracking-wider text-teal">
-                {ROLE_LABELS[role]} · Your learning path
+                {ROLE_LABELS[role]} · Dashboard
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">
                 Welcome back, {firstName}
@@ -90,17 +91,17 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
                     </Button>
                   </Link>
                 ) : (
-                  <Link href={`/for/${data.audience}#curriculum`}>
+                  <Link href="/my-course">
                     <Button size="lg">
                       <CheckCircle2 className="h-5 w-5" />
-                      Review course
+                      My Course
                     </Button>
                   </Link>
                 )}
-                <Link href={`/for/${data.audience}#curriculum`}>
+                <Link href="/my-course">
                   <Button size="lg" variant="secondary">
                     <BookOpen className="h-5 w-5" />
-                    Full curriculum
+                    View syllabus
                   </Button>
                 </Link>
               </div>
@@ -177,9 +178,18 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
                           <p className="mt-0.5 line-clamp-1 text-sm text-text-secondary">
                             {day.description}
                           </p>
+                          {day.hasVideo && (
+                            <div className="mt-2 max-w-xs">
+                              <VideoProgressBar percent={day.videoPercent} />
+                            </div>
+                          )}
                         </div>
                         <span className="shrink-0 text-xs font-medium text-teal">
-                          {day.completed ? "Review" : "Start"}
+                          {day.hasVideo && day.videoPercent > 0 && day.videoPercent < 100
+                            ? "Resume"
+                            : day.completed
+                              ? "Review"
+                              : "Start"}
                         </span>
                       </Link>
                     </li>

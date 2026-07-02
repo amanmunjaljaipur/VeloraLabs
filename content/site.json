@@ -4,7 +4,7 @@
   "description": "A clarity-first learning platform that helps people deeply understand complex ideas — especially AI and technology — through strong mental models.",
   "nav": [
     { "label": "Free Session", "href": "/free-session" },
-    { "label": "Courses", "href": "/courses" },
+    { "label": "Programs", "href": "/courses" },
     { "label": "Library", "href": "/library" },
     { "label": "Mental Models", "href": "/mental-models" },
     { "label": "About", "href": "/about" }
@@ -13,7 +13,7 @@
     "tagline": "Clarity-first learning for builders, students, and professionals.",
     "links": [
       { "label": "Free Session", "href": "/free-session" },
-      { "label": "Courses", "href": "/courses" },
+      { "label": "Programs", "href": "/courses" },
       { "label": "Resources", "href": "/resources" },
       { "label": "Contact", "href": "/contact" }
     ],

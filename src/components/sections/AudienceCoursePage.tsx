@@ -23,9 +23,20 @@ interface AudienceCoursePageProps {
   slug: AudienceSlug;
   course: CourseContent;
   isEnrolled?: boolean;
+  videoProgressMap?: Record<string, number>;
+  completedDays?: number[];
+  variant?: "catalog" | "my-course";
 }
 
-export function AudienceCoursePage({ slug, course, isEnrolled = false }: AudienceCoursePageProps) {
+export function AudienceCoursePage({
+  slug,
+  course,
+  isEnrolled = false,
+  videoProgressMap = {},
+  completedDays = [],
+  variant = "catalog",
+}: AudienceCoursePageProps) {
+  const isMyCourse = variant === "my-course";
   const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
   const sessionVideos = getAllSessionVideos();
   const sessionVideoIds = course.phases
@@ -42,22 +53,32 @@ export function AudienceCoursePage({ slug, course, isEnrolled = false }: Audienc
         <div className="relative mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-14 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-teal uppercase tracking-wider">
-              {audienceLabels[slug]}
+              {isMyCourse ? "My Course" : audienceLabels[slug]}
             </p>
             <h1 className="mt-1 text-2xl md:text-3xl font-semibold text-foreground">{course.title}</h1>
             <p className="mt-1 text-sm text-text-secondary">{course.duration}</p>
+            {isMyCourse && (
+              <p className="mt-1 text-sm text-text-secondary">{audienceLabels[slug]}</p>
+            )}
             {isEnrolled && (
               <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1 text-xs font-medium text-teal">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Enrolled
+                {isMyCourse ? "Active enrollment" : "Enrolled"}
               </p>
             )}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 shrink-0">
             {isEnrolled ? (
-              <Link href="/">
-                <Button size="sm">Continue learning</Button>
-              </Link>
+              <>
+                <Link href="/">
+                  <Button size="sm">{isMyCourse ? "Go to dashboard" : "Dashboard"}</Button>
+                </Link>
+                {!isMyCourse && (
+                  <Link href="/my-course">
+                    <Button size="sm" variant="secondary">My Course</Button>
+                  </Link>
+                )}
+              </>
             ) : (
               <>
                 <Link href={`/free-session?audience=${slug}`}>
@@ -77,9 +98,13 @@ export function AudienceCoursePage({ slug, course, isEnrolled = false }: Audienc
           <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-foreground">
-                {dayCount}-Day Course Structure
+                {isMyCourse ? "Syllabus" : `${dayCount}-Day Program Structure`}
               </h2>
-              <p className="mt-2 text-text-secondary max-w-2xl">{course.description}</p>
+              <p className="mt-2 text-text-secondary max-w-2xl">
+                {isMyCourse
+                  ? `${course.phases.length} modules · ${dayCount} lessons — pick up any session below.`
+                  : course.description}
+              </p>
             </div>
             <p className="text-sm font-medium text-teal shrink-0">{course.duration}</p>
           </div>
@@ -87,6 +112,8 @@ export function AudienceCoursePage({ slug, course, isEnrolled = false }: Audienc
             phases={course.phases}
             audience={slug}
             sessionVideoIds={sessionVideoIds}
+            videoProgressMap={videoProgressMap}
+            completedDays={completedDays}
           />
         </div>
       </section>

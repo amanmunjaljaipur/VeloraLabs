@@ -9,8 +9,8 @@ import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Courses & Programs",
-  description: "Clarity-first programs for school students, college engineers, and product managers.",
+  title: "Programs",
+  description: "Clarity-first learning programs for school students, college engineers, and product managers.",
 };
 
 const icons = {
@@ -35,13 +35,29 @@ export default async function CoursesPage() {
   return (
     <>
       <PageHeader
-        title="Courses & Programs"
+        title="Programs"
         subtitle={
           isEnrolled
-            ? "You're enrolled — open your program to continue where you left off."
-            : "Choose the path that fits your stage — each program opens with the full course structure."
+            ? "Browse all Verlin Labs programs, or go to My Course to continue your enrolled track."
+            : "Choose the program that fits your stage — each track includes the full syllabus and session structure."
         }
       />
+
+      {isEnrolled && (
+        <section className="border-b border-border bg-teal/5">
+          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:flex-row sm:items-center md:px-8">
+            <div>
+              <p className="text-sm font-medium text-teal">You&apos;re enrolled</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                Open My Course to view your syllabus and session recordings.
+              </p>
+            </div>
+            <Link href="/my-course">
+              <Button size="sm">My Course</Button>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="pb-16 md:pb-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -72,7 +88,7 @@ export default async function CoursesPage() {
                         </p>
                       </div>
                       <span className="flex items-center gap-1 text-sm font-medium text-teal group-hover:gap-2 transition-all">
-                        {isEnrolled ? "Open program" : "View structure"}{" "}
+                        {isEnrolled ? "View syllabus" : "View program"}{" "}
                         <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>

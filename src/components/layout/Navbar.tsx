@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
+const MY_COURSE_NAV = { label: "My Course", href: "/my-course" };
 const ADMIN_PANEL_NAV = { label: "Admin Panel", href: "/admin/role-assignment" };
 const ADMIN_SESSIONS_NAV = { label: "Session Videos", href: "/admin/sessions" };
 
@@ -28,7 +29,11 @@ export function Navbar({ nav }: NavbarProps) {
     ...(isAdmin ? [ADMIN_PANEL_NAV, ADMIN_SESSIONS_NAV] : []),
   ];
   const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
-  const navItems = adminNav.length > 0 ? [...baseNav, ...adminNav] : baseNav;
+  const learnerNav = isEnrolled ? [MY_COURSE_NAV] : [];
+  const navItems =
+    adminNav.length > 0
+      ? [...learnerNav, ...baseNav, ...adminNav]
+      : [...learnerNav, ...baseNav];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

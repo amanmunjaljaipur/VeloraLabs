@@ -1,5 +1,6 @@
+import type { AudienceSlug } from "@/lib/content";
 import { hasCustomRoleAssignment } from "@/lib/roles";
-import { isLearnerRole } from "@/lib/session-access";
+import { getAudienceForRole, isLearnerRole } from "@/lib/session-access";
 import type { UserRole } from "@/types/roles";
 
 export function isEnrolledLearner(
@@ -8,4 +9,12 @@ export function isEnrolledLearner(
 ): boolean {
   if (!email || !role) return false;
   return hasCustomRoleAssignment(email) && isLearnerRole(role);
+}
+
+export function getEnrolledLearnerAudience(
+  email: string | null | undefined,
+  role: UserRole | undefined
+): AudienceSlug | null {
+  if (!isEnrolledLearner(email, role)) return null;
+  return getAudienceForRole(role!);
 }

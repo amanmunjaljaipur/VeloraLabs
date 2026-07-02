@@ -2,7 +2,8 @@ import type { AudienceSlug, CourseContent } from "@/lib/content";
 import { getCourseTrack } from "@/lib/content";
 import { getCourseProgress } from "@/lib/course-progress";
 import { getAudienceForRole } from "@/lib/session-access";
-import { buildSessionId } from "@/lib/session-videos";
+import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
+import { getAllVideoProgressForUser } from "@/lib/video-progress";
 import type { UserRole } from "@/types/roles";
 
 export interface ModuleProgress {
@@ -16,6 +17,8 @@ export interface ModuleProgress {
     completed: boolean;
     sessionId: string;
     description: string;
+    hasVideo: boolean;
+    videoPercent: number;
   }[];
 }
 
@@ -45,15 +48,24 @@ export function buildLearnerDashboard(email: string, role: UserRole): LearnerDas
   const course = getCourseTrack(audience);
   const progress = getCourseProgress(email);
   const completedSet = new Set(progress.completedDays);
+  const sessionVideos = getAllSessionVideos();
+  const videoProgress = getAllVideoProgressForUser(email);
 
   const modules: ModuleProgress[] = course.phases.map((phase) => {
-    const days = phase.days.map((day) => ({
-      day: day.day,
-      title: day.title,
-      completed: completedSet.has(day.day),
-      sessionId: buildSessionId(audience, day.day),
-      description: day.description,
-    }));
+    const days = phase.days.map((day) => {
+      const sessionId = buildSessionId(audience, day.day);
+      return {
+        day: day.day,
+        title: day.title,
+        completed: completedSet.has(day.day),
+        sessionId,
+        description: day.description,
+        hasVideo: sessionId in sessionVideos,
+        videoPercent: completedSet.has(day.day)
+          ? 100
+          : (videoProgress[sessionId]?.percent ?? 0),
+      };
+    });
 
     const completedInModule = days.filter((day) => day.completed).length;
 

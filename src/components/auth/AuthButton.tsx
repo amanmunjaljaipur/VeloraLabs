@@ -107,6 +107,17 @@ export function AuthButton({ className }: { className?: string }) {
               </div>
             )}
 
+            {session.user.enrolledLearner && (
+              <Link
+                href="/my-course"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                My Course
+              </Link>
+            )}
+
             <button
               type="button"
               role="menuitem"
