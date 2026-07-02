@@ -25,7 +25,7 @@ export default async function AdminSessionsPage() {
     <>
       <PageHeader
         title="Session Videos"
-        subtitle="Click a session to add or update its YouTube recording. Learners watch videos embedded on the site after signing in."
+        subtitle="Manage recordings by program and module — the same structure as Programs. Select a track, open a lesson, and paste the YouTube link."
       />
       <SessionVideosPanel />
     </>
