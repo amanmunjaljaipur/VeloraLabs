@@ -1,19 +1,18 @@
-import fs from "fs";
-import path from "path";
+import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 import { DEFAULT_ROLE, UserRole } from "@/types/roles";
 
 type UserRolesConfig = Record<string, UserRole>;
 
-const rolesFilePath = path.join(process.cwd(), "content", "user-roles.json");
+const ROLES_FILE = "user-roles.json";
 
 let cachedRoles: UserRolesConfig | null = null;
 
 function readUserRolesFile(): UserRolesConfig {
-  return JSON.parse(fs.readFileSync(rolesFilePath, "utf8")) as UserRolesConfig;
+  return readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
 }
 
 function writeUserRolesFile(roles: UserRolesConfig): void {
-  fs.writeFileSync(rolesFilePath, `${JSON.stringify(roles, null, 2)}\n`, "utf8");
+  writeJsonFile(ROLES_FILE, roles, "{}");
   cachedRoles = null;
 }
 

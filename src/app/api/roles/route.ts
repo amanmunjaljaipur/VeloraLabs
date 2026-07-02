@@ -1,6 +1,12 @@
 import { auth } from "@/auth";
 import { getUsersWithoutRoleAssignment } from "@/lib/known-users";
-import { getAllUserRoles, getRoleForEmail, removeUserRole, setUserRole } from "@/lib/roles";
+import {
+  getAllUserRoles,
+  getRoleForEmail,
+  hasCustomRoleAssignment,
+  removeUserRole,
+  setUserRole,
+} from "@/lib/roles";
 import { isAdminRole } from "@/lib/session-access";
 import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,6 +20,8 @@ const assignSchema = z.object({
 const removeSchema = z.object({
   email: z.string().email(),
 });
+
+export const runtime = "nodejs";
 
 async function requireRoleManager() {
   const session = await auth();
@@ -81,12 +89,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existingRole = getRoleForEmail(email);
-    if (existingRole && !canManageAssignment(actorRole, existingRole)) {
-      return NextResponse.json(
-        { error: "You cannot change Admin or Super Admin assignments" },
-        { status: 403 }
-      );
+    if (hasCustomRoleAssignment(email)) {
+      const existingRole = getRoleForEmail(email);
+      if (!canManageAssignment(actorRole, existingRole)) {
+        return NextResponse.json(
+          { error: "You cannot change Admin or Super Admin assignments" },
+          { status: 403 }
+        );
+      }
     }
 
     if (email === session.user.email?.toLowerCase() && parsed.data.role !== actorRole) {
@@ -103,7 +113,8 @@ export async function POST(req: NextRequest) {
         label: ROLE_LABELS[parsed.data.role],
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("Role assignment failed:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
@@ -124,13 +135,14 @@ export async function DELETE(req: NextRequest) {
 
     const email = parsed.data.email.toLowerCase().trim();
     const actorRole = session.user.role;
-    const existingRole = getRoleForEmail(email);
-
-    if (existingRole && !canManageAssignment(actorRole, existingRole)) {
-      return NextResponse.json(
-        { error: "You cannot remove Admin or Super Admin assignments" },
-        { status: 403 }
-      );
+    if (hasCustomRoleAssignment(email)) {
+      const existingRole = getRoleForEmail(email);
+      if (!canManageAssignment(actorRole, existingRole)) {
+        return NextResponse.json(
+          { error: "You cannot remove Admin or Super Admin assignments" },
+          { status: 403 }
+        );
+      }
     }
 
     if (email === session.user.email?.toLowerCase()) {
