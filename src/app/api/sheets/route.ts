@@ -1,3 +1,4 @@
+import { enrichBookingPayload } from "@/lib/sheets-booking";
 import { submitToGoogleSheet } from "@/lib/google-sheets";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -10,6 +11,7 @@ const bookingSchema = z.object({
   date: z.string().min(1),
   time: z.string().min(1),
   bookingId: z.string().optional(),
+  timezone: z.string().optional(),
 });
 
 const contactSchema = z.object({
@@ -42,7 +44,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const synced = await submitToGoogleSheet(parsed.data);
+    const payload =
+      parsed.data.type === "booking"
+        ? enrichBookingPayload(parsed.data)
+        : parsed.data;
+
+    const synced = await submitToGoogleSheet(payload);
 
     return NextResponse.json({
       success: true,

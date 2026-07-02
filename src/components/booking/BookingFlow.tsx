@@ -100,6 +100,7 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       date: selectedDate.toISOString().split("T")[0],
       time: selectedSlot.time,
       bookingId: result.bookingId || "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
 
     const params = new URLSearchParams({
