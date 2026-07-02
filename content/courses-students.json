@@ -1,0 +1,109 @@
+{
+  "title": "AI Explorers for School Students",
+  "subtitle": "Classes 6–12 · Understand tech with clarity, not confusion",
+  "description": "An 8-day friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects.",
+  "price": "₹9,999",
+  "duration": "8 days · 2 phases",
+  "phases": [
+    {
+      "title": "Phase 1: Understanding the Digital World",
+      "days": [
+        {
+          "day": 1,
+          "title": "What is AI, Really?",
+          "description": "Discover what artificial intelligence means using everyday analogies — no scary jargon, just clear mental models.",
+          "topics": [
+            "AI vs human intelligence",
+            "How machines 'learn' patterns",
+            "Real-world AI you already use",
+            "Myths vs facts about AI"
+          ]
+        },
+        {
+          "day": 2,
+          "title": "How Apps & the Internet Work",
+          "description": "Build intuition for how your phone, apps, and the internet connect — explained like a story, not a textbook.",
+          "topics": [
+            "What happens when you tap an app",
+            "How data travels online",
+            "Cloud storage explained simply",
+            "Privacy basics every student should know"
+          ]
+        },
+        {
+          "day": 3,
+          "title": "ChatGPT & AI Assistants — Safely",
+          "description": "Learn to use AI assistants responsibly for homework help, curiosity, and creativity — with clear do's and don'ts.",
+          "topics": [
+            "What ChatGPT can and cannot do",
+            "Safe and ethical AI use for students",
+            "Asking better questions",
+            "When to trust (and not trust) AI answers"
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Mental Models for Learning Tech",
+          "description": "Learn Verlin's clarity-first frameworks so any new technology feels understandable instead of overwhelming.",
+          "topics": [
+            "The Information Pipeline model",
+            "Breaking big ideas into small pieces",
+            "How to learn any tech topic",
+            "Building your personal tech notebook"
+          ],
+          "assignment": "Start your AI Explorer Journal"
+        }
+      ]
+    },
+    {
+      "title": "Phase 2: Create & Explore",
+      "days": [
+        {
+          "day": 5,
+          "title": "Prompting Like a Pro (Beginner)",
+          "description": "Practice writing prompts that get helpful, accurate responses — a superpower for school projects and curiosity.",
+          "topics": [
+            "Good vs bad prompts",
+            "Step-by-step prompting",
+            "Using AI for explanations and revision",
+            "Creative projects with AI"
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Fun with AI Tools",
+          "description": "Explore age-appropriate AI tools for learning, creativity, and problem-solving in a guided hands-on session.",
+          "topics": [
+            "AI for study and revision",
+            "Image and story creation",
+            "Research helpers",
+            "Tool safety checklist"
+          ]
+        },
+        {
+          "day": 7,
+          "title": "Mini Project — Solve a Real Problem",
+          "description": "Apply everything you've learned to a small project — pick a problem you care about and use AI + mental models to explore solutions.",
+          "topics": [
+            "Choosing a project topic",
+            "Research with AI assistance",
+            "Presenting your findings",
+            "Getting feedback from mentors"
+          ]
+        },
+        {
+          "day": 8,
+          "title": "Showcase & Next Steps",
+          "description": "Present your project, celebrate what you've learned, and get a personalized roadmap for continuing your tech journey.",
+          "activities": [
+            "Project showcase",
+            "Peer presentations",
+            "Mentor feedback",
+            "Certificate ceremony",
+            "Personalized learning roadmap"
+          ]
+        }
+      ]
+    }
+  ]
+}

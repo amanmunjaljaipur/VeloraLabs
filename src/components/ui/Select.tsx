@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 import { SelectHTMLAttributes, forwardRef } from "react";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -19,25 +20,31 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {label}
           </label>
         )}
-        <select
-          ref={ref}
-          id={selectId}
-          aria-invalid={!!error}
-          className={cn(
-            "h-12 w-full rounded-xl border border-border bg-card px-4 text-foreground",
-            "transition-colors appearance-none cursor-pointer",
-            "focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none",
-            error && "border-red-500",
-            className
-          )}
-          {...props}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            ref={ref}
+            id={selectId}
+            aria-invalid={!!error}
+            className={cn(
+              "h-12 w-full rounded-xl border border-border bg-card px-4 pr-10 text-foreground",
+              "transition-colors appearance-none cursor-pointer",
+              "focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none",
+              error && "border-red-500",
+              className
+            )}
+            {...props}
+          >
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary"
+            aria-hidden="true"
+          />
+        </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );

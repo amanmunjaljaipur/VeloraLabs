@@ -10,7 +10,8 @@ import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { fetchSlots, createBooking, type TimeSlot } from "@/lib/booking/calcom";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
+import { submitForm } from "@/lib/submit-to-sheets";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -91,6 +92,16 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       return;
     }
 
+    await submitForm({
+      type: "booking",
+      name: values.name,
+      email: values.email,
+      audience: values.audience,
+      date: selectedDate.toISOString().split("T")[0],
+      time: selectedSlot.time,
+      bookingId: result.bookingId || "",
+    });
+
     const params = new URLSearchParams({
       date: selectedDate.toISOString().split("T")[0],
       time: selectedSlot.time,
@@ -102,19 +113,55 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
 
   const availableSlots = slots.filter((s) => s.available > 0);
 
+  const steps = [
+    { label: "Date", done: !!selectedDate, active: !selectedDate },
+    { label: "Time", done: !!selectedSlot, active: !!selectedDate && !selectedSlot },
+    { label: "Details", done: false, active: !!selectedSlot },
+  ];
+
   return (
-    <div id="book" className="space-y-8">
+    <div className="space-y-8">
+      <ol className="flex items-center gap-2 sm:gap-4">
+        {steps.map((step, i) => (
+          <li key={step.label} className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                  step.done && "bg-teal text-white",
+                  step.active && !step.done && "bg-teal/15 text-teal ring-2 ring-teal/30",
+                  !step.done && !step.active && "bg-muted text-text-secondary"
+                )}
+              >
+                {step.done ? "✓" : i + 1}
+              </span>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  step.active || step.done ? "text-foreground" : "text-text-secondary"
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="hidden h-px w-6 bg-border sm:block md:w-10" aria-hidden="true" />
+            )}
+          </li>
+        ))}
+      </ol>
+
       <div className="grid gap-8 lg:grid-cols-2">
         <div>
-          <h3 className="text-lg font-semibold mb-4">Select a Date</h3>
+          <h3 className="text-base font-semibold mb-4">1. Select a date</h3>
           <Calendar
             selected={selectedDate}
             onSelect={setSelectedDate}
           />
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-4">
-            {selectedDate ? `Time Slots — ${formatDate(selectedDate)}` : "Select a date first"}
+          <h3 className="text-base font-semibold mb-4">
+            {selectedDate ? `2. Time slots — ${formatDate(selectedDate)}` : "2. Select a time"}
           </h3>
           {loadingSlots && (
             <div className="flex items-center justify-center py-16">
@@ -151,8 +198,8 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
         </div>
       </div>
 
-      <form onSubmit={onRequestConfirm} className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
-        <h3 className="text-lg font-semibold">Your Details</h3>
+      <form onSubmit={onRequestConfirm} className="rounded-2xl border border-border bg-muted/40 p-6 space-y-6">
+        <h3 className="text-base font-semibold">3. Your details</h3>
         <div className="grid gap-6 md:grid-cols-2">
           <Input label="Full Name" placeholder="Your name" error={errors.name?.message} {...register("name")} />
           <Input label="Email" type="email" placeholder="you@example.com" error={errors.email?.message} {...register("email")} />
@@ -168,8 +215,8 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
           error={errors.audience?.message}
           {...register("audience")}
         />
-        <Button type="submit" size="lg" className="w-full sm:w-auto">
-          Confirm Booking
+        <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!selectedDate || !selectedSlot}>
+          Confirm booking
         </Button>
       </form>
 

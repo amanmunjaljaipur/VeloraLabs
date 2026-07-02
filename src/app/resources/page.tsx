@@ -18,7 +18,7 @@ export default async function ResourcesPage() {
       />
       <section className="pb-16 md:pb-24">
         <div
-          className="prose-velora mx-auto max-w-3xl px-4 md:px-8"
+          className="prose-verlin mx-auto max-w-3xl px-4 md:px-8"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </section>

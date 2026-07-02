@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Continue Your Journey",
-  description: "See how the full Velora Labs program builds on your free session experience.",
+  description: "See how the full Verlin Labs program builds on your free session experience.",
 };
 
 export default function PostSessionPage() {

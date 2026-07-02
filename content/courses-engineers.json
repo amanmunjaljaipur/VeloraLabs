@@ -1,0 +1,136 @@
+{
+  "title": "AI Engineering Foundations",
+  "subtitle": "For college engineers · From theory to shipped projects",
+  "description": "A 10-day intensive program for engineering students who want deep intuition for AI systems, hands-on API projects, and portfolio-ready work for internships and interviews.",
+  "price": "₹14,999",
+  "duration": "10 days · 3 phases",
+  "phases": [
+    {
+      "title": "Phase 1: AI Systems Deep Dive",
+      "days": [
+        {
+          "day": 1,
+          "title": "LLMs, Tokens & Transformers",
+          "description": "Build strong mental models for how large language models work — tokens, attention, and prediction — without getting lost in math.",
+          "topics": [
+            "Tokenization and embeddings",
+            "Transformer architecture intuition",
+            "Training vs inference",
+            "Model capabilities and limits"
+          ]
+        },
+        {
+          "day": 2,
+          "title": "APIs, Embeddings & Vector Basics",
+          "description": "Understand the building blocks of modern AI applications — APIs, vector stores, and how data flows through AI systems.",
+          "topics": [
+            "REST APIs for LLM services",
+            "Embeddings explained practically",
+            "Vector similarity search",
+            "Cost and latency considerations"
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Prompt Engineering & Tool Use",
+          "description": "Master structured prompting, chain-of-thought, and function calling — the skills that separate hobbyists from engineers.",
+          "topics": [
+            "System prompts and few-shot learning",
+            "Structured outputs (JSON mode)",
+            "Function calling and tool use",
+            "Evaluation and iteration"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Phase 2: Building with AI",
+      "days": [
+        {
+          "day": 4,
+          "title": "RAG Architecture",
+          "description": "Design and implement Retrieval-Augmented Generation pipelines — the most common pattern in production AI apps.",
+          "topics": [
+            "Chunking and indexing strategies",
+            "Retrieval quality and reranking",
+            "Context window management",
+            "RAG evaluation metrics"
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Fine-Tuning vs Prompting",
+          "description": "Learn when to prompt, when to fine-tune, and when to use both — with clear decision frameworks.",
+          "topics": [
+            "Fine-tuning use cases",
+            "LoRA and parameter-efficient methods",
+            "Data preparation for fine-tuning",
+            "Build vs buy decisions"
+          ]
+        },
+        {
+          "day": 6,
+          "title": "Building with LLM APIs",
+          "description": "Hands-on session building a real application using LLM APIs — from design to working prototype.",
+          "topics": [
+            "Project architecture",
+            "Streaming responses",
+            "Error handling and retries",
+            "Rate limits and caching"
+          ]
+        },
+        {
+          "day": 7,
+          "title": "Agents & Workflows",
+          "description": "Explore multi-step AI agents, workflow orchestration, and when agentic patterns add value vs complexity.",
+          "topics": [
+            "Agent loops and planning",
+            "Tool orchestration patterns",
+            "LangChain / LangGraph concepts",
+            "Debugging agent failures"
+          ],
+          "assignment": "Build an API-powered mini app"
+        }
+      ]
+    },
+    {
+      "title": "Phase 3: Ship & Interview Prep",
+      "days": [
+        {
+          "day": 8,
+          "title": "System Design for AI Apps",
+          "description": "Apply system design mental models to AI-powered applications — scalability, reliability, and cost at scale.",
+          "topics": [
+            "Architecture patterns for AI apps",
+            "Caching and batching strategies",
+            "Monitoring and observability",
+            "Common interview system design questions"
+          ]
+        },
+        {
+          "day": 9,
+          "title": "Portfolio Project Sprint",
+          "description": "Dedicated build day to polish your portfolio project with mentor feedback and code review.",
+          "topics": [
+            "README and documentation",
+            "Demo video creation",
+            "GitHub portfolio best practices",
+            "Code review session"
+          ]
+        },
+        {
+          "day": 10,
+          "title": "Demo Day & Interview Prep",
+          "description": "Present your project, practice technical interview questions, and get a personalized career roadmap.",
+          "activities": [
+            "Project demo presentation",
+            "Technical Q&A practice",
+            "Resume and LinkedIn review",
+            "Mock interview round",
+            "Certificate and next steps"
+          ]
+        }
+      ]
+    }
+  ]
+}

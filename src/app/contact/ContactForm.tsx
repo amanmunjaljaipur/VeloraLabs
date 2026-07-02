@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { submitForm } from "@/lib/submit-to-sheets";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,8 +25,13 @@ export function ContactForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  const onSubmit = async () => {
-    await new Promise((r) => setTimeout(r, 500));
+  const onSubmit = async (data: FormData) => {
+    await submitForm({
+      type: "contact",
+      name: data.name,
+      email: data.email,
+      message: data.message,
+    });
     toast("Message sent! We'll get back to you within 24 hours.", "success");
     reset();
   };

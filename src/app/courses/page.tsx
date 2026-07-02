@@ -1,68 +1,83 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Accordion } from "@/components/ui/Accordion";
-import { getCourses } from "@/lib/content";
+import { getAllCourseTracks } from "@/lib/content";
 import Link from "next/link";
+import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Courses & Programs",
-  description: "The full 8-week Velora Labs program — from mental models to mastery.",
+  description: "Clarity-first programs for school students, college engineers, and product managers.",
+};
+
+const icons = {
+  students: GraduationCap,
+  engineers: Code,
+  professionals: Briefcase,
+};
+
+const labels = {
+  students: "School Students (Classes 6–12)",
+  engineers: "College Engineers",
+  professionals: "Product Managers",
 };
 
 export default function CoursesPage() {
-  const courses = getCourses();
-
-  const curriculumItems = courses.curriculum.map((section) => ({
-    question: section.title,
-    answer: section.topics.map((t) => `• ${t}`).join("\n"),
-  }));
+  const tracks = getAllCourseTracks();
 
   return (
     <>
-      <PageHeader title={courses.title} subtitle={courses.subtitle}>
-        <p className="text-text-secondary leading-relaxed max-w-2xl">{courses.description}</p>
-      </PageHeader>
+      <PageHeader
+        title="Courses & Programs"
+        subtitle="Choose the path that fits your stage — each program opens with the full course structure."
+      />
 
-      <section className="pb-16">
+      <section className="pb-16 md:pb-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-8">Curriculum</h2>
-          <Accordion items={curriculumItems} />
-        </div>
-      </section>
-
-      <section className="py-16 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Who it&apos;s for</h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {courses.audiences.map((a) => (
-              <Card key={a.slug} hover>
-                <h3 className="font-semibold capitalize text-foreground">
-                  {a.slug === "students" ? "School Students" : a.slug === "engineers" ? "College Engineers" : "Professionals"}
-                </h3>
-                <p className="mt-2 text-sm text-text-secondary">{a.description}</p>
-              </Card>
-            ))}
+            {tracks.map(({ slug, course }) => {
+              const Icon = icons[slug];
+              const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
+              return (
+                <Link key={slug} href={`/for/${slug}`} className="block h-full group">
+                  <Card hover className="h-full flex flex-col">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal/10 text-teal mb-4 group-hover:bg-teal/20 transition-colors">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <p className="text-xs font-medium text-teal uppercase tracking-wider">
+                      {labels[slug]}
+                    </p>
+                    <h3 className="mt-2 text-xl font-semibold text-foreground">{course.title}</h3>
+                    <p className="mt-2 text-sm text-text-secondary leading-relaxed flex-1">
+                      {course.description}
+                    </p>
+                    <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+                      <div>
+                        <p className="font-semibold text-foreground">{course.price}</p>
+                        <p className="text-xs text-text-secondary">{course.duration} · {dayCount} days</p>
+                      </div>
+                      <span className="flex items-center gap-1 text-sm font-medium text-teal group-hover:gap-2 transition-all">
+                        View structure <ArrowRight className="h-4 w-4" />
+                      </span>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section id="enroll" className="py-16 md:py-24">
-        <div className="mx-auto max-w-lg px-4 md:px-8 text-center">
-          <Card className="border-teal ring-2 ring-teal/10">
-            <p className="text-sm font-medium text-teal uppercase tracking-wider">Full Program</p>
-            <p className="mt-4 text-4xl font-semibold text-foreground">{courses.price}</p>
-            <p className="mt-2 text-text-secondary">{courses.duration}</p>
-            <div className="mt-8 flex flex-col gap-3">
-              <Link href="/free-session">
-                <Button size="lg" className="w-full">Book Free Session First</Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="secondary" className="w-full">Enroll Now — Contact Us</Button>
-              </Link>
-            </div>
-          </Card>
+      <section className="py-16 bg-muted/30 text-center">
+        <div className="mx-auto max-w-2xl px-4 md:px-8">
+          <h2 className="text-2xl font-semibold mb-4">Not sure which program fits?</h2>
+          <p className="text-text-secondary mb-8">
+            Start with a free 2-hour session — we&apos;ll help you pick the right path.
+          </p>
+          <Link href="/free-session">
+            <Button size="lg">Book Free 2-Hour Session</Button>
+          </Link>
         </div>
       </section>
     </>

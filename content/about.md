@@ -1,11 +1,11 @@
 ---
-title: About Velora Labs
+title: About Verlin Labs
 subtitle: Clarity-first learning for the AI age
 ---
 
 ## Our Mission
 
-Velora Labs exists because understanding matters more than ever. In a world flooded with AI hype, tutorials, and hot takes, we help people build **deep, durable understanding** through strong mental models.
+Verlin Labs exists because understanding matters more than ever. In a world flooded with AI hype, tutorials, and hot takes, we help people build **deep, durable understanding** through strong mental models.
 
 We believe clarity is not dumbing down — it's the highest form of respect for your intelligence.
 
@@ -18,4 +18,4 @@ We believe clarity is not dumbing down — it's the highest form of respect for 
 
 ## The Team
 
-Velora Labs was founded by educators and engineers who got tired of watching smart people feel dumb because of bad explanations. We combine rigorous technical knowledge with world-class teaching craft.
+Verlin Labs was founded by educators and engineers who got tired of watching smart people feel dumb because of bad explanations. We combine rigorous technical knowledge with world-class teaching craft.

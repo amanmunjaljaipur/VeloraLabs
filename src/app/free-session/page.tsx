@@ -1,9 +1,10 @@
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FreeSessionBenefits } from "@/components/sections/FreeSessionBenefits";
+import { FreeSessionHero } from "@/components/sections/FreeSessionHero";
+import { SessionAgenda } from "@/components/sections/SessionAgenda";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
 import { Accordion } from "@/components/ui/Accordion";
-import { Card } from "@/components/ui/Card";
-import { BookingSection } from "./BookingSection";
+import { FreeSessionBooking } from "./FreeSessionBooking";
 import { getAudiences, getFreeSession, getTestimonials } from "@/lib/content";
 import type { Metadata } from "next";
 
@@ -19,46 +20,44 @@ export default function FreeSessionPage() {
 
   return (
     <>
-      <PageHeader title={freeSession.headline} subtitle={freeSession.description} />
+      <FreeSessionHero headline={freeSession.headline} description={freeSession.description} />
 
-      <section className="pb-16">
+      <div id="book">
+        <FreeSessionBooking />
+      </div>
+
+      <FreeSessionBenefits benefits={freeSession.benefits} />
+
+      <SessionAgenda agenda={freeSession.agenda} />
+
+      <section className="py-16 md:py-20 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-8">Choose Your Audience</h2>
-          <div className="grid gap-6 md:grid-cols-3 mb-16">
+          <div className="max-w-2xl">
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+              Sessions tailored to your background
+            </h2>
+            <p className="mt-3 text-text-secondary">
+              Select your audience type when booking — content adapts for students, engineers, and professionals.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {audiences.map((a) => (
               <AudienceCard
                 key={a.slug}
                 title={a.title}
                 description={a.heroSubtitle}
                 icon={a.icon}
+                image={a.image}
                 href={`/for/${a.slug}`}
               />
             ))}
           </div>
-
-          <h2 className="text-2xl font-semibold mb-8">2-Hour Session Agenda</h2>
-          <div className="space-y-4 mb-16">
-            {freeSession.agenda.map((item, i) => (
-              <Card key={item.title} className="flex gap-6">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal text-sm font-semibold">
-                  {item.time}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-1 text-sm text-text-secondary">{item.description}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <h2 className="text-2xl font-semibold mb-8">Book Your Session</h2>
-          <BookingSection />
         </div>
       </section>
 
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-8">What attendees say</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold mb-10">What attendees say</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {testimonials.slice(0, 3).map((t) => (
               <TestimonialCard key={t.id} {...t} />
@@ -67,9 +66,11 @@ export default function FreeSessionPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 border-t border-border">
         <div className="mx-auto max-w-3xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">
+            Frequently asked questions
+          </h2>
           <Accordion items={freeSession.faqs} />
         </div>
       </section>

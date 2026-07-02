@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Navbar } from "@/components/layout/Navbar";
@@ -15,8 +16,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Velora Labs — Clarity-First Learning",
-    template: "%s | Velora Labs",
+    default: "Verlin Labs — Clarity-First Learning",
+    template: "%s | Verlin Labs",
   },
   description:
     "A clarity-first learning platform that helps people deeply understand complex ideas — especially AI and technology — through strong mental models.",
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col antialiased">
+        <SessionProvider>
         <ThemeProvider>
           <ToastProvider>
             <a
@@ -49,6 +51,7 @@ export default function RootLayout({
             />
           </ToastProvider>
         </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -36,6 +36,7 @@ export interface Audience {
   benefits: string[];
   examples: string[];
   icon: string;
+  image: string;
 }
 
 export interface FreeSessionContent {
@@ -76,13 +77,27 @@ export interface MentalModel {
   relatedSlugs: string[];
 }
 
+export interface CourseDay {
+  day: number;
+  title: string;
+  description: string;
+  topics?: string[];
+  activities?: string[];
+  assignment?: string;
+}
+
+export interface CoursePhase {
+  title: string;
+  days: CourseDay[];
+}
+
 export interface CourseContent {
   title: string;
   subtitle: string;
   description: string;
   price: string;
   duration: string;
-  curriculum: { title: string; topics: string[] }[];
+  phases: CoursePhase[];
   audiences: { slug: AudienceSlug; description: string }[];
   comparison: {
     free: { title: string; items: string[] };
@@ -127,8 +142,25 @@ export function getMentalModel(slug: string) {
   return getMentalModels().find((m) => m.slug === slug);
 }
 
+const courseFiles: Record<AudienceSlug, string> = {
+  students: "courses-students.json",
+  engineers: "courses-engineers.json",
+  professionals: "courses.json",
+};
+
+export function getCourseTrack(slug: AudienceSlug): CourseContent {
+  return readJson<CourseContent>(courseFiles[slug]);
+}
+
 export function getCourses() {
-  return readJson<CourseContent>("courses.json");
+  return getCourseTrack("professionals");
+}
+
+export function getAllCourseTracks(): { slug: AudienceSlug; course: CourseContent }[] {
+  return (Object.keys(courseFiles) as AudienceSlug[]).map((slug) => ({
+    slug,
+    course: getCourseTrack(slug),
+  }));
 }
 
 export async function getMarkdownPage(filename: string) {

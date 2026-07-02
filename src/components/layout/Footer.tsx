@@ -1,4 +1,4 @@
-import { VeloraLogo } from "@/components/ui/VeloraLogo";
+import { VerlinLogo } from "@/components/ui/VerlinLogo";
 import Link from "next/link";
 
 interface FooterProps {
@@ -13,7 +13,7 @@ export function Footer({ tagline, links, social }: FooterProps) {
       <div className="mx-auto max-w-7xl px-4 py-16 md:px-8">
         <div className="grid gap-12 md:grid-cols-3">
           <div>
-            <VeloraLogo />
+            <VerlinLogo />
             <p className="mt-4 text-sm text-text-secondary leading-relaxed">{tagline}</p>
           </div>
           <div>
@@ -46,7 +46,7 @@ export function Footer({ tagline, links, social }: FooterProps) {
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-text-secondary">
-          © {new Date().getFullYear()} Velora Labs. All rights reserved.
+          © {new Date().getFullYear()} Verlin Labs. All rights reserved.
         </div>
       </div>
     </footer>

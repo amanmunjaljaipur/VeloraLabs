@@ -4,7 +4,7 @@
     "title": "For School Students (Classes 6–12)",
     "shortTitle": "School Students",
     "heroTitle": "Make AI and tech click — without the jargon",
-    "heroSubtitle": "Friendly explanations, fun examples, and mental models that help you understand how the digital world really works.",
+    "heroSubtitle": "An 8-day friendly program with fun analogies, safe AI tool use, and a hands-on showcase project.",
     "tone": "friendly",
     "benefits": [
       "Understand AI concepts with everyday analogies",
@@ -17,14 +17,15 @@
       "Why your phone knows what song you like",
       "What 'training data' means in plain English"
     ],
-    "icon": "graduation-cap"
+    "icon": "graduation-cap",
+    "image": "/images/students.jpg"
   },
   {
     "slug": "engineers",
     "title": "For College Engineers",
     "shortTitle": "College Engineers",
     "heroTitle": "Go beyond tutorials — build real understanding",
-    "heroSubtitle": "Strengthen your mental models for AI, systems, and software so you can ship projects and stand out in interviews.",
+    "heroSubtitle": "A 10-day intensive from LLM fundamentals to portfolio projects and interview prep.",
     "tone": "technical",
     "benefits": [
       "Connect theory to hands-on projects",
@@ -37,26 +38,28 @@
       "When to use fine-tuning vs. RAG",
       "System design mental models for scalable apps"
     ],
-    "icon": "code"
+    "icon": "code",
+    "image": "/images/engineers.jpg"
   },
   {
     "slug": "professionals",
-    "title": "For Professionals",
-    "shortTitle": "Professionals",
-    "heroTitle": "Make better decisions in an AI-driven world",
-    "heroSubtitle": "Practical frameworks for leaders, managers, and builders who need clarity — not hype — to drive real outcomes.",
+    "title": "For Product Managers",
+    "shortTitle": "Product Managers",
+    "heroTitle": "Master AI-powered product management — from discovery to MVP launch",
+    "heroSubtitle": "A 16-day program built for PMs who want to lead with AI tools, ship real products, and drive growth with confidence.",
     "tone": "executive",
     "benefits": [
-      "Evaluate AI tools and vendors with confidence",
-      "Communicate technical concepts to stakeholders",
-      "Apply decision-making frameworks to real problems",
-      "Stay current without drowning in noise"
+      "Build an AI-first PM workflow with the right tool stack",
+      "Run AI-powered discovery, PRDs, and roadmap planning",
+      "Ship a working MVP using vibe coding — no deep coding required",
+      "Launch, measure, and present your product on Capstone Demo Day"
     ],
     "examples": [
-      "Build vs. buy frameworks for AI adoption",
-      "Risk assessment for deploying LLMs",
-      "How to run effective AI pilots in your org"
+      "AI-assisted market research and competitor analysis",
+      "Writing PRDs and user stories with Claude as co-pilot",
+      "Building MVPs with Lovable, Bolt, and Replit"
     ],
-    "icon": "briefcase"
+    "icon": "briefcase",
+    "image": "/images/professionals.jpg"
   }
 ]

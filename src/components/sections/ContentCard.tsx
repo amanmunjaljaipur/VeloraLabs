@@ -1,12 +1,13 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Clock } from "lucide-react";
+import Image from "next/image";
 
-const thumbnails: Record<string, string> = {
-  "gradient-teal-1": "from-teal/30 to-accent-teal/20",
-  "gradient-teal-2": "from-deep-teal/30 to-teal/20",
-  "gradient-teal-3": "from-accent-teal/30 to-teal/10",
-  "gradient-teal-4": "from-teal/20 to-deep-teal/30",
+const imageMap: Record<string, string> = {
+  "gradient-teal-1": "/images/ai-learning.jpg",
+  "gradient-teal-2": "/images/coding.jpg",
+  "gradient-teal-3": "/images/professionals.jpg",
+  "gradient-teal-4": "/images/students.jpg",
 };
 
 interface ContentCardProps {
@@ -19,9 +20,20 @@ interface ContentCardProps {
 }
 
 export function ContentCard({ title, description, duration, level, type, thumbnail }: ContentCardProps) {
+  const imageSrc = imageMap[thumbnail] || "/images/mental-models.jpg";
+
   return (
-    <Card hover className="h-full flex flex-col overflow-hidden p-0">
-      <div className={`h-40 bg-gradient-to-br ${thumbnails[thumbnail] || thumbnails["gradient-teal-1"]}`} />
+    <Card hover className="h-full flex flex-col overflow-hidden p-0 group">
+      <div className="relative h-44 overflow-hidden">
+        <Image
+          src={imageSrc}
+          alt=""
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 100vw, 300px"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
+      </div>
       <div className="flex flex-1 flex-col p-6">
         <div className="flex flex-wrap gap-2 mb-3">
           <Badge variant="difficulty">{level}</Badge>

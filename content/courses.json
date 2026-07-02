@@ -1,55 +1,249 @@
 {
-  "title": "Velora Labs Full Program",
-  "subtitle": "From mental models to mastery",
-  "description": "A structured 8-week program that takes you from confused to confident — with clarity-first teaching, hands-on projects, and a community of thoughtful learners.",
+  "title": "AI Foundations for Product Managers",
+  "subtitle": "From AI literacy to shipping your own MVP",
+  "description": "A 16-day intensive program designed for Product Managers who want to master AI tools, lead product discovery, build MVPs with vibe coding, and launch growth-ready products.",
   "price": "₹24,999",
-  "duration": "8 weeks · 2 sessions/week",
-  "curriculum": [
+  "duration": "16 days · 4 phases",
+  "phases": [
     {
-      "title": "Week 1–2: Foundations of Clarity",
-      "topics": [
-        "Mental model frameworks",
-        "How to learn complex topics effectively",
-        "AI landscape without the hype"
+      "title": "Phase 1: AI Foundations for Product Managers",
+      "days": [
+        {
+          "day": 1,
+          "title": "AI Fundamentals for PMs",
+          "description": "Learn how Generative AI, LLMs, and modern AI assistants work, their capabilities, limitations, and how they are transforming the Product Manager role.",
+          "topics": [
+            "AI, LLMs & Generative AI",
+            "AI capabilities & limitations",
+            "Prompt engineering basics",
+            "Building an AI-first workflow"
+          ]
+        },
+        {
+          "day": 2,
+          "title": "AI Tool Stack for PMs",
+          "description": "Explore the essential AI tools used for research, content creation, analysis, documentation, and productivity, and understand when to use each tool effectively.",
+          "topics": [
+            "ChatGPT, Claude, Gemini, Perplexity",
+            "Notion AI, NotebookLM, Copilot",
+            "Research, documentation, and productivity workflows",
+            "Choosing the right AI tool for the right task"
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Product Management Fundamentals",
+          "description": "Build a strong foundation in product management, including product lifecycle, customer-centric thinking, problem-solving, stakeholder management, and product ownership.",
+          "topics": [
+            "Product lifecycle",
+            "Product thinking",
+            "Customer-centricity",
+            "Problem identification",
+            "Stakeholder management",
+            "Product strategy basics"
+          ],
+          "assignment": "Build your personal AI PM Workspace"
+        }
       ]
     },
     {
-      "title": "Week 3–4: How AI Systems Work",
-      "topics": [
-        "Tokens, embeddings, and attention",
-        "Training vs. inference",
-        "Hands-on: building with APIs"
+      "title": "Phase 2: AI-Powered Discovery & Product Definition",
+      "days": [
+        {
+          "day": 4,
+          "title": "Idea Generation & Market Research",
+          "description": "Use AI to identify market opportunities, discover customer problems, analyze competitors, and validate product ideas faster.",
+          "topics": [
+            "Opportunity discovery",
+            "Competitor analysis",
+            "Market sizing",
+            "AI-assisted research",
+            "Trend analysis",
+            "Opportunity validation"
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Customer Discovery",
+          "description": "Learn how to create personas, map customer journeys, identify pain points, and understand customer needs using AI-assisted research techniques.",
+          "topics": [
+            "Personas",
+            "Jobs-To-Be-Done (JTBD)",
+            "Customer journey mapping",
+            "Pain point identification",
+            "Feedback analysis",
+            "Customer segmentation"
+          ]
+        },
+        {
+          "day": 6,
+          "title": "MVP & Product-Market Fit",
+          "description": "Understand how to define a Minimum Viable Product, prioritize features, validate assumptions, and establish product-market fit.",
+          "topics": [
+            "MVP thinking",
+            "MVP vs Prototype vs POC",
+            "Feature prioritization",
+            "PMF fundamentals",
+            "Pricing basics",
+            "Success metrics"
+          ]
+        },
+        {
+          "day": 7,
+          "title": "PRDs & User Stories",
+          "description": "Create professional Product Requirement Documents, user stories, acceptance criteria, and feature specifications using AI as a co-pilot.",
+          "topics": [
+            "PRDs",
+            "Epics",
+            "User stories",
+            "Acceptance criteria",
+            "Functional requirements",
+            "AI-assisted documentation"
+          ]
+        },
+        {
+          "day": 8,
+          "title": "Roadmaps & Product Strategy",
+          "description": "Learn how to prioritize initiatives, define success metrics, create product roadmaps, and align product decisions with business goals.",
+          "topics": [
+            "Prioritization frameworks",
+            "Product roadmaps",
+            "Success metrics",
+            "Product strategy",
+            "Release planning",
+            "Business alignment"
+          ],
+          "assignment": "Complete Product Discovery & PRD Package"
+        }
       ]
     },
     {
-      "title": "Week 5–6: Applied AI",
-      "topics": [
-        "RAG, fine-tuning, and tool use",
-        "Prompt design as interface design",
-        "Project: solve a real problem"
+      "title": "Phase 3: Technology & MVP Engineering",
+      "days": [
+        {
+          "day": 9,
+          "title": "Technology Foundations for PMs",
+          "description": "Gain a practical understanding of frontend, backend, APIs, databases, authentication, cloud platforms, and how modern applications are built.",
+          "topics": [
+            "Frontend vs Backend",
+            "APIs",
+            "Databases",
+            "Authentication",
+            "Cloud basics",
+            "System architecture fundamentals"
+          ]
+        },
+        {
+          "day": 10,
+          "title": "Vibe Coding Fundamentals",
+          "description": "Learn how to convert product ideas and requirements into working software using AI-assisted development tools without extensive coding knowledge.",
+          "topics": [
+            "AI-assisted development",
+            "Vibe coding principles",
+            "No-code vs low-code",
+            "Translating PRDs into applications",
+            "Build vs Buy decisions"
+          ]
+        },
+        {
+          "day": 11,
+          "title": "Building MVP – User Experience & Frontend",
+          "description": "Create wireframes, user flows, landing pages, and application interfaces using AI-powered design and development platforms.",
+          "topics": [
+            "Lovable",
+            "Bolt",
+            "UI generation",
+            "User flows",
+            "Wireframes",
+            "Frontend creation"
+          ]
+        },
+        {
+          "day": 12,
+          "title": "Building MVP – Backend & Integrations",
+          "description": "Build application logic, connect databases, implement authentication, and integrate third-party services using AI development tools.",
+          "topics": [
+            "Replit",
+            "Backend generation",
+            "Database setup",
+            "Authentication",
+            "API integrations",
+            "Third-party services"
+          ]
+        },
+        {
+          "day": 13,
+          "title": "Testing & Iteration",
+          "description": "Validate product functionality, perform user testing, gather feedback, identify issues, and refine the MVP before launch.",
+          "topics": [
+            "QA fundamentals",
+            "User testing",
+            "Bug management",
+            "Feedback collection",
+            "Product refinement",
+            "Release readiness"
+          ],
+          "assignment": "Working MVP Version 1"
+        }
       ]
     },
     {
-      "title": "Week 7–8: Integration & Next Steps",
-      "topics": [
-        "Decision frameworks for AI adoption",
-        "Portfolio project presentation",
-        "Personalized learning roadmap"
+      "title": "Phase 4: Launch, Growth & Capstone",
+      "days": [
+        {
+          "day": 14,
+          "title": "Product Launch",
+          "description": "Prepare the product for market by defining positioning, messaging, onboarding experiences, and launch strategies.",
+          "topics": [
+            "Go-To-Market (GTM)",
+            "Positioning",
+            "Messaging",
+            "Landing pages",
+            "Product onboarding",
+            "AI-generated marketing content"
+          ]
+        },
+        {
+          "day": 15,
+          "title": "Product Analytics & Growth",
+          "description": "Learn how to measure product performance, analyze user behavior, track key metrics, and identify growth opportunities.",
+          "topics": [
+            "Funnels",
+            "Activation metrics",
+            "Retention metrics",
+            "Product analytics",
+            "Growth experiments",
+            "Optimization opportunities"
+          ]
+        },
+        {
+          "day": 16,
+          "title": "Capstone Demo Day",
+          "description": "Present a complete product journey from idea to MVP, demonstrate the working solution, and receive structured feedback for future improvements.",
+          "activities": [
+            "Product presentation",
+            "MVP walkthrough",
+            "Mentor review",
+            "Peer feedback",
+            "Improvement roadmap",
+            "Graduation showcase"
+          ]
+        }
       ]
     }
   ],
   "audiences": [
     {
       "slug": "students",
-      "description": "Age-appropriate pacing with fun projects and exam-relevant foundations."
+      "description": "8-day program for Classes 6–12 — friendly, fun, and project-based."
     },
     {
       "slug": "engineers",
-      "description": "Technical depth with portfolio projects and interview preparation."
+      "description": "10-day program — APIs, RAG, agents, and portfolio-ready projects."
     },
     {
       "slug": "professionals",
-      "description": "Executive-friendly sessions with real-world case studies and frameworks."
+      "description": "16-day AI-first program for Product Managers — from fundamentals to MVP launch and capstone demo."
     }
   ],
   "comparison": {
@@ -63,14 +257,14 @@
       ]
     },
     "paid": {
-      "title": "Full 8-Week Program",
+      "title": "Full 16-Day PM Program",
       "items": [
-        "16 live sessions with recordings",
-        "Complete curriculum across 4 modules",
-        "Hands-on projects with feedback",
+        "16 live sessions across 4 phases",
+        "AI tool stack & vibe coding workshops",
+        "Hands-on PRD, discovery & MVP projects",
         "Private community access",
-        "1:1 office hours",
-        "Certificate of completion"
+        "1:1 mentor office hours",
+        "Capstone demo day & certificate"
       ]
     }
   }

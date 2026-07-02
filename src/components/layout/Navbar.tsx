@@ -1,20 +1,34 @@
 "use client";
 
-import { VeloraLogo } from "@/components/ui/VeloraLogo";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { VerlinLogo } from "@/components/ui/VerlinLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+
+const SUPER_ADMIN_NAV = { label: "Role Assignment", href: "/admin/role-assignment" };
+const ADMIN_SESSIONS_NAV = { label: "Session Videos", href: "/admin/sessions" };
 
 interface NavbarProps {
   nav: { label: string; href: string }[];
 }
 
 export function Navbar({ nav }: NavbarProps) {
+  const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const role = session?.user?.role;
+  const isSuperAdmin = role === "super_admin";
+  const isAdmin = role === "admin" || isSuperAdmin;
+  const adminNav = [
+    ...(isAdmin ? [ADMIN_SESSIONS_NAV] : []),
+    ...(isSuperAdmin ? [SUPER_ADMIN_NAV] : []),
+  ];
+  const navItems = adminNav.length > 0 ? [...nav, ...adminNav] : nav;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -30,9 +44,9 @@ export function Navbar({ nav }: NavbarProps) {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-        <VeloraLogo />
+        <VerlinLogo />
         <div className="hidden items-center gap-8 lg:flex">
-          {nav.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -44,6 +58,7 @@ export function Navbar({ nav }: NavbarProps) {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <AuthButton />
           <Link href="/free-session" className="hidden sm:block">
             <Button size="sm">Book Free Session</Button>
           </Link>
@@ -59,7 +74,7 @@ export function Navbar({ nav }: NavbarProps) {
       {mobileOpen && (
         <div className="border-b border-border bg-background px-4 py-4 lg:hidden">
           <div className="flex flex-col gap-3">
-            {nav.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -69,6 +84,9 @@ export function Navbar({ nav }: NavbarProps) {
                 {item.label}
               </Link>
             ))}
+            <div className="py-2">
+              <AuthButton className="w-full justify-center" />
+            </div>
             <Link href="/free-session" onClick={() => setMobileOpen(false)}>
               <Button className="w-full">Book Free Session</Button>
             </Link>

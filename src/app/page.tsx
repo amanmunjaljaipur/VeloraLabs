@@ -1,9 +1,12 @@
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { ContentCard } from "@/components/sections/ContentCard";
-import { TestimonialCard } from "@/components/sections/TestimonialCard";
+import { HeroSection } from "@/components/sections/HeroSection";
+import { LearningSplit } from "@/components/sections/LearningSplit";
 import { Newsletter } from "@/components/sections/Newsletter";
+import { StatsBar } from "@/components/sections/StatsBar";
+import { TestimonialCarousel } from "@/components/sections/TestimonialCarousel";
+import { TopicMarquee } from "@/components/sections/TopicMarquee";
 import {
   getSiteConfig,
   getAudiences,
@@ -12,7 +15,7 @@ import {
   getTestimonials,
 } from "@/lib/content";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Brain, Layers, Zap } from "lucide-react";
 
 export default function HomePage() {
   const site = getSiteConfig();
@@ -23,39 +26,15 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden py-20 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal/5 via-transparent to-accent-teal/5" />
-        <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-          <div className="max-w-3xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-text-secondary">
-              <Sparkles className="h-4 w-4 text-accent-teal" />
-              Clarity-first learning for the AI age
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
-              {site.tagline}
-            </h1>
-            <p className="mt-6 text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl">
-              {site.description}
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link href="/free-session">
-                <Button size="lg">Book Free 2-Hour Session</Button>
-              </Link>
-              <Link href="/courses">
-                <Button size="lg" variant="secondary">
-                  Explore Programs <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TopicMarquee />
+      <HeroSection tagline={site.tagline} description={site.description} />
+      <StatsBar />
 
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">Who is this for?</h2>
           <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-            Tailored learning paths for every stage of your journey.
+            Tailored learning paths for every stage of your journey — click to see the full course structure.
           </p>
           <div className="grid gap-6 md:grid-cols-3">
             {audiences.map((a) => (
@@ -64,6 +43,7 @@ export default function HomePage() {
                 title={a.title}
                 description={a.heroSubtitle}
                 icon={a.icon}
+                image={a.image}
                 href={`/for/${a.slug}`}
               />
             ))}
@@ -72,6 +52,34 @@ export default function HomePage() {
       </section>
 
       <section className="py-16 md:py-24 bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 space-y-20">
+          <LearningSplit
+            title="Learn with mental models, not memorization"
+            description="Inspired by the best in modern education — from DeepLearning.AI's intuitive courses to Coursera's structured paths — Verlin Labs teaches you frameworks that stick. Understand once, apply everywhere."
+            image="/images/mental-models.jpg"
+            imageAlt="Student studying with clarity"
+            items={[
+              "Visual frameworks for complex AI concepts",
+              "Live sessions, not passive video dumps",
+              "Audience-tailored pacing and examples",
+            ]}
+          />
+          <LearningSplit
+            title="Hands-on from day one"
+            description="Like Dataquest and project-based bootcamps, every program ends with something you build — a mini project, portfolio piece, or working MVP you can show."
+            image="/images/workshop.jpg"
+            imageAlt="Live workshop session"
+            reverse
+            items={[
+              "Free 2-hour session with live exercises",
+              "Capstone demo days for every track",
+              "Real tools: ChatGPT, Claude, Lovable, Replit",
+            ]}
+          />
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">
             What You&apos;ll Learn in the Free Session
@@ -80,17 +88,23 @@ export default function HomePage() {
             A focused 2-hour experience — no fluff, no sales pitch.
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {freeSession.benefits.map((b) => (
-              <Card key={b.title} hover>
-                <h3 className="font-semibold text-foreground">{b.title}</h3>
-                <p className="mt-2 text-sm text-text-secondary leading-relaxed">{b.description}</p>
-              </Card>
-            ))}
+            {freeSession.benefits.map((b, i) => {
+              const icons = [Brain, Layers, Zap, Brain, Layers, Zap];
+              const Icon = icons[i % icons.length];
+              return (
+                <Card key={b.title} hover className="relative overflow-hidden">
+                  <div className="absolute top-0 right-0 h-24 w-24 bg-teal/5 rounded-bl-full" />
+                  <Icon className="h-8 w-8 text-teal mb-4" />
+                  <h3 className="font-semibold text-foreground">{b.title}</h3>
+                  <p className="mt-2 text-sm text-text-secondary leading-relaxed">{b.description}</p>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="flex items-end justify-between mb-12">
             <div>
@@ -109,16 +123,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-muted/30">
+      <section className="py-16 md:py-24 overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">
             What learners are saying
           </h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((t) => (
-              <TestimonialCard key={t.id} {...t} />
-            ))}
-          </div>
+          <p className="text-center text-text-secondary mb-12 max-w-xl mx-auto">
+            Students, engineers, and product managers who started with clarity.
+          </p>
+          <TestimonialCarousel testimonials={testimonials} />
         </div>
       </section>
 
