@@ -18,11 +18,14 @@ class RateLimitedSignIn extends CredentialsSignin {
   code = "rate_limited";
 }
 
-if (!process.env.AUTH_SECRET) {
-  throw new Error("AUTH_SECRET environment variable is required.");
+const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
+if (!authSecret) {
+  throw new Error("AUTH_SECRET or NEXTAUTH_SECRET environment variable is required.");
 }
 
 export const authOptions: NextAuthConfig = {
+  secret: authSecret,
   trustHost: true,
   session: {
     strategy: "jwt",
