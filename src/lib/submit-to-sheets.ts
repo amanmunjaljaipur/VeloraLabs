@@ -5,8 +5,10 @@ export async function submitForm(data: Record<string, string>) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    return res.ok;
+    if (!res.ok) return { ok: false, synced: false };
+    const body = (await res.json()) as { success?: boolean; synced?: boolean };
+    return { ok: body.success === true, synced: body.synced === true };
   } catch {
-    return false;
+    return { ok: false, synced: false };
   }
 }

@@ -92,7 +92,7 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       return;
     }
 
-    await submitForm({
+    const sheetResult = await submitForm({
       type: "booking",
       name: values.name,
       email: values.email,
@@ -102,6 +102,13 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       bookingId: result.bookingId || "",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
+
+    if (!sheetResult.synced) {
+      toast(
+        "Booking confirmed, but Google Sheets sync is not configured yet. Contact support if you need a copy of your booking.",
+        "warning"
+      );
+    }
 
     const params = new URLSearchParams({
       date: selectedDate.toISOString().split("T")[0],

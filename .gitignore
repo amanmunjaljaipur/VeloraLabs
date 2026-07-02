@@ -48,6 +48,8 @@ next-env.d.ts
 /content/course-progress.json
 /content/video-progress.json
 /content/known-users.json
+/content/sheets-config.json
+/secrets/
 
 .vercel
 .env*

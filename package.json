@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs"
+    "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs",
+    "test:sheets": "tsx scripts/test-google-sheets.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -36,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

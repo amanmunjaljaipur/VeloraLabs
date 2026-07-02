@@ -1,3 +1,8 @@
+import {
+  isServiceAccountConfigured,
+  submitViaServiceAccount,
+} from "@/lib/google-sheets-service";
+
 type SheetSubmissionType = "booking" | "contact" | "newsletter";
 
 interface SheetPayload {
@@ -6,12 +11,9 @@ interface SheetPayload {
   [key: string]: string | undefined;
 }
 
-export async function submitToGoogleSheet(payload: SheetPayload): Promise<boolean> {
+async function submitViaWebhook(payload: SheetPayload): Promise<boolean> {
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
-  if (!webhookUrl) {
-    console.warn("GOOGLE_SHEETS_WEBHOOK_URL not set — skipping sheet sync");
-    return false;
-  }
+  if (!webhookUrl) return false;
 
   const secret = process.env.GOOGLE_SHEETS_WEBHOOK_SECRET;
 
@@ -29,4 +31,19 @@ export async function submitToGoogleSheet(payload: SheetPayload): Promise<boolea
   } catch {
     return false;
   }
+}
+
+export async function submitToGoogleSheet(payload: SheetPayload): Promise<boolean> {
+  if (isServiceAccountConfigured()) {
+    return submitViaServiceAccount(payload);
+  }
+
+  if (process.env.GOOGLE_SHEETS_WEBHOOK_URL) {
+    return submitViaWebhook(payload);
+  }
+
+  console.warn(
+    "Google Sheets not configured — set GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEETS_WEBHOOK_URL"
+  );
+  return false;
 }
