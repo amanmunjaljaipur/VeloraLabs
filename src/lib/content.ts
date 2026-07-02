@@ -88,12 +88,25 @@ export interface LibraryItem {
   thumbnail: string;
 }
 
+export interface MentalModelExample {
+  title: string;
+  description: string;
+}
+
 export interface MentalModel {
   slug: string;
   name: string;
   shortDescription: string;
   description: string;
   difficulty: "Beginner" | "Intermediate" | "Advanced";
+  readTime: string;
+  whyItMatters: string;
+  keyPrinciples: string[];
+  howToApply: string[];
+  examples: MentalModelExample[];
+  commonMistakes: string[];
+  keyTakeaway: string;
+  relatedModelSlugs: string[];
   relatedSlugs: string[];
 }
 

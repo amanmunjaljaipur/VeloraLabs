@@ -2,49 +2,277 @@
   {
     "slug": "information-pipeline",
     "name": "Information Pipeline",
-    "shortDescription": "See data flowing through stages — input, transform, output.",
-    "description": "The Information Pipeline mental model treats any system as a series of connected stages where data enters, gets transformed, and exits as useful output. This works for understanding APIs, ML models, and even how you learn new concepts. Instead of seeing a black box, you map each stage and ask: what goes in, what changes, and what comes out?",
+    "shortDescription": "Trace how data moves through stages — input, transform, output.",
+    "description": "The Information Pipeline treats any system as a connected flow: data enters, gets processed through one or more transformation stages, and exits as useful output. Instead of staring at a black box, you draw the pipeline and ask what changes at each step.",
     "difficulty": "Beginner",
+    "readTime": "7 min read",
+    "whyItMatters": "Most confusion around AI and software comes from skipping the middle of the pipeline. People debate outputs without understanding inputs, or they blame the model when the preprocessing stage introduced the error. This model gives you a repeatable way to debug systems, design architectures, and explain technical ideas to non-technical stakeholders.",
+    "keyPrinciples": [
+      "Every system has at least three stages: input, transformation, and output — even when they are hidden inside a product UI.",
+      "Errors compound downstream; a bad input rarely produces a trustworthy output, no matter how sophisticated the middle stage is.",
+      "Pipelines can be nested — the output of one stage becomes the input of the next (e.g. tokenization → embedding → prediction).",
+      "Naming each stage forces clarity: if you cannot label a stage, you probably do not understand it yet.",
+      "The same pipeline mental model applies to learning: raw information → mental processing → usable understanding."
+    ],
+    "howToApply": [
+      "Draw the pipeline on paper or a whiteboard before diving into tools or code. Label each box with what enters and what leaves.",
+      "For each stage, ask: What format is the data in? What can go wrong here? What quality checks exist?",
+      "When output looks wrong, walk backwards through the pipeline instead of re-running the final step repeatedly.",
+      "When explaining to others, describe one stage at a time — avoid jumping from user question to model answer in a single leap.",
+      "Compare two systems by contrasting their pipelines, not just their final outputs (e.g. RAG vs fine-tuning)."
+    ],
+    "examples": [
+      {
+        "title": "ChatGPT answering a question",
+        "description": "Input: your prompt text. Transform: tokenization, context assembly, model inference, safety filters. Output: generated response. Debugging a bad answer means inspecting which stage failed — unclear prompt, missing context, or over-aggressive filtering."
+      },
+      {
+        "title": "Training an image classifier",
+        "description": "Input: labelled photos. Transform: augmentation, feature extraction, weight updates across epochs. Output: a model that assigns labels to new images. Poor accuracy often traces back to input quality (biased or mislabelled data), not the algorithm alone."
+      },
+      {
+        "title": "Learning a new concept",
+        "description": "Input: lecture or article. Transform: note-taking, questioning, connecting to prior knowledge. Output: ability to explain or apply the idea. Skipping the transform stage (re-reading without processing) is why passive study feels productive but does not stick."
+      }
+    ],
+    "commonMistakes": [
+      "Treating the middle of the pipeline as a magic box instead of a sequence of inspectable steps.",
+      "Optimizing the output stage while ignoring dirty or incomplete inputs.",
+      "Assuming one pipeline diagram fits every use case — batch processing, real-time APIs, and human workflows differ.",
+      "Forgetting feedback paths — many production pipelines loop outputs back as inputs (monitoring, retraining, human review)."
+    ],
+    "keyTakeaway": "When something confuses you, do not ask only \"what is the answer?\" — ask \"what is the pipeline, and which stage needs attention?\"",
+    "relatedModelSlugs": ["compression-lens", "feedback-loop"],
     "relatedSlugs": ["how-llms-work", "transformers-pipeline"]
   },
   {
     "slug": "compression-lens",
     "name": "Compression Lens",
-    "shortDescription": "Complex ideas are compressed representations of simpler patterns.",
-    "description": "The Compression Lens helps you understand why experts can explain complex topics briefly — they've compressed years of pattern recognition into mental shortcuts. When learning AI, ask: what pattern is this concept compressing? What would I need to know to decompress it fully?",
+    "shortDescription": "Expert explanations are compressed patterns — learn to decompress them.",
+    "description": "The Compression Lens recognises that experts explain complex ideas quickly because they have compressed years of experience into short mental shortcuts. Your job as a learner is to decompress: unpack what pattern sits underneath the brief explanation.",
     "difficulty": "Beginner",
+    "readTime": "6 min read",
+    "whyItMatters": "Beginners often feel stupid when an expert says something in one sentence that takes them weeks to understand. The Compression Lens reframes that gap: the expert is not smarter in the moment — they have better compression. Once you see this, you stop chasing memorisation and start rebuilding the underlying patterns.",
+    "keyPrinciples": [
+      "Compression is lossy — shortcuts hide assumptions, edge cases, and context that experts forgot they know.",
+      "Good teaching alternates between compressed insight (the punchline) and decompressed walkthrough (the steps).",
+      "Jargon is often a compressed label for a larger idea — define the idea, not just the term.",
+      "You know you have understood a topic when you can compress it yourself without losing accuracy.",
+      "Different audiences need different compression levels — executives need high compression, implementers need low compression."
+    ],
+    "howToApply": [
+      "When you hear a concise explanation, pause and ask: \"What experiences had to exist for that sentence to make sense?\"",
+      "Rewrite expert statements as bullet lists of assumptions they did not say aloud.",
+      "Practice explaining the same idea at three compression levels: one sentence, one paragraph, one worked example.",
+      "When studying AI concepts, map jargon to concrete behaviours (e.g. \"attention\" → which words the model weighs when predicting the next token).",
+      "Use analogies as decompression tools, then test where the analogy breaks — that boundary reveals the real pattern."
+    ],
+    "examples": [
+      {
+        "title": "\"LLMs predict the next token\"",
+        "description": "Compressed form of tokenization, probability distributions, training on massive corpora, context windows, and sampling strategies. Decompressing this one sentence is essentially a course in how language models work."
+      },
+      {
+        "title": "\"Use RAG for company knowledge\"",
+        "description": "Compresses retrieval systems, chunking strategies, embedding models, vector databases, prompt assembly, and freshness/update workflows. The recommendation is simple; the pipeline behind it is not."
+      },
+      {
+        "title": "Senior engineer's architecture sketch",
+        "description": "A five-box diagram on a napkin encodes years of failure modes, scaling lessons, and team constraints. Juniors see boxes; the expert sees incident reports and trade-off decisions."
+      }
+    ],
+    "commonMistakes": [
+      "Mistaking compression for oversimplification that is actually wrong.",
+      "Staying only at the compressed layer and never doing the slow decompression work.",
+      "Decompressing forever without re-compressing — you understand pieces but cannot communicate or decide.",
+      "Assuming everyone in the room shares the same compression dictionary (especially mixed student/professional audiences)."
+    ],
+    "keyTakeaway": "Treat every elegant one-liner as a zip file — unzip it until you can rebuild it yourself, then zip it back up for others.",
+    "relatedModelSlugs": ["information-pipeline", "map-not-territory"],
     "relatedSlugs": ["neural-networks-analogy", "chatgpt-for-students"]
   },
   {
     "slug": "feedback-loop",
     "name": "Feedback Loop",
-    "shortDescription": "Systems that learn improve through cycles of action and correction.",
-    "description": "The Feedback Loop model explains how machine learning, personal growth, and organizational improvement all share the same structure: act, observe results, adjust, repeat. Understanding this loop helps you see why training data matters, why iteration beats perfection, and how to design learning systems.",
+    "shortDescription": "Learning systems improve through cycles of action, measurement, and adjustment.",
+    "description": "The Feedback Loop describes how machine learning, personal skill-building, and organisational change share one structure: act, observe results, compare against a goal, adjust, and repeat. Quality of the loop determines quality of improvement.",
     "difficulty": "Intermediate",
+    "readTime": "8 min read",
+    "whyItMatters": "Teams ship AI features without closing the loop — they launch, hope for the best, and never measure whether outputs improved decisions. Individuals study without testing themselves. The Feedback Loop explains why labelled data, evaluation metrics, retrospectives, and iteration velocity matter more than perfect first attempts.",
+    "keyPrinciples": [
+      "A loop needs a clear goal, a measurable signal, and a mechanism to change behaviour based on that signal.",
+      "Delay in the loop increases error — fast feedback beats perfect feedback that arrives too late.",
+      "Positive feedback amplifies; negative feedback corrects — both must be intentional, not accidental.",
+      "The loop can be human-in-the-loop (review, label, edit) or fully automated (metrics, retraining triggers).",
+      "Without closing the loop, you are running open-loop — acting on assumptions that never get tested."
+    ],
+    "howToApply": [
+      "Define one metric that tells you whether the system is improving (accuracy, time saved, user correction rate).",
+      "Instrument the loop: log inputs, outputs, and human overrides so you can review patterns weekly.",
+      "Shorten cycle time — ship a small version, measure, adjust, rather than waiting for a perfect launch.",
+      "Separate exploration (trying new approaches) from exploitation (optimising what already works) across loop cycles.",
+      "For personal learning, add a test step after every study session: explain aloud, solve a problem, or teach someone else."
+    ],
+    "examples": [
+      {
+        "title": "Model fine-tuning",
+        "description": "Act: train on dataset. Observe: validation metrics and error cases. Adjust: hyperparameters, data cleaning, or architecture. Repeat until metrics plateau or product goals are met."
+      },
+      {
+        "title": "Prompt engineering in production",
+        "description": "Act: deploy prompt template. Observe: user thumbs-down, support tickets, manual edits. Adjust: instructions, examples, or retrieval context. Repeat — prompts are software that needs versioning and monitoring."
+      },
+      {
+        "title": "Team retrospectives",
+        "description": "Act: sprint delivery. Observe: what shipped, what broke, what customers said. Adjust: process, priorities, or technical debt allocation. The retro is the feedback loop for organisational learning."
+      }
+    ],
+    "commonMistakes": [
+      "Measuring vanity metrics that do not connect to the goal (clicks vs actual task completion).",
+      "Closing the loop only on successes — failures often carry the richest adjustment signals.",
+      "Adding feedback without authority to act on it (teams report problems but cannot fix root causes).",
+      "Confusing a one-time evaluation with a continuous loop — models and user needs drift over time."
+    ],
+    "keyTakeaway": "Progress is not a straight line — it is a loop. If you are not measuring and adjusting, you are not learning; you are guessing.",
+    "relatedModelSlugs": ["information-pipeline", "abstraction-ladder"],
     "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics"]
   },
   {
     "slug": "abstraction-ladder",
     "name": "Abstraction Ladder",
-    "shortDescription": "Move up for big picture, down for details — know which rung you need.",
-    "description": "The Abstraction Ladder teaches you to consciously choose your level of detail. At the bottom: code and equations. In the middle: architecture and workflows. At the top: business outcomes and user needs. Great engineers and leaders know when to climb up or down.",
+    "shortDescription": "Choose the right altitude — detail for execution, altitude for decisions.",
+    "description": "The Abstraction Ladder teaches you to move consciously between levels of detail: concrete implementation at the bottom, systems and workflows in the middle, outcomes and strategy at the top. Miscommunication usually means two people are on different rungs.",
     "difficulty": "Intermediate",
+    "readTime": "8 min read",
+    "whyItMatters": "Engineers over-explain implementation to executives; leaders hand down strategy without operational clarity. Students memorise definitions without connecting them to real decisions. The Abstraction Ladder gives you language to climb up or down on purpose — essential for AI projects where technical choices have business consequences.",
+    "keyPrinciples": [
+      "Bottom rung: code, equations, API parameters, dataset fields — necessary for building.",
+      "Middle rung: architectures, data flows, team processes, model selection trade-offs — necessary for coordinating.",
+      "Top rung: user outcomes, risk, cost, competitive advantage — necessary for deciding whether to build.",
+      "You cannot stay on one rung for every conversation — match the audience and the decision at hand.",
+      "Climbing the ladder too fast produces hand-wavy strategy; descending too fast produces solutions without purpose."
+    ],
+    "howToApply": [
+      "Before a meeting, decide which rung the decision lives on and prepare one level of detail above and below.",
+      "When stuck in implementation, climb up: \"What user outcome does this line of code serve?\"",
+      "When strategy feels vague, climb down: \"What would we ship in two weeks to test this bet?\"",
+      "Document the same feature at two rungs — a one-paragraph executive summary and a technical design note.",
+      "In AI discussions, separate \"what the model does\" (middle) from \"what the business gains\" (top) and \"how tokens are processed\" (bottom)."
+    ],
+    "examples": [
+      {
+        "title": "Adding a chatbot",
+        "description": "Top: reduce support tickets and improve response time. Middle: RAG over help docs with escalation to humans. Bottom: chunk size, embedding model, prompt template, latency budget."
+      },
+      {
+        "title": "Explaining transformers to students",
+        "description": "Top: why language models understand context better than older approaches. Middle: attention lets each word consider other words in the sentence. Bottom: matrix multiplication over query-key-value tensors."
+      },
+      {
+        "title": "Product roadmap debate",
+        "description": "Leadership stays on the top rung (market positioning); engineering on the middle (feasibility and dependencies). Conflict resolves when someone explicitly translates between rungs."
+      }
+    ],
+    "commonMistakes": [
+      "Using top-rung language (\"we need AI\") without middle-rung plans (data, evaluation, ownership).",
+      "Dismissing bottom-rung concerns as \"too technical\" when they reveal feasibility limits.",
+      "Assuming everyone will naturally meet in the middle without a facilitator translating.",
+      "Teaching only at one rung — pure theory without application, or tutorials without conceptual framing."
+    ],
+    "keyTakeaway": "Clarity is not one depth — it is choosing the right rung for the room, then moving deliberately when confusion appears.",
+    "relatedModelSlugs": ["constraint-box", "compression-lens"],
     "relatedSlugs": ["ai-for-decision-makers", "ai-risk-assessment"]
   },
   {
     "slug": "constraint-box",
     "name": "Constraint Box",
-    "shortDescription": "Every solution lives inside boundaries — find them first.",
-    "description": "The Constraint Box model says every system has limits: compute, data, time, money, ethics. Before solving a problem, map the box. AI projects fail when teams ignore constraints. This model helps you evaluate what's actually possible.",
+    "shortDescription": "Map the boundaries first — compute, data, time, ethics, budget.",
+    "description": "The Constraint Box says every solution lives inside limits. Before optimising for performance or novelty, draw the box: what resources, timelines, legal boundaries, and quality bars are non-negotiable? Feasible design starts inside the box, not in an ideal world.",
     "difficulty": "Advanced",
+    "readTime": "9 min read",
+    "whyItMatters": "AI projects fail when teams chase state-of-the-art models without asking whether they have the data, budget, latency budget, or governance structure to deploy them. The Constraint Box prevents fantasy architectures and forces honest scoping — the same discipline used in senior engineering and product leadership.",
+    "keyPrinciples": [
+      "Constraints are not enemies of creativity — they define the playable space for good decisions.",
+      "Hard constraints (law, security, SLA) differ from soft constraints (preference, convenience) — classify them explicitly.",
+      "Tight boxes often produce better solutions than unconstrained optimisation (focus beats brute force).",
+      "When constraints conflict, prioritise by risk: safety and compliance before speed, unless explicitly accepted.",
+      "The box changes over time — revisiting constraints quarterly prevents building for a world that no longer exists."
+    ],
+    "howToApply": [
+      "List constraints in five categories: data, compute/infra, people/skills, time, and governance/ethics.",
+      "For each AI option, ask: Does it fit inside the box today, or does it require removing a constraint first?",
+      "Document trade-offs when you touch the edge of the box (e.g. higher accuracy vs 2× inference cost).",
+      "Use the box in vendor and model selection — cheapest API is wrong if latency violates the product constraint.",
+      "When teaching, give learners a constraint box for exercises — unlimited problems teach less than bounded ones."
+    ],
+    "examples": [
+      {
+        "title": "Startup support bot",
+        "description": "Constraints: no dedicated ML team, <200 ms response, must cite sources, GDPR applies. Box rules out large fine-tunes; favours managed APIs + RAG with logging and EU data residency."
+      },
+      {
+        "title": "School student AI project",
+        "description": "Constraints: no budget for paid APIs, school network filters, academic honesty policies. Box favours local models, teacher-approved tools, and assignments that reward process not just output."
+      },
+      {
+        "title": "Enterprise fraud detection",
+        "description": "Constraints: explainability for regulators, 99.9% uptime, retraining only quarterly. Box demands interpretable features, shadow deployments, and human review queues — not whichever model tops a leaderboard."
+      }
+    ],
+    "commonMistakes": [
+      "Discovering legal or security constraints after build instead of during design.",
+      "Treating budget as the only constraint while ignoring data quality or maintenance load.",
+      "Removing constraints without stakeholder sign-off (\"we will ask forgiveness later\").",
+      "Confusing aspirational goals with hard constraints — goals motivate; constraints bound."
+    ],
+    "keyTakeaway": "Innovation inside a well-drawn box is engineering; innovation that ignores the box is fantasy until proven otherwise.",
+    "relatedModelSlugs": ["abstraction-ladder", "map-not-territory"],
     "relatedSlugs": ["rag-vs-finetuning", "ai-risk-assessment"]
   },
   {
     "slug": "map-not-territory",
     "name": "Map vs. Territory",
-    "shortDescription": "Models approximate reality — know where the map ends.",
-    "description": "All mental models, AI included, are maps of reality — useful simplifications, not perfect copies. This model prevents over-trusting outputs and helps you ask: where does this model's map diverge from the actual territory?",
+    "shortDescription": "All models are useful simplifications — know where the map ends.",
+    "description": "Map vs. Territory reminds you that mental models, diagrams, and AI outputs are representations of reality — not reality itself. A map is invaluable for navigation, but driving through a wall because the map omitted it is catastrophic. Know the legend, the scale, and the known gaps.",
     "difficulty": "Advanced",
+    "readTime": "8 min read",
+    "whyItMatters": "Over-trusting AI outputs, outdated architecture diagrams, or classroom analogies causes expensive mistakes. This model — from Alfred Korzybski, widely used in risk-aware engineering — builds intellectual humility: use the map boldly, verify at the territory when stakes are high.",
+    "keyPrinciples": [
+      "Every map omits detail by design — the question is whether the omission matters for your decision.",
+      "Maps go stale; territories change — revalidate assumptions after major product, model, or market shifts.",
+      "Multiple maps of the same territory can disagree — compare them instead of worshipping one.",
+      "High-stakes decisions require territory checks: data samples, user interviews, probes, red-team tests.",
+      "AI outputs are maps generated from training-data territories you often cannot see — uncertainty is structural."
+    ],
+    "howToApply": [
+      "Before acting on a model output, ask: \"What would I check in the real world if this were wrong?\"",
+      "Maintain a \"known gaps\" list for your architecture diagram — explicit unknowns reduce false confidence.",
+      "When two experts disagree, compare which maps they are using (metrics, time horizons, risk tolerance).",
+      "Use human review at territory boundaries: payments, medical advice, legal text, safety-critical paths.",
+      "Teach students where classroom maps end — analogies are pedagogical maps, not universal laws."
+    ],
+    "examples": [
+      {
+        "title": "Confident wrong LLM answer",
+        "description": "The model produces a plausible citation that does not exist — the map (fluent text) diverged from the territory (facts). Fix: retrieval with sources, verification steps, or abstention when confidence is low."
+      },
+      {
+        "title": "Market sizing slide",
+        "description": "A TAM chart is a map built on assumptions. Territory check: bottom-up customer counts, pilot conversion, or competitor revenue — not just multiplying percentages on a slide."
+      },
+      {
+        "title": "Neural network as \"brain\" analogy",
+        "description": "Useful teaching map for beginners; misleading if taken literally. Territory: transformers do not replicate neuroscience — know when to drop the analogy."
+      }
+    ],
+    "commonMistakes": [
+      "Equating fluency with truth — especially for language models.",
+      "Using an old map after the territory changed (new regulations, new model behaviour, new user segment).",
+      "Rejecting all maps as useless — the goal is calibrated trust, not cynicism or blind faith.",
+      "Letting the map become identity (\"we are an AI-first company\") when territory signals say otherwise."
+    ],
+    "keyTakeaway": "Use the map to move fast; touch the territory before you bet the company — or the grade — on it.",
+    "relatedModelSlugs": ["compression-lens", "constraint-box"],
     "relatedSlugs": ["how-llms-work", "ai-for-decision-makers"]
   }
 ]
