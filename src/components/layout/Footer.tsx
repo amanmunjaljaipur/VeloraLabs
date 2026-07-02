@@ -1,5 +1,8 @@
+"use client";
+
 import { VerlinLogo } from "@/components/ui/VerlinLogo";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface FooterProps {
   tagline: string;
@@ -8,6 +11,12 @@ interface FooterProps {
 }
 
 export function Footer({ tagline, links, social }: FooterProps) {
+  const { data: session } = useSession();
+  const isEnrolled = session?.user?.enrolledLearner ?? false;
+  const visibleLinks = isEnrolled
+    ? links.filter((link) => link.href !== "/free-session")
+    : links;
+
   return (
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-16 md:px-8">
@@ -21,7 +30,7 @@ export function Footer({ tagline, links, social }: FooterProps) {
               Explore
             </h3>
             <ul className="space-y-3">
-              {links.map((link) => (
+              {visibleLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-foreground hover:text-teal transition-colors">
                     {link.label}

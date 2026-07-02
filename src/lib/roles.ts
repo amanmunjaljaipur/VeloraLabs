@@ -30,6 +30,12 @@ export function getRoleForEmail(email: string | null | undefined): UserRole {
   return roles[email.toLowerCase()] ?? DEFAULT_ROLE;
 }
 
+export function hasCustomRoleAssignment(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const roles = loadUserRoles();
+  return email.toLowerCase() in roles;
+}
+
 export function getAllUserRoles(): { email: string; role: UserRole }[] {
   const roles = readUserRolesFile();
   return Object.entries(roles)

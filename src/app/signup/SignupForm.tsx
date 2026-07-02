@@ -1,38 +1,38 @@
 "use client";
 
 import { AuthMethodChooser } from "@/components/auth/AuthMethodChooser";
-import { ManualSignInForm } from "@/components/auth/ManualSignInForm";
+import { ManualSignUpForm } from "@/components/auth/ManualSignUpForm";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 type AuthMethod = "choose" | "manual";
 
-export function LoginForm() {
+export function SignupForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [method, setMethod] = useState<AuthMethod>("choose");
 
   if (method === "manual") {
-    return <ManualSignInForm callbackUrl={callbackUrl} onBack={() => setMethod("choose")} />;
+    return <ManualSignUpForm callbackUrl={callbackUrl} onBack={() => setMethod("choose")} />;
   }
 
   return (
     <AuthMethodChooser
-      title="Welcome back"
-      subtitle="Sign in to book sessions, track your learning, and access your dashboard."
-      googleLabel="Sign in with Google"
-      manualLabel="Sign in with email"
+      title="Create your account"
+      subtitle="Join Verlin Labs to book free sessions, access courses, and track your progress."
+      googleLabel="Sign up with Google"
+      manualLabel="Sign up with email"
       callbackUrl={callbackUrl}
       onManual={() => setMethod("manual")}
       footer={
         <p>
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
             className="font-medium text-teal hover:underline"
           >
-            Sign up
+            Sign in
           </Link>
         </p>
       }

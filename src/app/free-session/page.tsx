@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { FreeSessionBenefits } from "@/components/sections/FreeSessionBenefits";
 import { FreeSessionHero } from "@/components/sections/FreeSessionHero";
 import { SessionAgenda } from "@/components/sections/SessionAgenda";
@@ -5,7 +6,9 @@ import { AudienceCard } from "@/components/sections/AudienceCard";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
 import { Accordion } from "@/components/ui/Accordion";
 import { FreeSessionBooking } from "./FreeSessionBooking";
+import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAudiences, getFreeSession, getTestimonials } from "@/lib/content";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +16,14 @@ export const metadata: Metadata = {
   description: "Book your free introductory session and experience clarity-first learning.",
 };
 
-export default function FreeSessionPage() {
+export default async function FreeSessionPage() {
+  const session = await auth();
+  if (
+    session?.user &&
+    isEnrolledLearner(session.user.email, session.user.role)
+  ) {
+    redirect("/");
+  }
   const freeSession = getFreeSession();
   const audiences = getAudiences();
   const testimonials = getTestimonials();

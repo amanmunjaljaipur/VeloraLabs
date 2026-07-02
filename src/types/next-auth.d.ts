@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: UserRole;
+      enrolledLearner: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -13,5 +14,13 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role?: UserRole;
+    maxAge?: number;
+    enrolledLearner?: boolean;
+  }
+}
+
+declare module "@auth/core/types" {
+  interface User {
+    remember?: boolean;
   }
 }

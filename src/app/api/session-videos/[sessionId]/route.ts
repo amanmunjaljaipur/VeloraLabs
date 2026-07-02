@@ -10,6 +10,8 @@ import { isValidYouTubeUrl } from "@/lib/youtube";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+export const runtime = "nodejs";
+
 const updateSchema = z.object({
   youtubeUrl: z.string().min(1),
 });
@@ -65,10 +67,26 @@ export async function PUT(
   }
 
   try {
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
     const parsed = updateSchema.safeParse(body);
-    if (!parsed.success || !isValidYouTubeUrl(parsed.data.youtubeUrl)) {
-      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "YouTube URL is required" }, { status: 400 });
+    }
+
+    if (!isValidYouTubeUrl(parsed.data.youtubeUrl)) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid YouTube URL. Paste a standard watch, youtu.be, embed, shorts, or live link.",
+        },
+        { status: 400 }
+      );
     }
 
     const video = setSessionVideo(
@@ -85,8 +103,25 @@ export async function PUT(
         updatedAt: video.updatedAt,
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to save session video:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "Invalid YouTube URL") {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      if (error.message.includes("EROFS") || error.message.includes("read-only")) {
+        return NextResponse.json(
+          { error: "Video storage is read-only in this environment." },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { error: "Could not save video link. Please try again." },
+      { status: 500 }
+    );
   }
 }
 

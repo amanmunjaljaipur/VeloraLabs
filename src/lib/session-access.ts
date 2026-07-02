@@ -7,6 +7,10 @@ const ROLE_AUDIENCE: Partial<Record<UserRole, AudienceSlug>> = {
   professional: "professionals",
 };
 
+export function getAudienceForRole(role: UserRole): AudienceSlug | null {
+  return ROLE_AUDIENCE[role] ?? null;
+}
+
 export function isAdminRole(role: UserRole): boolean {
   return role === "admin" || role === "super_admin";
 }

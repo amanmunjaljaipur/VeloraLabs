@@ -42,3 +42,10 @@ next-env.d.ts
 
 # local dev terminals/logs
 /terminals/
+
+# sensitive runtime data (password hashes, learner progress)
+/content/manual-users.json
+/content/course-progress.json
+
+.vercel
+.env*

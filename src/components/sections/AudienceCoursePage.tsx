@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { CourseCurriculum } from "@/components/sections/CourseCurriculum";
 import type { AudienceSlug, CourseContent } from "@/lib/content";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
+import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -21,9 +22,10 @@ const audienceLabels: Record<AudienceSlug, string> = {
 interface AudienceCoursePageProps {
   slug: AudienceSlug;
   course: CourseContent;
+  isEnrolled?: boolean;
 }
 
-export function AudienceCoursePage({ slug, course }: AudienceCoursePageProps) {
+export function AudienceCoursePage({ slug, course, isEnrolled = false }: AudienceCoursePageProps) {
   const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
   const sessionVideos = getAllSessionVideos();
   const sessionVideoIds = course.phases
@@ -44,14 +46,28 @@ export function AudienceCoursePage({ slug, course }: AudienceCoursePageProps) {
             </p>
             <h1 className="mt-1 text-2xl md:text-3xl font-semibold text-foreground">{course.title}</h1>
             <p className="mt-1 text-sm text-text-secondary">{course.duration}</p>
+            {isEnrolled && (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1 text-xs font-medium text-teal">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Enrolled
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-            <Link href={`/free-session?audience=${slug}`}>
-              <Button size="sm">Book Free Session</Button>
-            </Link>
-            <Link href="#enroll">
-              <Button size="sm" variant="secondary">Enroll</Button>
-            </Link>
+            {isEnrolled ? (
+              <Link href="/">
+                <Button size="sm">Continue learning</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href={`/free-session?audience=${slug}`}>
+                  <Button size="sm">Book Free Session</Button>
+                </Link>
+                <Link href="#enroll">
+                  <Button size="sm" variant="secondary">Enroll</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -75,23 +91,25 @@ export function AudienceCoursePage({ slug, course }: AudienceCoursePageProps) {
         </div>
       </section>
 
-      <section id="enroll" className="py-16 md:py-24 bg-muted/30 scroll-mt-20">
-        <div className="mx-auto max-w-lg px-4 md:px-8 text-center">
-          <Card className="border-teal ring-2 ring-teal/10">
-            <p className="text-sm font-medium text-teal uppercase tracking-wider">Full Program</p>
-            <p className="mt-4 text-4xl font-semibold text-foreground">{course.price}</p>
-            <p className="mt-2 text-text-secondary">{course.duration}</p>
-            <div className="mt-8 flex flex-col gap-3">
-              <Link href={`/free-session?audience=${slug}`}>
-                <Button size="lg" className="w-full">Book Free Session First</Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="secondary" className="w-full">Enroll Now — Contact Us</Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-      </section>
+      {!isEnrolled && (
+        <section id="enroll" className="py-16 md:py-24 bg-muted/30 scroll-mt-20">
+          <div className="mx-auto max-w-lg px-4 md:px-8 text-center">
+            <Card className="border-teal ring-2 ring-teal/10">
+              <p className="text-sm font-medium text-teal uppercase tracking-wider">Full Program</p>
+              <p className="mt-4 text-4xl font-semibold text-foreground">{course.price}</p>
+              <p className="mt-2 text-text-secondary">{course.duration}</p>
+              <div className="mt-8 flex flex-col gap-3">
+                <Link href={`/free-session?audience=${slug}`}>
+                  <Button size="lg" className="w-full">Book Free Session First</Button>
+                </Link>
+                <Link href="/contact">
+                  <Button size="lg" variant="secondary" className="w-full">Enroll Now — Contact Us</Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
+        </section>
+      )}
     </>
   );
 }

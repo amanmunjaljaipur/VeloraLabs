@@ -15,7 +15,7 @@ export function extractYouTubeId(url: string): string | null {
       return id && YOUTUBE_ID_PATTERN.test(id) ? id : null;
     }
 
-    if (host === "youtube.com" || host === "m.youtube.com") {
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
       if (parsed.pathname === "/watch") {
         const id = parsed.searchParams.get("v");
         return id && YOUTUBE_ID_PATTERN.test(id) ? id : null;
@@ -27,6 +27,14 @@ export function extractYouTubeId(url: string): string | null {
       const shortsMatch = parsed.pathname.match(/^\/shorts\/([^/]+)/);
       if (shortsMatch?.[1] && YOUTUBE_ID_PATTERN.test(shortsMatch[1])) {
         return shortsMatch[1];
+      }
+      const liveMatch = parsed.pathname.match(/^\/live\/([^/]+)/);
+      if (liveMatch?.[1] && YOUTUBE_ID_PATTERN.test(liveMatch[1])) {
+        return liveMatch[1];
+      }
+      const vMatch = parsed.pathname.match(/^\/v\/([^/]+)/);
+      if (vMatch?.[1] && YOUTUBE_ID_PATTERN.test(vMatch[1])) {
+        return vMatch[1];
       }
     }
   } catch {

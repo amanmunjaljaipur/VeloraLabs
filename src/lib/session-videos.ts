@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 import {
   getAllCourseTracks,
   getCourseTrack,
@@ -26,14 +25,14 @@ export interface SessionMeta {
 
 type SessionVideosConfig = Record<string, SessionVideoRecord>;
 
-const videosFilePath = path.join(process.cwd(), "content", "session-videos.json");
+const VIDEOS_FILE = "session-videos.json";
 
 function readVideosFile(): SessionVideosConfig {
-  return JSON.parse(fs.readFileSync(videosFilePath, "utf8")) as SessionVideosConfig;
+  return readJsonFile<SessionVideosConfig>(VIDEOS_FILE, "{}");
 }
 
 function writeVideosFile(videos: SessionVideosConfig): void {
-  fs.writeFileSync(videosFilePath, `${JSON.stringify(videos, null, 2)}\n`, "utf8");
+  writeJsonFile(VIDEOS_FILE, videos, "{}");
 }
 
 export function buildSessionId(audience: AudienceSlug, day: number): string {

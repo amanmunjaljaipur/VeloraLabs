@@ -22,11 +22,13 @@ export function Navbar({ nav }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const role = session?.user?.role;
+  const isEnrolled = session?.user?.enrolledLearner ?? false;
   const isAdmin = role === "admin" || role === "super_admin";
   const adminNav = [
     ...(isAdmin ? [ADMIN_PANEL_NAV, ADMIN_SESSIONS_NAV] : []),
   ];
-  const navItems = adminNav.length > 0 ? [...nav, ...adminNav] : nav;
+  const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
+  const navItems = adminNav.length > 0 ? [...baseNav, ...adminNav] : baseNav;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -57,11 +59,13 @@ export function Navbar({ nav }: NavbarProps) {
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <AuthButton />
-          <Link href="/free-session" className="hidden sm:block">
-            <Button size="sm" className="whitespace-nowrap">
-              Book Free Session
-            </Button>
-          </Link>
+          {!isEnrolled && (
+            <Link href="/free-session" className="hidden sm:block">
+              <Button size="sm" className="whitespace-nowrap">
+                Book Free Session
+              </Button>
+            </Link>
+          )}
           <button
             className="rounded-xl p-2 text-text-secondary hover:bg-muted lg:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -87,9 +91,11 @@ export function Navbar({ nav }: NavbarProps) {
             <div className="py-2">
               <AuthButton className="w-full justify-center" />
             </div>
-            <Link href="/free-session" onClick={() => setMobileOpen(false)}>
-              <Button className="w-full">Book Free Session</Button>
-            </Link>
+            {!isEnrolled && (
+              <Link href="/free-session" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full">Book Free Session</Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

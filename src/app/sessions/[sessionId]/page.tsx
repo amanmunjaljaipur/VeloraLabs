@@ -3,6 +3,8 @@ import { SessionVideoAdmin } from "@/components/sessions/SessionVideoAdmin";
 import { YouTubeEmbed } from "@/components/sessions/YouTubeEmbed";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { markDayComplete } from "@/lib/course-progress";
+import { getCourseTrack } from "@/lib/content";
 import { canAccessSessionVideo, isAdminRole } from "@/lib/session-access";
 import { getSessionMeta, getSessionVideo } from "@/lib/session-videos";
 import { Lock, Video } from "lucide-react";
@@ -48,6 +50,12 @@ export default async function SessionPage({
   }
 
   const hasAccess = canAccessSessionVideo(authSession.user.role, meta.audience);
+
+  if (hasAccess && authSession.user.email) {
+    const course = getCourseTrack(meta.audience);
+    const validDays = course.phases.flatMap((phase) => phase.days.map((day) => day.day));
+    markDayComplete(authSession.user.email, meta.audience, meta.day, validDays);
+  }
 
   return (
     <div className="pb-16 md:pb-24">

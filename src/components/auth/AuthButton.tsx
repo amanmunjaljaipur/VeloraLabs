@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { ROLE_LABELS } from "@/types/roles";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { ChevronDown, LogIn, LogOut } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export function AuthButton({ className }: { className?: string }) {
@@ -125,14 +126,17 @@ export function AuthButton({ className }: { className?: string }) {
   }
 
   return (
-    <Button
-      size="sm"
-      variant="secondary"
-      className={className}
-      onClick={() => signIn("google")}
-    >
-      <LogIn className="h-4 w-4" />
-      <span className="hidden sm:inline">Sign in</span>
-    </Button>
+    <div className={cn("flex items-center gap-2", className)}>
+      <Link href="/login">
+        <Button size="sm" variant="secondary" className="whitespace-nowrap">
+          Sign in
+        </Button>
+      </Link>
+      <Link href="/signup">
+        <Button size="sm" className="whitespace-nowrap">
+          Sign up
+        </Button>
+      </Link>
+    </div>
   );
 }

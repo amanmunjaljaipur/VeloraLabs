@@ -1,4 +1,6 @@
+import { auth } from "@/auth";
 import { AudienceCoursePage } from "@/components/sections/AudienceCoursePage";
+import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAudience, getAudiences, getCourseTrack, type AudienceSlug } from "@/lib/content";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -28,5 +30,16 @@ export default async function AudiencePage({
   if (!audience) notFound();
 
   const course = getCourseTrack(slug as AudienceSlug);
-  return <AudienceCoursePage slug={slug as AudienceSlug} course={course} />;
+  const session = await auth();
+  const isEnrolled = session?.user
+    ? isEnrolledLearner(session.user.email, session.user.role)
+    : false;
+
+  return (
+    <AudienceCoursePage
+      slug={slug as AudienceSlug}
+      course={course}
+      isEnrolled={isEnrolled}
+    />
+  );
 }

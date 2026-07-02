@@ -1,7 +1,9 @@
+import { auth } from "@/auth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { isEnrolledLearner } from "@/lib/enrollment";
 import { getCourses, getTestimonials } from "@/lib/content";
 import { Check } from "lucide-react";
 import Link from "next/link";
@@ -12,9 +14,13 @@ export const metadata: Metadata = {
   description: "See how the full Verlin Labs program builds on your free session experience.",
 };
 
-export default function PostSessionPage() {
+export default async function PostSessionPage() {
   const courses = getCourses();
   const testimonials = getTestimonials().slice(0, 3);
+  const session = await auth();
+  const isEnrolled = session?.user
+    ? isEnrolledLearner(session.user.email, session.user.role)
+    : false;
 
   return (
     <>
@@ -50,13 +56,23 @@ export default function PostSessionPage() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-8">
-                <p className="text-2xl font-semibold text-foreground">{courses.price}</p>
-                <p className="text-sm text-text-secondary mt-1">{courses.duration}</p>
-                <Link href="/courses#enroll" className="block mt-6">
-                  <Button className="w-full" size="lg">Enroll in Full Program</Button>
-                </Link>
-              </div>
+              {!isEnrolled && (
+                <div className="mt-8">
+                  <p className="text-2xl font-semibold text-foreground">{courses.price}</p>
+                  <p className="text-sm text-text-secondary mt-1">{courses.duration}</p>
+                  <Link href="/courses#enroll" className="block mt-6">
+                    <Button className="w-full" size="lg">Enroll in Full Program</Button>
+                  </Link>
+                </div>
+              )}
+              {isEnrolled && (
+                <div className="mt-8">
+                  <p className="text-sm text-text-secondary">You&apos;re already enrolled in your program.</p>
+                  <Link href="/" className="block mt-6">
+                    <Button className="w-full" size="lg">Go to your dashboard</Button>
+                  </Link>
+                </div>
+              )}
             </Card>
           </div>
         </div>

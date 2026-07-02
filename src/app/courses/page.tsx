@@ -1,6 +1,8 @@
+import { auth } from "@/auth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAllCourseTracks } from "@/lib/content";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
@@ -23,14 +25,22 @@ const labels = {
   professionals: "Product Managers",
 };
 
-export default function CoursesPage() {
+export default async function CoursesPage() {
   const tracks = getAllCourseTracks();
+  const session = await auth();
+  const isEnrolled = session?.user
+    ? isEnrolledLearner(session.user.email, session.user.role)
+    : false;
 
   return (
     <>
       <PageHeader
         title="Courses & Programs"
-        subtitle="Choose the path that fits your stage — each program opens with the full course structure."
+        subtitle={
+          isEnrolled
+            ? "You're enrolled — open your program to continue where you left off."
+            : "Choose the path that fits your stage — each program opens with the full course structure."
+        }
       />
 
       <section className="pb-16 md:pb-24">
@@ -54,11 +64,16 @@ export default function CoursesPage() {
                     </p>
                     <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                       <div>
-                        <p className="font-semibold text-foreground">{course.price}</p>
-                        <p className="text-xs text-text-secondary">{course.duration} · {dayCount} days</p>
+                        {!isEnrolled && (
+                          <p className="font-semibold text-foreground">{course.price}</p>
+                        )}
+                        <p className="text-xs text-text-secondary">
+                          {course.duration} · {dayCount} days
+                        </p>
                       </div>
                       <span className="flex items-center gap-1 text-sm font-medium text-teal group-hover:gap-2 transition-all">
-                        View structure <ArrowRight className="h-4 w-4" />
+                        {isEnrolled ? "Open program" : "View structure"}{" "}
+                        <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>
                   </Card>
@@ -69,17 +84,19 @@ export default function CoursesPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-muted/30 text-center">
-        <div className="mx-auto max-w-2xl px-4 md:px-8">
-          <h2 className="text-2xl font-semibold mb-4">Not sure which program fits?</h2>
-          <p className="text-text-secondary mb-8">
-            Start with a free 2-hour session — we&apos;ll help you pick the right path.
-          </p>
-          <Link href="/free-session">
-            <Button size="lg">Book Free 2-Hour Session</Button>
-          </Link>
-        </div>
-      </section>
+      {!isEnrolled && (
+        <section className="py-16 bg-muted/30 text-center">
+          <div className="mx-auto max-w-2xl px-4 md:px-8">
+            <h2 className="text-2xl font-semibold mb-4">Not sure which program fits?</h2>
+            <p className="text-text-secondary mb-8">
+              Start with a free 2-hour session — we&apos;ll help you pick the right path.
+            </p>
+            <Link href="/free-session">
+              <Button size="lg">Book Free 2-Hour Session</Button>
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 }
