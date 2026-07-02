@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { signInSchema } from "@/lib/auth-validation";
 import { isEnrolledLearner } from "@/lib/enrollment";
+import { recordKnownUser, type AuthProvider } from "@/lib/known-users";
 import { getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -78,7 +79,13 @@ export const authOptions: NextAuthConfig = {
     signIn: "/login",
   },
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, account }) {
+      if (user?.email) {
+        const provider: AuthProvider =
+          account?.provider === "google" ? "google" : "credentials";
+        recordKnownUser(user.email, user.name, provider);
+      }
+
       const email = user?.email ?? token.email;
       if (email) {
         const role = getRoleForEmail(email);

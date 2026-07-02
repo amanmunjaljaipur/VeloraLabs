@@ -47,6 +47,7 @@ next-env.d.ts
 /content/manual-users.json
 /content/course-progress.json
 /content/video-progress.json
+/content/known-users.json
 
 .vercel
 .env*

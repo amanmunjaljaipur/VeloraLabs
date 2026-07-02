@@ -44,6 +44,10 @@ function writeUsersFile(data: ManualUsersFile): void {
   }
 }
 
+export function getAllManualUsers(): ManualUser[] {
+  return readUsersFile().users;
+}
+
 export function getManualUserByEmail(email: string): ManualUser | null {
   const normalized = email.toLowerCase().trim();
   const { users } = readUsersFile();

@@ -29,7 +29,7 @@ export default async function RoleAssignmentPage() {
         title="Admin Panel"
         subtitle={
           isSuperAdmin
-            ? "Assign any of the five roles to users by email."
+            ? "Review users without roles, assign in bulk, or manage existing assignments."
             : "Assign Student, Engineer, or Professional roles to users by email."
         }
       />

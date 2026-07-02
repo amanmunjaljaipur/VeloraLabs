@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { getUsersWithoutRoleAssignment } from "@/lib/known-users";
 import { getAllUserRoles, getRoleForEmail, removeUserRole, setUserRole } from "@/lib/roles";
 import { isAdminRole } from "@/lib/session-access";
 import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
@@ -44,7 +45,16 @@ export async function GET() {
     label: ROLE_LABELS[role],
   }));
 
-  return NextResponse.json({ assignments });
+  const payload: {
+    assignments: typeof assignments;
+    unassigned?: ReturnType<typeof getUsersWithoutRoleAssignment>;
+  } = { assignments };
+
+  if (session.user.role === "super_admin") {
+    payload.unassigned = getUsersWithoutRoleAssignment();
+  }
+
+  return NextResponse.json(payload);
 }
 
 export async function POST(req: NextRequest) {
