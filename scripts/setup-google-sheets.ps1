@@ -33,7 +33,9 @@ $destKey = Join-Path $secretsDir "google-service-account.json"
 Copy-Item $jsonPath $destKey -Force
 
 $parsed = Get-Content $destKey -Raw | ConvertFrom-Json
-$shareEmail = Read-Host "Your Google Workspace email (sheet will be shared with you)"
+$defaultEmail = "amanmunjal.jaipur@gmail.com"
+$shareInput = Read-Host "Google email to share the sheet with [$defaultEmail]"
+$shareEmail = if ([string]::IsNullOrWhiteSpace($shareInput)) { $defaultEmail } else { $shareInput }
 
 function Set-Or-Add-EnvLine($content, $key, $value) {
   if ($content -match "(?m)^$key=") {
