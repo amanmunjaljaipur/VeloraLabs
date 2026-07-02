@@ -80,13 +80,16 @@ export default async function MentalModelDetailPage({
                 <h3 className="text-lg font-semibold text-foreground">From the library</h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {relatedLibrary.map((item) => (
-                    <Card key={item.id} hover className="h-full">
-                      <Badge variant="difficulty" className="mb-2">
-                        {item.level}
-                      </Badge>
-                      <h4 className="font-semibold text-foreground">{item.title}</h4>
-                      <p className="mt-2 text-sm text-text-secondary">{item.description}</p>
-                    </Card>
+                    <Link key={item.id} href={`/library/${item.slug}`} className="block h-full">
+                      <Card hover className="h-full">
+                        <Badge variant="difficulty" className="mb-2">
+                          {item.level}
+                        </Badge>
+                        <h4 className="font-semibold text-foreground">{item.title}</h4>
+                        <p className="mt-2 text-sm text-text-secondary">{item.description}</p>
+                        <p className="mt-3 text-xs font-medium text-teal">{item.duration}</p>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </div>

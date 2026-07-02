@@ -32,11 +32,18 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
     <>
       <PageHeader
         title="Content Library"
-        subtitle="Articles, guides, and workshops — organized for clarity."
+        subtitle="In-depth articles, guides, and workshops — written to industry standards with clear structure, practical takeaways, and connected reading paths."
       />
 
       <section className="pb-16 md:pb-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
+          <p className="mb-8 max-w-3xl text-base leading-relaxed text-text-secondary">
+            Each resource includes a full overview, section-by-section explanations, actionable bullet
+            points, and a key takeaway you can apply immediately. Filter by level, audience, or format to
+            find what fits your role — from first exposure to LLMs through RAG architecture and team risk
+            assessments.
+          </p>
+
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />

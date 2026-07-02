@@ -4,95 +4,584 @@
     "slug": "how-llms-work",
     "title": "How Large Language Models Actually Work",
     "description": "A clarity-first walkthrough of tokens, attention, and prediction — without the math overwhelm.",
+    "summary": "Large language models do not \"understand\" language the way humans do — they learn statistical patterns over billions of text fragments and predict what token comes next. Once you see the full pipeline from raw text to response, AI stops feeling like magic and starts feeling like engineering you can reason about.",
     "duration": "18 min",
     "level": "Beginner",
     "audience": "all",
     "type": "Article",
     "featured": true,
-    "thumbnail": "gradient-teal-1"
+    "image": "/images/ai-learning.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-01-15",
+    "tags": ["LLMs", "Fundamentals", "Tokens", "Attention"],
+    "sections": [
+      {
+        "title": "What an LLM actually does",
+        "paragraphs": [
+          "At its core, a large language model is a prediction engine. Given a sequence of tokens — fragments of words, punctuation, and symbols — it estimates the probability of every possible next token and selects one. Repeat that process thousands of times and you get a paragraph, an email draft, or a code snippet.",
+          "This is why models can be eloquent without being truthful. They optimise for plausible continuation, not verified fact. Understanding that distinction is the foundation for using LLMs responsibly in school, at work, and in product design."
+        ],
+        "bullets": [
+          "Training teaches pattern recognition across massive text corpora — not a database of facts.",
+          "Inference is autoregressive: each generated token becomes input for the next prediction.",
+          "The model has no persistent memory between sessions unless you or the application provide context."
+        ]
+      },
+      {
+        "title": "From text to tokens",
+        "paragraphs": [
+          "Before a model sees your prompt, a tokenizer breaks text into tokens. Common words may be one token; rare words split into several. Token limits (context windows) are measured in tokens, not words — which is why long documents or code files can hit limits faster than expected.",
+          "Tokenization affects cost, speed, and behaviour. Two prompts that look similar to humans can tokenize differently and produce different results. When debugging odd outputs, checking token count and prompt structure is often more useful than rewriting the entire request."
+        ],
+        "bullets": [
+          "Rough rule: 1 token ≈ 0.75 English words, but varies by language and formatting.",
+          "Code, JSON, and URLs often consume more tokens per visible character than prose.",
+          "System prompts, chat history, and retrieved documents all share the same context budget."
+        ]
+      },
+      {
+        "title": "Attention: how context gets weighted",
+        "paragraphs": [
+          "Transformer architectures use attention mechanisms to decide which parts of the input matter most when predicting the next token. When you ask a model to \"summarise the third paragraph,\" attention is how earlier tokens influence the prediction — not keyword search, but learned relevance across the whole sequence.",
+          "You do not need matrix algebra to use this insight. Practically: put critical instructions and constraints near the beginning or end of the prompt, keep unrelated text out of context, and structure long inputs with clear headings so the model can locate the right section."
+        ],
+        "bullets": [
+          "Attention scales with context length — very long inputs can dilute focus on key details.",
+          "Multi-turn chats accumulate context; old turns can steer answers in unintended directions.",
+          "Retrieval-augmented setups prepend external chunks — attention then weighs those alongside your question."
+        ]
+      },
+      {
+        "title": "Training vs inference",
+        "paragraphs": [
+          "Training is the expensive phase: models adjust billions of parameters by predicting masked or next tokens across internet-scale datasets. Inference is the cheap phase you use daily: a frozen model runs forward passes on your prompt. Fine-tuning and RLHF sit between these extremes, nudging behaviour without retraining from scratch.",
+          "For most teams, the actionable split is simple: you rarely train foundation models yourself; you choose a model, craft prompts, add retrieval or tools, and evaluate outputs against real tasks."
+        ],
+        "bullets": [
+          "Base models predict text; instruction-tuned models follow conversational formats more reliably.",
+          "Temperature and top-p sampling control randomness — lower values for factual tasks, higher for brainstorming.",
+          "Latency and cost grow with model size, context length, and output length — not just \"smarter = better.\""
+        ]
+      },
+      {
+        "title": "A practical mental model for daily use",
+        "paragraphs": [
+          "Treat the LLM as a skilled improv partner with encyclopaedic exposure to language patterns but no guaranteed access to current facts or your private data. Your job is to supply context, specify format, define success criteria, and verify outputs — especially for high-stakes decisions.",
+          "When outputs fail, walk the pipeline backwards: Was the prompt ambiguous? Was context missing? Was the task beyond the model's reliable capability? That debugging habit separates productive AI use from frustrated trial-and-error."
+        ]
+      }
+    ],
+    "keyTakeaway": "LLMs predict likely next tokens from learned patterns — not guaranteed truth. Master the pipeline (tokenize → attend → predict) and you can prompt, debug, and evaluate AI outputs with the same rigour you bring to any other system.",
+    "relatedSlugs": ["transformers-pipeline", "prompt-engineering-basics", "neural-networks-analogy"]
   },
   {
     "id": "2",
     "slug": "transformers-pipeline",
     "title": "Transformers as Information Pipelines",
     "description": "Visual mental model for understanding encoder-decoder architecture.",
+    "summary": "The transformer is best understood as an information pipeline: raw tokens enter, get embedded and contextualised through stacked attention layers, and exit as predictions or transformed representations. Mapping encoder, decoder, and cross-attention stages turns architecture diagrams into debugging checklists.",
     "duration": "24 min",
     "level": "Intermediate",
     "audience": "engineers",
     "type": "Guide",
     "featured": true,
-    "thumbnail": "gradient-teal-2"
+    "image": "/images/coding.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-01-22",
+    "tags": ["Transformers", "Architecture", "Encoders", "Decoders"],
+    "sections": [
+      {
+        "title": "Why pipeline thinking beats memorising layers",
+        "paragraphs": [
+          "Architecture blogs often list components — multi-head attention, layer norm, feed-forward blocks — without showing how data flows. Pipeline thinking fixes that: at each stage, ask what shape the data is in, what changed, and what failure modes appear.",
+          "This maps directly to production work. When you integrate an embedding API, a reranker, and an LLM, you already run a pipeline. Transformers are the canonical template for how modern NLP stacks modularise those stages."
+        ]
+      },
+      {
+        "title": "Stage 1: Tokenisation and embeddings",
+        "paragraphs": [
+          "Integers representing tokens pass through an embedding matrix, producing dense vectors that capture semantic and syntactic hints learned during training. Positional encodings (or rotary embeddings) inject order — attention alone is permutation-sensitive without them.",
+          "Quality issues here are subtle: wrong tokenizer for your domain, out-of-vocabulary splits, or normalisation mismatches between training and serving data can degrade downstream layers even when the model weights are fine."
+        ],
+        "bullets": [
+          "Embeddings map discrete tokens to continuous space where similarity is meaningful.",
+          "Position information tells the model that \"dog bites man\" differs from \"man bites dog.\"",
+          "Vocabulary and tokenizer choice are part of the model contract — not interchangeable across checkpoints."
+        ]
+      },
+      {
+        "title": "Stage 2: Encoder blocks — building representations",
+        "paragraphs": [
+          "Encoder stacks (BERT-style) read the full input bidirectionally and output contextualised vectors per token. Each self-attention layer lets every token attend to every other token, building representations that depend on surrounding context — ideal for classification, extraction, and semantic search encoders.",
+          "Encoders do not generate text token-by-token; they produce rich features you consume in downstream tasks. In RAG systems, the encoder stage often lives inside your embedding model."
+        ],
+        "bullets": [
+          "Self-attention complexity grows with sequence length — long documents need chunking or sparse methods.",
+          "Encoder outputs are often pooled (CLS token or mean pooling) for sentence-level similarity.",
+          "Fine-tuning encoders is common for domain-specific retrieval where general embeddings underperform."
+        ]
+      },
+      {
+        "title": "Stage 3: Decoder blocks — autoregressive generation",
+        "paragraphs": [
+          "Decoder-only models (GPT-style) use masked self-attention so each position sees only prior tokens during training. At inference, they append one token at a time. This is the dominant architecture for chat assistants and code generators.",
+          "Decoder stacks trade bidirectional context for generative flexibility. That is why they excel at open-ended completion but may need retrieval or tools for factual grounding."
+        ],
+        "bullets": [
+          "Causal masking enforces left-to-right generation during training.",
+          "KV caching stores prior computations during inference — critical for latency at long outputs.",
+          "Instruction tuning adapts decoder behaviour without changing the fundamental autoregressive loop."
+        ]
+      },
+      {
+        "title": "Encoder-decoder and cross-attention",
+        "paragraphs": [
+          "Seq2seq transformers (T5, BART, original translation models) encode the full source sequence, then decode target tokens while attending to encoder outputs via cross-attention. This pattern still appears in summarisation, translation, and some multimodal systems where one modality encodes and another decodes.",
+          "When choosing architectures for a product, match pipeline shape to task: encode-only for search and labelling, decode-only for assistants, encoder-decoder when transforming one full sequence into another under tight format constraints."
+        ],
+        "bullets": [
+          "Cross-attention lets each decoding step pull relevant parts of the encoded input.",
+          "Many \"agent\" workflows chain encoder-style retrieval with decoder-style generation.",
+          "Hybrid pipelines are normal — monolithic end-to-end models are the exception in enterprise deployments."
+        ]
+      }
+    ],
+    "keyTakeaway": "Draw transformers as pipelines: embed → contextualise (encoder and/or decoder blocks) → predict or export representations. Naming each stage tells you where to optimise, which components to swap, and how your RAG or fine-tuning layer fits the stack.",
+    "relatedSlugs": ["how-llms-work", "rag-vs-finetuning", "neural-networks-analogy"]
   },
   {
     "id": "3",
     "slug": "ai-for-decision-makers",
     "title": "AI Decision Frameworks for Leaders",
     "description": "When to adopt, when to wait, and how to evaluate AI tools systematically.",
+    "summary": "Leaders do not need to understand backpropagation to make good AI decisions. They need a repeatable framework: clarify the business problem, assess data and risk, pilot with measurable outcomes, and scale only what proves durable value. This guide walks through that process without vendor hype.",
     "duration": "15 min",
     "level": "Beginner",
     "audience": "professionals",
     "type": "Article",
     "featured": true,
-    "thumbnail": "gradient-teal-3"
+    "image": "/images/professionals.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-02-03",
+    "tags": ["Strategy", "Leadership", "ROI", "Governance"],
+    "sections": [
+      {
+        "title": "Start with the decision, not the technology",
+        "paragraphs": [
+          "The most expensive AI initiatives begin with \"we should use AI\" instead of \"we need to reduce onboarding time by 30%.\" Anchor every evaluation to a decision someone already makes — approving loans, drafting contracts, triaging support tickets — and ask whether better information or automation materially improves that decision.",
+          "If the bottleneck is unclear ownership, bad data hygiene, or a broken process, AI often amplifies the mess. Fix or simplify the workflow first, then test whether AI removes a specific friction point."
+        ],
+        "bullets": [
+          "Define success in business terms: revenue, cost, cycle time, error rate, customer satisfaction.",
+          "Identify who is accountable when the model is wrong — before procurement, not after an incident.",
+          "Prefer augmenting experts over fully automating high-judgment calls until trust is earned."
+        ]
+      },
+      {
+        "title": "The four-question feasibility screen",
+        "paragraphs": [
+          "Before budget approval, run a lightweight screen: (1) Is labelled or retrievable data available? (2) Is the task pattern-rich enough for ML or LLMs to help? (3) Are errors tolerable or detectable? (4) Can we comply with regulation and customer expectations?",
+          "Two \"no\" answers should trigger pause or a narrower pilot — not a bigger licence purchase."
+        ],
+        "bullets": [
+          "Data: proprietary docs may need RAG; rare events may need human review, not automation.",
+          "Task fit: creative strategy still needs humans; summarising routine reports is a stronger fit.",
+          "Risk: regulated industries need audit trails, explainability, and human-in-the-loop by default."
+        ]
+      },
+      {
+        "title": "Build vs buy vs partner",
+        "paragraphs": [
+          "Most organisations should buy foundation capabilities (models, hosting, security) and build thin workflow layers: prompts, retrieval, integrations, evaluation. Custom training is justified only when generic models consistently fail on domain-critical language or formats and you have sustained data advantage.",
+          "Evaluate vendors on integration effort, data handling, model upgrade paths, and exit cost — not demo sparkle. Require a pilot on your documents, your metrics, and your failure cases."
+        ],
+        "bullets": [
+          "SaaS copilots win on time-to-value; internal builds win on control and differentiation.",
+          "Hidden costs: labelling, monitoring, red-teaming, legal review, and change management.",
+          "Contract for data retention, subprocessors, and model change notification upfront."
+        ]
+      },
+      {
+        "title": "Pilot design that leadership can trust",
+        "paragraphs": [
+          "A credible pilot has a control group or baseline, pre-registered metrics, a fixed timeline, and explicit stop rules. Track not only productivity gains but error types, override rates, and employee adoption. Surveys without operational data produce false confidence.",
+          "Communicate results as ranges and confidence, not single ROI percentages. Decision-makers need to know what broke, what improved, and what must be true to scale."
+        ],
+        "bullets": [
+          "Run 4–8 weeks with a named executive sponsor and a technical owner.",
+          "Sample real workflows — not sanitised demos curated by the vendor.",
+          "Document incidents and near-misses; they predict production risk better than average accuracy."
+        ]
+      },
+      {
+        "title": "Scaling and governance",
+        "paragraphs": [
+          "Scaling means operationalising: access controls, logging, refresh cycles for knowledge bases, incident response, and training for staff who verify outputs. Governance is not a slide deck — it is who can approve new use cases, how often models are reviewed, and how customers are informed.",
+          "Leaders set the tone: reward careful use and caught mistakes, not unchecked speed. Cultures that punish verification drive shadow AI and compliance risk."
+        ]
+      }
+    ],
+    "keyTakeaway": "Treat AI adoption like any capital decision: define the business outcome, screen feasibility, pilot with real metrics, then scale with governance. The organisations that win treat AI as infrastructure for better decisions — not a strategy on its own.",
+    "relatedSlugs": ["ai-risk-assessment", "rag-vs-finetuning", "prompt-engineering-basics"]
   },
   {
     "id": "4",
     "slug": "chatgpt-for-students",
     "title": "ChatGPT Explained for Students",
     "description": "Friendly analogies that make AI assistants understandable and safe to use.",
+    "summary": "ChatGPT and similar assistants are pattern-based writing partners — powerful for brainstorming and explanation, risky when treated as an infallible source or a substitute for your own thinking. This guide explains how they work in plain language and sets practical rules for ethical, effective use in school and university.",
     "duration": "12 min",
     "level": "Beginner",
     "audience": "students",
-    "type": "Video",
+    "type": "Article",
     "featured": true,
-    "thumbnail": "gradient-teal-4"
+    "image": "/images/students.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-02-10",
+    "tags": ["Students", "Study skills", "Academic integrity", "ChatGPT"],
+    "sections": [
+      {
+        "title": "What ChatGPT is — in one analogy",
+        "paragraphs": [
+          "Imagine an extremely well-read study partner who has seen millions of essays, textbooks, and forum posts. When you ask a question, they do not look up a verified answer sheet — they predict what words usually come next in a helpful-sounding response. That is why answers can sound confident even when wrong.",
+          "The assistant does not know your syllabus, your professor's rubric, or today's news unless you paste that information in (and even then it can misinterpret). You remain responsible for accuracy, citations, and originality."
+        ]
+      },
+      {
+        "title": "Great uses vs risky uses",
+        "paragraphs": [
+          "Strong use cases: unpacking confusing lecture topics, generating practice questions, outlining essay structures, debugging study schedules, and comparing explanations until one clicks. Weak use cases: submitting generated text as your own work, trusting unsourced facts, or skipping the reading because a summary exists.",
+          "Many courses now allow AI with disclosure; others prohibit it entirely. Read your institution's policy before each assignment — assumptions cost more than asking."
+        ],
+        "bullets": [
+          "Good: \"Explain photosynthesis like I'm 15, then quiz me with three questions.\"",
+          "Risky: \"Write my lab report from these bullet notes without showing your work.\"",
+          "Good: \"What are three arguments for and against this thesis? I'll pick and develop one.\"",
+          "Risky: \"Give me five academic citations\" — models fabricate references unless connected to real search tools."
+        ]
+      },
+      {
+        "title": "How to prompt like a learner, not a shortcut",
+        "paragraphs": [
+          "Ask the model to teach, not to replace you. Request step-by-step reasoning, ask it to point out assumptions, and follow up when something feels vague. If you cannot explain the answer in your own words without looking at the screen, you have not learned the material yet.",
+          "Paste rubrics, word limits, and constraints. The more context you give about what your instructor wants, the more useful the feedback — but you still must write and verify the final submission."
+        ],
+        "bullets": [
+          "Use \"explain, then ask me a question\" loops instead of one-shot answers.",
+          "Request \"what might my teacher disagree with in this draft?\" for critical feedback.",
+          "Save chats that show your iterative process — useful if integrity questions arise."
+        ]
+      },
+      {
+        "title": "Spotting errors and hallucinations",
+        "paragraphs": [
+          "Hallucinations are fluent falsehoods: fake citations, wrong dates, invented theorems, or plausible-sounding definitions that do not match your textbook. Cross-check anything that will appear in graded work against primary sources — course materials, textbooks, Google Scholar, or your library database.",
+          "Math and multi-step logic are especially fragile. Use AI to suggest approaches, then work problems yourself or verify with WolframAlpha, your TA, or office hours."
+        ],
+        "bullets": [
+          "If a claim matters, find the same fact in two independent sources.",
+          "Watch for outdated info — models have knowledge cutoffs unless browsing is enabled.",
+          "Numbers, laws, and medical advice need human experts, not chatbots."
+        ]
+      },
+      {
+        "title": "Building long-term skills",
+        "paragraphs": [
+          "The students who benefit most use AI to compress confusion into clarity, then practise recall and application without it. Treat assistants as training wheels you deliberately remove before exams. Skills that stick — writing, proof, coding fluency — still require spaced repetition and feedback from humans.",
+          "Learning to evaluate machine-generated text is itself a career skill. Employers will expect you to use AI quickly and to catch its mistakes reliably."
+        ]
+      }
+    ],
+    "keyTakeaway": "Use ChatGPT to understand faster and practise smarter — never to skip thinking. Verify facts, follow your school's integrity rules, and keep your own voice in every assignment that carries your name.",
+    "relatedSlugs": ["how-llms-work", "prompt-engineering-basics", "neural-networks-analogy"]
   },
   {
     "id": "5",
     "slug": "rag-vs-finetuning",
     "title": "RAG vs. Fine-Tuning: A Practical Guide",
     "description": "Choose the right approach for your use case with clear decision criteria.",
+    "summary": "Retrieval-augmented generation (RAG) and fine-tuning solve different problems. RAG injects fresh, citeable context at query time; fine-tuning bakes in behaviour, tone, and format. Most production systems start with RAG and add fine-tuning only when retrieval alone cannot shape responses reliably.",
     "duration": "22 min",
     "level": "Advanced",
     "audience": "engineers",
     "type": "Guide",
     "featured": false,
-    "thumbnail": "gradient-teal-1"
+    "image": "/images/engineers.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-02-18",
+    "tags": ["RAG", "Fine-tuning", "MLOps", "Architecture"],
+    "sections": [
+      {
+        "title": "Two levers, two failure modes",
+        "paragraphs": [
+          "RAG failures usually look like \"could not find the right chunk\" — retrieval missed the document, chunking split a table awkwardly, or embeddings failed on domain jargon. Fine-tuning failures look like \"behaves oddly on new inputs\" — overfitted tone, forgotten general capabilities, or drift when base models upgrade.",
+          "Choosing wrong wastes months. If your problem is stale knowledge, fine-tuning company PDFs into weights is the wrong tool. If your problem is strict JSON output for an API, RAG alone will not fix format reliability."
+        ]
+      },
+      {
+        "title": "When RAG is the right default",
+        "paragraphs": [
+          "RAG shines when knowledge changes frequently, sources must be cited, multiple tenants need isolated document sets, or you cannot retrain on customer data for compliance reasons. The pipeline is familiar: ingest documents, chunk, embed, store vectors, retrieve top-k, assemble prompt, generate answer.",
+          "Operational maturity matters. Plan for reindexing when docs change, access control at retrieval time, and evaluation sets that include adversarial questions designed to probe missing context."
+        ],
+        "bullets": [
+          "Strengths: freshness, traceability, per-user corpora, lower training cost.",
+          "Costs: vector DB ops, chunk strategy tuning, latency from retrieval + larger prompts.",
+          "Watchouts: duplicate chunks, conflicting sources, and \"lost in the middle\" when contexts are huge."
+        ]
+      },
+      {
+        "title": "When fine-tuning earns its complexity",
+        "paragraphs": [
+          "Fine-tuning (including LoRA/QLoRA on open models) helps when you need consistent style, specialised vocabulary, tool-use formats, or task-specific reasoning distributions that prompting cannot stabilise. It is also useful when proprietary data cannot sit in a retrieval index but can be used in a controlled training environment.",
+          "Budget for data curation, evaluation harnesses, regression tests on general capabilities, and a retraining path when base models deprecate. Fine-tuning is not fire-and-forget."
+        ],
+        "bullets": [
+          "Strengths: stable behaviour, smaller prompts, potentially lower inference tokens for repeated schemas.",
+          "Costs: GPU time, labelling, catastrophic forgetting risk, MLOps pipeline maintenance.",
+          "Watchouts: training on noisy examples teaches confident wrong answers; always hold out test sets."
+        ]
+      },
+      {
+        "title": "Decision matrix",
+        "paragraphs": [
+          "Use this shorthand with stakeholders: If the answer must reference specific internal documents that change weekly → RAG. If the task is always the same structure (e.g. parse this invoice layout) → fine-tune or specialised small model. If both matter → hybrid: fine-tune for format and tool discipline, RAG for facts.",
+          "Prompt engineering remains the first lever. Many teams never need fine-tuning if retrieval plus clear instructions reaches acceptable quality."
+        ],
+        "bullets": [
+          "Knowledge updates often → RAG",
+          "Behaviour/format consistency → fine-tuning or constrained decoding",
+          "Strict citations → RAG with source metadata in context",
+          "Low-latency on-device → small fine-tuned model, possibly without RAG",
+          "Regulated PII → neither until data flow and retention are approved"
+        ]
+      },
+      {
+        "title": "Hybrid patterns in production",
+        "paragraphs": [
+          "Common enterprise pattern: RAG for knowledge, light fine-tuning or JSON schema enforcement for output shape, reranker for retrieval quality, and a human review queue for edge cases. Instrument everything — retrieval scores, token usage, thumbs-down reasons — so you know which layer failed.",
+          "Re-evaluate quarterly. Model providers ship better base models that obsolete custom fine-tunes but also improve zero-shot RAG answers. Treat components as swappable pipeline stages, not permanent bets."
+        ]
+      }
+    ],
+    "keyTakeaway": "Default to RAG for changing, citeable knowledge; add fine-tuning when behaviour and format must be locked in. Measure each layer separately — most \"model quality\" issues are retrieval or prompt bugs in disguise.",
+    "relatedSlugs": ["transformers-pipeline", "prompt-engineering-basics", "ai-for-decision-makers"]
   },
   {
     "id": "6",
     "slug": "neural-networks-analogy",
     "title": "Neural Networks as Pattern Recognizers",
     "description": "Build intuition for how networks learn — using everyday examples.",
+    "summary": "A neural network is a stack of adjustable filters that gradually learn useful patterns — edges in images, phonemes in audio, or phrases in text. You do not need calculus to grasp the learning loop: guess, measure error, nudge weights, repeat. That intuition transfers directly to how modern AI systems are trained and where they break.",
     "duration": "16 min",
     "level": "Beginner",
     "audience": "students",
     "type": "Workshop",
     "featured": false,
-    "thumbnail": "gradient-teal-2"
+    "image": "/images/workshop.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-02-25",
+    "tags": ["Neural networks", "Machine learning", "Intuition", "Workshop"],
+    "sections": [
+      {
+        "title": "The pattern-recognition story",
+        "paragraphs": [
+          "Show a child hundreds of cats and dogs; they start noticing ears, snouts, and posture. Neural networks learn similarly from examples — not explicit rules you write, but statistical regularities extracted layer by layer. Early layers catch simple features; deeper layers combine them into concepts like \"wheel,\" \"smile,\" or \"sarcastic tone.\"",
+          "Unlike the child, the network only learns patterns present in training data. If examples are biased or incomplete, the learned patterns will be too — no matter how sophisticated the architecture."
+        ]
+      },
+      {
+        "title": "Neurons, weights, and activation — without jargon overload",
+        "paragraphs": [
+          "Each artificial neuron takes inputs, multiplies them by weights (importance scores), sums them, and applies an activation function that decides how much signal passes forward. A layer is many neurons in parallel, each detecting slightly different micro-patterns.",
+          "Training adjusts weights to reduce error on labelled examples. Think of turning knobs on a mixing board until the output sounds right — except millions of knobs adjust simultaneously via gradient descent."
+        ],
+        "bullets": [
+          "Weights encode what the network has learned; random weights mean random guesses.",
+          "Activation functions introduce non-linearity — without them, depth would not add expressive power.",
+          "Depth enables hierarchy: pixels → edges → shapes → objects."
+        ]
+      },
+      {
+        "title": "The training loop you will see everywhere",
+        "paragraphs": [
+          "Forward pass: input flows through layers to a prediction. Loss function: quantify how wrong the prediction is. Backward pass: compute how each weight contributed to the error. Optimiser step: nudge weights to improve next time. Repeat across batches until validation performance plateaus.",
+          "This loop is identical in spirit for image classifiers, speech recognisers, and large language models — only scale and architecture change."
+        ],
+        "bullets": [
+          "Training set teaches; validation set guides hyperparameter choices; test set is a final exam — touch it once.",
+          "Overfitting is memorising training noise; regularisation, more data, and early stopping combat it.",
+          "Epochs are full passes through data — more epochs help until they hurt."
+        ]
+      },
+      {
+        "title": "Everyday analogies that actually help",
+        "paragraphs": [
+          "Spam filters: early versions learned words like \"winner\" and \"free\"; modern networks learn subtler phrase patterns and sender behaviour. Autocorrect: predicts likely next letters based on context — a tiny language model on your phone. Face unlock: embedding network maps faces to vectors where same-person photos cluster together.",
+          "When someone says \"the model learned,\" ask: which examples, which labels, and which mistakes still happen? That keeps the conversation grounded."
+        ]
+      },
+      {
+        "title": "Hands-on workshop prompts",
+        "paragraphs": [
+          "Try these without code first: (1) List three features a network might use to detect spam vs ham. (2) Sketch how mislabelled training images could make a self-driving model ignore stop signs in rain. (3) Explain why a network trained only on textbooks might struggle with spoken slang.",
+          "If you have access to a notebook environment, train a tiny classifier on MNIST or use a teachable machine demo — watching loss decrease makes the abstract loop concrete in under an hour."
+        ],
+        "bullets": [
+          "Exercise: predict which failure mode — bias, overfitting, or poor coverage — matches each scenario.",
+          "Discuss: what data would you need to fairly detect loan default risk?",
+          "Reflect: where should humans stay in the loop after automation \"works\" on demos?"
+        ]
+      }
+    ],
+    "keyTakeaway": "Neural networks learn hierarchical patterns by adjusting weights to reduce error on examples. Carry that picture into every AI discussion: data defines behaviour, training is guess-and-correct at scale, and failures are usually pattern gaps — not mystical model caprice.",
+    "relatedSlugs": ["how-llms-work", "transformers-pipeline", "chatgpt-for-students"]
   },
   {
     "id": "7",
     "slug": "prompt-engineering-basics",
     "title": "Prompt Engineering Without the Hype",
     "description": "Practical techniques grounded in how models actually process instructions.",
+    "summary": "Prompt engineering is structured communication with a prediction system — not a bag of magic phrases. Effective prompts specify role, context, task, format, and success criteria. This article covers techniques that survive model upgrades because they align with how transformers consume context, not folklore from social media threads.",
     "duration": "20 min",
     "level": "Intermediate",
     "audience": "all",
     "type": "Article",
     "featured": false,
-    "thumbnail": "gradient-teal-3"
+    "image": "/images/collaboration.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-05",
+    "tags": ["Prompting", "Best practices", "Evaluation", "Workflow"],
+    "sections": [
+      {
+        "title": "What prompting can and cannot do",
+        "paragraphs": [
+          "Good prompts reduce ambiguity and anchor the model to relevant context. They cannot add facts the model never saw, guarantee zero hallucinations, or bypass hard context limits. Treat prompting as the UI layer of your AI system — essential, but not a substitute for retrieval, tools, or human review.",
+          "If quality plateaus after careful prompting, the bottleneck is likely data, task difficulty, or model capability — not missing a secret incantation."
+        ]
+      },
+      {
+        "title": "A template that works across use cases",
+        "paragraphs": [
+          "Use a consistent skeleton: Role (who the model should emulate), Context (background docs, constraints, audience), Task (the specific action), Format (bullets, JSON, word limit), and Criteria (how to judge a good answer). Example: \"You are a senior technical editor (role). Here is a draft blog section (context). Tighten prose for busy engineering leaders (task). Return three bullet points under 20 words each (format). Preserve factual claims; flag anything uncertain (criteria).\"",
+          "Templates make prompts testable. Swap one section at a time when iterating so you know what changed outcomes."
+        ],
+        "bullets": [
+          "Put must-follow rules near the top; repeat critical constraints at the end for long prompts.",
+          "Separate instructions from data with clear delimiters (###, XML tags, or markdown headings).",
+          "Include negative constraints: what not to do is often cheaper than fixing bad outputs."
+        ]
+      },
+      {
+        "title": "Techniques with real mechanism behind them",
+        "paragraphs": [
+          "Chain-of-thought: asking the model to reason step-by-step improves multi-step tasks because intermediate tokens scaffold later predictions — not because the model \"thinks\" privately. Few-shot examples: demonstrate input-output pairs to steer format and tone; quality beats quantity — two excellent examples often beat ten messy ones.",
+          "Decomposition: break complex jobs into chained prompts (extract → classify → draft → critique) with validation between steps. Self-consistency and voting help on reasoning tasks but cost more tokens — use when errors are expensive."
+        ],
+        "bullets": [
+          "Zero-shot: instructions only — fastest, least stable on niche formats.",
+          "Few-shot: exemplars in context — strong for format mimicry.",
+          "Decomposed pipelines: easier to debug than one monolithic mega-prompt."
+        ]
+      },
+      {
+        "title": "Evaluation beats intuition",
+        "paragraphs": [
+          "Maintain a small golden set of real inputs with expected properties — not necessarily exact text, but checklists: must mention policy X, must not invent pricing, must return valid JSON. Run prompts through this set whenever you change models or templates.",
+          "Track regression: a prompt that gained creativity may have lost compliance. Numeric rubrics (1–5 on clarity, faithfulness, completeness) help teams agree when outputs are \"good enough.\""
+        ],
+        "bullets": [
+          "Log failures with categories: hallucination, format break, tone mismatch, refusal.",
+          "A/B test prompts on live traffic only with safeguards — never on unmonitored high-risk flows.",
+          "Version prompts like code; include model name and temperature in the changelog."
+        ]
+      },
+      {
+        "title": "Organisational habits",
+        "paragraphs": [
+          "Centralise prompt patterns per team, not per individual chat history. Document which tasks are approved for automation, which require human sign-off, and which models are allowed. Pair junior staff with review checkpoints rather than banning tools outright.",
+          "Prompt libraries decay as models improve — schedule quarterly reviews to delete obsolete hacks and adopt simpler instructions that new models follow natively."
+        ]
+      }
+    ],
+    "keyTakeaway": "Write prompts as clear specs: role, context, task, format, criteria — then measure against real examples. Techniques tied to how models process context outperform hype; pipelines beat single-shot genius prompts for serious work.",
+    "relatedSlugs": ["how-llms-work", "chatgpt-for-students", "rag-vs-finetuning"]
   },
   {
     "id": "8",
     "slug": "ai-risk-assessment",
     "title": "AI Risk Assessment for Teams",
     "description": "A structured framework for evaluating AI deployment risks in your organization.",
+    "summary": "Deploying AI without a risk assessment is deploying blind. This framework walks teams through impact, likelihood, detectability, and mitigation across privacy, safety, bias, security, and operational dependency — producing a documented decision record leaders and regulators can trust.",
     "duration": "14 min",
     "level": "Intermediate",
     "audience": "professionals",
     "type": "Guide",
     "featured": false,
-    "thumbnail": "gradient-teal-4"
+    "image": "/images/presentation.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-12",
+    "tags": ["Risk", "Compliance", "Security", "Governance"],
+    "sections": [
+      {
+        "title": "Why risk assessment before rollout",
+        "paragraphs": [
+          "AI systems fail in predictable categories: they leak data, reproduce bias, hallucinate under pressure, get jailbroken, or create silent dependency when staff stop verifying outputs. A structured assessment surfaces these before customers or auditors do.",
+          "The goal is not to block innovation — it is to choose proportionate controls, assign owners, and define when human review is mandatory."
+        ],
+        "bullets": [
+          "Document decisions so teams do not re-litigate the same fears project after project.",
+          "Align with existing risk registers — AI is an amplifier, not a separate universe.",
+          "Engage legal, security, and domain experts early; retrofitting controls is slower and pricier."
+        ]
+      },
+      {
+        "title": "The five risk domains",
+        "paragraphs": [
+          "Work through each domain with concrete scenarios, not abstract worry."
+        ],
+        "bullets": [
+          "Privacy & data: What PII enters prompts? Retention? Cross-border processing? Training on customer data?",
+          "Safety & harm: Could outputs cause physical, financial, or psychological harm if wrong? Who is vulnerable?",
+          "Bias & fairness: Which groups might receive systematically worse outcomes? How will you measure disparity?",
+          "Security: Prompt injection, model theft, supply-chain vulnerabilities, API key exposure, adversarial inputs.",
+          "Operational: Vendor lock-in, model deprecation, cost spikes, staff deskilling, single points of failure."
+        ]
+      },
+      {
+        "title": "Scoring impact and likelihood",
+        "paragraphs": [
+          "For each identified risk, score impact (1–5) and likelihood (1–5) with definitions everyone agrees on. Impact 5 might mean regulatory fine or patient harm; likelihood 3 might mean \"seen in industry, not yet here.\" Multiply for a priority heatmap — then argue about scores openly; the discussion matters more than perfect math.",
+          "Add detectability: can you catch failures before users do? Low detectability with high impact demands monitoring, canaries, and circuit breakers."
+        ],
+        "bullets": [
+          "High impact + high likelihood → block or redesign before launch.",
+          "High impact + low likelihood → monitor with explicit incident playbooks.",
+          "Low impact + high likelihood → accept with logging and periodic review."
+        ]
+      },
+      {
+        "title": "Mitigations that actually ship",
+        "paragraphs": [
+          "Prefer controls that are observable: retrieval with source links, output schema validation, rate limits, role-based access, red-team tests on launch candidates, and human approval queues for edge cases. Vague policies (\"use responsibly\") do not reduce risk scores.",
+          "Match mitigation depth to tier: internal brainstorming tool ≠ customer-facing medical triage bot. Tiering prevents one-size-fits-all paralysis."
+        ],
+        "bullets": [
+          "Data minimisation: strip identifiers before sending to third-party APIs.",
+          "Human-in-the-loop for decisions affecting rights, credit, hiring, or health.",
+          "Kill switches and rollback paths when error rates spike post-deploy.",
+          "User disclosure when content is AI-generated where regulations or trust require it."
+        ]
+      },
+      {
+        "title": "Living document and review cadence",
+        "paragraphs": [
+          "Store assessments with version, date, approvers, model/vendor versions, and open risks accepted by name. Revisit on model upgrades, new data sources, geographic expansion, or any incident. AI risk is not a PDF for procurement — it is operational metadata tied to releases.",
+          "After incidents, run blameless reviews that update the assessment template so the next team inherits lessons, not amnesia."
+        ]
+      }
+    ],
+    "keyTakeaway": "Score AI risks across privacy, safety, bias, security, and operations — then assign mitigations owners can ship. Documented assessments turn \"we hope it's fine\" into accountable, reviewable decisions.",
+    "relatedSlugs": ["ai-for-decision-makers", "rag-vs-finetuning", "prompt-engineering-basics"]
   }
 ]

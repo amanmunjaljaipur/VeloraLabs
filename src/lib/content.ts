@@ -75,17 +75,30 @@ export interface Testimonial {
   audience: AudienceSlug;
 }
 
+export interface LibrarySection {
+  title: string;
+  paragraphs?: string[];
+  bullets?: string[];
+}
+
 export interface LibraryItem {
   id: string;
   slug: string;
   title: string;
   description: string;
+  summary: string;
   duration: string;
   level: "Beginner" | "Intermediate" | "Advanced";
   audience: AudienceSlug | "all";
   type: "Article" | "Video" | "Workshop" | "Guide";
   featured?: boolean;
-  thumbnail: string;
+  image: string;
+  author: string;
+  publishedAt: string;
+  tags: string[];
+  sections: LibrarySection[];
+  keyTakeaway: string;
+  relatedSlugs: string[];
 }
 
 export interface MentalModelExample {
@@ -165,6 +178,10 @@ export function getLibraryItems() {
 
 export function getFeaturedLibraryItems() {
   return getLibraryItems().filter((item) => item.featured);
+}
+
+export function getLibraryItem(slug: string) {
+  return getLibraryItems().find((item) => item.slug === slug);
 }
 
 export function getMentalModels() {
