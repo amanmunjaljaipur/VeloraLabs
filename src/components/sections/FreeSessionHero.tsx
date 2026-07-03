@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { FREE_SESSION_ILLUSTRATION } from "@/lib/home-content";
 import { CalendarCheck, Clock, ShieldCheck, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -60,20 +61,19 @@ export function FreeSessionHero({ headline, description }: FreeSessionHeroProps)
           </motion.div>
 
           <motion.div
-            className="relative hidden aspect-[4/3] overflow-hidden rounded-3xl border border-border/80 shadow-glow-teal surface-elevated lg:block"
+            className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/30 shadow-glow-teal lg:block"
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.55, delay: 0.1 }}
           >
             <Image
-              src="/images/collaboration.jpg"
-              alt="Live collaborative learning session"
+              src={FREE_SESSION_ILLUSTRATION.src}
+              alt={FREE_SESSION_ILLUSTRATION.alt}
               fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 0vw, 50vw"
+              className="object-contain p-4 md:p-6"
+              sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-tr from-navy/35 via-transparent to-accent-teal/15" />
             <div className="absolute bottom-5 left-5 rounded-2xl border border-cta-amber/30 bg-cta-amber-light px-4 py-3 shadow-md">
               <p className="text-xl font-bold text-navy">Free</p>
               <p className="text-xs font-medium text-text-secondary">No credit card required</p>

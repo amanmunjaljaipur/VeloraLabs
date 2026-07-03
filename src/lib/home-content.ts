@@ -105,10 +105,20 @@ export const HOME_FAQS: AccordionItem[] = [
 ];
 
 export const TESTIMONIAL_AVATARS: Record<string, string> = {
-  "Priya Sharma": "/images/students.jpg",
-  "Arjun Mehta": "/images/engineers.jpg",
-  "Sarah Chen": "/images/professionals.jpg",
-  "Rajesh Kumar": "/images/students.jpg",
-  "David Okonkwo": "/images/coding.jpg",
-  "Maria Gonzalez": "/images/professionals.jpg",
+  "Priya Sharma": "/images/avatar-priya-sharma.jpg",
+  "Arjun Mehta": "/images/avatar-arjun-mehta.jpg",
+  "Sarah Chen": "/images/avatar-sarah-chen.jpg",
+  "Rajesh Kumar": "/images/avatar-rajesh-kumar.jpg",
+  "David Okonkwo": "/images/avatar-david-okonkwo.jpg",
+  "Maria Gonzalez": "/images/avatar-maria-gonzalez.jpg",
+};
+
+export const FREE_SESSION_ILLUSTRATION = {
+  src: "/images/free-session-live-illustration.jpg",
+  alt: "Live online session with instructor teaching and engaged students",
+};
+
+export const NEWSLETTER_ILLUSTRATION = {
+  src: "/images/newsletter-icon-illustration.jpg",
+  alt: "Newsletter icon with clarity insights",
 };
