@@ -45,6 +45,11 @@ export const HOW_IT_WORKS = [
   },
 ] as const;
 
+export const HOW_IT_WORKS_ILLUSTRATION = {
+  src: "/images/how-it-works-timeline.jpg",
+  alt: "Four-step learning journey from free session through mental models, hands-on practice, to build and demo",
+};
+
 export const HOME_FAQS: AccordionItem[] = [
   {
     question: "Is the free session really free?",

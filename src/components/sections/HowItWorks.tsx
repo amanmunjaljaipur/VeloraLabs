@@ -1,9 +1,10 @@
 "use client";
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { HOW_IT_WORKS } from "@/lib/home-content";
+import { HOW_IT_WORKS, HOW_IT_WORKS_ILLUSTRATION } from "@/lib/home-content";
 import { motion } from "framer-motion";
 import { Brain, CalendarCheck, Rocket, Wrench } from "lucide-react";
+import Image from "next/image";
 
 const icons = {
   calendar: CalendarCheck,
@@ -21,14 +22,28 @@ export function HowItWorks() {
           eyebrow="Your journey"
           title="How it works"
           subtitle="A clear path from your first free session to building something you can show."
-          className="mb-16"
+          className="mb-12"
         />
 
+        <motion.div
+          className="relative mb-14 overflow-hidden rounded-3xl border border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/30 shadow-sm"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="relative aspect-[16/7] w-full md:aspect-[16/6]">
+            <Image
+              src={HOW_IT_WORKS_ILLUSTRATION.src}
+              alt={HOW_IT_WORKS_ILLUSTRATION.alt}
+              fill
+              className="object-contain p-4 md:p-8"
+              sizes="(max-width: 1280px) 100vw, 1280px"
+            />
+          </div>
+        </motion.div>
+
         <div className="relative grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div
-            className="absolute top-[4.5rem] left-[8%] right-[8%] hidden h-px bg-gradient-to-r from-transparent via-accent-teal/50 to-transparent lg:block"
-            aria-hidden="true"
-          />
           {HOW_IT_WORKS.map((item, index) => {
             const Icon = icons[item.icon];
             return (
@@ -37,16 +52,16 @@ export function HowItWorks() {
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.08 }}
                 className="card-verlin card-verlin-hover relative rounded-2xl border border-border/80 bg-card p-6 text-center shadow-sm"
               >
-                <div className="relative z-10 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-accent-teal/30 bg-gradient-to-br from-accent-teal/15 via-card to-transparent shadow-sm">
-                  <Icon className="h-7 w-7 text-accent-teal" aria-hidden="true" />
-                  <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-navy text-xs font-bold text-white shadow-md">
+                <div className="relative z-10 mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-teal/30 bg-gradient-to-br from-accent-teal/15 via-card to-transparent shadow-sm">
+                  <Icon className="h-6 w-6 text-accent-teal" aria-hidden="true" />
+                  <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-navy text-xs font-bold text-white shadow-md">
                     {item.step}
                   </span>
                 </div>
-                <h3 className="mt-6 font-semibold text-foreground">{item.title}</h3>
+                <h3 className="mt-5 font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-text-secondary">{item.description}</p>
               </motion.div>
             );
