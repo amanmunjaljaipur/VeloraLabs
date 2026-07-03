@@ -7,7 +7,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { getSiteConfig } from "@/lib/content";
-import { buildFooterExploreLinks } from "@/lib/site-nav";
+import { buildFooterLinkGroups } from "@/lib/site-nav";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -69,7 +69,7 @@ export default function RootLayout({
             <main id="main" className="flex-1">{children}</main>
             <Footer
               tagline={site.footer.tagline}
-              links={buildFooterExploreLinks(site.nav)}
+              linkGroups={buildFooterLinkGroups(site.nav)}
               social={site.footer.social}
             />
           </ToastProvider>

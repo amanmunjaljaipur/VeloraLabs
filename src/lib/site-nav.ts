@@ -3,6 +3,11 @@ export interface SiteNavLink {
   href: string;
 }
 
+export interface FooterLinkGroup {
+  title: string;
+  links: SiteNavLink[];
+}
+
 /** Footer-only pages that supplement the header nav (not duplicated in header). */
 const FOOTER_EXTRA_LINKS: SiteNavLink[] = [
   { label: "Resources", href: "/resources" },
@@ -49,4 +54,41 @@ export function buildFooterExploreLinks(
   }
 
   return result;
+}
+
+const FOOTER_GROUP_ORDER: { title: string; hrefs: string[] }[] = [
+  {
+    title: "Learn",
+    hrefs: [
+      "/free-session",
+      "/courses",
+      "/library",
+      "/blog",
+      "/mental-models",
+      "/resources",
+    ],
+  },
+  {
+    title: "Company",
+    hrefs: ["/about", "/faq", "/contact"],
+  },
+];
+
+/** Group footer links into scannable columns (industry-standard sitemap layout). */
+export function buildFooterLinkGroups(
+  headerNav: SiteNavLink[],
+  extraLinks: SiteNavLink[] = FOOTER_EXTRA_LINKS
+): FooterLinkGroup[] {
+  const allLinks = buildFooterExploreLinks(headerNav, extraLinks);
+  const linkMap = new Map(allLinks.map((link) => [link.href, link]));
+
+  const pick = (hrefs: string[]) =>
+    hrefs
+      .map((href) => linkMap.get(href))
+      .filter((link): link is SiteNavLink => Boolean(link));
+
+  return FOOTER_GROUP_ORDER.map((group) => ({
+    title: group.title,
+    links: pick(group.hrefs),
+  })).filter((group) => group.links.length > 0);
 }
