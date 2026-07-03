@@ -7,7 +7,8 @@
     { "label": "Programs", "href": "/courses" },
     { "label": "Library", "href": "/library" },
     { "label": "Mental Models", "href": "/mental-models" },
-    { "label": "About", "href": "/about" }
+    { "label": "About", "href": "/about" },
+    { "label": "Contact", "href": "/contact" }
   ],
   "footer": {
     "tagline": "Clarity-first learning for builders, students, and professionals.",
