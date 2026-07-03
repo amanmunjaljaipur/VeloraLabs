@@ -10,6 +10,28 @@ interface FooterProps {
   social: { label: string; href: string }[];
 }
 
+function isExternal(href: string) {
+  return href.startsWith("http");
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const className = "text-sm text-foreground transition-colors hover:text-teal";
+
+  if (isExternal(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 export function Footer({ tagline, links, social }: FooterProps) {
   const { data: session } = useSession();
   const isEnrolled = session?.user?.enrolledLearner ?? false;
@@ -23,32 +45,28 @@ export function Footer({ tagline, links, social }: FooterProps) {
         <div className="grid gap-12 md:grid-cols-3">
           <div>
             <VerlinLogo />
-            <p className="mt-4 text-sm text-text-secondary leading-relaxed">{tagline}</p>
+            <p className="mt-4 text-sm leading-relaxed text-text-secondary">{tagline}</p>
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-secondary mb-4">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-secondary">
               Explore
             </h3>
             <ul className="space-y-3">
               {visibleLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-foreground hover:text-teal transition-colors">
-                    {link.label}
-                  </Link>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-secondary mb-4">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-secondary">
               Connect
             </h3>
             <ul className="space-y-3">
               {social.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-sm text-foreground hover:text-teal transition-colors">
-                    {link.label}
-                  </a>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
             </ul>

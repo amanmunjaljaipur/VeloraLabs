@@ -4,12 +4,10 @@ import { AuthButton } from "@/components/auth/AuthButton";
 import { VerlinLogo } from "@/components/ui/VerlinLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
-import { DURATION, EASE_OUT } from "@/lib/motion";
-import { ExternalLink, Menu, X } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -27,30 +25,38 @@ function NavLink({
   href,
   children,
   active,
-  onClick,
+  compact,
 }: {
   href: string;
   children: React.ReactNode;
   active: boolean;
-  onClick?: () => void;
+  compact?: boolean;
 }) {
   return (
     <Link
       href={href}
-      onClick={onClick}
       className={cn(
-        "group relative whitespace-nowrap text-sm font-medium transition-colors duration-150",
-        active ? "text-accent-teal" : "text-text-secondary hover:text-navy dark:hover:text-foreground"
+        "group relative shrink-0 font-medium transition-colors duration-150",
+        compact ? "rounded-full px-3.5 py-2 text-sm" : "whitespace-nowrap text-sm",
+        active
+          ? compact
+            ? "bg-accent-teal/10 text-accent-teal"
+            : "text-accent-teal"
+          : compact
+            ? "text-text-secondary hover:bg-muted hover:text-foreground"
+            : "text-text-secondary hover:text-navy dark:hover:text-foreground"
       )}
     >
       {children}
-      <span
-        className={cn(
-          "absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out",
-          active ? "w-full" : "w-0 group-hover:w-full"
-        )}
-        aria-hidden="true"
-      />
+      {!compact && (
+        <span
+          className={cn(
+            "absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out",
+            active ? "w-full" : "w-0 group-hover:w-full"
+          )}
+          aria-hidden="true"
+        />
+      )}
     </Link>
   );
 }
@@ -58,9 +64,7 @@ function NavLink({
 export function Navbar({ nav }: NavbarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const reduceMotion = useReducedMotion();
   const isEnrolled = session?.user?.enrolledLearner ?? false;
   const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
   const learnerNav = isEnrolled ? [MY_COURSE_NAV] : [];
@@ -71,17 +75,6 @@ export function Navbar({ nav }: NavbarProps) {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
 
   const isActive = (href: string) => !isExternal(href) && pathname === href;
 
@@ -133,87 +126,41 @@ export function Navbar({ nav }: NavbarProps) {
               </Button>
             </Link>
           )}
-          <button
-            type="button"
-            className="rounded-xl p-2 text-text-secondary transition-colors duration-150 hover:bg-muted"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-expanded={mobileOpen}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
         </div>
       </nav>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.button
-              type="button"
-              initial={reduceMotion ? false : { opacity: 0 }}
-              animate={reduceMotion ? undefined : { opacity: 1 }}
-              exit={reduceMotion ? undefined : { opacity: 0 }}
-              transition={{ duration: DURATION.menu, ease: EASE_OUT }}
-              className="fixed inset-0 top-16 z-40 bg-navy/20 backdrop-blur-[2px] lg:hidden"
-              aria-label="Close menu"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: -12 }}
-              animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
-              transition={{ duration: DURATION.menu, ease: EASE_OUT }}
-              className="relative z-50 border-b border-border bg-background px-4 py-5 shadow-lg lg:hidden"
-            >
-              <div className="flex flex-col gap-1">
-                {navItems.map((item) =>
-                  isExternal(item.href) ? (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium text-text-secondary transition-colors duration-150 hover:bg-muted hover:text-navy"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {item.label}
-                      <ExternalLink className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "rounded-xl px-3 py-3 text-sm font-medium transition-colors duration-150 hover:bg-muted",
-                        isActive(item.href)
-                          ? "bg-accent-teal/10 text-accent-teal"
-                          : "text-text-secondary hover:text-navy"
-                      )}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                )}
-                <div className="mt-2 border-t border-border pt-4">
-                  <AuthButton className="w-full justify-center" />
-                </div>
-                {!isEnrolled && (
-                  <Link
-                    href="/free-session"
-                    className="mt-3 block"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <Button variant="cta" className="w-full">
-                      Book Free Session
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <div className="border-t border-border/60 bg-background/95 lg:hidden">
+        <div className="container-verlin flex items-center gap-3 overflow-x-auto py-2.5 scrollbar-hide">
+          {navItems.map((item) =>
+            isExternal(item.href) ? (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {item.label}
+                <ExternalLink className="h-3 w-3 opacity-50" aria-hidden="true" />
+              </a>
+            ) : (
+              <NavLink key={item.href} href={item.href} active={isActive(item.href)} compact>
+                {item.label}
+              </NavLink>
+            )
+          )}
+        </div>
+        <div className="container-verlin flex items-center gap-3 border-t border-border/50 px-0 py-2.5 sm:hidden">
+          <AuthButton className="flex-1 justify-center" />
+          {!isEnrolled && (
+            <Link href="/free-session" className="flex-1">
+              <Button variant="cta" size="sm" className="w-full whitespace-nowrap">
+                Free Session
+              </Button>
+            </Link>
+          )}
+        </div>
+      </div>
     </header>
   );
 }

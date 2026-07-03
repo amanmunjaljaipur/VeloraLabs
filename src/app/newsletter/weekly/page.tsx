@@ -32,7 +32,7 @@ export default async function WeeklyNewsletterPage({
             <p className="text-text-secondary">
               The first edition hasn&apos;t been published yet. Check back this Sunday.
             </p>
-            <Link href="/#newsletter" className="mt-6 inline-block text-teal hover:underline">
+            <Link href="/newsletter" className="mt-6 inline-block text-teal hover:underline">
               Subscribe for updates →
             </Link>
           </div>
@@ -62,7 +62,7 @@ export default async function WeeklyNewsletterPage({
             <p className="mt-2 text-sm text-text-secondary">
               Subscribe on our homepage for weekly mental models and AI clarity.
             </p>
-            <Link href="/#newsletter" className="mt-4 inline-block text-teal hover:underline">
+            <Link href="/newsletter" className="mt-4 inline-block text-teal hover:underline">
               Subscribe →
             </Link>
           </div>

@@ -16,13 +16,14 @@
     "links": [
       { "label": "Free Session", "href": "/free-session" },
       { "label": "Programs", "href": "/courses" },
+      { "label": "Blog", "href": "/blog" },
       { "label": "Resources", "href": "/resources" },
       { "label": "Contact", "href": "/contact" }
     ],
     "social": [
       { "label": "LinkedIn", "href": "#" },
-      { "label": "YouTube", "href": "#" },
-      { "label": "Newsletter", "href": "#newsletter" }
+      { "label": "YouTube", "href": "https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" },
+      { "label": "Newsletter", "href": "/newsletter" }
     ]
   },
   "newsletter": {
