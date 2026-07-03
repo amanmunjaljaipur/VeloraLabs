@@ -7,8 +7,11 @@ import {
   readNewsletterDraftFromSheet,
 } from "@/lib/google-sheets-service";
 import type { NewsletterDraftContent } from "@/lib/newsletter-rich-compile";
+import { deliverNewsletterByEmail, type NewsletterEmailDeliveryResult } from "@/lib/newsletter-email";
 import { getWeekOfSunday } from "@/lib/news-week";
 import { draftToEditionSlug } from "@/lib/newsletter-rich-compile";
+
+export type { NewsletterEmailDeliveryResult };
 
 const DRAFT_FILE = "newsletter-draft.json";
 const EDITIONS_FILE = "newsletter-editions.json";
@@ -55,9 +58,14 @@ export async function clearNewsletterDraft(): Promise<void> {
   }
 }
 
+export interface SendNewsletterResult {
+  edition: CompiledNewsletter;
+  email: NewsletterEmailDeliveryResult;
+}
+
 export async function sendNewsletterDraft(
   draft: NewsletterDraftContent
-): Promise<CompiledNewsletter> {
+): Promise<SendNewsletterResult> {
   const weekOf = getWeekOfSunday();
   const slug = draftToEditionSlug(draft);
   const publishedAt = new Date().toISOString();
@@ -91,6 +99,8 @@ export async function sendNewsletterDraft(
     });
   }
 
+  const email = await deliverNewsletterByEmail(draft, edition);
+
   await saveNewsletterDraft({ ...draft, status: "sent", updatedAt: publishedAt });
-  return edition;
+  return { edition, email };
 }

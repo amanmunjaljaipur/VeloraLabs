@@ -149,6 +149,14 @@ export async function ensureKnownUser(
   return recordKnownUser(normalized, name, provider);
 }
 
+export async function getKnownUserEmails(): Promise<string[]> {
+  await ensureKnownUsersLoaded();
+  return Object.values(getKnownUsersSnapshot())
+    .map((user) => user.email.toLowerCase().trim())
+    .filter(Boolean)
+    .sort();
+}
+
 export async function getUsersWithoutRoleAssignment(): Promise<UnassignedUser[]> {
   await ensureKnownUsersLoaded();
   await ensureRolesLoaded();

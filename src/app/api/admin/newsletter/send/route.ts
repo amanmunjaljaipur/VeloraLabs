@@ -3,6 +3,7 @@ import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 export async function POST() {
   const session = await auth();
@@ -23,7 +24,9 @@ export async function POST() {
   }
 
   try {
-    const edition = await sendNewsletterDraft(draft);
+    const result = await sendNewsletterDraft(draft);
+    const { edition, email } = result;
+
     return NextResponse.json({
       success: true,
       edition: {
@@ -31,6 +34,13 @@ export async function POST() {
         slug: edition.slug,
         itemCount: edition.itemCount,
         publicUrl: `/newsletter/weekly?edition=${edition.slug}`,
+      },
+      email: {
+        subscriberCount: email.subscriberCount,
+        sentCount: email.sentCount,
+        failedCount: email.failedCount,
+        pdfFilename: email.pdfFilename,
+        configured: Boolean(process.env.RESEND_API_KEY),
       },
     });
   } catch (error) {

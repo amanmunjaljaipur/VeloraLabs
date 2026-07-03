@@ -871,6 +871,69 @@ export async function readNewsletterEditionsFromSheet(): Promise<NewsletterEditi
   return rows;
 }
 
+export interface NewsletterSubscriberSheetRow {
+  email: string;
+  source: string;
+  subscribedAt: string;
+}
+
+export async function readNewsletterSubscriberRowsFromSheet(): Promise<
+  NewsletterSubscriberSheetRow[]
+> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  await ensureSheetTab(access.token, access.spreadsheetId, TAB_NEWSLETTER, HEADERS[TAB_NEWSLETTER]);
+
+  const range = `'${TAB_NEWSLETTER}'!A2:C`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read newsletter subscribers: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: NewsletterSubscriberSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const email = row[1]?.trim().toLowerCase();
+    if (!email) continue;
+    rows.push({
+      subscribedAt: row[0]?.trim() ?? new Date().toISOString(),
+      email,
+      source: row[2]?.trim() || "Website",
+    });
+  }
+
+  return rows;
+}
+
+export async function appendNewsletterSubscriberToSheet(
+  email: string,
+  source: string
+): Promise<boolean> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return false;
+
+  await ensureSheetTab(access.token, access.spreadsheetId, TAB_NEWSLETTER, HEADERS[TAB_NEWSLETTER]);
+
+  const normalized = email.toLowerCase().trim();
+  const existing = await readNewsletterSubscriberRowsFromSheet();
+  if (existing.some((row) => row.email === normalized)) {
+    return true;
+  }
+
+  await appendRow(access.token, access.spreadsheetId, TAB_NEWSLETTER, [
+    new Date().toISOString(),
+    normalized,
+    source,
+  ]);
+  return true;
+}
+
 export async function persistNewsletterDraftToSheet(
   draft: {
     id: string;

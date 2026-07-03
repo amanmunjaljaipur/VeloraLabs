@@ -1,5 +1,6 @@
 import { signUpSchema } from "@/lib/auth-validation";
 import { recordKnownUser } from "@/lib/known-users";
+import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { createManualUser } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
     try {
       const user = await createManualUser({ firstName, lastName, email, password });
       await recordKnownUser(user.email, user.name, "credentials");
+      await ensureNewsletterSubscriber(user.email, "Signed-in user");
       return NextResponse.json({
         success: true,
         user: { id: user.id, email: user.email, name: user.name },

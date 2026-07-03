@@ -24,6 +24,13 @@ export function NewsletterStudio() {
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [sentUrl, setSentUrl] = useState<string | null>(null);
+  const [emailSummary, setEmailSummary] = useState<{
+    subscriberCount: number;
+    sentCount: number;
+    failedCount: number;
+    pdfFilename: string;
+    configured: boolean;
+  } | null>(null);
 
   const loadDraft = useCallback(async () => {
     const res = await fetch("/api/admin/newsletter/draft");
@@ -39,6 +46,7 @@ export function NewsletterStudio() {
   const handleGenerate = async () => {
     setGenerating(true);
     setSentUrl(null);
+    setEmailSummary(null);
     try {
       const res = await fetch("/api/admin/newsletter/generate", { method: "POST" });
       const data = (await res.json()) as { error?: string; draft?: DraftPreview };
@@ -62,14 +70,32 @@ export function NewsletterStudio() {
       const data = (await res.json()) as {
         error?: string;
         edition?: { title: string; publicUrl: string };
+        email?: {
+          subscriberCount: number;
+          sentCount: number;
+          failedCount: number;
+          pdfFilename: string;
+          configured: boolean;
+        };
       };
       if (!res.ok) {
         toast(data.error || "Failed to send newsletter", "error");
         return;
       }
       setSentUrl(data.edition?.publicUrl ?? null);
+      setEmailSummary(data.email ?? null);
       setDraft(null);
-      toast(`Sent: ${data.edition?.title}`, "success");
+      if (data.email?.configured) {
+        toast(
+          `Published and emailed PDF to ${data.email.sentCount} of ${data.email.subscriberCount} subscribers`,
+          data.email.failedCount > 0 ? "error" : "success"
+        );
+      } else {
+        toast(
+          `Published online. Set RESEND_API_KEY to email the PDF to subscribers.`,
+          "error"
+        );
+      }
     } catch {
       toast("Failed to send newsletter", "error");
     } finally {
@@ -88,7 +114,7 @@ export function NewsletterStudio() {
             </div>
             <p className="mt-2 max-w-2xl text-sm text-text-secondary">
               Fetches the latest AI news from the internet, adds mental-model clarity lenses and
-              images, then lets you preview before sending live.
+              images, then publishes online and emails a PDF to all subscribers when you send.
             </p>
           </div>
           <Button onClick={handleGenerate} loading={generating} className="shrink-0">
@@ -125,7 +151,7 @@ export function NewsletterStudio() {
             </div>
             <Button onClick={handleSend} loading={sending} size="lg" className="shrink-0">
               <Send className="h-4 w-4" />
-              {sending ? "Sending…" : "Send newsletter"}
+              {sending ? "Sending…" : "Send newsletter + PDF email"}
             </Button>
           </div>
 
@@ -151,6 +177,23 @@ export function NewsletterStudio() {
             View published edition
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
+          {emailSummary && (
+            <p className="mt-3 text-sm text-text-secondary">
+              PDF <span className="font-medium text-foreground">{emailSummary.pdfFilename}</span>
+              {emailSummary.configured ? (
+                <>
+                  {" "}
+                  emailed to {emailSummary.sentCount} of {emailSummary.subscriberCount} subscribers
+                  {emailSummary.failedCount > 0
+                    ? ` (${emailSummary.failedCount} failed)`
+                    : ""}
+                  .
+                </>
+              ) : (
+                <> — email delivery skipped (RESEND_API_KEY not configured).</>
+              )}
+            </p>
+          )}
         </Card>
       )}
     </div>

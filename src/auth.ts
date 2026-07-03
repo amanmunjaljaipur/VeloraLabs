@@ -13,6 +13,7 @@ import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
+import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { DEFAULT_ROLE } from "@/types/roles";
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
@@ -112,6 +113,7 @@ export const authOptions: NextAuthConfig = {
           identity.name,
           resolveAuthProvider(account?.provider)
         );
+        await ensureNewsletterSubscriber(identity.email, "Signed-in user");
       } catch (error) {
         console.error("Failed to record known user after sign-in:", error);
       }
@@ -133,6 +135,7 @@ export const authOptions: NextAuthConfig = {
               identity.name,
               resolveAuthProvider(account?.provider)
             );
+            await ensureNewsletterSubscriber(identity.email, "Signed-in user");
           } catch (error) {
             console.error("Failed to record known user in JWT callback:", error);
           }
@@ -169,6 +172,11 @@ export const authOptions: NextAuthConfig = {
           session.user.name,
           token.authProvider as AuthProvider | undefined
         );
+        try {
+          await ensureNewsletterSubscriber(session.user.email, "Signed-in user");
+        } catch (error) {
+          console.error("Failed to ensure newsletter subscriber:", error);
+        }
 
         const role = getRoleForEmail(session.user.email) ?? DEFAULT_ROLE;
         session.user.role = role;
