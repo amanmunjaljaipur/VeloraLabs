@@ -3,11 +3,11 @@
   "tagline": "Clarity-first learning for the AI age",
   "description": "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
   "nav": [
-    { "label": "Free Session", "href": "/free-session" },
     { "label": "Programs", "href": "/courses" },
     { "label": "Library", "href": "/library" },
-    { "label": "Mental Models", "href": "/mental-models" },
-    { "label": "About", "href": "/about" }
+    { "label": "Free Session", "href": "/free-session" },
+    { "label": "Contact", "href": "/contact" },
+    { "label": "YouTube", "href": "https://www.youtube.com/@VerlinLabs" }
   ],
   "footer": {
     "tagline": "Clarity-first learning for builders, students, and professionals.",

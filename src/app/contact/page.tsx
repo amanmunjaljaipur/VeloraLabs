@@ -1,22 +1,25 @@
-import { PageHeader } from "@/components/layout/PageHeader";
+import { ContactExpectations, ContactReassurance } from "@/components/sections/ContactFaq";
+import { ContactHero } from "@/components/sections/ContactHero";
+import { WaysToConnect } from "@/components/sections/WaysToConnect";
 import { ContactForm } from "./ContactForm";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with Verlin Labs.",
+  description:
+    "Reach Verlin Labs for free session inquiries, corporate programs, partnerships, and general questions.",
 };
 
 export default function ContactPage() {
   return (
     <>
-      <PageHeader
-        title="Contact Us"
-        subtitle="Questions about the free session, full program, or partnerships? We'd love to hear from you."
-      />
-      <section className="pb-16 md:pb-24">
+      <ContactHero />
+      <WaysToConnect />
+      <section className="border-t border-border bg-muted/10 py-16 md:py-24">
         <ContactForm />
       </section>
+      <ContactExpectations />
+      <ContactReassurance />
     </>
   );
 }
