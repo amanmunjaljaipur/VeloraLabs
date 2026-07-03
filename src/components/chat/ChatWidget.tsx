@@ -58,7 +58,7 @@ export function ChatWidget() {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-[60] bg-navy/20 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-0"
+            className="fixed inset-x-0 bottom-0 top-16 z-[55] bg-navy/25 backdrop-blur-[2px] sm:top-20 sm:bg-navy/10"
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={reduceMotion ? undefined : { opacity: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0 }}
@@ -74,7 +74,7 @@ export function ChatWidget() {
             role="dialog"
             aria-label="Verlin Labs assistant"
             className={cn(
-              "fixed z-[70] flex flex-col overflow-hidden border border-border bg-card shadow-xl surface-glass",
+              "fixed z-[70] flex flex-col overflow-hidden border border-border bg-card shadow-xl dark:bg-card dark:shadow-2xl",
               "inset-x-3 bottom-20 max-h-[min(32rem,calc(100dvh-6rem))] rounded-2xl sm:inset-x-auto sm:bottom-24 sm:right-6 sm:w-[22rem]"
             )}
             initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
@@ -115,7 +115,7 @@ export function ChatWidget() {
                       "max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
                       msg.role === "user"
                         ? "bg-navy text-white"
-                        : "border border-border/80 bg-muted/40 text-foreground"
+                        : "border border-border bg-muted/60 text-foreground dark:bg-muted/80"
                     )}
                   >
                     <p>{msg.content}</p>
@@ -140,7 +140,7 @@ export function ChatWidget() {
                             key={s}
                             type="button"
                             onClick={() => handlePrompt(s)}
-                            className="rounded-lg border border-border/70 bg-card/80 px-2.5 py-1.5 text-left text-xs text-text-secondary transition-colors hover:border-accent-teal/30 hover:text-accent-teal"
+                            className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal"
                           >
                             {s}
                           </button>
@@ -165,7 +165,7 @@ export function ChatWidget() {
                     key={p}
                     type="button"
                     onClick={() => handlePrompt(p)}
-                    className="rounded-full border border-border bg-card/80 px-2.5 py-1 text-[11px] text-text-secondary transition-colors hover:border-accent-teal/30 hover:text-accent-teal"
+                    className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal"
                   >
                     {p}
                   </button>
@@ -198,13 +198,13 @@ export function ChatWidget() {
               <button
                 type="button"
                 onClick={reset}
-                className="text-[10px] text-text-muted transition-colors hover:text-text-secondary"
+                className="text-[10px] text-text-secondary transition-colors hover:text-foreground"
               >
                 Clear chat
               </button>
               <Link
                 href="/faq"
-                className="text-[10px] text-text-muted transition-colors hover:text-accent-teal"
+                className="text-[10px] text-text-secondary transition-colors hover:text-accent-teal"
                 onClick={() => setOpen(false)}
               >
                 Full FAQ →

@@ -93,7 +93,7 @@ export function AuthButton({ className }: { className?: string }) {
         {open && (
           <div
             role="menu"
-            className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-background shadow-lg"
+            className="absolute right-0 top-full z-[60] mt-2 w-64 overflow-hidden rounded-xl border border-border bg-card shadow-xl"
           >
             <div className="border-b border-border px-4 py-3">
               <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
