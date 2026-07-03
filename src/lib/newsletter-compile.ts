@@ -75,7 +75,7 @@ export function compileNewsletterEdition(
     "",
     "---",
     "",
-    "*You're receiving this because you follow Verlin Labs. [Subscribe on our site](/#newsletter) for more.*",
+    "*You're receiving this because you follow Verlin Labs. [Subscribe on our site](/newsletter) for more.*",
   ].join("\n");
 
   const bodyHtml = items.map((item, i) => itemHtml(item, i + 1)).join("");

@@ -117,8 +117,3 @@ export const FREE_SESSION_ILLUSTRATION = {
   src: "/images/free-session-live-illustration.jpg",
   alt: "Live online session with instructor teaching and engaged students",
 };
-
-export const NEWSLETTER_ILLUSTRATION = {
-  src: "/images/newsletter-icon-illustration.jpg",
-  alt: "Newsletter icon with clarity insights",
-};

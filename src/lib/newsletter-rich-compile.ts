@@ -95,7 +95,7 @@ export function compileRichNewsletterDraft(
       </header>
       <div class="grid gap-8">${cards}</div>
       <footer class="mt-10 rounded-2xl border border-border bg-muted/30 px-6 py-5 text-center text-sm text-text-secondary">
-        Curated for Verlin Labs learners · <a href="/#newsletter" class="text-teal hover:underline">Subscribe for more</a>
+        Curated for Verlin Labs learners · <a href="/newsletter" class="text-teal hover:underline">Subscribe for more</a>
       </footer>
     </div>
   `;

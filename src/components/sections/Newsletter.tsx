@@ -1,22 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { NEWSLETTER_ILLUSTRATION } from "@/lib/home-content";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { motion } from "framer-motion";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
-import Image from "next/image";
 import { useState } from "react";
 
 interface NewsletterProps {
   title: string;
   description: string;
   cta: string;
+  /** When true, CTA links to /newsletter instead of showing an inline signup form. */
+  linkToPage?: boolean;
 }
 
-export function Newsletter({ title, description, cta }: NewsletterProps) {
+export function Newsletter({ title, description, cta, linkToPage = false }: NewsletterProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
@@ -56,19 +57,16 @@ export function Newsletter({ title, description, cta }: NewsletterProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
         >
-          <div className="relative mx-auto mb-5 h-16 w-16 overflow-hidden rounded-2xl border border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 to-sky-50/40 shadow-sm">
-            <Image
-              src={NEWSLETTER_ILLUSTRATION.src}
-              alt={NEWSLETTER_ILLUSTRATION.alt}
-              fill
-              className="object-contain p-2"
-              sizes="64px"
-            />
-          </div>
           <h2 className="section-title">{title}</h2>
           <p className="section-subtitle mx-auto">{description}</p>
 
-          {success ? (
+          {linkToPage ? (
+            <div className="mt-8">
+              <ButtonLink href="/newsletter" variant="cta" size="lg" className="shadow-glow-amber">
+                {cta}
+              </ButtonLink>
+            </div>
+          ) : success ? (
             <SuccessBanner
               className="mt-8"
               title="You're subscribed!"

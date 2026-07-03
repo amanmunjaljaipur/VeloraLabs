@@ -128,6 +128,7 @@ export function MarketingHome() {
         title={site.newsletter.title}
         description={site.newsletter.description}
         cta={site.newsletter.cta}
+        linkToPage
       />
     </>
   );
