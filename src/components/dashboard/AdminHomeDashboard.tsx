@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
-import { Newspaper, Shield, Users, Video } from "lucide-react";
+import { Bot, Newspaper, Shield, Users, Video } from "lucide-react";
 import Link from "next/link";
 
 interface AdminHomeDashboardProps {
@@ -60,6 +60,19 @@ export function AdminHomeDashboard({ userName, role }: AdminHomeDashboardProps) 
               <Button variant="secondary">View courses</Button>
             </Link>
           </Card>
+
+          {isSuperAdmin && (
+            <Card hover>
+              <Bot className="h-8 w-8 text-teal" />
+              <h2 className="mt-4 text-lg font-semibold text-foreground">Chatbot training</h2>
+              <p className="mt-2 text-sm text-text-secondary">
+                Label Q&A pairs, import Excel, export data, and retrain the site assistant.
+              </p>
+              <Link href="/admin/chatbot-training" className="mt-6 inline-block">
+                <Button variant="secondary">Open training panel</Button>
+              </Link>
+            </Card>
+          )}
 
           {isSuperAdmin && (
             <Card hover>

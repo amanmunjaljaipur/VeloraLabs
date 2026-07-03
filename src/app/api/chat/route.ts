@@ -1,5 +1,5 @@
-import { collectKnowledgeEntries } from "@/lib/chat/knowledge-sources";
 import { loadChatbotIndex } from "@/lib/chat/load-index";
+import { getActiveKnowledgeEntries } from "@/lib/chat/training-store";
 import { retrieveAnswer, retrieveHybrid } from "@/lib/chat/retrieval";
 import { NextResponse } from "next/server";
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   }
 
   const index = loadChatbotIndex();
-  const entries = index?.entries ?? collectKnowledgeEntries();
+  const entries = index?.entries ?? getActiveKnowledgeEntries();
 
   const response =
     body.embedding && index

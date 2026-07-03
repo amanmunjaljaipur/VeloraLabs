@@ -22,6 +22,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "Manage course recordings",
   },
   {
+    label: "Chatbot Training",
+    href: "/admin/chatbot-training",
+    description: "Label Q&A, import Excel, retrain assistant",
+    superAdminOnly: true,
+  },
+  {
     label: "Newsletter Studio",
     href: "/admin/newsletter",
     description: "Create, preview, and send AI digest",

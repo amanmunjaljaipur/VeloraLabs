@@ -26,7 +26,10 @@ async function getQueryEmbedding(text: string): Promise<number[] | undefined> {
         env.useBrowserCache = true;
         const pipe = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
         return async (input: string) => {
-          const output = await pipe(input, { pooling: "mean", normalize: true });
+          const output = await (pipe as (t: string, o: object) => Promise<{ data: Float32Array }>)(
+            input,
+            { pooling: "mean", normalize: true }
+          );
           return Array.from(output.data as Float32Array);
         };
       })();

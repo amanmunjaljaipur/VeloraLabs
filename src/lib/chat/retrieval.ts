@@ -37,7 +37,8 @@ export function scoreBm25(query: string, entries: KnowledgeEntry[]): ScoredEntry
 
   const docFreq = new Map<string, number>();
   const docTokens = entries.map((entry) => {
-    const text = `${entry.question} ${entry.answer} ${entry.category} ${entry.keywords.join(" ")}`;
+    const alts = entry.alternateQuestions?.join(" ") ?? "";
+    const text = `${entry.question} ${alts} ${entry.answer} ${entry.category} ${entry.keywords.join(" ")}`;
     const tokens = tokenize(text);
     const unique = new Set(tokens);
     for (const t of unique) {
@@ -67,11 +68,15 @@ export function scoreBm25(query: string, entries: KnowledgeEntry[]): ScoredEntry
         score += idf * ((freq * (k1 + 1)) / (freq + k1 * lenNorm));
       }
 
-      // Boost exact phrase overlap in question
+      // Boost exact phrase overlap in question + alternates
       const qLower = query.toLowerCase();
-      const questionLower = entry.question.toLowerCase();
-      if (questionLower.includes(qLower) || qLower.includes(questionLower.slice(0, 20))) {
-        score += 3;
+      const questions = [entry.question, ...(entry.alternateQuestions ?? [])];
+      for (const q of questions) {
+        const ql = q.toLowerCase();
+        if (ql.includes(qLower) || qLower.includes(ql.slice(0, 20))) {
+          score += 3;
+          break;
+        }
       }
 
       // Keyword boost

@@ -9,6 +9,7 @@ export interface KnowledgeEntry {
   answer: string;
   category: string;
   keywords: string[];
+  alternateQuestions?: string[];
   links?: ChatLink[];
   bullets?: string[];
 }

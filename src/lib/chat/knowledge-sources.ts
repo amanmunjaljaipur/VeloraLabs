@@ -76,7 +76,7 @@ function normalizeQuestion(q: string): string {
   return q.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-export function collectKnowledgeEntries(): KnowledgeEntry[] {
+export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
   const site = getSiteConfig();
   const entries: KnowledgeEntry[] = [];
   const seen = new Set<string>();
@@ -125,10 +125,19 @@ export function collectKnowledgeEntries(): KnowledgeEntry[] {
   add({
     question: "What is the introductory pricing offer?",
     answer:
-      "All full programs currently have a 70% introductory discount off list price. Students: ₹3,000 (was ₹9,999). Engineers: ₹4,500 (was ₹14,999). Professionals: ₹7,500 (was ₹24,999). The free 2-hour session remains completely free.",
+      "All full programs currently have a 70% introductory discount off list price. School Students: ₹3,000 (was ₹9,999). College Engineers: ₹4,500 (was ₹14,999). Product Managers: ₹7,500 (was ₹24,999). The free 2-hour session remains completely free.",
     category: "Pricing",
     links: [{ label: "View courses", href: "/courses" }],
-    extraKeywords: ["intro", "introductory", "sale", "70", "percent", "off"],
+    extraKeywords: ["intro", "introductory", "sale", "70", "percent", "off", "pricing", "model"],
+  });
+
+  add({
+    question: "What is a mental model?",
+    answer:
+      "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems — so new topics feel familiar instead of overwhelming.",
+    category: "Learning",
+    links: [{ label: "Mental Models", href: "/mental-models" }],
+    extraKeywords: ["framework", "structure", "understand", "mental", "model"],
   });
 
   for (const cat of SITE_FAQ_CATEGORIES) {
