@@ -10,7 +10,7 @@ const SPREADSHEET_TITLE = "Verlin Labs Submissions";
 const TAB_BOOKINGS = "Free Session Bookings";
 const TAB_SESSION_DETAILS = "Free Session Details";
 const TAB_CONTACT = "Contact Inquiries";
-const TAB_NEWSLETTER = "Newsletter Signups";
+export const TAB_NEWSLETTER = "Newsletter Subscribers";
 export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
 
@@ -31,7 +31,7 @@ const HEADERS: Record<string, string[]> = {
     "Source",
   ],
   [TAB_CONTACT]: ["Timestamp", "Name", "Email", "Message"],
-  [TAB_NEWSLETTER]: ["Timestamp", "Email"],
+  [TAB_NEWSLETTER]: ["Timestamp", "Email", "Source"],
   [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
   [TAB_KNOWN_USERS]: ["Email", "Name", "Provider", "First Seen At", "Last Seen At"],
 };
@@ -292,9 +292,14 @@ async function writeSessionDetailsTab(token: string, spreadsheetId: string): Pro
   }
 }
 
+async function ensureFormSheetTabs(token: string, spreadsheetId: string): Promise<void> {
+  for (const [tab, headers] of Object.entries(HEADERS)) {
+    await ensureSheetTab(token, spreadsheetId, tab, headers);
+  }
+}
+
 async function ensureSpreadsheet(token: string): Promise<string> {
   let spreadsheetId = getStoredSpreadsheetId();
-  const isNew = !spreadsheetId;
 
   if (!spreadsheetId) {
     const created = await createSpreadsheet(token);
@@ -307,6 +312,8 @@ async function ensureSpreadsheet(token: string): Promise<string> {
       await writeHeaderRow(token, spreadsheetId, tab, headers);
     }
     await writeSessionDetailsTab(token, spreadsheetId);
+  } else {
+    await ensureFormSheetTabs(token, spreadsheetId);
   }
 
   return spreadsheetId;
@@ -361,6 +368,7 @@ export async function submitViaServiceAccount(
         await appendRow(token, spreadsheetId, TAB_NEWSLETTER, [
           new Date().toISOString(),
           payload.email || "",
+          payload.source || "Website",
         ]);
         break;
       default:

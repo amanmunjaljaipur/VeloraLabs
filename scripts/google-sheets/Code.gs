@@ -23,7 +23,7 @@
 const TAB_BOOKINGS = "Free Session Bookings";
 const TAB_SESSION_DETAILS = "Free Session Details";
 const TAB_CONTACT = "Contact Inquiries";
-const TAB_NEWSLETTER = "Newsletter Signups";
+const TAB_NEWSLETTER = "Newsletter Subscribers";
 
 const HEADERS = {};
 HEADERS[TAB_BOOKINGS] = [
@@ -42,7 +42,7 @@ HEADERS[TAB_BOOKINGS] = [
   "Source",
 ];
 HEADERS[TAB_CONTACT] = ["Timestamp", "Name", "Email", "Message"];
-HEADERS[TAB_NEWSLETTER] = ["Timestamp", "Email"];
+HEADERS[TAB_NEWSLETTER] = ["Timestamp", "Email", "Source"];
 
 /** Run once — creates spreadsheet with 4 tabs and headers */
 function setupSpreadsheet() {
@@ -148,7 +148,7 @@ function doPost(e) {
 
       case "newsletter":
         sheet = getOrCreateTab(ss, TAB_NEWSLETTER);
-        row = [timestamp, body.email || ""];
+        row = [timestamp, body.email || "", body.source || "Website"];
         sheet.appendRow(row);
         return jsonResponse({ success: true });
 

@@ -10,6 +10,7 @@
     "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs",
     "sync:roles": "tsx scripts/sync-user-roles-sheet.ts",
     "sync:known-users": "tsx scripts/sync-known-users-sheet.ts",
+    "sync:sheet-tabs": "tsx scripts/init-sheet-tabs.ts",
     "test:sheets": "tsx scripts/test-google-sheets.ts"
   },
   "dependencies": {

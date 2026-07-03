@@ -24,6 +24,7 @@ const contactSchema = z.object({
 const newsletterSchema = z.object({
   type: z.literal("newsletter"),
   email: z.string().email(),
+  source: z.string().optional(),
 });
 
 const schema = z.discriminatedUnion("type", [

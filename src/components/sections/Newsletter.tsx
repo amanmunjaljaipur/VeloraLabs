@@ -27,7 +27,11 @@ export function Newsletter({ title, description, cta }: NewsletterProps) {
       return;
     }
     setSubmitting(true);
-    const result = await submitForm({ type: "newsletter", email });
+    const result = await submitForm({
+      type: "newsletter",
+      email,
+      source: "Homepage Newsletter",
+    });
     setSubmitting(false);
 
     if (result.ok) {
