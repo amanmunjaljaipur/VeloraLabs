@@ -2,7 +2,11 @@ import type { NextRequest } from "next/server";
 
 export function verifyApiKey(
   request: NextRequest,
-  envVarName: "NEWS_INGEST_API_KEY" | "NEWS_PUBLISH_API_KEY" | "CRON_SECRET"
+  envVarName:
+    | "NEWS_INGEST_API_KEY"
+    | "NEWS_PUBLISH_API_KEY"
+    | "NEWSLETTER_MCP_API_KEY"
+    | "CRON_SECRET"
 ): boolean {
   const expected = process.env[envVarName];
   if (!expected) return false;

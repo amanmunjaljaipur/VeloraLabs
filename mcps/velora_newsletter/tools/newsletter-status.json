@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_status",
+  "description": "Check Verlin Labs newsletter email configuration (Resend), subscriber count, and whether a draft is ready to send.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

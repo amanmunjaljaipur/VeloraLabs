@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_generate",
+  "description": "Create a new newsletter draft by fetching the latest AI news from the internet, adding images and mental-model tips.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_get_draft",
+  "description": "Get the current Verlin Labs newsletter draft with AI stories and mental-model clarity lenses.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

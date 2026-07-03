@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_list_subscribers",
+  "description": "List all newsletter subscriber emails, including signed-in users and homepage signups.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

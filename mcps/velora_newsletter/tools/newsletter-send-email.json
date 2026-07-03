@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_send_email",
+  "description": "Publish the current newsletter online and email the PDF edition to all subscribers.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}
