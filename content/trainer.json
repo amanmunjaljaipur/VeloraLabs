@@ -1,0 +1,27 @@
+{
+  "name": "Aman Munjal",
+  "title": "Founder & Lead Trainer",
+  "tagline": "Clarity-first AI educator for students, engineers, and product leaders",
+  "image": "/images/trainer-aman-munjal.jpg",
+  "imageAlt": "Professional headshot of Aman Munjal, Founder and Lead Trainer at Verlin Labs",
+  "linkedin": "https://www.linkedin.com/in/aman-munjal-52745469/",
+  "bio": [
+    "Aman Munjal founded Verlin Labs to close the gap between AI hype and real understanding. He designs every program around mental models first — so learners can explain, build, and decide with confidence long after a session ends.",
+    "His sessions blend rigorous technical depth with classroom-tested teaching craft. Whether you are in school, engineering college, or leading a product team, Aman meets you at your level and stretches you toward practical mastery.",
+    "He leads Verlin Labs' live free sessions, full learning tracks, and corporate workshops — always with the same promise: no jargon without explanation, no tools without context."
+  ],
+  "expertise": [
+    "AI & LLM fundamentals",
+    "Mental models for technology",
+    "Hands-on builder sessions",
+    "Students (Classes 6–12)",
+    "Engineering programs",
+    "Product & decision-maker literacy"
+  ],
+  "credentials": [
+    "Founder, Verlin Labs",
+    "Live instructor for free sessions & full programs",
+    "Curriculum design across student, engineer, and PM tracks",
+    "Corporate & team AI literacy workshops"
+  ]
+}

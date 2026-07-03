@@ -75,6 +75,18 @@ export interface Testimonial {
   audience: AudienceSlug;
 }
 
+export interface TrainerProfile {
+  name: string;
+  title: string;
+  tagline: string;
+  image: string;
+  imageAlt: string;
+  linkedin: string;
+  bio: string[];
+  expertise: string[];
+  credentials: string[];
+}
+
 export interface LibrarySection {
   title: string;
   paragraphs?: string[];
@@ -170,6 +182,10 @@ export function getFreeSession() {
 export function getTestimonials(audience?: AudienceSlug) {
   const all = readJson<Testimonial[]>("testimonials.json");
   return audience ? all.filter((t) => t.audience === audience) : all;
+}
+
+export function getLeadTrainer() {
+  return readJson<TrainerProfile>("trainer.json");
 }
 
 export function getLibraryItems() {

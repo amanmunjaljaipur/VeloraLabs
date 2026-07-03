@@ -16,6 +16,6 @@ We believe clarity is not dumbing down — it's the highest form of respect for 
 - **No hype** — We explain what AI can and cannot do, with honesty and precision.
 - **Builder-oriented** — Every session connects to something you can build, decide, or explain.
 
-## The Team
+## Learn with a practitioner
 
-Verlin Labs was founded by educators and engineers who got tired of watching smart people feel dumb because of bad explanations. We combine rigorous technical knowledge with world-class teaching craft.
+Every Verlin Labs program is led by a founder-educator who cares as much about how you think as what you build. Meet your trainer below — including background, expertise, and how to connect on LinkedIn.

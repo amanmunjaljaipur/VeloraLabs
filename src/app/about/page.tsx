@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getMarkdownPage } from "@/lib/content";
+import { TrainerProfile } from "@/components/sections/TrainerProfile";
+import { getLeadTrainer, getMarkdownPage } from "@/lib/content";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default async function AboutPage() {
   const { frontmatter, html } = await getMarkdownPage("about.md");
+  const trainer = getLeadTrainer();
 
   return (
     <>
@@ -25,6 +27,7 @@ export default async function AboutPage() {
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </section>
+      <TrainerProfile trainer={trainer} />
     </>
   );
 }
