@@ -8,6 +8,7 @@
     { "label": "Library", "href": "/library" },
     { "label": "Mental Models", "href": "/mental-models" },
     { "label": "About", "href": "/about" },
+    { "label": "FAQ", "href": "/faq" },
     { "label": "Contact", "href": "/contact" }
   ],
   "footer": {
