@@ -21,7 +21,7 @@
       { "label": "Contact", "href": "/contact" }
     ],
     "social": [
-      { "label": "LinkedIn", "href": "#" },
+      { "label": "LinkedIn", "href": "https://www.linkedin.com/in/verlin-labs-05678141b/" },
       { "label": "YouTube", "href": "https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" },
       { "label": "Newsletter", "href": "/newsletter" }
     ]
