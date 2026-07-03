@@ -8,8 +8,8 @@ interface VerlinLogoProps {
 
 export function VerlinLogo({ variant = "full", className }: VerlinLogoProps) {
   return (
-    <Link href="/" className={cn("flex shrink-0 items-center gap-3 group", className)}>
-      <svg viewBox="0 0 40 40" className="h-9 w-9 shrink-0" aria-hidden="true">
+    <Link href="/" className={cn("flex shrink-0 items-center gap-2.5 group", className)}>
+      <svg viewBox="0 0 40 40" className="h-8 w-8 shrink-0 lg:h-9 lg:w-9" aria-hidden="true">
         <defs>
           <linearGradient id="verlin-grad-1" x1="0%" y1="100%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#0F172A" />
@@ -33,7 +33,7 @@ export function VerlinLogo({ variant = "full", className }: VerlinLogoProps) {
         />
       </svg>
       {variant === "full" && (
-        <span className="text-lg font-semibold tracking-tight text-navy dark:text-foreground">
+        <span className="text-base font-semibold tracking-tight text-navy lg:text-lg dark:text-foreground">
           Verlin <span className="text-accent-teal">Labs</span>
         </span>
       )}

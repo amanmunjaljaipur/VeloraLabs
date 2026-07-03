@@ -89,12 +89,12 @@ export function Navbar({ nav }: NavbarProps) {
       )}
     >
       <nav
-        className="container-verlin flex h-16 items-center gap-4 md:h-[4.25rem] md:gap-6"
+        className="container-verlin-nav flex h-16 items-center gap-3 md:h-[4.25rem] lg:gap-4"
         aria-label="Main navigation"
       >
-        <VerlinLogo />
+        <VerlinLogo className="shrink-0" />
 
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-x-6 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-8">
+        <div className="hidden flex-1 items-center justify-center gap-x-4 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-6 2xl:gap-x-7">
           {navItems.map((item) =>
             isExternal(item.href) ? (
               <a
@@ -115,23 +115,33 @@ export function Navbar({ nav }: NavbarProps) {
           )}
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3">
           <ThemeToggle />
-          <div className="hidden sm:block">
+          <div className="hidden sm:block xl:hidden">
+            <AuthButton compact />
+          </div>
+          <div className="hidden xl:block">
             <AuthButton />
           </div>
           {!isEnrolled && (
-            <Link href="/free-session" className="hidden md:block">
-              <Button variant="cta" size="sm" className="whitespace-nowrap">
-                Book Free Session
-              </Button>
-            </Link>
+            <>
+              <Link href="/free-session" className="hidden lg:block xl:hidden">
+                <Button variant="cta" size="sm" className="whitespace-nowrap px-4">
+                  Book Free
+                </Button>
+              </Link>
+              <Link href="/free-session" className="hidden xl:block">
+                <Button variant="cta" size="sm" className="whitespace-nowrap">
+                  Book Free Session
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </nav>
 
       <div className="border-t border-border/60 bg-background/95 lg:hidden">
-        <div className="container-verlin flex items-center gap-3 overflow-x-auto py-2.5 scrollbar-hide">
+        <div className="container-verlin-nav flex items-center gap-3 overflow-x-auto py-2.5 scrollbar-hide">
           {navItems.map((item) =>
             isExternal(item.href) ? (
               <a
@@ -151,7 +161,7 @@ export function Navbar({ nav }: NavbarProps) {
             )
           )}
         </div>
-        <div className="container-verlin flex items-center gap-3 border-t border-border/50 px-0 py-2.5 sm:hidden">
+        <div className="container-verlin-nav flex items-center gap-3 border-t border-border/50 px-0 py-2.5 sm:hidden">
           <AuthButton className="flex-1 justify-center" />
           {!isEnrolled && (
             <Link href="/free-session" className="flex-1">

@@ -10,7 +10,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-export function AuthButton({ className }: { className?: string }) {
+export function AuthButton({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -166,17 +172,19 @@ export function AuthButton({ className }: { className?: string }) {
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-1.5 sm:gap-2", className)}>
       <Link href="/login">
         <Button size="sm" variant="secondary" className="whitespace-nowrap">
           Sign in
         </Button>
       </Link>
-      <Link href="/signup">
-        <Button size="sm" className="whitespace-nowrap">
-          Sign up
-        </Button>
-      </Link>
+      {!compact && (
+        <Link href="/signup">
+          <Button size="sm" className="whitespace-nowrap">
+            Sign up
+          </Button>
+        </Link>
+      )}
     </div>
   );
 }
