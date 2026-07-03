@@ -23,8 +23,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Never run middleware on auth API routes — avoids edge interference with OAuth cookies.
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|images/).*)",
+    "/api/auth/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|images/).*)",
   ],
 };

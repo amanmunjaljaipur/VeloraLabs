@@ -48,10 +48,14 @@ function resolveSignInEmail(
   };
 }
 
+// OAuth redirect_uri must match a URI registered in Google Cloud Console.
+// Production uses the Vercel URL (registered); middleware redirects callbacks to www.
+const productionOAuthUrl = "https://velora-labs-gamma.vercel.app";
+
 const canonicalUrl =
   process.env.AUTH_URL ||
   process.env.NEXTAUTH_URL ||
-  (process.env.NODE_ENV === "production" ? "https://www.verlinlabs.com" : "http://localhost:3000");
+  (process.env.NODE_ENV === "production" ? productionOAuthUrl : "http://localhost:3000");
 
 export const authOptions: NextAuthConfig = {
   secret: authSecret,
