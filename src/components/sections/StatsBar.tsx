@@ -11,7 +11,7 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <section className="border-y border-border/80 bg-muted/30 py-12">
+    <section className="section-divider border-b border-border/80 bg-muted/25 py-10 md:py-14">
       <div className="container-verlin">
         <MotionStagger className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {stats.map((stat) => (

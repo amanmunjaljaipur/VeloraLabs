@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Bot, Brain, CalendarCheck, Code2, Rocket, Sparkles, Trophy } from "lucide-react";
+import { Bot, Brain, CalendarCheck, Check, Code2, Rocket, Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LearningSplitProps {
@@ -30,9 +30,10 @@ export function LearningSplit({
 }: LearningSplitProps) {
   return (
     <motion.div
-      className={`grid gap-10 lg:grid-cols-2 lg:items-center ${
-        reverse ? "lg:[&>*:first-child]:order-2" : ""
-      }`}
+      className={cn(
+        "grid gap-8 md:gap-12 lg:grid-cols-2 lg:items-center",
+        reverse && "lg:[&>*:first-child]:order-2"
+      )}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -88,17 +89,20 @@ export function LearningSplit({
           </div>
         )}
       </div>
-      <div>
-        <h3 className="text-heading text-2xl md:text-3xl">{title}</h3>
-        <p className="mt-4 text-body">{description}</p>
-        {items && (
-          <ul className="mt-8 space-y-4">
-            {items.map((item) => (
-              <li key={item} className="flex items-start gap-3 text-sm text-foreground">
-                <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-teal/15">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent-teal" />
+      <div className="min-w-0">
+        <h3 className="text-heading">{title}</h3>
+        <p className="text-body-lead mt-4">{description}</p>
+        {items && items.length > 0 && (
+          <ul className="list-verlin mt-6 md:mt-8">
+            {items.map((item, index) => (
+              <li key={item}>
+                <span className="list-verlin-marker" aria-hidden="true">
+                  <Check strokeWidth={3} />
                 </span>
-                {item}
+                <span>
+                  <span className="sr-only">Point {index + 1}: </span>
+                  {item}
+                </span>
               </li>
             ))}
           </ul>

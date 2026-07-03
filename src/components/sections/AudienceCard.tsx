@@ -61,7 +61,9 @@ export function AudienceCard({
         {title}
       </h3>
       {description && (
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">{description}</p>
+        <p className="mt-2 line-clamp-3 text-sm leading-snug text-text-secondary md:leading-relaxed">
+          {description}
+        </p>
       )}
       {!onClick && (
         <p className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent-teal opacity-0 transition-all duration-300 group-hover:opacity-100">

@@ -8,6 +8,7 @@ import { Newsletter } from "@/components/sections/Newsletter";
 import { StatsBar } from "@/components/sections/StatsBar";
 import { TestimonialCarousel } from "@/components/sections/TestimonialCarousel";
 import { WhatWeCover } from "@/components/sections/WhatWeCover";
+import { SectionShell } from "@/components/layout/SectionShell";
 import {
   getSiteConfig,
   getAudiences,
@@ -31,47 +32,45 @@ export function MarketingHome() {
       <WhatWeCover />
       <StatsBar />
 
-      <section className="section-y">
-        <div className="container-verlin">
-          <SectionHeader
-            eyebrow="Learning paths"
-            title="Who is this for?"
-            subtitle="Tailored learning paths for every stage of your journey — from school students to engineers and product managers."
-            className="mb-14"
-          />
-          <MotionStagger className="grid gap-6 md:grid-cols-3">
-            {audiences.map((a) => (
-              <MotionStaggerItem key={a.slug}>
-                <AudienceCard
-                  title={a.title}
-                  description={a.heroSubtitle}
-                  icon={a.icon}
-                  image={a.image}
-                  href={`/for/${a.slug}`}
-                />
-              </MotionStaggerItem>
-            ))}
-          </MotionStagger>
-        </div>
-      </section>
+      <SectionShell id="audiences" divider={false}>
+        <SectionHeader
+          eyebrow="Learning paths"
+          title="Who is this for?"
+          subtitle="Three tailored tracks — students, engineers, and product managers."
+          className="mb-10 md:mb-16"
+        />
+        <MotionStagger className="grid gap-5 md:grid-cols-3 md:gap-6">
+          {audiences.map((a) => (
+            <MotionStaggerItem key={a.slug}>
+              <AudienceCard
+                title={a.title}
+                description={a.heroSubtitle}
+                icon={a.icon}
+                image={a.image}
+                href={`/for/${a.slug}`}
+              />
+            </MotionStaggerItem>
+          ))}
+        </MotionStagger>
+      </SectionShell>
 
-      <section className="section-y bg-muted/30">
-        <div className="container-verlin space-y-24">
+      <SectionShell id="approach" tinted>
+        <div className="space-y-16 md:space-y-28">
           <LearningSplit
             title="Learn with mental models, not memorization"
-            description="Verlin Labs teaches you frameworks that stick — visual maps for complex AI concepts, live explanation, and audience-tailored pacing so understanding compounds instead of fading."
+            description="Frameworks that stick — visual maps, live explanation, and pacing matched to you."
             image={LEARNING_ILLUSTRATIONS.mentalModels.src}
             imageAlt={LEARNING_ILLUSTRATIONS.mentalModels.alt}
             illustration
             items={[
               "Visual frameworks for complex AI concepts",
-              "Live sessions, not passive video dumps",
-              "Audience-tailored pacing and examples",
+              "Live sessions — not passive video dumps",
+              "Examples paced for your background",
             ]}
           />
           <LearningSplit
             title="Hands-on from day one"
-            description="Every program ends with something you build — a mini project, portfolio piece, or working MVP. Real tools, real feedback, real confidence."
+            description="Every program ends with something real — a project, portfolio piece, or working MVP."
             image={LEARNING_ILLUSTRATIONS.handsOn.src}
             imageAlt={LEARNING_ILLUSTRATIONS.handsOn.alt}
             illustration
@@ -79,54 +78,51 @@ export function MarketingHome() {
             toolIcons
             items={[
               "Free 2-hour session with live exercises",
-              "Capstone demo days for every track",
+              "Capstone demo day on every track",
               "Real tools: ChatGPT, Claude, Lovable, Replit",
             ]}
           />
         </div>
-      </section>
+      </SectionShell>
 
       <HomeFreeSessionForm />
 
       <HowItWorks />
 
-      <section className="section-y">
-        <div className="container-verlin">
-          <div className="mb-14 flex items-end justify-between gap-6">
-            <SectionHeader
-              eyebrow="Content library"
-              title="Featured content"
-              subtitle="Start exploring with our most popular resources."
-              align="left"
-            />
-            <Link
-              href="/library"
-              className="link-hover hidden shrink-0 text-sm font-medium text-teal sm:block"
-            >
-              View all →
-            </Link>
-          </div>
-          <MotionStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((item) => (
-              <MotionStaggerItem key={item.id}>
-                <ContentCard {...item} />
-              </MotionStaggerItem>
-            ))}
-          </MotionStagger>
-        </div>
-      </section>
-
-      <section className="section-y overflow-hidden">
-        <div className="container-verlin">
+      <SectionShell id="library">
+        <div className="mb-10 flex flex-col gap-4 sm:mb-16 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeader
-            eyebrow="Testimonials"
-            title="What learners are saying"
-            subtitle="Students, engineers, and product managers who started with clarity."
-            className="mb-14"
+            eyebrow="Content library"
+            title="Featured content"
+            subtitle="Popular articles and guides to start with."
+            align="left"
+            className="mb-0"
           />
-          <TestimonialCarousel testimonials={testimonials} />
+          <Link
+            href="/library"
+            className="link-hover shrink-0 text-sm font-medium text-teal sm:pb-1"
+          >
+            View all →
+          </Link>
         </div>
-      </section>
+        <MotionStagger className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+          {featured.map((item) => (
+            <MotionStaggerItem key={item.id}>
+              <ContentCard {...item} />
+            </MotionStaggerItem>
+          ))}
+        </MotionStagger>
+      </SectionShell>
+
+      <SectionShell id="testimonials" tinted>
+        <SectionHeader
+          eyebrow="Testimonials"
+          title="What learners are saying"
+          subtitle="Students, engineers, and PMs who started with clarity."
+          className="mb-10 md:mb-16"
+        />
+        <TestimonialCarousel testimonials={testimonials} />
+      </SectionShell>
 
       <Newsletter
         title={site.newsletter.title}

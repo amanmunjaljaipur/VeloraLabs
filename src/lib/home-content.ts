@@ -3,7 +3,7 @@ import type { AccordionItem } from "@/components/ui/Accordion";
 export const HOME_HERO = {
   headline: "Clarity-first learning for the AI age",
   subheadline:
-    "Understand complex AI concepts through clear mental models — with free 2-hour sessions and hands-on programs for students, engineers, and product managers.",
+    "Clear mental models for complex AI ideas. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
   illustration: "/images/hero-illustration.jpg",
   illustrationAlt:
     "Illustration of complex ideas transforming into clear mental model frameworks through connected pathways",
@@ -22,25 +22,25 @@ export const HOW_IT_WORKS = [
   {
     step: 1,
     title: "Join Free Session",
-    description: "Book a 2-hour live intro tailored to your background — no payment required.",
+    description: "Book a free 2-hour intro matched to your background.",
     icon: "calendar",
   },
   {
     step: 2,
     title: "Learn Mental Models",
-    description: "See how we break complex AI ideas into frameworks you can reuse anywhere.",
+    description: "Learn frameworks you can reuse — not facts to memorize.",
     icon: "brain",
   },
   {
     step: 3,
     title: "Hands-on Practice",
-    description: "Apply concepts in guided exercises with real tools and mentor feedback.",
+    description: "Practice with real tools and mentor feedback.",
     icon: "wrench",
   },
   {
     step: 4,
     title: "Build & Demo",
-    description: "Ship a project, present your work, and get a clear path for what comes next.",
+    description: "Ship a project, present it, and plan your next step.",
     icon: "rocket",
   },
 ] as const;

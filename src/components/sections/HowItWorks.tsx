@@ -15,14 +15,14 @@ const icons = {
 
 export function HowItWorks() {
   return (
-    <section className="section-y relative overflow-hidden bg-muted/30">
+    <section id="how-it-works" className="section-y section-divider relative scroll-mt-20 overflow-hidden bg-muted/25">
       <div className="hero-orb hero-orb-teal -left-32 top-1/2 h-64 w-64 opacity-60" aria-hidden="true" />
       <div className="container-verlin relative">
         <SectionHeader
           eyebrow="Your journey"
           title="How it works"
-          subtitle="A clear path from your first free session to building something you can show."
-          className="mb-12"
+          subtitle="From free session to demo day — four clear steps."
+          className="mb-10 md:mb-14"
         />
 
         <motion.div
@@ -43,7 +43,7 @@ export function HowItWorks() {
           </div>
         </motion.div>
 
-        <div className="relative grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="relative grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {HOW_IT_WORKS.map((item, index) => {
             const Icon = icons[item.icon];
             return (
@@ -53,7 +53,7 @@ export function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.5, delay: index * 0.08 }}
-                className="card-verlin card-verlin-hover relative rounded-2xl border border-border/80 bg-card p-6 text-center shadow-sm"
+                className="card-verlin card-verlin-hover relative rounded-2xl border border-border/80 bg-card p-5 text-center shadow-sm md:p-6"
               >
                 <div className="relative z-10 mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-teal/30 bg-gradient-to-br from-accent-teal/15 via-card to-transparent shadow-sm">
                   <Icon className="h-6 w-6 text-accent-teal" aria-hidden="true" />
@@ -61,8 +61,8 @@ export function HowItWorks() {
                     {item.step}
                   </span>
                 </div>
-                <h3 className="mt-5 font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{item.description}</p>
+                <h3 className="mt-5 text-base font-bold text-foreground md:text-lg">{item.title}</h3>
+                <p className="mt-2 text-sm leading-snug text-text-secondary md:leading-relaxed">{item.description}</p>
               </motion.div>
             );
           })}

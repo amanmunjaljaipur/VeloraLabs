@@ -55,7 +55,7 @@ export function Navbar({ nav }: NavbarProps) {
       "relative whitespace-nowrap text-sm font-medium transition-colors",
       isActive(href)
         ? "text-accent-teal"
-        : "text-text-secondary hover:text-navy dark:hover:text-foreground"
+        : "text-text-secondary transition-colors duration-200 hover:text-navy dark:hover:text-foreground"
     );
 
   return (

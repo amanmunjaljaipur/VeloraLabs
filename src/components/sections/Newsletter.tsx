@@ -45,7 +45,7 @@ export function Newsletter({ title, description, cta }: NewsletterProps) {
   };
 
   return (
-    <section id="newsletter" className="relative overflow-hidden py-16 md:py-24">
+    <section id="newsletter" className="section-y section-divider relative scroll-mt-20 overflow-hidden">
       <div className="hero-orb hero-orb-teal left-1/4 top-0 h-48 w-48 opacity-40" aria-hidden="true" />
       <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background" />
       <div className="container-verlin relative">

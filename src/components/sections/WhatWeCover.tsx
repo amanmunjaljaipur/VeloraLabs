@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function WhatWeCover() {
   return (
-    <section className="border-b border-border/80 bg-gradient-to-b from-muted/30 to-background py-8">
+    <section className="border-b border-border/80 bg-gradient-to-b from-muted/30 to-background py-10 md:py-12">
       <div className="container-verlin">
         <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-text-muted">
           What we cover

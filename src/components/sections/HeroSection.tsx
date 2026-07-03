@@ -21,8 +21,8 @@ export function HeroSection() {
       <div className="hero-orb hero-orb-amber right-0 top-1/3 h-64 w-64" aria-hidden="true" />
       <div className="hero-orb hero-orb-navy bottom-0 left-1/3 h-80 w-80" aria-hidden="true" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24 lg:py-28">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-14">
+      <div className="container-verlin relative py-14 md:py-24 lg:py-28">
+        <div className="grid gap-10 md:gap-12 lg:grid-cols-2 lg:items-center lg:gap-14">
           <motion.div
             className="max-w-2xl"
             initial={{ opacity: 0, y: 24 }}
@@ -44,11 +44,9 @@ export function HeroSection() {
               <span className="text-gradient-teal">AI age</span>
             </h1>
 
-            <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl md:leading-relaxed">
-              {HOME_HERO.subheadline}
-            </p>
+            <p className="text-body-lead mt-5 md:mt-6">{HOME_HERO.subheadline}</p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-2.5 md:mt-8 md:gap-3">
               {trustStats.map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -64,7 +62,7 @@ export function HeroSection() {
               ))}
             </div>
 
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row md:mt-10 md:gap-4">
               <Link href="/free-session">
                 <Button variant="cta" size="lg" className="w-full shadow-glow-amber sm:w-auto">
                   Start Free 2-Hour Session
