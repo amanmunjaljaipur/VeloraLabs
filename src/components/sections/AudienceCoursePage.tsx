@@ -60,6 +60,11 @@ export function AudienceCoursePage({
             </p>
             <h1 className="mt-1 text-2xl md:text-3xl font-semibold text-foreground">{course.title}</h1>
             <p className="mt-1 text-sm text-text-secondary">{course.duration}</p>
+            {!isEnrolled && (
+              <div className="mt-4 max-w-xs">
+                <CoursePrice price={course.price} size="compact" />
+              </div>
+            )}
             {isMyCourse && (
               <p className="mt-1 text-sm text-text-secondary">{audienceLabels[slug]}</p>
             )}

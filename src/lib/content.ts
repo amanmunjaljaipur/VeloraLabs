@@ -238,3 +238,19 @@ export async function getMarkdownPage(filename: string) {
   const processed = await remark().use(html).process(content);
   return { frontmatter: data as Record<string, string>, html: processed.toString() };
 }
+
+const RESOURCE_DOWNLOAD_FILES: Record<string, string> = {
+  "free-session-workbook": "resource-free-session-workbook.md",
+  "mental-models-cheat-sheet": "resource-mental-models-cheat-sheet.md",
+  "ai-glossary": "resource-ai-glossary.md",
+};
+
+export function getResourceDownloadSlugs() {
+  return Object.keys(RESOURCE_DOWNLOAD_FILES);
+}
+
+export async function getResourceDownload(slug: string) {
+  const filename = RESOURCE_DOWNLOAD_FILES[slug];
+  if (!filename) return null;
+  return getMarkdownPage(filename);
+}

@@ -110,17 +110,19 @@ export default async function CoursesPage() {
                     <p className="mt-2 text-sm text-text-secondary leading-relaxed flex-1">
                       {course.description}
                     </p>
-                    <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
-                      <div>
-                        {!isEnrolled && <CoursePrice price={course.price} size="sm" />}
+                    <div className="mt-6 space-y-3 border-t border-border pt-4">
+                      {!isEnrolled && (
+                        <CoursePrice price={course.price} size="compact" className="w-full" />
+                      )}
+                      <div className="flex items-center justify-between gap-3">
                         <p className="text-xs text-text-secondary">
                           {course.duration} · {dayCount} days
                         </p>
+                        <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-teal transition-all group-hover:gap-2">
+                          {isEnrolled ? "View syllabus" : "View course"}{" "}
+                          <ArrowRight className="h-4 w-4" />
+                        </span>
                       </div>
-                      <span className="flex items-center gap-1 text-sm font-medium text-teal transition-all group-hover:gap-2">
-                        {isEnrolled ? "View syllabus" : "View course"}{" "}
-                        <ArrowRight className="h-4 w-4" />
-                      </span>
                     </div>
                     </div>
                   </Card>

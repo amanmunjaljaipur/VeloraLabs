@@ -3,18 +3,24 @@ import { cn } from "@/lib/utils";
 
 interface CoursePriceProps {
   price: string;
-  size?: "sm" | "md" | "lg";
+  size?: "compact" | "sm" | "md" | "lg";
   showBadge?: boolean;
   align?: "start" | "center";
   className?: string;
 }
 
 const sizeStyles = {
+  compact: {
+    badge: "text-[10px] px-2 py-0.5",
+    current: "text-xl font-bold",
+    original: "text-sm",
+    meta: "text-[11px]",
+  },
   sm: {
     badge: "text-[10px] px-2 py-0.5",
     listLabel: "text-xs",
     original: "text-sm",
-    current: "text-lg font-bold",
+    current: "text-2xl font-bold",
     meta: "text-[11px]",
   },
   md: {
@@ -43,6 +49,7 @@ export function CoursePrice({
   const pricing = getIntroPricing(price);
   const styles = sizeStyles[size];
   const isCenter = align === "center";
+  const isCompact = size === "compact";
 
   return (
     <div
@@ -64,25 +71,54 @@ export function CoursePrice({
         </p>
       )}
 
-      <p className={cn(styles.listLabel, "text-text-secondary")}>
-        List price{" "}
-        <span
-          className={cn(
-            styles.original,
-            "font-medium text-text-muted line-through decoration-2"
-          )}
-        >
-          {pricing.original}
-        </span>
-      </p>
-
-      <p className={cn(styles.current, "tabular-nums tracking-tight text-teal")}>
-        {pricing.current}
-      </p>
-
-      <p className={cn(styles.meta, "text-text-secondary")}>
-        {INTRO_OFFER_LABEL} · You save {pricing.savings}
-      </p>
+      {isCompact ? (
+        <>
+          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span
+              className={cn(styles.current, "tabular-nums tracking-tight text-teal")}
+              aria-label={`Current price ${pricing.current}`}
+            >
+              {pricing.current}
+            </span>
+            <span
+              className={cn(
+                styles.original,
+                "font-medium text-text-muted line-through decoration-2"
+              )}
+              aria-label={`List price ${pricing.original}`}
+            >
+              {pricing.original}
+            </span>
+          </p>
+          <p className={cn(styles.meta, "text-text-secondary")}>
+            {INTRO_OFFER_LABEL} · You save {pricing.savings}
+          </p>
+        </>
+      ) : (
+        <>
+          <p
+            className={cn(styles.current, "tabular-nums tracking-tight text-teal")}
+            aria-label={`Current price ${pricing.current}`}
+          >
+            {pricing.current}
+          </p>
+          <p className={cn("text-text-secondary", "listLabel" in styles ? styles.listLabel : "text-sm")}>
+            List price{" "}
+            <span
+              className={cn(
+                styles.original,
+                "font-medium text-text-muted line-through decoration-2"
+              )}
+              aria-label={`List price ${pricing.original}`}
+            >
+              {pricing.original}
+            </span>
+          </p>
+          <p className={cn(styles.meta, "text-text-secondary")}>
+            {INTRO_OFFER_LABEL} · You save {pricing.savings}
+          </p>
+        </>
+      )}
     </div>
   );
 }

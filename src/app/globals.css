@@ -369,6 +369,23 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.prose-verlin a {
+  font-weight: 500;
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) ease;
+}
+
+.prose-verlin a:hover {
+  color: var(--accent-teal);
+}
+
+.prose-verlin strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
 /* ─── Animations ────────────────────────────────────────────────────────── */
 
 @keyframes marquee {

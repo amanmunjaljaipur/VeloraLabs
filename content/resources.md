@@ -5,15 +5,15 @@ subtitle: Curated tools and references for clarity-first learners
 
 ## Getting Started
 
-- **Free Session Workbook** — Download the companion guide for your introductory session.
-- **Mental Models Cheat Sheet** — One-page reference for our core frameworks.
-- **AI Glossary (Plain English)** — Common terms explained without jargon.
+- [**Free Session Workbook**](/resources/free-session-workbook) — Companion guide for your introductory session. Open, print, or save as PDF.
+- [**Mental Models Cheat Sheet**](/resources/mental-models-cheat-sheet) — One-page reference for our core frameworks.
+- [**AI Glossary (Plain English)**](/resources/ai-glossary) — Common terms explained without jargon.
 
 ## Recommended Reading
 
 - *Thinking in Systems* by Donella Meadows — Foundational systems thinking.
 - *The Art of Explanation* by Lee LeFever — How to make complex ideas accessible.
-- Anthropic's research blog — Clear technical writing on AI safety and capabilities.
+- [Anthropic's research blog](https://www.anthropic.com/research) — Clear technical writing on AI safety and capabilities.
 
 ## Tools We Use
 
@@ -23,4 +23,4 @@ subtitle: Curated tools and references for clarity-first learners
 
 ## Community
 
-Join our newsletter for weekly insights, or enroll in the full program for community access and live sessions.
+Join our [newsletter](/newsletter) for weekly insights, or [enroll in a course](/courses) for live sessions and structured programs.
