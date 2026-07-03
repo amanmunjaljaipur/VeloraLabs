@@ -101,6 +101,7 @@ export const authOptions: NextAuthConfig = {
   ],
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   events: {
     async signIn({ user, account, profile }) {
