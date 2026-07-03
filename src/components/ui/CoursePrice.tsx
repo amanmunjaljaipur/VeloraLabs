@@ -48,10 +48,10 @@ export function CoursePrice({
         </p>
       )}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <p className={cn(styles.current, "text-foreground")}>{pricing.current}</p>
         <p className={cn(styles.original, "text-text-muted line-through decoration-2")}>
           {pricing.original}
         </p>
+        <p className={cn(styles.current, "text-foreground")}>{pricing.current}</p>
       </div>
       <p className="text-xs text-text-secondary">You save {pricing.savings}</p>
     </div>
