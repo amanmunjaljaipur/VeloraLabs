@@ -1,7 +1,9 @@
 {
   "serverIdentifier": "velora-newsletter",
-  "serverName": "Velora Newsletter Email",
+  "serverName": "Verlin Labs Newsletter",
   "url": "https://velora-labs-gamma.vercel.app/api/mcp/newsletter",
+  "publishWeeklyUrl": "https://velora-labs-gamma.vercel.app/api/mcp/newsletter/publish-weekly",
   "transport": "streamable-http",
-  "authHeader": "Authorization: Bearer <NEWSLETTER_MCP_API_KEY>"
+  "authHeader": "Authorization: Bearer <NEWSLETTER_MCP_API_KEY>",
+  "scheduledTaskPrompt": "Use the Verlin Labs newsletter MCP. Call newsletter_publish_weekly to generate a fresh edition from the latest AI news, publish it on the site, and email the PDF to all subscribers. Report the edition title, public URL, and how many emails were sent."
 }

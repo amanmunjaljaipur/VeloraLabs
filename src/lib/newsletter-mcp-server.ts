@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { loadNewsletterDraft } from "@/lib/newsletter-draft";
+import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
 import { generateNewsletterDraftFromWeb } from "@/lib/newsletter-generator";
-import { sendNewsletterDraft } from "@/lib/newsletter-draft";
+import { publishWeeklyNewsletterViaMcp } from "@/lib/newsletter-publish-weekly";
 import {
   ensureNewsletterSubscriber,
   getNewsletterSubscriberEmails,
@@ -174,6 +174,23 @@ export function createNewsletterMcpServer(): McpServer {
               null,
               2
             ),
+          },
+        ],
+      };
+    }
+  );
+
+  server.tool(
+    "newsletter_publish_weekly",
+    "Generate a fresh weekly blog/newsletter from latest AI news, publish it on the site, and email the PDF to all subscribers. Use this for scheduled automation.",
+    {},
+    async () => {
+      const result = await publishWeeklyNewsletterViaMcp();
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ success: true, ...result }, null, 2),
           },
         ],
       };

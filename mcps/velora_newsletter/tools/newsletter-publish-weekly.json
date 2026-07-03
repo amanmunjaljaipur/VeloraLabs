@@ -1,0 +1,9 @@
+{
+  "name": "newsletter_publish_weekly",
+  "description": "Generate a fresh weekly blog/newsletter from latest AI news, publish it on the Verlin Labs site, and email the PDF to all subscribers. Ideal for Grok scheduled tasks.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

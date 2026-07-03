@@ -29,7 +29,11 @@ interface NewsletterStudioProps {
   mcpUrl: string;
 }
 
+const GROK_TASK_PROMPT =
+  "Use the Verlin Labs newsletter MCP. Call newsletter_publish_weekly to generate a fresh edition from the latest AI news, publish it on the site, and email the PDF to all subscribers. Report the edition title, public URL, and how many emails were sent.";
+
 export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
+  const publishWeeklyUrl = `${mcpUrl}/publish-weekly`;
   const { toast } = useToast();
   const [draft, setDraft] = useState<DraftPreview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,12 +119,12 @@ export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
     }
   };
 
-  const handleCopyMcpUrl = async () => {
+  const handleCopy = async (text: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(mcpUrl);
-      toast("MCP link copied", "success");
+      await navigator.clipboard.writeText(text);
+      toast(`${label} copied`, "success");
     } catch {
-      toast("Could not copy link", "error");
+      toast("Could not copy", "error");
     }
   };
 
@@ -134,30 +138,72 @@ export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
           <div className="min-w-0 flex-1">
             <h2 className="text-lg font-semibold text-foreground">LLM / MCP access</h2>
             <p className="mt-1 text-sm text-text-secondary">
-              Connect any MCP-compatible LLM (Grok, Claude, Cursor) to generate and email
-              newsletters. Use your <code className="text-xs">NEWSLETTER_MCP_API_KEY</code> as a
-              Bearer token.
+              Connect Grok scheduled tasks, Claude, or Cursor to generate and email Verlin Labs
+              weekly blogs. Use <code className="text-xs">NEWSLETTER_MCP_API_KEY</code> as a Bearer
+              token.
             </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <a
-                href={mcpUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="truncate rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-teal hover:underline"
-              >
-                {mcpUrl}
-              </a>
-              <div className="flex shrink-0 gap-2">
-                <Button variant="secondary" size="sm" onClick={handleCopyMcpUrl}>
-                  <Copy className="h-4 w-4" />
-                  Copy link
-                </Button>
-                <a href={mcpUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="secondary" size="sm">
-                    <ExternalLink className="h-4 w-4" />
-                    Open
+            <div className="mt-4 space-y-3">
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  MCP server URL (add to Grok task)
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <a
+                    href={mcpUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-teal hover:underline"
+                  >
+                    {mcpUrl}
+                  </a>
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => handleCopy(mcpUrl, "MCP link")}>
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </Button>
+                    <a href={mcpUrl} target="_blank" rel="noopener noreferrer">
+                      <Button variant="secondary" size="sm">
+                        <ExternalLink className="h-4 w-4" />
+                        Open
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  One-shot REST URL (alternative for automation)
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <code className="truncate rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-text-secondary">
+                    POST {publishWeeklyUrl}
+                  </code>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleCopy(publishWeeklyUrl, "Publish-weekly URL")}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy
                   </Button>
-                </a>
+                </div>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  Grok scheduled task prompt
+                </p>
+                <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-text-secondary">
+                  {GROK_TASK_PROMPT}
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => handleCopy(GROK_TASK_PROMPT, "Task prompt")}
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy prompt
+                </Button>
               </div>
             </div>
           </div>

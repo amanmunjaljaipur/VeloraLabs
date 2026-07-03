@@ -40,8 +40,20 @@ function discoveryResponse(request: NextRequest) {
         "newsletter_get_draft",
         "newsletter_generate",
         "newsletter_send_email",
+        "newsletter_publish_weekly",
         "newsletter_add_subscriber",
       ],
+      scheduledTask: {
+        description: "Grok scheduled task — publish and email the Verlin Labs weekly blog",
+        interval: "7d",
+        prompt:
+          "Use the Verlin Labs newsletter MCP. Call newsletter_publish_weekly to generate a fresh edition from the latest AI news, publish it on the site, and email the PDF to all subscribers. Report the edition title, public URL, and how many emails were sent.",
+        restFallback: {
+          method: "POST",
+          url: `${mcpUrl}/publish-weekly`,
+          headers: { Authorization: "Bearer ${NEWSLETTER_MCP_API_KEY}" },
+        },
+      },
       restApiBase: mcpUrl.replace(/\/newsletter$/, "/newsletter"),
       examples: {
         grok: {
