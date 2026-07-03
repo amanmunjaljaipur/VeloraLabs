@@ -10,7 +10,7 @@ export function Card({ className, hover, children, ...props }: CardProps) {
     <div
       className={cn(
         "card-verlin rounded-2xl p-6 md:p-8 text-card-foreground",
-        hover && "card-verlin-hover",
+        hover && "card-verlin-hover hover:border-accent-teal/20",
         className
       )}
       {...props}

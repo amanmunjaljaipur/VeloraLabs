@@ -1,7 +1,6 @@
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { HeroSection } from "@/components/sections/HeroSection";
-import { HomeFaq } from "@/components/sections/HomeFaq";
 import { HomeFreeSessionForm } from "@/components/sections/HomeFreeSessionForm";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { LearningSplit } from "@/components/sections/LearningSplit";
@@ -16,6 +15,7 @@ import {
   getTestimonials,
 } from "@/lib/content";
 import { LEARNING_ILLUSTRATIONS } from "@/lib/home-content";
+import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import Link from "next/link";
 
@@ -39,18 +39,19 @@ export function MarketingHome() {
             subtitle="Tailored learning paths for every stage of your journey — from school students to engineers and product managers."
             className="mb-14"
           />
-          <div className="grid gap-6 md:grid-cols-3">
+          <MotionStagger className="grid gap-6 md:grid-cols-3">
             {audiences.map((a) => (
-              <AudienceCard
-                key={a.slug}
-                title={a.title}
-                description={a.heroSubtitle}
-                icon={a.icon}
-                image={a.image}
-                href={`/for/${a.slug}`}
-              />
+              <MotionStaggerItem key={a.slug}>
+                <AudienceCard
+                  title={a.title}
+                  description={a.heroSubtitle}
+                  icon={a.icon}
+                  image={a.image}
+                  href={`/for/${a.slug}`}
+                />
+              </MotionStaggerItem>
             ))}
-          </div>
+          </MotionStagger>
         </div>
       </section>
 
@@ -100,20 +101,20 @@ export function MarketingHome() {
             />
             <Link
               href="/library"
-              className="hidden sm:block text-teal hover:text-accent-teal font-medium text-sm"
+              className="link-hover hidden shrink-0 text-sm font-medium text-teal sm:block"
             >
               View all →
             </Link>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <MotionStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((item) => (
-              <ContentCard key={item.id} {...item} />
+              <MotionStaggerItem key={item.id}>
+                <ContentCard {...item} />
+              </MotionStaggerItem>
             ))}
-          </div>
+          </MotionStagger>
         </div>
       </section>
-
-      <HomeFaq />
 
       <section className="section-y overflow-hidden">
         <div className="container-verlin">

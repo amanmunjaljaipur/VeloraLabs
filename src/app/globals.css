@@ -425,6 +425,39 @@ body {
   }
 }
 
+/* ─── Interactive links ───────────────────────────────────────────────────── */
+
+.link-hover {
+  position: relative;
+  color: var(--teal);
+  transition: color var(--duration-fast) ease;
+}
+
+.link-hover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent-teal);
+  transition: width var(--duration-normal) var(--ease-out-expo);
+}
+
+.link-hover:hover {
+  color: var(--accent-teal);
+}
+
+.link-hover:hover::after {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-hover::after {
+    transition: none;
+  }
+}
+
 /* ─── Section headers ───────────────────────────────────────────────────── */
 
 .section-eyebrow {

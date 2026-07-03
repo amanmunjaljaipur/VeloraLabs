@@ -1,3 +1,6 @@
+"use client";
+
+import { MotionReveal } from "@/components/ui/MotionReveal";
 import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {
@@ -18,7 +21,7 @@ export function SectionHeader({
   const centered = align === "center";
 
   return (
-    <div
+    <MotionReveal
       className={cn(
         centered && "mx-auto max-w-2xl text-center",
         !centered && "max-w-2xl",
@@ -30,6 +33,6 @@ export function SectionHeader({
       {subtitle && (
         <p className={cn("section-subtitle", centered && "mx-auto")}>{subtitle}</p>
       )}
-    </div>
+    </MotionReveal>
   );
 }
