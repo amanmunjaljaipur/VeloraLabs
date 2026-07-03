@@ -146,12 +146,12 @@ export function HeroSection() {
             </motion.div>
 
             <motion.div
-              className="absolute -bottom-6 right-6 hidden rounded-2xl border border-cta-amber/30 bg-cta-amber-light px-5 py-3 shadow-md sm:block"
+              className="absolute -bottom-6 right-6 hidden rounded-2xl border border-cta-amber/25 bg-card/90 px-5 py-3 shadow-lg surface-glass backdrop-blur-sm sm:block"
               initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
               animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.35, ease: EASE_OUT }}
             >
-              <p className="text-2xl font-bold text-navy">Free</p>
+              <p className="text-2xl font-bold text-cta-amber">Free</p>
               <p className="text-xs font-medium text-text-secondary">2-hour intro · No card</p>
             </motion.div>
           </motion.div>

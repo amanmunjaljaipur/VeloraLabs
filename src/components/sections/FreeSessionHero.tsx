@@ -75,8 +75,8 @@ export function FreeSessionHero({ headline, description }: FreeSessionHeroProps)
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
-            <div className="absolute bottom-5 left-5 rounded-2xl border border-cta-amber/30 bg-cta-amber-light px-4 py-3 shadow-md">
-              <p className="text-xl font-bold text-navy">Free</p>
+            <div className="absolute bottom-5 left-5 rounded-2xl border border-cta-amber/25 bg-card/90 px-4 py-3 shadow-lg surface-glass backdrop-blur-sm">
+              <p className="text-xl font-bold text-cta-amber">Free</p>
               <p className="text-xs font-medium text-text-secondary">No credit card required</p>
             </div>
           </motion.div>
