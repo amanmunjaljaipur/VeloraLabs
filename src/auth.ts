@@ -61,7 +61,7 @@ export const authOptions: NextAuthConfig = {
   secret: authSecret,
   basePath: "/api/auth",
   trustHost: true,
-  ...(canonicalUrl ? { url: canonicalUrl } : {}),
+
   session: {
     strategy: "jwt",
     maxAge: THIRTY_DAYS,
