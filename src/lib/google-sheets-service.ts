@@ -13,6 +13,8 @@ export const TAB_CONTACT = "Contact Us";
 export const TAB_NEWSLETTER = "Newsletter Subscribers";
 export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
+export const TAB_NEWS_UPDATES = "News Updates";
+export const TAB_NEWSLETTER_EDITIONS = "Newsletter Editions";
 
 const HEADERS: Record<string, string[]> = {
   [TAB_FREE_SESSION]: [
@@ -34,6 +36,28 @@ const HEADERS: Record<string, string[]> = {
   [TAB_NEWSLETTER]: ["Timestamp", "Email", "Source"],
   [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
   [TAB_KNOWN_USERS]: ["Email", "Name", "Provider", "First Seen At", "Last Seen At"],
+  [TAB_NEWS_UPDATES]: [
+    "ID",
+    "Submitted At",
+    "Title",
+    "Summary",
+    "URL",
+    "Source",
+    "Category",
+    "Week Of",
+    "Status",
+  ],
+  [TAB_NEWSLETTER_EDITIONS]: [
+    "Edition ID",
+    "Week Of",
+    "Title",
+    "Published At",
+    "Item Count",
+    "Intro",
+    "Slug",
+    "Markdown",
+    "HTML",
+  ],
 };
 
 interface ServiceAccount {
@@ -641,6 +665,193 @@ export async function persistUserRolesToSheet(
   if (!res.ok) {
     throw new Error(`Failed to write user roles: ${await res.text()}`);
   }
+}
+
+export interface NewsUpdateSheetRow {
+  id: string;
+  submittedAt: string;
+  title: string;
+  summary: string;
+  url?: string;
+  source?: string;
+  category?: string;
+  weekOf: string;
+  status: string;
+}
+
+export interface NewsletterEditionSheetRow {
+  editionId: string;
+  weekOf: string;
+  title: string;
+  publishedAt: string;
+  itemCount: number;
+  intro: string;
+  slug: string;
+  markdown: string;
+  html: string;
+}
+
+export async function appendNewsUpdateToSheet(row: NewsUpdateSheetRow): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  await appendRow(access.token, access.spreadsheetId, TAB_NEWS_UPDATES, [
+    row.id,
+    row.submittedAt,
+    row.title,
+    row.summary,
+    row.url ?? "",
+    row.source ?? "",
+    row.category ?? "",
+    row.weekOf,
+    row.status,
+  ]);
+}
+
+export async function readNewsUpdatesFromSheet(): Promise<NewsUpdateSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  const range = `'${TAB_NEWS_UPDATES}'!A2:I`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read news updates: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: NewsUpdateSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const id = row[0]?.trim();
+    const title = row[2]?.trim();
+    if (!id || !title) continue;
+
+    rows.push({
+      id,
+      submittedAt: row[1]?.trim() ?? "",
+      title,
+      summary: row[3]?.trim() ?? "",
+      url: row[4]?.trim() || undefined,
+      source: row[5]?.trim() || undefined,
+      category: row[6]?.trim() || undefined,
+      weekOf: row[7]?.trim() ?? "",
+      status: row[8]?.trim() || "pending",
+    });
+  }
+
+  return rows;
+}
+
+export async function persistNewsUpdatesToSheet(rows: NewsUpdateSheetRow[]): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  const values = rows
+    .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt))
+    .map((row) => [
+      row.id,
+      row.submittedAt,
+      row.title,
+      row.summary,
+      row.url ?? "",
+      row.source ?? "",
+      row.category ?? "",
+      row.weekOf,
+      row.status,
+    ]);
+
+  if (values.length === 0) {
+    const clearRes = await googleFetch(
+      access.token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(`'${TAB_NEWS_UPDATES}'!A2:I`)}:clear`,
+      { method: "POST", body: JSON.stringify({}) }
+    );
+    if (!clearRes.ok) {
+      throw new Error(`Failed to clear news updates: ${await clearRes.text()}`);
+    }
+    return;
+  }
+
+  const range = `'${TAB_NEWS_UPDATES}'!A2:I${values.length + 1}`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ values }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to write news updates: ${await res.text()}`);
+  }
+}
+
+export async function appendNewsletterEditionToSheet(
+  edition: NewsletterEditionSheetRow
+): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  await appendRow(access.token, access.spreadsheetId, TAB_NEWSLETTER_EDITIONS, [
+    edition.editionId,
+    edition.weekOf,
+    edition.title,
+    edition.publishedAt,
+    String(edition.itemCount),
+    edition.intro,
+    edition.slug,
+    edition.markdown,
+    edition.html,
+  ]);
+}
+
+export async function readNewsletterEditionsFromSheet(): Promise<NewsletterEditionSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  const range = `'${TAB_NEWSLETTER_EDITIONS}'!A2:I`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read newsletter editions: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: NewsletterEditionSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const editionId = row[0]?.trim();
+    const weekOf = row[1]?.trim();
+    if (!editionId || !weekOf) continue;
+
+    rows.push({
+      editionId,
+      weekOf,
+      title: row[2]?.trim() ?? "",
+      publishedAt: row[3]?.trim() ?? "",
+      itemCount: Number(row[4] ?? 0),
+      intro: row[5]?.trim() ?? "",
+      slug: row[6]?.trim() ?? "",
+      markdown: row[7]?.trim() ?? "",
+      html: row[8]?.trim() ?? "",
+    });
+  }
+
+  return rows;
 }
 
 export async function initGoogleSheet(): Promise<{
