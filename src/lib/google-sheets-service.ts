@@ -13,6 +13,7 @@ export const TAB_CONTACT = "Contact Us";
 export const TAB_NEWSLETTER = "Newsletter Subscribers";
 export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
+export const TAB_MANUAL_USERS = "Manual Users";
 export const TAB_NEWS_UPDATES = "News Updates";
 export const TAB_NEWSLETTER_EDITIONS = "Newsletter Editions";
 export const TAB_NEWSLETTER_DRAFT = "Newsletter Draft";
@@ -37,6 +38,15 @@ const HEADERS: Record<string, string[]> = {
   [TAB_NEWSLETTER]: ["Timestamp", "Email", "Source"],
   [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
   [TAB_KNOWN_USERS]: ["Email", "Name", "Provider", "First Seen At", "Last Seen At"],
+  [TAB_MANUAL_USERS]: [
+    "ID",
+    "Email",
+    "Password Hash",
+    "First Name",
+    "Last Name",
+    "Name",
+    "Created At",
+  ],
   [TAB_NEWS_UPDATES]: [
     "ID",
     "Submitted At",
@@ -468,6 +478,10 @@ async function ensureKnownUsersTab(token: string, spreadsheetId: string): Promis
   await ensureSheetTab(token, spreadsheetId, TAB_KNOWN_USERS, HEADERS[TAB_KNOWN_USERS]);
 }
 
+async function ensureManualUsersTab(token: string, spreadsheetId: string): Promise<void> {
+  await ensureSheetTab(token, spreadsheetId, TAB_MANUAL_USERS, HEADERS[TAB_MANUAL_USERS]);
+}
+
 async function ensureNewsletterDraftTab(token: string, spreadsheetId: string): Promise<void> {
   await ensureSheetTab(token, spreadsheetId, TAB_NEWSLETTER_DRAFT, HEADERS[TAB_NEWSLETTER_DRAFT]);
 }
@@ -475,6 +489,7 @@ async function ensureNewsletterDraftTab(token: string, spreadsheetId: string): P
 async function ensureAdminTabs(token: string, spreadsheetId: string): Promise<void> {
   await ensureUserRolesTab(token, spreadsheetId);
   await ensureKnownUsersTab(token, spreadsheetId);
+  await ensureManualUsersTab(token, spreadsheetId);
   await ensureNewsletterDraftTab(token, spreadsheetId);
 }
 
@@ -532,6 +547,84 @@ export async function readKnownUserRowsFromSheet(): Promise<KnownUserSheetRow[]>
   }
 
   return rows;
+}
+
+export interface ManualUserSheetRow {
+  id: string;
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  createdAt: string;
+}
+
+export async function readManualUserRowsFromSheet(): Promise<ManualUserSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  await ensureManualUsersTab(access.token, access.spreadsheetId);
+
+  const range = `'${TAB_MANUAL_USERS}'!A2:G`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read manual users: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: ManualUserSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const id = row[0]?.trim();
+    const email = row[1]?.toLowerCase().trim();
+    const passwordHash = row[2]?.trim();
+    const firstName = row[3]?.trim();
+    const lastName = row[4]?.trim();
+    const name = row[5]?.trim();
+    const createdAt = row[6]?.trim();
+    if (!id || !email || !passwordHash || !firstName || !lastName || !name || !createdAt) {
+      continue;
+    }
+
+    rows.push({
+      id,
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      name,
+      createdAt,
+    });
+  }
+
+  return rows;
+}
+
+export async function appendManualUserToSheet(user: ManualUserSheetRow): Promise<boolean> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return false;
+
+  await ensureManualUsersTab(access.token, access.spreadsheetId);
+
+  const existing = await readManualUserRowsFromSheet();
+  if (existing.some((row) => row.email === user.email)) {
+    return true;
+  }
+
+  await appendRow(access.token, access.spreadsheetId, TAB_MANUAL_USERS, [
+    user.id,
+    user.email,
+    user.passwordHash,
+    user.firstName,
+    user.lastName,
+    user.name,
+    user.createdAt,
+  ]);
+  return true;
 }
 
 export async function persistKnownUsersToSheet(

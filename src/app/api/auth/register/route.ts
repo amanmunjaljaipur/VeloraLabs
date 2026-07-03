@@ -36,8 +36,19 @@ export async function POST(req: NextRequest) {
 
     try {
       const user = await createManualUser({ firstName, lastName, email, password });
-      await recordKnownUser(user.email, user.name, "credentials");
-      await ensureNewsletterSubscriber(user.email, "Signed-in user");
+
+      try {
+        await recordKnownUser(user.email, user.name, "credentials");
+      } catch (error) {
+        console.error("Failed to record known user after registration:", error);
+      }
+
+      try {
+        await ensureNewsletterSubscriber(user.email, "Signed-in user");
+      } catch (error) {
+        console.error("Failed to add newsletter subscriber after registration:", error);
+      }
+
       return NextResponse.json({
         success: true,
         user: { id: user.id, email: user.email, name: user.name },
@@ -52,6 +63,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      console.error("Manual registration failed:", error);
       throw error;
     }
   } catch {
