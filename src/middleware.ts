@@ -5,10 +5,7 @@ const CANONICAL_HOST = "www.verlinlabs.com";
 function shouldRedirectToCanonical(host: string): boolean {
   if (!host) return false;
   const normalized = host.toLowerCase();
-  return (
-    normalized === "verlinlabs.com" ||
-    normalized.endsWith(".vercel.app")
-  );
+  return normalized === "verlinlabs.com" || normalized.endsWith(".vercel.app");
 }
 
 export function middleware(request: NextRequest) {
@@ -26,10 +23,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Never run middleware on auth API routes — avoids edge interference with OAuth cookies.
   matcher: [
-    "/api/auth/:path*",
-    "/login",
-    "/signup",
-    "/((?!_next/static|_next/image|favicon.ico|images/).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|images/).*)",
   ],
 };

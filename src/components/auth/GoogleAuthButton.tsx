@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { signInWithGoogle } from "@/lib/auth-actions";
+import { useEffect, useState } from "react";
 
 interface GoogleAuthButtonProps {
   label?: string;
@@ -14,10 +14,37 @@ export function GoogleAuthButton({
   callbackUrl = "/",
   className,
 }: GoogleAuthButtonProps) {
+  const [csrfToken, setCsrfToken] = useState("");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCsrf() {
+      try {
+        const response = await fetch("/api/auth/csrf", { credentials: "same-origin" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { csrfToken?: string };
+        if (!cancelled && data.csrfToken) {
+          setCsrfToken(data.csrfToken);
+          setReady(true);
+        }
+      } catch {
+        // Button stays disabled until CSRF loads.
+      }
+    }
+
+    void loadCsrf();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <form action={signInWithGoogle} className={className}>
+    <form action="/api/auth/signin/google" method="POST" className={className}>
+      <input type="hidden" name="csrfToken" value={csrfToken} />
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
-      <Button type="submit" size="lg" variant="secondary" className="w-full">
+      <Button type="submit" size="lg" variant="secondary" className="w-full" disabled={!ready}>
         <GoogleIcon />
         {label}
       </Button>

@@ -48,10 +48,16 @@ function resolveSignInEmail(
   };
 }
 
+const canonicalUrl =
+  process.env.AUTH_URL ??
+  process.env.NEXTAUTH_URL ??
+  (process.env.NODE_ENV === "production" ? "https://www.verlinlabs.com" : "http://localhost:3000");
+
 export const authOptions: NextAuthConfig = {
   secret: authSecret,
   basePath: "/api/auth",
   trustHost: true,
+  ...(canonicalUrl ? { url: canonicalUrl } : {}),
   session: {
     strategy: "jwt",
     maxAge: THIRTY_DAYS,
