@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { getUsersWithoutRoleAssignment } from "@/lib/known-users";
 import {
+  ensureRolesLoaded,
   getAllUserRoles,
   getRoleForEmail,
   hasCustomRoleAssignment,
@@ -47,6 +48,8 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  await ensureRolesLoaded(true);
+
   const assignments = getAllUserRoles().map(({ email, role }) => ({
     email,
     role,
@@ -70,6 +73,8 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  await ensureRolesLoaded(true);
 
   try {
     const body = await req.json();
@@ -103,7 +108,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "You cannot change your own role" }, { status: 400 });
     }
 
-    setUserRole(email, parsed.data.role);
+    await setUserRole(email, parsed.data.role, session.user.email ?? "admin");
 
     return NextResponse.json({
       success: true,
@@ -124,6 +129,8 @@ export async function DELETE(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  await ensureRolesLoaded(true);
 
   try {
     const body = await req.json();
@@ -152,7 +159,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const removed = removeUserRole(email);
+    const removed = await removeUserRole(email, session.user.email ?? "admin");
     if (!removed) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }

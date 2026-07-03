@@ -1,7 +1,7 @@
 {
   "name": "Verlin Labs",
-  "tagline": "Understand complex ideas with clarity",
-  "description": "A clarity-first learning platform that helps people deeply understand complex ideas — especially AI and technology — through strong mental models.",
+  "tagline": "Clarity-first learning for the AI age",
+  "description": "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
   "nav": [
     { "label": "Free Session", "href": "/free-session" },
     { "label": "Programs", "href": "/courses" },

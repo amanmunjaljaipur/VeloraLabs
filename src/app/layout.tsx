@@ -16,11 +16,33 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Verlin Labs — Clarity-First Learning",
+    default: "Verlin Labs | Clarity-First Learning for the AI Age",
     template: "%s | Verlin Labs",
   },
   description:
-    "A clarity-first learning platform that helps people deeply understand complex ideas — especially AI and technology — through strong mental models.",
+    "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+  openGraph: {
+    title: "Verlin Labs | Clarity-First Learning for the AI Age",
+    description:
+      "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+    type: "website",
+    siteName: "Verlin Labs",
+    images: [
+      {
+        url: "/images/hero-side.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Verlin Labs — clarity-first learning for the AI age",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verlin Labs | Clarity-First Learning for the AI Age",
+    description:
+      "Understand complex AI concepts through clear mental models. Free 2-hour sessions and hands-on programs.",
+    images: ["/images/hero-side.jpg"],
+  },
 };
 
 export default function RootLayout({

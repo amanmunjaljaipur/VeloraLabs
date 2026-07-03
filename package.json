@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs",
+    "sync:roles": "tsx scripts/sync-user-roles-sheet.ts",
     "test:sheets": "tsx scripts/test-google-sheets.ts"
   },
   "dependencies": {

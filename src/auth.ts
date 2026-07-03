@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { signInSchema } from "@/lib/auth-validation";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { ensureKnownUser, recordKnownUser, type AuthProvider } from "@/lib/known-users";
-import { getRoleForEmail } from "@/lib/roles";
+import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
@@ -108,9 +108,11 @@ export const authOptions: NextAuthConfig = {
     },
   },
   callbacks: {
-    jwt({ token, user, account, profile, trigger }) {
+    async jwt({ token, user, account, profile, trigger }) {
       const isAuthSignIn =
         trigger === "signIn" || trigger === "signUp" || Boolean(account);
+
+      await ensureRolesLoaded(isAuthSignIn);
 
       if (isAuthSignIn) {
         const identity = resolveSignInEmail(user, token, profile as { email?: string });
@@ -140,7 +142,9 @@ export const authOptions: NextAuthConfig = {
       }
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
+      await ensureRolesLoaded();
+
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }

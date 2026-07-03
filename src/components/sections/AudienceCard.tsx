@@ -51,6 +51,11 @@ export function AudienceCard({
       {description && (
         <p className="mt-2 text-sm text-text-secondary leading-relaxed">{description}</p>
       )}
+      {!onClick && (
+        <p className="mt-4 text-sm font-medium text-teal opacity-0 transition-opacity group-hover:opacity-100">
+          See full track details →
+        </p>
+      )}
     </>
   );
 

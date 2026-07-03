@@ -11,6 +11,7 @@ const TAB_BOOKINGS = "Free Session Bookings";
 const TAB_SESSION_DETAILS = "Free Session Details";
 const TAB_CONTACT = "Contact Inquiries";
 const TAB_NEWSLETTER = "Newsletter Signups";
+export const TAB_USER_ROLES = "User Roles";
 
 const HEADERS: Record<string, string[]> = {
   [TAB_BOOKINGS]: [
@@ -30,6 +31,7 @@ const HEADERS: Record<string, string[]> = {
   ],
   [TAB_CONTACT]: ["Timestamp", "Name", "Email", "Message"],
   [TAB_NEWSLETTER]: ["Timestamp", "Email"],
+  [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
 };
 
 interface ServiceAccount {
@@ -344,6 +346,159 @@ export async function submitViaServiceAccount(
   } catch (err) {
     console.error("Google Sheets API error:", err);
     return false;
+  }
+}
+
+async function getSheetTitles(token: string, spreadsheetId: string): Promise<string[]> {
+  const res = await googleFetch(
+    token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`
+  );
+  if (!res.ok) {
+    throw new Error(`Failed to read spreadsheet metadata: ${await res.text()}`);
+  }
+  const data = (await res.json()) as {
+    sheets?: { properties?: { title?: string } }[];
+  };
+  return (data.sheets ?? [])
+    .map((sheet) => sheet.properties?.title)
+    .filter((title): title is string => Boolean(title));
+}
+
+async function ensureSheetTab(
+  token: string,
+  spreadsheetId: string,
+  tab: string,
+  headers: string[]
+): Promise<void> {
+  const titles = await getSheetTitles(token, spreadsheetId);
+  if (!titles.includes(tab)) {
+    const res = await googleFetch(
+      token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          requests: [{ addSheet: { properties: { title: tab } } }],
+        }),
+      }
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to add sheet tab "${tab}": ${await res.text()}`);
+    }
+  }
+  await writeHeaderRow(token, spreadsheetId, tab, headers);
+}
+
+async function ensureUserRolesTab(token: string, spreadsheetId: string): Promise<void> {
+  await ensureSheetTab(token, spreadsheetId, TAB_USER_ROLES, HEADERS[TAB_USER_ROLES]);
+}
+
+async function withSpreadsheetAccess(): Promise<{
+  token: string;
+  spreadsheetId: string;
+} | null> {
+  const account = parseServiceAccount();
+  if (!account) return null;
+  const token = await getAccessToken(account);
+  const spreadsheetId = await ensureSpreadsheet(token);
+  await ensureUserRolesTab(token, spreadsheetId);
+  return { token, spreadsheetId };
+}
+
+export interface UserRoleSheetRow {
+  email: string;
+  name?: string;
+  role: string;
+}
+
+export async function readUserRolesFromSheet(): Promise<Record<string, string>> {
+  const rows = await readUserRoleRowsFromSheet();
+  const roles: Record<string, string> = {};
+  for (const row of rows) {
+    roles[row.email] = row.role;
+  }
+  return roles;
+}
+
+export async function readUserRoleRowsFromSheet(): Promise<UserRoleSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  const range = `'${TAB_USER_ROLES}'!A2:E`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read user roles: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: UserRoleSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const email = row[0]?.toLowerCase().trim();
+    if (!email) continue;
+
+    const hasNameColumn = row.length >= 3 && row[2]?.trim();
+    const name = hasNameColumn ? row[1]?.trim() : "";
+    const role = (hasNameColumn ? row[2] : row[1])?.trim();
+
+    if (role) {
+      rows.push({ email, name: name || undefined, role });
+    }
+  }
+
+  return rows;
+}
+
+export async function persistUserRolesToSheet(
+  roles: Record<string, string>,
+  meta?: { updatedBy?: string; names?: Record<string, string> }
+): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  if (Object.keys(roles).length === 0) {
+    const clearRes = await googleFetch(
+      access.token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(`'${TAB_USER_ROLES}'!A2:E`)}:clear`,
+      { method: "POST", body: JSON.stringify({}) }
+    );
+    if (!clearRes.ok) {
+      throw new Error(`Failed to clear user roles: ${await clearRes.text()}`);
+    }
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const updatedBy = meta?.updatedBy ?? "system";
+  const rows = Object.entries(roles)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([email, role]) => [
+      email,
+      meta?.names?.[email] ?? "",
+      role,
+      now,
+      updatedBy,
+    ]);
+
+  const range = `'${TAB_USER_ROLES}'!A2:E${rows.length + 1}`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ values: rows }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to write user roles: ${await res.text()}`);
   }
 }
 

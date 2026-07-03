@@ -3,11 +3,33 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterTabs } from "@/components/ui/FilterTabs";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import type { LibraryItem } from "@/lib/content";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+
+const levelOptions = [
+  { value: "", label: "All" },
+  { value: "Beginner", label: "Beginner" },
+  { value: "Intermediate", label: "Intermediate" },
+  { value: "Advanced", label: "Advanced" },
+];
+
+const audienceOptions = [
+  { value: "", label: "All" },
+  { value: "students", label: "Students" },
+  { value: "engineers", label: "Engineers" },
+  { value: "professionals", label: "Product Managers" },
+];
+
+const formatOptions = [
+  { value: "", label: "All" },
+  { value: "Article", label: "Article" },
+  { value: "Guide", label: "Guide" },
+  { value: "Workshop", label: "Workshop" },
+  { value: "Video", label: "Video" },
+];
 
 export function LibraryClient({ items }: { items: LibraryItem[] }) {
   const [search, setSearch] = useState("");
@@ -28,66 +50,47 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
     });
   }, [items, search, level, audience, type]);
 
+  const clearFilters = () => {
+    setSearch("");
+    setLevel("");
+    setAudience("");
+    setType("");
+  };
+
   return (
     <>
       <PageHeader
         title="Content Library"
-        subtitle="In-depth articles, guides, and workshops — written to industry standards with clear structure, practical takeaways, and connected reading paths."
+        subtitle="Articles, guides, and workshops — organized for clarity."
       />
 
       <section className="pb-16 md:pb-24">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <p className="mb-8 max-w-3xl text-base leading-relaxed text-text-secondary">
-            Each resource includes a full overview, section-by-section explanations, actionable bullet
-            points, and a key takeaway you can apply immediately. Filter by level, audience, or format to
-            find what fits your role — from first exposure to LLMs through RAG architecture and team risk
-            assessments.
-          </p>
-
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-              <Input
-                placeholder="Search content..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <Select
-                options={[
-                  { value: "", label: "All Levels" },
-                  { value: "Beginner", label: "Beginner" },
-                  { value: "Intermediate", label: "Intermediate" },
-                  { value: "Advanced", label: "Advanced" },
-                ]}
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-              />
-              <Select
-                options={[
-                  { value: "", label: "All Audiences" },
-                  { value: "students", label: "Students" },
-                  { value: "engineers", label: "Engineers" },
-                  { value: "professionals", label: "Professionals" },
-                ]}
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-              />
-              <Select
-                options={[
-                  { value: "", label: "All Types" },
-                  { value: "Article", label: "Article" },
-                  { value: "Video", label: "Video" },
-                  { value: "Guide", label: "Guide" },
-                  { value: "Workshop", label: "Workshop" },
-                ]}
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-              />
-            </div>
+          <div className="relative mb-8 max-w-xl">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
+            <Input
+              placeholder="Search content..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+              aria-label="Search library content"
+            />
           </div>
+
+          <div className="mb-10 space-y-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+            <FilterTabs label="Level" options={levelOptions} value={level} onChange={setLevel} />
+            <FilterTabs
+              label="Audience"
+              options={audienceOptions}
+              value={audience}
+              onChange={setAudience}
+            />
+            <FilterTabs label="Format" options={formatOptions} value={type} onChange={setType} />
+          </div>
+
+          <p className="mb-6 text-sm text-text-secondary">
+            {filtered.length} resource{filtered.length === 1 ? "" : "s"} found
+          </p>
 
           {filtered.length === 0 ? (
             <EmptyState
@@ -101,6 +104,16 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
                 <ContentCard key={item.id} {...item} />
               ))}
             </div>
+          )}
+
+          {filtered.length === 0 && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 text-sm font-medium text-teal hover:underline"
+            >
+              Clear all filters
+            </button>
           )}
         </div>
       </section>
