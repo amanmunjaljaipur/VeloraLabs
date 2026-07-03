@@ -12,7 +12,7 @@ export const metadata = createMetadata({
 
 export default function BlogPage() {
   const posts = getLibraryItems().filter((item) =>
-    ["Article", "Guide"].includes(item.type)
+    ["Article", "Guide", "Workshop"].includes(item.type)
   );
 
   return (
@@ -24,6 +24,14 @@ export default function BlogPage() {
         align="center"
         compact
       />
+      <div className="container-verlin -mt-6 mb-2 flex justify-center">
+        <p className="text-sm text-text-secondary">
+          {posts.length} articles and guides ·{" "}
+          <a href="/library" className="font-medium text-teal hover:underline">
+            Explore full library
+          </a>
+        </p>
+      </div>
       <BlogClient posts={posts} />
     </>
   );

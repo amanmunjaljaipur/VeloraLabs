@@ -192,8 +192,11 @@ export function getLibraryItems() {
   return readJson<LibraryItem[]>("library.json");
 }
 
-export function getFeaturedLibraryItems() {
-  return getLibraryItems().filter((item) => item.featured);
+export function getFeaturedLibraryItems(limit = 6) {
+  return getLibraryItems()
+    .filter((item) => item.featured)
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, limit);
 }
 
 export function getLibraryItem(slug: string) {

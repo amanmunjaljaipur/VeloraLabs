@@ -583,5 +583,378 @@
     ],
     "keyTakeaway": "Score AI risks across privacy, safety, bias, security, and operations — then assign mitigations owners can ship. Documented assessments turn \"we hope it's fine\" into accountable, reviewable decisions.",
     "relatedSlugs": ["ai-for-decision-makers", "rag-vs-finetuning", "prompt-engineering-basics"]
+  },
+  {
+    "id": "9",
+    "slug": "ai-agents-tool-use",
+    "title": "AI Agents and Tool Use Explained",
+    "description": "How models call APIs, browse the web, and chain steps — and where agents break down.",
+    "summary": "An AI agent is an LLM wrapped in a loop: plan, call a tool, read the result, repeat. Tool use turns language models from text generators into systems that can search, calculate, and act — but only when boundaries, permissions, and verification are designed deliberately.",
+    "duration": "16 min",
+    "level": "Intermediate",
+    "audience": "engineers",
+    "type": "Article",
+    "featured": true,
+    "image": "/images/coding.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-18",
+    "tags": ["Agents", "Engineering", "Tools", "Fundamentals"],
+    "sections": [
+      {
+        "title": "From chatbot to agent",
+        "paragraphs": [
+          "A standard chat completion maps input tokens to output tokens once. An agent runs multiple completions in a loop, often with structured tool calls between steps. The model proposes an action (search database, run SQL, send email); your runtime executes it and feeds results back as new context.",
+          "The mental model: the LLM is a planner and communicator; your code is the hands. Reliability lives in the orchestration layer — timeouts, retries, auth scopes, and human approval gates — not in the model alone."
+        ],
+        "bullets": [
+          "ReAct-style loops alternate reasoning text with tool invocations.",
+          "Function calling APIs return JSON schemas the model must fill — validation is your job.",
+          "Agents amplify both capability and failure modes when tools have side effects."
+        ]
+      },
+      {
+        "title": "Designing safe tool boundaries",
+        "paragraphs": [
+          "Each tool should do one thing, declare required permissions, and return structured output the model can parse. Never give an agent open-ended shell access in production without sandboxing. Prefer read-only tools first; add write tools only with idempotency keys and audit logs.",
+          "Prompt injection via retrieved web pages or user uploads is a real attack surface — treat untrusted content as hostile input that can hijack tool selection."
+        ],
+        "bullets": [
+          "Allowlist domains and API endpoints per agent role.",
+          "Cap loop iterations and token spend to prevent runaway costs.",
+          "Require human confirmation for irreversible actions (payments, deletes, external posts)."
+        ]
+      },
+      {
+        "title": "When agents help vs hurt",
+        "paragraphs": [
+          "Agents shine on multi-step research, data gathering across systems, and workflows with clear success checks. They struggle when goals are vague, tools are flaky, or verification is impossible. A single-shot RAG query often beats a five-step agent for FAQ-style answers.",
+          "Start with the simplest architecture that passes evaluation, then add agent loops only where measured lift justifies complexity."
+        ]
+      }
+    ],
+    "keyTakeaway": "Agents are LLMs in a supervised tool loop — design narrow tools, validate outputs, and cap autonomy. Reliability comes from orchestration and permissions, not a smarter model prompt alone.",
+    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+  },
+  {
+    "id": "10",
+    "slug": "vector-search-rag-in-practice",
+    "title": "Vector Search and RAG in Practice",
+    "description": "Embeddings, chunking, retrieval, and reranking — a builder's checklist for production RAG.",
+    "summary": "Retrieval-augmented generation grounds LLM answers in your documents, but quality depends on chunking strategy, embedding choice, hybrid search, and citation discipline. This guide walks engineers through the pipeline decisions that separate demo RAG from systems people trust.",
+    "duration": "22 min",
+    "level": "Intermediate",
+    "audience": "engineers",
+    "type": "Guide",
+    "featured": true,
+    "image": "/images/engineers.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-20",
+    "tags": ["RAG", "Engineering", "Embeddings", "Fundamentals"],
+    "sections": [
+      {
+        "title": "The RAG pipeline end to end",
+        "paragraphs": [
+          "Ingest documents → chunk text → embed chunks → store vectors → on query, embed the question → retrieve top-k similar chunks → optionally rerank → prepend chunks to the prompt → generate an answer with citation instructions.",
+          "Each stage is a tuning knob. Weak retrieval cannot be fixed by a better generator — garbage context produces confident wrong answers."
+        ],
+        "bullets": [
+          "Chunk size: 300–800 tokens common; overlap 10–20% preserves sentence boundaries.",
+          "Metadata filters (team, date, product) often beat raw similarity alone.",
+          "Always log which chunks were retrieved for debugging user-reported errors."
+        ]
+      },
+      {
+        "title": "Chunking and embeddings",
+        "paragraphs": [
+          "Split on structure first — headings, paragraphs, tables — not arbitrary character counts. Tables and code need special handling; naive splitting destroys semantics. Choose embedding models matched to your domain language; multilingual content may need dedicated models.",
+          "Refresh embeddings when documents change; stale indexes are a silent source of hallucination-adjacent answers."
+        ]
+      },
+      {
+        "title": "Retrieval quality checks",
+        "paragraphs": [
+          "Maintain a benchmark set of questions with expected source documents. Measure recall@k and answer faithfulness separately. Add hybrid search (BM25 + vectors) when users query exact SKUs, error codes, or policy numbers.",
+          "Rerankers improve precision on the final context window — worth the latency for high-stakes support or legal use cases."
+        ],
+        "bullets": [
+          "If retrieval misses the right doc, tune chunking before rewriting prompts.",
+          "Surface citations in the UI so users can verify claims in one click.",
+          "Set \"I don't know\" behaviour when similarity scores fall below a threshold."
+        ]
+      }
+    ],
+    "keyTakeaway": "Production RAG is an information retrieval problem first. Invest in chunking, hybrid search, evaluation sets, and citations — then tune the generator prompt.",
+    "relatedSlugs": ["rag-vs-finetuning", "ai-agents-tool-use", "hallucination-detection-guide"]
+  },
+  {
+    "id": "11",
+    "slug": "ai-product-discovery-playbook",
+    "title": "AI Product Discovery Playbook",
+    "description": "How PMs validate AI features before engineering sprints — jobs, risks, and MVP cuts.",
+    "summary": "Shipping an AI feature without discovery is guessing with GPUs. This playbook gives product managers a repeatable path: map the job-to-be-done, score AI fit, prototype with off-the-shelf models, define guardrails, and cut scope to a testable MVP.",
+    "duration": "18 min",
+    "level": "Beginner",
+    "audience": "professionals",
+    "type": "Guide",
+    "featured": false,
+    "image": "/images/professionals.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-22",
+    "tags": ["Product", "Discovery", "MVP", "Strategy"],
+    "sections": [
+      {
+        "title": "Job-first, model-second",
+        "paragraphs": [
+          "Write the user story without mentioning AI: \"When I ___, I need ___ so that ___.\" Only then ask whether an LLM removes friction cheaper than rules, search, or human ops. Many \"AI features\" are better served by better UX or cleaner data.",
+          "Interview five users on the current workaround — screenshots, spreadsheets, copy-paste habits reveal the real job."
+        ]
+      },
+      {
+        "title": "AI fit scorecard",
+        "paragraphs": [
+          "Rate the task on ambiguity, error tolerance, data availability, and regulatory exposure. High ambiguity + low error tolerance = expensive to ship safely. Document which failures are acceptable in v1 and who approves overrides."
+        ],
+        "bullets": [
+          "Summarisation and drafting: strong fit when sources are provided.",
+          "Autonomous decisions on money or health: defer or human-in-the-loop.",
+          "Personalisation: needs privacy review and consent flows upfront."
+        ]
+      },
+      {
+        "title": "Prototype before the PRD hardens",
+        "paragraphs": [
+          "Spend two days testing prompts on real inputs with design partners. Capture failure modes in a spreadsheet — categories beat anecdotes in stakeholder reviews. Your PRD should list non-goals explicitly to prevent scope creep into \"full autopilot.\""
+        ]
+      },
+      {
+        "title": "MVP cuts that still teach",
+        "paragraphs": [
+          "Ship assistive flows before autonomous ones: suggest, don't send. Log edits users make to AI drafts — that signal prioritises the next iteration. Pair quantitative metrics (time saved, override rate) with qualitative trust interviews."
+        ]
+      }
+    ],
+    "keyTakeaway": "Discover the job, score AI fit honestly, prototype on real inputs, and ship assistive MVPs with logged overrides. PMs who document non-goals ship faster and safer than teams chasing demo magic.",
+    "relatedSlugs": ["ai-for-decision-makers", "build-mvp-with-ai-coding-tools", "ai-risk-assessment"]
+  },
+  {
+    "id": "12",
+    "slug": "fine-tuning-vs-prompting",
+    "title": "Fine-Tuning vs Prompting: A Decision Guide",
+    "description": "When extra training beats better prompts — and when it wastes time and budget.",
+    "summary": "Fine-tuning adjusts model weights on your examples; prompting steers a frozen model with instructions and context. Most teams overestimate the need for fine-tuning. This article gives engineers and leads a decision tree grounded in cost, maintenance, and evaluation.",
+    "duration": "14 min",
+    "level": "Intermediate",
+    "audience": "engineers",
+    "type": "Article",
+    "featured": false,
+    "image": "/images/workshop.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-25",
+    "tags": ["Engineering", "Fine-tuning", "Fundamentals", "Evaluation"],
+    "sections": [
+      {
+        "title": "Default to prompting and RAG",
+        "paragraphs": [
+          "Modern instruction-tuned models follow detailed prompts and few-shot examples remarkably well. RAG covers most domain knowledge gaps. Fine-tuning makes sense when you need consistent output format at scale, proprietary style, or behaviour prompts cannot stabilise across model upgrades.",
+          "If your problem is \"the model doesn't know our docs,\" fine-tuning without retrieval usually fails — it memorises fragments, it does not subscribe to updates."
+        ]
+      },
+      {
+        "title": "Signals that fine-tuning may help",
+        "paragraphs": [
+          "Thousands of high-quality labelled pairs, stable task definition, measurable regression when the base model updates, and budget for retraining pipelines. Classification and extraction with rigid schemas are classic wins; open-ended reasoning rarely is."
+        ],
+        "bullets": [
+          "Distillation: fine-tune a small model to mimic a large one for latency/cost.",
+          "Style/tone alignment for brand voice at high volume.",
+          "Tool-selection accuracy in agents when prompts alone misfire."
+        ]
+      },
+      {
+        "title": "Hidden costs",
+        "paragraphs": [
+          "Training data curation, eval harnesses, version pinning, and retraining when base models deprecate. A fine-tuned model is a dependency — treat it like a microservice with SLAs and rollback plans."
+        ]
+      }
+    ],
+    "keyTakeaway": "Prompt + RAG solves most production needs. Fine-tune when you have scale, stable tasks, quality labels, and ops to maintain custom weights — not when you are avoiding good prompt design.",
+    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+  },
+  {
+    "id": "13",
+    "slug": "ai-ethics-for-students",
+    "title": "AI Ethics for Students",
+    "description": "Honest use, citation habits, and digital citizenship when AI is in every classroom.",
+    "summary": "Schools and universities are rewriting academic integrity rules while students adopt AI overnight. This article gives clear, non-preachy guidance: when AI helps learning, when it crosses the line, and how to cite and verify work you are proud to submit.",
+    "duration": "10 min",
+    "level": "Beginner",
+    "audience": "students",
+    "type": "Article",
+    "featured": false,
+    "image": "/images/students.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-03-28",
+    "tags": ["Students", "Ethics", "Fundamentals", "Best practices"],
+    "sections": [
+      {
+        "title": "Learning vs shortcutting",
+        "paragraphs": [
+          "Using AI to explain a concept you struggled with, generate practice questions, or outline an essay you will rewrite in your own voice supports learning. Submitting AI text as your own analysis when the assignment tests your thinking does not.",
+          "Ask: \"If my teacher asked me to defend this paragraph verbally, could I?\" If not, you have outsourced understanding, not augmented it."
+        ]
+      },
+      {
+        "title": "Citation and transparency",
+        "paragraphs": [
+          "Follow your institution's policy — policies differ. When allowed, disclose AI assistance briefly: what tool, what prompts, what you changed. Never cite AI-generated \"facts\" without checking primary sources; models invent references convincingly."
+        ],
+        "bullets": [
+          "Verify statistics, quotes, and historical claims in trusted sources.",
+          "Keep drafts showing your own edits — evidence of your thinking process.",
+          "Discuss grey areas with instructors before deadlines, not after grades."
+        ]
+      },
+      {
+        "title": "Privacy and safety",
+        "paragraphs": [
+          "Do not paste personal data, passwords, or classmates' private information into public AI tools. Understand that prompts may be stored or used for training depending on the product and your account settings.",
+          "Be skeptical of AI that sounds authoritative — confidence is a language pattern, not proof of correctness."
+        ]
+      }
+    ],
+    "keyTakeaway": "Use AI to understand faster and practise more — not to skip thinking. Cite assistance honestly, verify facts, and protect privacy; those habits keep you ahead as rules and tools evolve.",
+    "relatedSlugs": ["chatgpt-for-students", "hallucination-detection-guide", "prompt-engineering-basics"]
+  },
+  {
+    "id": "14",
+    "slug": "build-mvp-with-ai-coding-tools",
+    "title": "Build an MVP with AI Coding Tools",
+    "description": "A practical workshop-style path from idea to deployed prototype using modern AI assistants.",
+    "summary": "AI coding tools compress the path from idea to working prototype — if you scope ruthlessly and verify constantly. This workshop guide walks through problem framing, stack selection, pair-programming patterns with AI, testing habits, and what to demo on day one.",
+    "duration": "25 min",
+    "level": "Beginner",
+    "audience": "all",
+    "type": "Workshop",
+    "featured": false,
+    "image": "/images/hands-on-mvp-illustration.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-04-01",
+    "tags": ["MVP", "Engineering", "Product", "Best practices"],
+    "sections": [
+      {
+        "title": "Scope the smallest demo",
+        "paragraphs": [
+          "Pick one user action that proves value: sign up, submit a form, see a result. Cut integrations, admin panels, and pixel-perfect design for v0. Write a one-paragraph spec and a five-item acceptance checklist before opening the IDE.",
+          "AI tools generate code faster than they generate correct requirements — your clarity is the bottleneck."
+        ]
+      },
+      {
+        "title": "Stack and workflow",
+        "paragraphs": [
+          "Choose boring, well-documented stacks (Next.js, Supabase, Vercel) so the model has training signal. Work in small slices: generate, run, test, commit. Ask AI to explain diffs, not just dump files. Never merge code you cannot explain in a sentence."
+        ],
+        "bullets": [
+          "Keep a running TEST.md of manual checks.",
+          "Use type systems and linters — they catch AI mistakes cheaply.",
+          "Store API keys in environment variables, never in chat prompts."
+        ]
+      },
+      {
+        "title": "Demo day discipline",
+        "paragraphs": [
+          "Record a two-minute walkthrough of the happy path. List known bugs openly. Stakeholders fund learning from demos that show real clicks, not slide decks. Plan the second sprint based on what broke during the demo."
+        ]
+      }
+    ],
+    "keyTakeaway": "AI coding tools multiply execution speed — not product judgment. Narrow scope, verify each slice, and demo real clicks; that is how MVPs become learning engines instead of fragile demos.",
+    "relatedSlugs": ["ai-product-discovery-playbook", "prompt-engineering-basics", "ai-agents-tool-use"]
+  },
+  {
+    "id": "15",
+    "slug": "context-window-playbook",
+    "title": "Context Window Playbook",
+    "description": "Fit more signal into finite context — summarisation, routing, and compression tactics.",
+    "summary": "Context windows grew, but attention and cost did not disappear. This playbook explains how to budget tokens, structure long inputs, summarise hierarchically, and route sub-questions so models stay focused on the task that matters.",
+    "duration": "15 min",
+    "level": "Intermediate",
+    "audience": "all",
+    "type": "Guide",
+    "featured": false,
+    "image": "/images/mental-models-map-illustration.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-04-03",
+    "tags": ["Fundamentals", "LLMs", "Best practices", "Engineering"],
+    "sections": [
+      {
+        "title": "Budget tokens deliberately",
+        "paragraphs": [
+          "List what must be in context: system rules, user goal, retrieved docs, examples, output schema. Trim everything else. Long chats accumulate noise — start fresh threads per task when quality drifts.",
+          "Measure tokens per request in staging; surprises at billing time mean architecture debt."
+        ]
+      },
+      {
+        "title": "Structure beats volume",
+        "paragraphs": [
+          "Use headings, tables, and XML-style tags so models locate sections. Put the question last after background — recency helps attention. For codebases, retrieve relevant files instead of pasting the whole repo."
+        ],
+        "bullets": [
+          "Map-reduce: summarise chunks, then synthesise summaries.",
+          "Router model picks which knowledge base or tool to invoke.",
+          "Cache stable system prompts where your provider supports it."
+        ]
+      },
+      {
+        "title": "When to escalate model size",
+        "paragraphs": [
+          "If structured retrieval plus a mid-tier model fails evals, try a larger context window or stronger model before custom training. Document which tasks truly need premium tiers — finance the cost with usage limits per team."
+        ]
+      }
+    ],
+    "keyTakeaway": "Treat context as a scarce resource: structure inputs, retrieve selectively, summarise hierarchically, and reset threads. Bigger windows are not permission to dump everything — they reward better information design.",
+    "relatedSlugs": ["how-llms-work", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+  },
+  {
+    "id": "16",
+    "slug": "hallucination-detection-guide",
+    "title": "Detecting and Reducing Hallucinations",
+    "description": "Practical verification patterns for students, builders, and teams shipping AI features.",
+    "summary": "Hallucinations are plausible false outputs — not random bugs. Learn to spot high-risk domains, use retrieval and citations, cross-check with independent sources, and build team habits that catch errors before users do.",
+    "duration": "12 min",
+    "level": "Beginner",
+    "audience": "all",
+    "type": "Article",
+    "featured": false,
+    "image": "/images/ai-learning.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-04-05",
+    "tags": ["Fundamentals", "Evaluation", "Best practices", "Students"],
+    "sections": [
+      {
+        "title": "Why hallucinations happen",
+        "paragraphs": [
+          "Models optimise for fluent continuation. When facts are missing or ambiguous, they invent details that fit the pattern — fake citations, wrong dates, confident nonsense. Risk rises with niche topics, long chains of reasoning, and prompts that demand certainty.",
+          "Lowering temperature reduces creativity but does not eliminate hallucinations on factual tasks."
+        ]
+      },
+      {
+        "title": "Verification habits",
+        "paragraphs": [
+          "Ask the model to quote sources, then open those sources yourself. Split multi-part claims and verify each. For numbers, recreate calculations in a spreadsheet or calculator tool. Treat the model as a draft author, not a witness."
+        ],
+        "bullets": [
+          "Red-flag domains: legal, medical, financial, and historical minutiae.",
+          "Use RAG with citations for organisational knowledge.",
+          "Run periodic eval sets after model upgrades — behaviour shifts silently."
+        ]
+      },
+      {
+        "title": "Product patterns that help users",
+        "paragraphs": [
+          "Show confidence cues honestly: \"generated, not verified.\" Offer one-click source links. Log user corrections — they are gold for prompt and retrieval fixes. Escalate to humans when queries match high-risk templates."
+        ]
+      }
+    ],
+    "keyTakeaway": "Hallucinations are structural, not accidental — design for verification with citations, scepticism in high-risk domains, and user-visible uncertainty. Teams that log corrections improve faster than teams that trust fluent answers.",
+    "relatedSlugs": ["how-llms-work", "chatgpt-for-students", "vector-search-rag-in-practice"]
   }
 ]

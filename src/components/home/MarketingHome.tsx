@@ -94,7 +94,7 @@ export function MarketingHome() {
           <SectionHeader
             eyebrow="Content library"
             title="Featured content"
-            subtitle="Popular articles and guides to start with."
+            subtitle="Start with our most popular articles, guides, and workshops — then explore the full library."
             align="left"
             className="mb-0"
           />
@@ -105,7 +105,7 @@ export function MarketingHome() {
             View all →
           </Link>
         </div>
-        <MotionStagger className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+        <MotionStagger className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {featured.map((item) => (
             <MotionStaggerItem key={item.id}>
               <ContentCard {...item} />

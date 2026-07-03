@@ -5,11 +5,16 @@ import { ContentCard } from "@/components/sections/ContentCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterTabs } from "@/components/ui/FilterTabs";
 import { Input } from "@/components/ui/Input";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import type { LibraryItem } from "@/lib/content";
+import { useLoadMore } from "@/hooks/useLoadMore";
 import { DURATION, EASE_OUT } from "@/lib/motion";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+
+const LIBRARY_PAGE_SIZE = 8;
 
 const levelOptions = [
   { value: "", label: "All" },
@@ -40,7 +45,9 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
   const [type, setType] = useState("");
 
   const filtered = useMemo(() => {
-    return items.filter((item) => {
+    return [...items]
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .filter((item) => {
       const matchesSearch =
         !search ||
         item.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -51,6 +58,11 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
       return matchesSearch && matchesLevel && matchesAudience && matchesType;
     });
   }, [items, search, level, audience, type]);
+
+  const { shown, hasMore, loadMore, remaining, total } = useLoadMore(
+    filtered,
+    LIBRARY_PAGE_SIZE
+  );
 
   const clearFilters = () => {
     setSearch("");
@@ -71,6 +83,15 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
 
       <section className="section-y">
         <div className="container-verlin">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-text-secondary">
+              {items.length} resources across articles, guides, workshops, and videos.
+            </p>
+            <Link href="/blog" className="text-sm font-medium text-teal hover:underline">
+              Browse blog →
+            </Link>
+          </div>
+
           <div className="relative mb-8 max-w-xl">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
             <Input
@@ -95,6 +116,8 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
 
           <p className="mb-6 text-sm text-text-secondary">
             {filtered.length} resource{filtered.length === 1 ? "" : "s"} found
+            {filtered.length > LIBRARY_PAGE_SIZE &&
+              ` · Showing ${shown.length} of ${total}`}
           </p>
 
           <AnimatePresence mode="wait">
@@ -121,12 +144,21 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
                 transition={{ duration: DURATION.hover, ease: EASE_OUT }}
                 className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
-                {filtered.map((item) => (
+                {shown.map((item) => (
                   <ContentCard key={item.id} {...item} />
                 ))}
               </motion.div>
             )}
           </AnimatePresence>
+
+          {filtered.length > 0 && hasMore && (
+            <LoadMoreButton
+              onClick={loadMore}
+              remaining={remaining}
+              total={total}
+              label="Show more resources"
+            />
+          )}
 
           {filtered.length === 0 && (
             <button

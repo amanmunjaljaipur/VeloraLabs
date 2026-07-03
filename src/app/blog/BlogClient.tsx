@@ -5,12 +5,16 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterTabs } from "@/components/ui/FilterTabs";
 import { Input } from "@/components/ui/Input";
 import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import type { LibraryItem } from "@/lib/content";
+import { useLoadMore } from "@/hooks/useLoadMore";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Calendar, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+
+const BLOG_PAGE_SIZE = 6;
 
 const categoryOptions = [
   { value: "", label: "All topics" },
@@ -18,6 +22,9 @@ const categoryOptions = [
   { value: "Fundamentals", label: "Fundamentals" },
   { value: "Product", label: "Product" },
   { value: "Engineering", label: "Engineering" },
+  { value: "RAG", label: "RAG" },
+  { value: "Agents", label: "Agents" },
+  { value: "Students", label: "Students" },
 ];
 
 function formatDate(date: string) {
@@ -50,6 +57,7 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
   }, [sorted, search, category]);
 
   const [featured, ...rest] = filtered;
+  const { shown, hasMore, loadMore, remaining, total } = useLoadMore(rest, BLOG_PAGE_SIZE);
   const isIllustration = featured?.image.includes("thumb-") || featured?.image.includes("-illustration");
 
   return (
@@ -140,21 +148,37 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                 </Link>
               )}
 
-              <MotionStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {rest.map((post) => (
-                  <MotionStaggerItem key={post.id}>
-                    <ContentCard
-                      slug={post.slug}
-                      title={post.title}
-                      description={post.description}
-                      duration={post.duration}
-                      level={post.level}
-                      type={post.type}
-                      image={post.image}
+              {rest.length > 0 && (
+                <>
+                  <p className="mb-6 text-sm text-text-secondary">
+                    {rest.length} more article{rest.length === 1 ? "" : "s"}
+                    {rest.length > BLOG_PAGE_SIZE && ` · Showing ${shown.length} of ${total}`}
+                  </p>
+                  <MotionStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {shown.map((post) => (
+                      <MotionStaggerItem key={post.id}>
+                        <ContentCard
+                          slug={post.slug}
+                          title={post.title}
+                          description={post.description}
+                          duration={post.duration}
+                          level={post.level}
+                          type={post.type}
+                          image={post.image}
+                        />
+                      </MotionStaggerItem>
+                    ))}
+                  </MotionStagger>
+                  {hasMore && (
+                    <LoadMoreButton
+                      onClick={loadMore}
+                      remaining={remaining}
+                      total={total}
+                      label="Show more articles"
                     />
-                  </MotionStaggerItem>
-                ))}
-              </MotionStagger>
+                  )}
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
