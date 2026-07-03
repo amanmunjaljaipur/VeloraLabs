@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
 import { getSiteConfig } from "@/lib/content";
 import { buildFooterLinkGroups } from "@/lib/site-nav";
 
@@ -72,6 +73,7 @@ export default function RootLayout({
               linkGroups={buildFooterLinkGroups(site.nav)}
               social={site.footer.social}
             />
+            <ChatWidgetLoader />
           </ToastProvider>
         </ThemeProvider>
         </SessionProvider>

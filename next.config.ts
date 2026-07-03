@@ -8,6 +8,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@xenova/transformers", "onnxruntime-node"],
   outputFileTracingIncludes: {
     "/*": ["./content/**/*"],
   },
