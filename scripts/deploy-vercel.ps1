@@ -30,6 +30,12 @@ Get-Content ".env.local" | ForEach-Object {
     $value = $line.Substring($eq + 1).Trim()
     if (-not $name -or -not $value) { return }
 
+    # Local auth URL must not overwrite production OAuth redirects.
+    if ($name -eq "AUTH_URL" -and $value -match "localhost") {
+        $value = "https://velora-labs-gamma.vercel.app"
+        Write-Host "  ~ $name (mapped to production URL)"
+    }
+
     foreach ($target in @("production", "preview", "development")) {
         npx vercel env rm $name $target --yes 2>$null | Out-Null
         $value | npx vercel env add $name $target 2>$null | Out-Null

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { signIn } from "next-auth/react";
+import { signInWithGoogle } from "@/lib/auth-actions";
 
 interface GoogleAuthButtonProps {
   label?: string;
@@ -15,15 +15,13 @@ export function GoogleAuthButton({
   className,
 }: GoogleAuthButtonProps) {
   return (
-    <Button
-      size="lg"
-      variant="secondary"
-      className={className}
-      onClick={() => signIn("google", { callbackUrl })}
-    >
-      <GoogleIcon />
-      {label}
-    </Button>
+    <form action={signInWithGoogle} className={className}>
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      <Button type="submit" size="lg" variant="secondary" className="w-full">
+        <GoogleIcon />
+        {label}
+      </Button>
+    </form>
   );
 }
 
