@@ -3,7 +3,12 @@ import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { signInSchema } from "@/lib/auth-validation";
 import { isEnrolledLearner } from "@/lib/enrollment";
-import { ensureKnownUser, recordKnownUser, type AuthProvider } from "@/lib/known-users";
+import {
+  ensureKnownUser,
+  ensureKnownUsersLoaded,
+  recordKnownUser,
+  type AuthProvider,
+} from "@/lib/known-users";
 import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -96,11 +101,11 @@ export const authOptions: NextAuthConfig = {
     signIn: "/login",
   },
   events: {
-    signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }) {
       const identity = resolveSignInEmail(user, undefined, profile as { email?: string });
       if (!identity) return;
 
-      recordKnownUser(
+      await recordKnownUser(
         identity.email,
         identity.name,
         resolveAuthProvider(account?.provider)
@@ -117,7 +122,7 @@ export const authOptions: NextAuthConfig = {
       if (isAuthSignIn) {
         const identity = resolveSignInEmail(user, token, profile as { email?: string });
         if (identity) {
-          recordKnownUser(
+          await recordKnownUser(
             identity.email,
             identity.name,
             resolveAuthProvider(account?.provider)
@@ -144,12 +149,13 @@ export const authOptions: NextAuthConfig = {
     },
     async session({ session, token }) {
       await ensureRolesLoaded();
+      await ensureKnownUsersLoaded();
 
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }
       if (session.user?.email) {
-        ensureKnownUser(
+        await ensureKnownUser(
           session.user.email,
           session.user.name,
           token.authProvider as AuthProvider | undefined

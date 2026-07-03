@@ -1,16 +1,17 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  isKnownUsersPersistenceConfigured,
+  loadKnownUsersFromPersistentStore,
+  mergeKnownUsersFiles,
+  saveKnownUsersToPersistentStore,
+  type AuthProvider,
+  type KnownUserRecord,
+  type KnownUsersFile,
+} from "@/lib/known-users-sheets";
 import { getAllManualUsers, getManualUserByEmail } from "@/lib/manual-users";
-import { hasCustomRoleAssignment } from "@/lib/roles";
+import { ensureRolesLoaded, hasCustomRoleAssignment } from "@/lib/roles";
 
-export type AuthProvider = "google" | "credentials";
-
-export interface KnownUserRecord {
-  email: string;
-  name: string | null;
-  provider: AuthProvider;
-  firstSeenAt: string;
-  lastSeenAt: string;
-}
+export type { AuthProvider, KnownUserRecord };
 
 export interface UnassignedUser {
   email: string;
@@ -20,16 +21,65 @@ export interface UnassignedUser {
   lastSeenAt: string;
 }
 
-type KnownUsersFile = Record<string, KnownUserRecord>;
-
 const KNOWN_USERS_FILE = "known-users.json";
+const CACHE_TTL_MS = 15_000;
 
-function readKnownUsers(): KnownUsersFile {
+let cachedKnownUsers: KnownUsersFile | null = null;
+let cacheLoadedAt = 0;
+let loadPromise: Promise<void> | null = null;
+
+function readLocalKnownUsersFile(): KnownUsersFile {
   return readJsonFile<KnownUsersFile>(KNOWN_USERS_FILE, "{}");
 }
 
-function writeKnownUsers(data: KnownUsersFile): void {
+function writeLocalKnownUsersFile(data: KnownUsersFile): void {
   writeJsonFile(KNOWN_USERS_FILE, data, "{}");
+}
+
+function getKnownUsersSnapshot(): KnownUsersFile {
+  return cachedKnownUsers ?? readLocalKnownUsersFile();
+}
+
+export function invalidateKnownUsersCache(): void {
+  cachedKnownUsers = null;
+  cacheLoadedAt = 0;
+  loadPromise = null;
+}
+
+export async function ensureKnownUsersLoaded(force = false): Promise<void> {
+  if (!force && cachedKnownUsers && Date.now() - cacheLoadedAt < CACHE_TTL_MS) {
+    return;
+  }
+
+  if (loadPromise && !force) {
+    await loadPromise;
+    return;
+  }
+
+  loadPromise = (async () => {
+    const local = readLocalKnownUsersFile();
+
+    if (isKnownUsersPersistenceConfigured()) {
+      const fromSheets = await loadKnownUsersFromPersistentStore();
+      if (fromSheets) {
+        cachedKnownUsers = mergeKnownUsersFiles(fromSheets, local);
+        cacheLoadedAt = Date.now();
+        return;
+      }
+      console.warn(
+        "Google Sheets known-user load failed — falling back to local file (Google sign-ins may not appear for role assignment on Vercel)"
+      );
+    }
+
+    cachedKnownUsers = local;
+    cacheLoadedAt = Date.now();
+  })();
+
+  try {
+    await loadPromise;
+  } finally {
+    loadPromise = null;
+  }
 }
 
 function inferProvider(email: string, explicit?: AuthProvider): AuthProvider {
@@ -37,14 +87,28 @@ function inferProvider(email: string, explicit?: AuthProvider): AuthProvider {
   return getManualUserByEmail(email) ? "credentials" : "google";
 }
 
-export function recordKnownUser(
+async function persistKnownUsersSnapshot(users: KnownUsersFile): Promise<void> {
+  writeLocalKnownUsersFile(users);
+
+  if (isKnownUsersPersistenceConfigured()) {
+    const saved = await saveKnownUsersToPersistentStore(users);
+    if (!saved) {
+      throw new Error("Failed to persist known users to Google Sheets");
+    }
+  }
+}
+
+export async function recordKnownUser(
   email: string,
   name: string | null | undefined,
   provider?: AuthProvider
-): KnownUserRecord {
+): Promise<KnownUserRecord> {
   const normalized = email.toLowerCase().trim();
   const now = new Date().toISOString();
-  const data = readKnownUsers();
+
+  await ensureKnownUsersLoaded(true);
+
+  const data = { ...getKnownUsersSnapshot() };
   const existing = data[normalized];
   const resolvedProvider = provider ?? existing?.provider ?? inferProvider(normalized);
 
@@ -57,20 +121,25 @@ export function recordKnownUser(
   };
 
   data[normalized] = record;
-  writeKnownUsers(data);
+  await persistKnownUsersSnapshot(data);
+
+  cachedKnownUsers = data;
+  cacheLoadedAt = Date.now();
   return record;
 }
 
 /** Adds the user if missing — used to backfill OAuth users on active sessions. */
-export function ensureKnownUser(
+export async function ensureKnownUser(
   email: string,
   name: string | null | undefined,
   provider?: AuthProvider
-): KnownUserRecord | null {
+): Promise<KnownUserRecord | null> {
   const normalized = email.toLowerCase().trim();
   if (!normalized) return null;
 
-  const data = readKnownUsers();
+  await ensureKnownUsersLoaded();
+
+  const data = getKnownUsersSnapshot();
   if (normalized in data) {
     return data[normalized];
   }
@@ -78,12 +147,15 @@ export function ensureKnownUser(
   return recordKnownUser(normalized, name, provider);
 }
 
-export function getUsersWithoutRoleAssignment(): UnassignedUser[] {
-  const data = readKnownUsers();
+export async function getUsersWithoutRoleAssignment(): Promise<UnassignedUser[]> {
+  await ensureKnownUsersLoaded();
+  await ensureRolesLoaded();
+
+  const data = { ...getKnownUsersSnapshot() };
 
   try {
     for (const manualUser of getAllManualUsers()) {
-    const normalized = manualUser.email.toLowerCase();
+      const normalized = manualUser.email.toLowerCase();
       if (!(normalized in data)) {
         data[normalized] = {
           email: normalized,

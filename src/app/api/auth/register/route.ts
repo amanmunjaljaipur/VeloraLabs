@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const user = await createManualUser({ firstName, lastName, email, password });
-      recordKnownUser(user.email, user.name, "credentials");
+      await recordKnownUser(user.email, user.name, "credentials");
       return NextResponse.json({
         success: true,
         user: { id: user.id, email: user.email, name: user.name },

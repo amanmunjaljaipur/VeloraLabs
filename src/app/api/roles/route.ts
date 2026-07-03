@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getUsersWithoutRoleAssignment } from "@/lib/known-users";
+import { ensureKnownUsersLoaded, getUsersWithoutRoleAssignment } from "@/lib/known-users";
 import {
   ensureRolesLoaded,
   getAllUserRoles,
@@ -49,6 +49,7 @@ export async function GET() {
   }
 
   await ensureRolesLoaded(true);
+  await ensureKnownUsersLoaded(true);
 
   const assignments = getAllUserRoles().map(({ email, role }) => ({
     email,
@@ -58,11 +59,11 @@ export async function GET() {
 
   const payload: {
     assignments: typeof assignments;
-    unassigned?: ReturnType<typeof getUsersWithoutRoleAssignment>;
+    unassigned?: Awaited<ReturnType<typeof getUsersWithoutRoleAssignment>>;
   } = { assignments };
 
   if (session.user.role === "super_admin") {
-    payload.unassigned = getUsersWithoutRoleAssignment();
+    payload.unassigned = await getUsersWithoutRoleAssignment();
   }
 
   return NextResponse.json(payload);

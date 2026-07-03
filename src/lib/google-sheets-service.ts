@@ -12,6 +12,7 @@ const TAB_SESSION_DETAILS = "Free Session Details";
 const TAB_CONTACT = "Contact Inquiries";
 const TAB_NEWSLETTER = "Newsletter Signups";
 export const TAB_USER_ROLES = "User Roles";
+export const TAB_KNOWN_USERS = "Known Users";
 
 const HEADERS: Record<string, string[]> = {
   [TAB_BOOKINGS]: [
@@ -32,6 +33,7 @@ const HEADERS: Record<string, string[]> = {
   [TAB_CONTACT]: ["Timestamp", "Name", "Email", "Message"],
   [TAB_NEWSLETTER]: ["Timestamp", "Email"],
   [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
+  [TAB_KNOWN_USERS]: ["Email", "Name", "Provider", "First Seen At", "Last Seen At"],
 };
 
 interface ServiceAccount {
@@ -44,29 +46,52 @@ interface SheetsConfig {
   spreadsheetUrl?: string;
 }
 
+function normalizeServiceAccount(parsed: ServiceAccount): ServiceAccount | null {
+  if (!parsed.client_email || !parsed.private_key) return null;
+  return {
+    client_email: parsed.client_email,
+    private_key: parsed.private_key.includes("\\n")
+      ? parsed.private_key.replace(/\\n/g, "\n")
+      : parsed.private_key,
+  };
+}
+
+function parseServiceAccountJson(raw: string): ServiceAccount | null {
+  const trimmed = raw.trim();
+  for (const candidate of [trimmed, trimmed.replace(/\r\n/g, "\n")]) {
+    try {
+      const parsed = normalizeServiceAccount(JSON.parse(candidate) as ServiceAccount);
+      if (parsed) return parsed;
+    } catch {
+      // try next parse strategy
+    }
+  }
+  return null;
+}
+
 function parseServiceAccount(): ServiceAccount | null {
-  const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE;
-  if (keyFile) {
-    const resolved = path.isAbsolute(keyFile) ? keyFile : path.join(process.cwd(), keyFile);
-    if (fs.existsSync(resolved)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(resolved, "utf8")) as ServiceAccount;
-        if (parsed.client_email && parsed.private_key) return parsed;
-      } catch {
-        return null;
+  const onVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+
+  if (!onVercel) {
+    const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE;
+    if (keyFile) {
+      const resolved = path.isAbsolute(keyFile) ? keyFile : path.join(process.cwd(), keyFile);
+      if (fs.existsSync(resolved)) {
+        try {
+          const parsed = normalizeServiceAccount(
+            JSON.parse(fs.readFileSync(resolved, "utf8")) as ServiceAccount
+          );
+          if (parsed) return parsed;
+        } catch {
+          return null;
+        }
       }
     }
   }
 
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as ServiceAccount;
-    if (!parsed.client_email || !parsed.private_key) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
+  return parseServiceAccountJson(raw);
 }
 
 function base64url(value: string | Buffer): string {
@@ -394,6 +419,15 @@ async function ensureUserRolesTab(token: string, spreadsheetId: string): Promise
   await ensureSheetTab(token, spreadsheetId, TAB_USER_ROLES, HEADERS[TAB_USER_ROLES]);
 }
 
+async function ensureKnownUsersTab(token: string, spreadsheetId: string): Promise<void> {
+  await ensureSheetTab(token, spreadsheetId, TAB_KNOWN_USERS, HEADERS[TAB_KNOWN_USERS]);
+}
+
+async function ensureAdminTabs(token: string, spreadsheetId: string): Promise<void> {
+  await ensureUserRolesTab(token, spreadsheetId);
+  await ensureKnownUsersTab(token, spreadsheetId);
+}
+
 async function withSpreadsheetAccess(): Promise<{
   token: string;
   spreadsheetId: string;
@@ -402,8 +436,106 @@ async function withSpreadsheetAccess(): Promise<{
   if (!account) return null;
   const token = await getAccessToken(account);
   const spreadsheetId = await ensureSpreadsheet(token);
-  await ensureUserRolesTab(token, spreadsheetId);
+  await ensureAdminTabs(token, spreadsheetId);
   return { token, spreadsheetId };
+}
+
+export interface KnownUserSheetRow {
+  email: string;
+  name?: string;
+  provider: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export async function readKnownUserRowsFromSheet(): Promise<KnownUserSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  const range = `'${TAB_KNOWN_USERS}'!A2:E`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read known users: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: KnownUserSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const email = row[0]?.toLowerCase().trim();
+    const provider = row[2]?.trim();
+    const firstSeenAt = row[3]?.trim();
+    const lastSeenAt = row[4]?.trim();
+    if (!email || !provider || !firstSeenAt || !lastSeenAt) continue;
+
+    rows.push({
+      email,
+      name: row[1]?.trim() || undefined,
+      provider,
+      firstSeenAt,
+      lastSeenAt,
+    });
+  }
+
+  return rows;
+}
+
+export async function persistKnownUsersToSheet(
+  users: Record<
+    string,
+    {
+      email: string;
+      name: string | null;
+      provider: string;
+      firstSeenAt: string;
+      lastSeenAt: string;
+    }
+  >
+): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  const entries = Object.values(users).sort((a, b) => a.email.localeCompare(b.email));
+
+  if (entries.length === 0) {
+    const clearRes = await googleFetch(
+      access.token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(`'${TAB_KNOWN_USERS}'!A2:E`)}:clear`,
+      { method: "POST", body: JSON.stringify({}) }
+    );
+    if (!clearRes.ok) {
+      throw new Error(`Failed to clear known users: ${await clearRes.text()}`);
+    }
+    return;
+  }
+
+  const rows = entries.map((user) => [
+    user.email,
+    user.name ?? "",
+    user.provider,
+    user.firstSeenAt,
+    user.lastSeenAt,
+  ]);
+
+  const range = `'${TAB_KNOWN_USERS}'!A2:E${rows.length + 1}`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ values: rows }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to write known users: ${await res.text()}`);
+  }
 }
 
 export interface UserRoleSheetRow {
