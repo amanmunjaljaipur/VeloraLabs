@@ -93,7 +93,9 @@ async function persistKnownUsersSnapshot(users: KnownUsersFile): Promise<void> {
   if (isKnownUsersPersistenceConfigured()) {
     const saved = await saveKnownUsersToPersistentStore(users);
     if (!saved) {
-      throw new Error("Failed to persist known users to Google Sheets");
+      console.warn(
+        "Failed to persist known users to Google Sheets — continuing with local cache"
+      );
     }
   }
 }

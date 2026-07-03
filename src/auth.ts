@@ -49,6 +49,7 @@ function resolveSignInEmail(
 
 export const authOptions: NextAuthConfig = {
   secret: authSecret,
+  basePath: "/api/auth",
   trustHost: true,
   session: {
     strategy: "jwt",
@@ -105,11 +106,15 @@ export const authOptions: NextAuthConfig = {
       const identity = resolveSignInEmail(user, undefined, profile as { email?: string });
       if (!identity) return;
 
-      await recordKnownUser(
-        identity.email,
-        identity.name,
-        resolveAuthProvider(account?.provider)
-      );
+      try {
+        await recordKnownUser(
+          identity.email,
+          identity.name,
+          resolveAuthProvider(account?.provider)
+        );
+      } catch (error) {
+        console.error("Failed to record known user after sign-in:", error);
+      }
     },
   },
   callbacks: {
@@ -122,11 +127,15 @@ export const authOptions: NextAuthConfig = {
       if (isAuthSignIn) {
         const identity = resolveSignInEmail(user, token, profile as { email?: string });
         if (identity) {
-          await recordKnownUser(
-            identity.email,
-            identity.name,
-            resolveAuthProvider(account?.provider)
-          );
+          try {
+            await recordKnownUser(
+              identity.email,
+              identity.name,
+              resolveAuthProvider(account?.provider)
+            );
+          } catch (error) {
+            console.error("Failed to record known user in JWT callback:", error);
+          }
           token.authProvider = resolveAuthProvider(account?.provider);
         }
       }
