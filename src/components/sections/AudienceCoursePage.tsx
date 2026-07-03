@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CoursePrice } from "@/components/ui/CoursePrice";
 import { CourseCurriculum } from "@/components/sections/CourseCurriculum";
 import type { AudienceSlug, CourseContent } from "@/lib/content";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
@@ -125,7 +126,9 @@ export function AudienceCoursePage({
           <div className="mx-auto max-w-lg px-4 md:px-8 text-center">
             <Card className="border-teal ring-2 ring-teal/10">
               <p className="text-sm font-medium text-teal uppercase tracking-wider">Full Program</p>
-              <p className="mt-4 text-4xl font-semibold text-foreground">{course.price}</p>
+              <div className="mt-4 flex justify-center">
+                <CoursePrice price={course.price} size="lg" />
+              </div>
               <p className="mt-2 text-text-secondary">{course.duration}</p>
               <div className="mt-8 flex flex-col gap-3">
                 <Link href={`/free-session?audience=${slug}`}>

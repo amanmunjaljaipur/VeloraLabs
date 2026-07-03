@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
+import { CoursePrice } from "@/components/ui/CoursePrice";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAllCourseTracks } from "@/lib/content";
@@ -103,9 +104,7 @@ export default async function CoursesPage() {
                     </p>
                     <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                       <div>
-                        {!isEnrolled && (
-                          <p className="font-semibold text-foreground">{course.price}</p>
-                        )}
+                        {!isEnrolled && <CoursePrice price={course.price} size="sm" />}
                         <p className="text-xs text-text-secondary">
                           {course.duration} · {dayCount} days
                         </p>

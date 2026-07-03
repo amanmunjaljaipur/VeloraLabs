@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CoursePrice } from "@/components/ui/CoursePrice";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getCourses, getTestimonials } from "@/lib/content";
 import { Check } from "lucide-react";
@@ -58,7 +59,7 @@ export default async function PostSessionPage() {
               </ul>
               {!isEnrolled && (
                 <div className="mt-8">
-                  <p className="text-2xl font-semibold text-foreground">{courses.price}</p>
+                  <CoursePrice price={courses.price} size="md" />
                   <p className="text-sm text-text-secondary mt-1">{courses.duration}</p>
                   <Link href="/courses#enroll" className="block mt-6">
                     <Button className="w-full" size="lg">Enroll in Full Program</Button>
