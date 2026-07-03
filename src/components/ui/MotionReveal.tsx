@@ -1,9 +1,8 @@
 "use client";
 
+import { DURATION, EASE_OUT, REVEAL } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
-
-const easeOut = [0.22, 1, 0.36, 1] as const;
 
 interface MotionRevealProps extends HTMLMotionProps<"div"> {
   delay?: number;
@@ -14,17 +13,17 @@ export function MotionReveal({
   children,
   className,
   delay = 0,
-  y = 16,
+  y = REVEAL.y,
   ...props
 }: MotionRevealProps) {
   const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, y }}
+      initial={reduceMotion ? false : { opacity: REVEAL.opacity, y }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-48px" }}
-      transition={{ duration: 0.45, delay, ease: easeOut }}
+      transition={{ duration: DURATION.reveal, delay, ease: EASE_OUT }}
       className={className}
       {...props}
     >
@@ -36,7 +35,7 @@ export function MotionReveal({
 export function MotionStagger({
   children,
   className,
-  stagger = 0.08,
+  stagger = DURATION.stagger,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -75,33 +74,15 @@ export function MotionStaggerItem({
         reduceMotion
           ? undefined
           : {
-              hidden: { opacity: 0, y: 18 },
+              hidden: { opacity: 0, y: REVEAL.y },
               visible: {
                 opacity: 1,
                 y: 0,
-                transition: { duration: 0.4, ease: easeOut },
+                transition: { duration: DURATION.reveal, ease: EASE_OUT },
               },
             }
       }
       className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export function HoverLift({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.2, ease: easeOut }}
-      className={cn("transition-shadow duration-300", className)}
     >
       {children}
     </motion.div>

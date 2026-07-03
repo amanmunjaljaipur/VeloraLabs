@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { isEnrolledLearner } from "@/lib/enrollment";
@@ -133,11 +134,10 @@ export default async function CoursesPage() {
               className="mb-8"
             />
             <div className="text-center">
-              <Link href="/free-session">
-                <Button size="lg" variant="cta" className="shadow-glow-amber">
-                  Book Free 2-Hour Session
-                </Button>
-              </Link>
+              <ButtonLink href="/free-session" size="lg" variant="cta" className="shadow-glow-amber">
+                Book Free 2-Hour Session
+              </ButtonLink>
+              <p className="mt-2 text-xs text-text-muted">No commitment · We&apos;ll help you choose</p>
             </div>
           </div>
         </section>

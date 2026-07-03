@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 import { NEWSLETTER_ILLUSTRATION } from "@/lib/home-content";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
+import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -69,13 +69,11 @@ export function Newsletter({ title, description, cta }: NewsletterProps) {
           <p className="section-subtitle mx-auto">{description}</p>
 
           {success ? (
-            <div className="mt-8 rounded-2xl border border-accent-teal/20 bg-accent-teal/5 px-6 py-8">
-              <CheckCircle2 className="mx-auto h-10 w-10 text-accent-teal" />
-              <p className="mt-3 font-medium text-foreground">You&apos;re subscribed!</p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Welcome to the Verlin community — check your inbox soon.
-              </p>
-            </div>
+            <SuccessBanner
+              className="mt-8"
+              title="You're subscribed!"
+              description="Welcome to the Verlin community — check your inbox soon."
+            />
           ) : (
             <form
               onSubmit={handleSubmit}

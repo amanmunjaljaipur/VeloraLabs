@@ -1,48 +1,93 @@
 "use client";
 
+import { DURATION, EASE_OUT, HOVER } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
+export type ButtonVariant = "primary" | "secondary" | "cta";
+export type ButtonSize = "sm" | "md" | "lg";
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "cta";
+  variant?: ButtonVariant;
   loading?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: ButtonSize;
+}
+
+export function buttonClassNames(
+  variant: ButtonVariant = "primary",
+  size: ButtonSize = "md",
+  className?: string
+) {
+  const sizes = {
+    sm: "h-9 px-4 text-sm",
+    md: "h-12 px-6 text-base",
+    lg: "h-14 px-8 text-base font-semibold md:text-lg",
+  };
+
+  const variants = {
+    primary:
+      "bg-navy text-white shadow-sm hover:bg-navy-muted hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2",
+    cta:
+      "bg-cta-amber text-navy font-bold shadow-sm hover:bg-cta-amber-hover hover:shadow-glow-amber focus-visible:ring-2 focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2",
+    secondary:
+      "border border-border bg-card/60 text-foreground shadow-xs backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal hover:shadow-sm focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2",
+  };
+
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-xl font-medium",
+    sizes[size],
+    variants[variant],
+    className
+  );
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", loading, size = "md", children, disabled, ...props }, ref) => {
-    const sizes = {
-      sm: "h-9 px-4 text-sm",
-      md: "h-12 px-6 text-base",
-      lg: "h-14 px-8 text-lg",
-    };
-
-    const variants = {
-      primary:
-        "bg-navy text-white hover:bg-navy-muted hover:shadow-md active:scale-[0.98] shadow-sm focus-visible:ring-2 focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2",
-      cta:
-        "bg-cta-amber text-navy font-semibold hover:bg-cta-amber-hover hover:shadow-glow-amber active:scale-[0.98] shadow-sm focus-visible:ring-2 focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2",
-      secondary:
-        "border border-border bg-card/50 text-foreground backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal hover:shadow-sm shadow-xs focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2",
-    };
+  ({ className, variant = "primary", loading, size = "md", children, disabled, type = "button", ...props }, ref) => {
+    const reduceMotion = useReducedMotion();
+    const isDisabled = disabled || loading;
 
     return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
-          sizes[size],
-          variants[variant],
-          className
-        )}
-        {...props}
+      <motion.span
+        className="inline-flex"
+        whileHover={
+          reduceMotion || isDisabled
+            ? undefined
+            : {
+                scale: HOVER.buttonScale[variant],
+                y: -1,
+                transition: { duration: DURATION.hover, ease: EASE_OUT },
+              }
+        }
+        whileTap={
+          reduceMotion || isDisabled
+            ? undefined
+            : { scale: HOVER.tapScale, transition: { duration: DURATION.press, ease: EASE_OUT } }
+        }
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        <button
+          ref={ref}
+          type={type}
+          disabled={isDisabled}
+          className={cn(
+            buttonClassNames(variant, size, className),
+            isDisabled && "cursor-not-allowed opacity-50"
+          )}
+          {...props}
+        >
+        {loading && (
+          <motion.span
+            animate={reduceMotion ? undefined : { rotate: 360 }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+            className="inline-flex"
+          >
+            <Loader2 className="h-4 w-4" />
+          </motion.span>
+        )}
         {children}
-      </button>
+        </button>
+      </motion.span>
     );
   }
 );

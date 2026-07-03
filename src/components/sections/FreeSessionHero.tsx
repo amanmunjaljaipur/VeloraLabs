@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { FREE_SESSION_ILLUSTRATION } from "@/lib/home-content";
+import { EASE_OUT } from "@/lib/motion";
 import { CalendarCheck, Clock, ShieldCheck, Video } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 
 interface FreeSessionHeroProps {
   headline: string;
@@ -20,6 +20,8 @@ const trustItems = [
 ];
 
 export function FreeSessionHero({ headline, description }: FreeSessionHeroProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section className="relative overflow-hidden border-b border-border/80 bg-hero-mesh">
       <div className="pattern-grid absolute inset-0 opacity-50" aria-hidden="true" />
@@ -30,9 +32,9 @@ export function FreeSessionHero({ headline, description }: FreeSessionHeroProps)
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <motion.div
             className="max-w-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
           >
             <p className="section-eyebrow mb-4">Free introductory session</p>
             <h1 className="text-display font-semibold">{headline}</h1>
@@ -52,11 +54,10 @@ export function FreeSessionHero({ headline, description }: FreeSessionHeroProps)
               ))}
             </div>
             <div className="mt-10">
-              <Link href="#book">
-                <Button size="lg" variant="cta" className="shadow-glow-amber">
-                  Book your session now
-                </Button>
-              </Link>
+              <ButtonLink href="#book" size="lg" variant="cta" className="shadow-glow-amber">
+                Book your session now
+              </ButtonLink>
+              <p className="mt-2 text-xs text-text-muted">100% free · No credit card</p>
             </div>
           </motion.div>
 

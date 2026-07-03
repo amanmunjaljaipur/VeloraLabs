@@ -6,6 +6,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterTabs } from "@/components/ui/FilterTabs";
 import { Input } from "@/components/ui/Input";
 import type { LibraryItem } from "@/lib/content";
+import { DURATION, EASE_OUT } from "@/lib/motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -95,19 +97,36 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
             {filtered.length} resource{filtered.length === 1 ? "" : "s"} found
           </p>
 
-          {filtered.length === 0 ? (
-            <EmptyState
-              title="No content matches your filters"
-              description="Try adjusting your search or filter criteria."
-              cta={{ label: "Clear filters", href: "/library" }}
-            />
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((item) => (
-                <ContentCard key={item.id} {...item} />
-              ))}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {filtered.length === 0 ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: DURATION.hover, ease: EASE_OUT }}
+              >
+                <EmptyState
+                  title="No content matches your filters"
+                  description="Try adjusting your search or filter criteria."
+                  cta={{ label: "Clear filters", href: "/library" }}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`grid-${filtered.map((i) => i.id).join("-")}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: DURATION.hover, ease: EASE_OUT }}
+                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              >
+                {filtered.map((item) => (
+                  <ContentCard key={item.id} {...item} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {filtered.length === 0 && (
             <button
