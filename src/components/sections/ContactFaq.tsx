@@ -1,6 +1,7 @@
 import { Accordion } from "@/components/ui/Accordion";
 import { Card } from "@/components/ui/Card";
 import { Clock, MapPin, Users } from "lucide-react";
+import Link from "next/link";
 
 const faqs = [
   {
@@ -82,6 +83,13 @@ export function ContactExpectations() {
 
           <Card className="p-6 md:p-8">
             <h3 className="text-lg font-semibold text-foreground">Contact FAQ</h3>
+            <p className="mt-2 text-sm text-text-secondary">
+              More answers about programs, sessions, and learning — on our{" "}
+              <Link href="/faq" className="font-medium text-accent-teal hover:underline">
+                full FAQ page
+              </Link>
+              .
+            </p>
             <div className="mt-6">
               <Accordion items={faqs} />
             </div>

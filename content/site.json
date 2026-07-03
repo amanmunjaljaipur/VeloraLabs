@@ -6,6 +6,7 @@
     { "label": "Programs", "href": "/courses" },
     { "label": "Library", "href": "/library" },
     { "label": "Free Session", "href": "/free-session" },
+    { "label": "FAQ", "href": "/faq" },
     { "label": "Contact", "href": "/contact" },
     { "label": "YouTube", "href": "https://www.youtube.com/@VerlinLabs" }
   ],
@@ -15,6 +16,7 @@
       { "label": "Free Session", "href": "/free-session" },
       { "label": "Programs", "href": "/courses" },
       { "label": "Resources", "href": "/resources" },
+      { "label": "FAQ", "href": "/faq" },
       { "label": "Contact", "href": "/contact" }
     ],
     "social": [

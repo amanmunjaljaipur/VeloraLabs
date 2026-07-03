@@ -38,6 +38,11 @@ export function SessionFaq({ categories }: SessionFaqProps) {
                 choose the right session track.
               </p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row lg:flex-col">
+                <Link href="/faq">
+                  <Button size="sm" variant="secondary" className="w-full sm:w-auto lg:w-full">
+                    Full FAQ
+                  </Button>
+                </Link>
                 <Link href="/contact">
                   <Button size="sm" className="w-full sm:w-auto lg:w-full">
                     Contact support

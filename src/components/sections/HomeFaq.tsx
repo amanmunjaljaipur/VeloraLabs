@@ -1,5 +1,7 @@
 import { Accordion } from "@/components/ui/Accordion";
+import { Button } from "@/components/ui/Button";
 import { HOME_FAQS } from "@/lib/home-content";
+import Link from "next/link";
 
 export function HomeFaq() {
   return (
@@ -13,6 +15,11 @@ export function HomeFaq() {
         </p>
         <div className="mt-10">
           <Accordion items={HOME_FAQS} defaultOpenIndex={0} />
+        </div>
+        <div className="mt-8 text-center">
+          <Link href="/faq">
+            <Button variant="secondary">View all FAQs</Button>
+          </Link>
         </div>
       </div>
     </section>
