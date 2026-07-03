@@ -1,10 +1,5 @@
 [mcp_servers.velora-newsletter]
-command = "npx"
-args = ["tsx", "mcp/newsletter-email/src/server.ts"]
+url = "https://velora-labs-gamma.vercel.app/api/mcp/newsletter"
+headers = { Authorization = "Bearer ${NEWSLETTER_MCP_API_KEY}" }
 enabled = true
-startup_timeout_sec = 45
-env = {
-  VELORA_API_URL = "https://velora-labs-gamma.vercel.app",
-  NEWSLETTER_MCP_API_KEY = "${NEWSLETTER_MCP_API_KEY}",
-  NEWS_PUBLISH_API_KEY = "${NEWS_PUBLISH_API_KEY}"
-}
+tool_timeout_sec = 120

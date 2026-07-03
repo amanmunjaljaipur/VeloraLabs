@@ -1,4 +1,7 @@
 {
   "serverIdentifier": "velora-newsletter",
-  "serverName": "Velora Newsletter Email"
+  "serverName": "Velora Newsletter Email",
+  "url": "https://velora-labs-gamma.vercel.app/api/mcp/newsletter",
+  "transport": "streamable-http",
+  "authHeader": "Authorization: Bearer <NEWSLETTER_MCP_API_KEY>"
 }
