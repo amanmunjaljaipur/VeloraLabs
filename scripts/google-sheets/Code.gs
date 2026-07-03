@@ -20,9 +20,9 @@
  *    — OR run `refreshSessionDetailsTab` once in Apps Script
  */
 
-const TAB_BOOKINGS = "Free Session Bookings";
+const TAB_BOOKINGS = "Free Session";
 const TAB_SESSION_DETAILS = "Free Session Details";
-const TAB_CONTACT = "Contact Inquiries";
+const TAB_CONTACT = "Contact Us";
 const TAB_NEWSLETTER = "Newsletter Subscribers";
 
 const HEADERS = {};
@@ -41,7 +41,7 @@ HEADERS[TAB_BOOKINGS] = [
   "Timezone",
   "Source",
 ];
-HEADERS[TAB_CONTACT] = ["Timestamp", "Name", "Email", "Message"];
+HEADERS[TAB_CONTACT] = ["Timestamp", "Name", "Email", "Message", "Source"];
 HEADERS[TAB_NEWSLETTER] = ["Timestamp", "Email", "Source"];
 
 /** Run once — creates spreadsheet with 4 tabs and headers */
@@ -142,7 +142,13 @@ function doPost(e) {
 
       case "contact":
         sheet = getOrCreateTab(ss, TAB_CONTACT);
-        row = [timestamp, body.name || "", body.email || "", body.message || ""];
+        row = [
+          timestamp,
+          body.name || "",
+          body.email || "",
+          body.message || "",
+          body.source || "Website",
+        ];
         sheet.appendRow(row);
         return jsonResponse({ success: true });
 

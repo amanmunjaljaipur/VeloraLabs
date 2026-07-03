@@ -25,20 +25,24 @@ export function enrichBookingPayload(data: {
   time: string;
   bookingId?: string;
   timezone?: string;
+  status?: string;
+  source?: string;
+  audienceLabel?: string;
 }) {
   return {
     type: "booking" as const,
     name: data.name,
     email: data.email,
     audience: data.audience,
-    audienceLabel: resolveAudienceLabel(data.audience),
+    audienceLabel: data.audienceLabel ?? resolveAudienceLabel(data.audience),
     sessionTitle: FREE_SESSION_TITLE,
     sessionDuration: FREE_SESSION_DURATION,
     date: data.date,
     time: data.time,
     timezone: data.timezone || "Asia/Kolkata",
-    status: "Confirmed",
-    source: "Website",
+    status: data.status ?? "Confirmed",
+    source: data.source ?? "Website",
     bookingId: data.bookingId || "",
   };
 }
+

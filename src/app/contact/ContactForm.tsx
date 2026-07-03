@@ -26,12 +26,17 @@ export function ContactForm() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormData) => {
-    await submitForm({
+    const result = await submitForm({
       type: "contact",
       name: data.name,
       email: data.email,
       message: data.message,
+      source: "Contact Page",
     });
+    if (!result.ok) {
+      toast("Something went wrong. Please try again.", "error");
+      return;
+    }
     toast("Message sent! We'll get back to you within 24 hours.", "success");
     reset();
   };

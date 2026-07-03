@@ -12,6 +12,9 @@ const bookingSchema = z.object({
   time: z.string().min(1),
   bookingId: z.string().optional(),
   timezone: z.string().optional(),
+  status: z.string().optional(),
+  source: z.string().optional(),
+  audienceLabel: z.string().optional(),
 });
 
 const contactSchema = z.object({
@@ -19,6 +22,7 @@ const contactSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   message: z.string().min(10),
+  source: z.string().optional(),
 });
 
 const newsletterSchema = z.object({

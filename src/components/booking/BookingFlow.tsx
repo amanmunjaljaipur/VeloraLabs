@@ -101,6 +101,8 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       time: selectedSlot.time,
       bookingId: result.bookingId || "",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      status: "Confirmed",
+      source: "Free Session Calendar",
     });
 
     if (!sheetResult.synced) {

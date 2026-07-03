@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useToast } from "@/components/ui/Toast";
+import { mapHomepageRoleToAudience } from "@/lib/audience-map";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
@@ -12,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export function HomeFreeSessionForm() {
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
@@ -24,10 +27,16 @@ export function HomeFreeSessionForm() {
     setSubmitting(true);
 
     const result = await submitForm({
-      type: "contact",
+      type: "booking",
       name,
       email,
-      message: `Free session interest from homepage. Role: ${role}. Preferred time: ${preferredTime}`,
+      audience: mapHomepageRoleToAudience(role),
+      audienceLabel: role,
+      date: "TBD",
+      time: preferredTime,
+      status: "Request",
+      source: "Homepage Free Session",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
 
     setSubmitting(false);
@@ -37,6 +46,8 @@ export function HomeFreeSessionForm() {
       setEmail("");
       setRole("");
       setPreferredTime("");
+    } else {
+      toast("Something went wrong. Please try again.", "error");
     }
   };
 

@@ -7,15 +7,15 @@ import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 const SHEETS_CONFIG_FILE = "sheets-config.json";
 const SPREADSHEET_TITLE = "Verlin Labs Submissions";
 
-const TAB_BOOKINGS = "Free Session Bookings";
+export const TAB_FREE_SESSION = "Free Session";
 const TAB_SESSION_DETAILS = "Free Session Details";
-const TAB_CONTACT = "Contact Inquiries";
+export const TAB_CONTACT = "Contact Us";
 export const TAB_NEWSLETTER = "Newsletter Subscribers";
 export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
 
 const HEADERS: Record<string, string[]> = {
-  [TAB_BOOKINGS]: [
+  [TAB_FREE_SESSION]: [
     "Timestamp",
     "Booking ID",
     "Status",
@@ -30,7 +30,7 @@ const HEADERS: Record<string, string[]> = {
     "Timezone",
     "Source",
   ],
-  [TAB_CONTACT]: ["Timestamp", "Name", "Email", "Message"],
+  [TAB_CONTACT]: ["Timestamp", "Name", "Email", "Message", "Source"],
   [TAB_NEWSLETTER]: ["Timestamp", "Email", "Source"],
   [TAB_USER_ROLES]: ["Email", "Name", "Role", "Updated At", "Updated By"],
   [TAB_KNOWN_USERS]: ["Email", "Name", "Provider", "First Seen At", "Last Seen At"],
@@ -354,7 +354,7 @@ export async function submitViaServiceAccount(
 
     switch (payload.type) {
       case "booking":
-        await appendRow(token, spreadsheetId, TAB_BOOKINGS, bookingRow(payload));
+        await appendRow(token, spreadsheetId, TAB_FREE_SESSION, bookingRow(payload));
         break;
       case "contact":
         await appendRow(token, spreadsheetId, TAB_CONTACT, [
@@ -362,6 +362,7 @@ export async function submitViaServiceAccount(
           payload.name || "",
           payload.email || "",
           payload.message || "",
+          payload.source || "Website",
         ]);
         break;
       case "newsletter":
