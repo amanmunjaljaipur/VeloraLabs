@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "cta";
   loading?: boolean;
   size?: "sm" | "md" | "lg";
 }
@@ -20,9 +20,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-deep-teal text-white hover:bg-teal active:scale-[0.98] shadow-sm hover:shadow-md",
+        "bg-navy text-white hover:bg-navy-muted active:scale-[0.98] shadow-sm hover:shadow-md hover:shadow-lg",
+      cta:
+        "bg-cta-amber text-navy font-semibold hover:bg-cta-amber-hover active:scale-[0.98] shadow-sm hover:shadow-glow-amber",
       secondary:
-        "border-2 border-border bg-transparent text-foreground hover:border-teal hover:text-teal",
+        "border border-border bg-card/50 text-foreground backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal shadow-xs",
     };
 
     return (
@@ -30,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200",
+          "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-300 ease-out",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
           sizes[size],
           variants[variant],

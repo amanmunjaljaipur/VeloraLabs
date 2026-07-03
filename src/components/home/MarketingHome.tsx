@@ -15,6 +15,7 @@ import {
   getFeaturedLibraryItems,
   getTestimonials,
 } from "@/lib/content";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import Link from "next/link";
 
 export function MarketingHome() {
@@ -29,13 +30,14 @@ export function MarketingHome() {
       <WhatWeCover />
       <StatsBar />
 
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">Who is this for?</h2>
-          <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-            Tailored learning paths for every stage of your journey — from school students to
-            engineers and product managers.
-          </p>
+      <section className="section-y">
+        <div className="container-verlin">
+          <SectionHeader
+            eyebrow="Learning paths"
+            title="Who is this for?"
+            subtitle="Tailored learning paths for every stage of your journey — from school students to engineers and product managers."
+            className="mb-14"
+          />
           <div className="grid gap-6 md:grid-cols-3">
             {audiences.map((a) => (
               <AudienceCard
@@ -51,8 +53,8 @@ export function MarketingHome() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 space-y-20">
+      <section className="section-y bg-muted/30">
+        <div className="container-verlin space-y-24">
           <LearningSplit
             title="Learn with mental models, not memorization"
             description="Verlin Labs teaches you frameworks that stick — visual maps for complex AI concepts, live explanation, and audience-tailored pacing so understanding compounds instead of fading."
@@ -84,15 +86,15 @@ export function MarketingHome() {
 
       <HowItWorks />
 
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-semibold">Featured content</h2>
-              <p className="mt-2 text-text-secondary">
-                Start exploring with our most popular resources.
-              </p>
-            </div>
+      <section className="section-y">
+        <div className="container-verlin">
+          <div className="mb-14 flex items-end justify-between gap-6">
+            <SectionHeader
+              eyebrow="Content library"
+              title="Featured content"
+              subtitle="Start exploring with our most popular resources."
+              align="left"
+            />
             <Link
               href="/library"
               className="hidden sm:block text-teal hover:text-accent-teal font-medium text-sm"
@@ -110,14 +112,14 @@ export function MarketingHome() {
 
       <HomeFaq />
 
-      <section className="py-16 md:py-24 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4">
-            What learners are saying
-          </h2>
-          <p className="text-center text-text-secondary mb-12 max-w-xl mx-auto">
-            Students, engineers, and product managers who started with clarity.
-          </p>
+      <section className="section-y overflow-hidden">
+        <div className="container-verlin">
+          <SectionHeader
+            eyebrow="Testimonials"
+            title="What learners are saying"
+            subtitle="Students, engineers, and product managers who started with clarity."
+            className="mb-14"
+          />
           <TestimonialCarousel testimonials={testimonials} />
         </div>
       </section>

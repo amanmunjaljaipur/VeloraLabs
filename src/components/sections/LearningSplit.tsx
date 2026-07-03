@@ -33,15 +33,16 @@ export function LearningSplit({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.45 }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border shadow-lg">
+      <div className="group relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/80 shadow-lg transition-shadow duration-300 hover:shadow-xl">
         <Image
           src={image}
           alt={imageAlt}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-tr from-deep-teal/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-navy/35 via-transparent to-accent-teal/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/15 to-transparent" />
         {toolIcons && (
           <div className="absolute bottom-4 left-4 flex gap-2">
             {[Brain, Sparkles, Bot, Code2].map((Icon, i) => (
@@ -56,13 +57,15 @@ export function LearningSplit({
         )}
       </div>
       <div>
-        <h3 className="text-2xl md:text-3xl font-semibold text-foreground">{title}</h3>
-        <p className="mt-4 text-text-secondary leading-relaxed">{description}</p>
+        <h3 className="text-heading text-2xl md:text-3xl">{title}</h3>
+        <p className="mt-4 text-body">{description}</p>
         {items && (
-          <ul className="mt-6 space-y-3">
+          <ul className="mt-8 space-y-4">
             {items.map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-foreground">
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent-teal" />
+                <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-teal/15">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent-teal" />
+                </span>
                 {item}
               </li>
             ))}

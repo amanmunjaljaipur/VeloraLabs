@@ -1,5 +1,8 @@
+"use client";
+
 import { Card } from "@/components/ui/Card";
-import { Briefcase, Code, GraduationCap } from "lucide-react";
+import { Briefcase, Code, GraduationCap, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -35,47 +38,62 @@ export function AudienceCard({
   const inner = (
     <>
       {image ? (
-        <div className="relative -mx-6 -mt-6 md:-mx-8 md:-mt-8 mb-4 h-40 overflow-hidden rounded-t-2xl">
-          <Image src={image} alt="" fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="400px" />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
-          <div className="absolute bottom-3 left-4 flex h-10 w-10 items-center justify-center rounded-xl bg-card/90 backdrop-blur-sm text-teal shadow-sm">
+        <div className="relative -mx-6 -mt-6 md:-mx-8 md:-mt-8 mb-5 h-44 overflow-hidden rounded-t-2xl">
+          <Image
+            src={image}
+            alt=""
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="400px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-navy/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-card/90 text-accent-teal shadow-md backdrop-blur-sm">
             <Icon className="h-5 w-5" />
           </div>
         </div>
       ) : (
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal/10 text-teal mb-4">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent-teal/10 text-accent-teal">
           <Icon className="h-6 w-6" />
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-teal">
+        {title}
+      </h3>
       {description && (
-        <p className="mt-2 text-sm text-text-secondary leading-relaxed">{description}</p>
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">{description}</p>
       )}
       {!onClick && (
-        <p className="mt-4 text-sm font-medium text-teal opacity-0 transition-opacity group-hover:opacity-100">
-          See full track details →
+        <p className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent-teal opacity-0 transition-all duration-300 group-hover:opacity-100">
+          See full track details
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </p>
       )}
     </>
   );
 
+  const cardClass = cn(
+    "h-full overflow-hidden group",
+    selected && "border-accent-teal ring-2 ring-accent-teal/20"
+  );
+
   if (onClick) {
     return (
-      <Card
-        hover
-        className={cn("cursor-pointer h-full group overflow-hidden", selected && "border-teal ring-2 ring-teal/20")}
-        onClick={onClick}
-      >
-        {inner}
-      </Card>
+      <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.25 }}>
+        <Card hover className={cn(cardClass, "cursor-pointer")} onClick={onClick}>
+          {inner}
+        </Card>
+      </motion.div>
     );
   }
 
   return (
-    <Link href={href} className="block h-full group">
-      <Card hover className={cn("h-full overflow-hidden", selected && "border-teal ring-2 ring-teal/20")}>
-        {inner}
-      </Card>
-    </Link>
+    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.25 }}>
+      <Link href={href} className="block h-full group">
+        <Card hover className={cardClass}>
+          {inner}
+        </Card>
+      </Link>
+    </motion.div>
   );
 }
