@@ -15,6 +15,7 @@ export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
 export const TAB_NEWS_UPDATES = "News Updates";
 export const TAB_NEWSLETTER_EDITIONS = "Newsletter Editions";
+export const TAB_NEWSLETTER_DRAFT = "Newsletter Draft";
 
 const HEADERS: Record<string, string[]> = {
   [TAB_FREE_SESSION]: [
@@ -57,6 +58,17 @@ const HEADERS: Record<string, string[]> = {
     "Slug",
     "Markdown",
     "HTML",
+  ],
+  [TAB_NEWSLETTER_DRAFT]: [
+    "Draft ID",
+    "Updated At",
+    "Title",
+    "Intro",
+    "Status",
+    "Story Count",
+    "Stories JSON",
+    "HTML",
+    "Markdown",
   ],
 };
 
@@ -456,9 +468,14 @@ async function ensureKnownUsersTab(token: string, spreadsheetId: string): Promis
   await ensureSheetTab(token, spreadsheetId, TAB_KNOWN_USERS, HEADERS[TAB_KNOWN_USERS]);
 }
 
+async function ensureNewsletterDraftTab(token: string, spreadsheetId: string): Promise<void> {
+  await ensureSheetTab(token, spreadsheetId, TAB_NEWSLETTER_DRAFT, HEADERS[TAB_NEWSLETTER_DRAFT]);
+}
+
 async function ensureAdminTabs(token: string, spreadsheetId: string): Promise<void> {
   await ensureUserRolesTab(token, spreadsheetId);
   await ensureKnownUsersTab(token, spreadsheetId);
+  await ensureNewsletterDraftTab(token, spreadsheetId);
 }
 
 async function withSpreadsheetAccess(): Promise<{
@@ -852,6 +869,112 @@ export async function readNewsletterEditionsFromSheet(): Promise<NewsletterEditi
   }
 
   return rows;
+}
+
+export async function persistNewsletterDraftToSheet(
+  draft: {
+    id: string;
+    updatedAt: string;
+    title: string;
+    intro: string;
+    status: string;
+    stories: unknown[];
+    html: string;
+    markdown: string;
+  } | null
+): Promise<void> {
+  const access = await withSpreadsheetAccess();
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  if (!draft) {
+    const clearRes = await googleFetch(
+      access.token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(`'${TAB_NEWSLETTER_DRAFT}'!A2:I`)}:clear`,
+      { method: "POST", body: JSON.stringify({}) }
+    );
+    if (!clearRes.ok) {
+      throw new Error(`Failed to clear newsletter draft: ${await clearRes.text()}`);
+    }
+    return;
+  }
+
+  const range = `'${TAB_NEWSLETTER_DRAFT}'!A2:I2`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        values: [
+          [
+            draft.id,
+            draft.updatedAt,
+            draft.title,
+            draft.intro,
+            draft.status,
+            String(draft.stories.length),
+            JSON.stringify(draft.stories),
+            draft.html,
+            draft.markdown,
+          ],
+        ],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to write newsletter draft: ${await res.text()}`);
+  }
+}
+
+export async function readNewsletterDraftFromSheet(): Promise<{
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  intro: string;
+  stories: import("@/lib/newsletter-rich-compile").NewsletterStory[];
+  html: string;
+  markdown: string;
+  status: "draft" | "sent";
+} | null> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return null;
+
+  const range = `'${TAB_NEWSLETTER_DRAFT}'!A2:I2`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read newsletter draft: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const row = data.values?.[0];
+  if (!row?.[0]) return null;
+
+  let stories: import("@/lib/newsletter-rich-compile").NewsletterStory[] = [];
+  try {
+    stories = JSON.parse(row[6] ?? "[]");
+  } catch {
+    stories = [];
+  }
+
+  return {
+    id: row[0],
+    createdAt: row[1] ?? new Date().toISOString(),
+    updatedAt: row[1] ?? new Date().toISOString(),
+    title: row[2] ?? "",
+    intro: row[3] ?? "",
+    status: row[4] === "sent" ? "sent" : "draft",
+    stories,
+    html: row[7] ?? "",
+    markdown: row[8] ?? "",
+  };
 }
 
 export async function initGoogleSheet(): Promise<{

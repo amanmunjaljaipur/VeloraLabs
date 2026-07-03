@@ -19,6 +19,6 @@ export function formatWeekLabel(weekOf: string): string {
   });
 }
 
-export function editionSlug(weekOf: string): string {
-  return `week-of-${weekOf}`;
+export function editionSlug(weekOf: string, suffix?: string): string {
+  return suffix ? `week-of-${weekOf}-${suffix}` : `week-of-${weekOf}`;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { PublishNewsletterButton } from "@/components/admin/PublishNewsletterButton";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
@@ -134,9 +133,6 @@ export function AuthButton({ className }: { className?: string }) {
                     )}
                   </Link>
                 ))}
-                {isSuperAdmin && (
-                  <PublishNewsletterButton onComplete={() => setOpen(false)} />
-                )}
               </div>
             )}
 

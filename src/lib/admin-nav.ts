@@ -22,6 +22,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "Manage course recordings",
   },
   {
+    label: "Newsletter Studio",
+    href: "/admin/newsletter",
+    description: "Create, preview, and send AI digest",
+    superAdminOnly: true,
+  },
+  {
     label: "Weekly Newsletter",
     href: "/newsletter/weekly",
     description: "View published editions",
