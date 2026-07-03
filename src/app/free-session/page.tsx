@@ -58,7 +58,7 @@ export default async function FreeSessionPage() {
                 description={a.heroSubtitle}
                 icon={a.icon}
                 image={a.image}
-                href={`/for/${a.slug}`}
+                href={`/courses/${a.slug}`}
               />
             ))}
           </div>

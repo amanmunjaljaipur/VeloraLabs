@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { isNavLinkActive } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 const MY_COURSE_NAV = { label: "My Course", href: "/my-course" };
@@ -76,7 +77,7 @@ export function Navbar({ nav }: NavbarProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isActive = (href: string) => !isExternal(href) && pathname === href;
+  const isActive = (href: string) => isNavLinkActive(pathname, href);
 
   return (
     <header

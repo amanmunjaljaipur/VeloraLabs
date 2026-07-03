@@ -4,7 +4,7 @@
   "description": "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
   "nav": [
     { "label": "Free Session", "href": "/free-session" },
-    { "label": "Programs", "href": "/courses" },
+    { "label": "Courses", "href": "/courses" },
     { "label": "Library", "href": "/library" },
     { "label": "Mental Models", "href": "/mental-models" },
     { "label": "About", "href": "/about" },
@@ -15,7 +15,7 @@
     "tagline": "Clarity-first learning for builders, students, and professionals.",
     "links": [
       { "label": "Free Session", "href": "/free-session" },
-      { "label": "Programs", "href": "/courses" },
+      { "label": "Courses", "href": "/courses" },
       { "label": "Blog", "href": "/blog" },
       { "label": "Resources", "href": "/resources" },
       { "label": "Contact", "href": "/contact" }

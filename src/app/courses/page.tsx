@@ -13,8 +13,8 @@ import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Programs",
-  description: "Clarity-first learning programs for school students, college engineers, and product managers.",
+  title: "Courses",
+  description: "Clarity-first learning courses for school students, college engineers, and product managers.",
 };
 
 const icons = {
@@ -46,14 +46,14 @@ export default async function CoursesPage() {
     <>
       <PageHeader
         eyebrow="Learning tracks"
-        title="Programs"
+        title="Courses"
         subtitle={
           isEnrolled
-            ? "Browse all Verlin Labs programs, or go to My Course to continue your enrolled track."
-            : "Choose the program that fits your stage — each track includes the full syllabus and session structure."
+            ? "Browse all Verlin Labs courses, or go to My Course to continue your enrolled track."
+            : "Choose the course that fits your stage — each track includes the full syllabus and session structure."
         }
         image="/images/presentation.jpg"
-        imageAlt="Structured learning programs"
+        imageAlt="Structured learning courses"
       />
 
       {isEnrolled && (
@@ -79,7 +79,7 @@ export default async function CoursesPage() {
               const Icon = icons[slug];
               const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
               return (
-                <Link key={slug} href={`/for/${slug}`} className="block h-full group">
+                <Link key={slug} href={`/courses/${slug}`} className="block h-full group">
                   <Card hover className="flex h-full flex-col overflow-hidden p-0">
                     <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40">
                       <Image
@@ -110,7 +110,7 @@ export default async function CoursesPage() {
                         </p>
                       </div>
                       <span className="flex items-center gap-1 text-sm font-medium text-teal transition-all group-hover:gap-2">
-                        {isEnrolled ? "View syllabus" : "View program"}{" "}
+                        {isEnrolled ? "View syllabus" : "View course"}{" "}
                         <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>

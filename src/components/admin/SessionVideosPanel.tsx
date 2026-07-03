@@ -253,7 +253,7 @@ export function SessionVideosPanel() {
                     </div>
                   </div>
                   <Link
-                    href={`/for/${program.slug}#curriculum`}
+                    href={`/courses/${program.slug}#curriculum`}
                     className="inline-flex items-center gap-1 text-sm font-medium text-teal hover:underline shrink-0"
                   >
                     View program syllabus

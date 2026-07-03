@@ -56,7 +56,7 @@ export function AdminHomeDashboard({ userName, role }: AdminHomeDashboardProps) 
             <p className="mt-2 text-sm text-text-secondary">
               Assigned learners see a personalized home page with course progress.
             </p>
-            <Link href="/for/students" className="mt-6 inline-block">
+            <Link href="/courses/students" className="mt-6 inline-block">
               <Button variant="secondary">View courses</Button>
             </Link>
           </Card>

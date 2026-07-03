@@ -74,7 +74,7 @@ export const SITE_FAQ_CATEGORIES: SiteFaqCategory[] = [
   },
   {
     id: "programs",
-    title: "Programs & Tracks",
+    title: "Courses & Tracks",
     description: "Tracks, duration, and enrollment",
     items: [
       {

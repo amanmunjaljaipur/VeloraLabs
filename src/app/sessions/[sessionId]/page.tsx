@@ -60,7 +60,7 @@ export default async function SessionPage({
       ? isDayCompleted(authSession.user.email, meta.day)
       : false;
   const isEnrolled = isEnrolledLearner(authSession.user.email, authSession.user.role);
-  const courseBackHref = isEnrolled ? "/my-course" : `/for/${meta.audience}#curriculum`;
+  const courseBackHref = isEnrolled ? "/my-course" : `/courses/${meta.audience}#curriculum`;
   const courseBackLabel = isEnrolled ? "My Course" : `${audienceLabels[meta.audience]} course`;
 
   return (

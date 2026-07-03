@@ -55,12 +55,12 @@ const options: ConnectOption[] = [
     cta: "Media inquiry",
   },
   {
-    title: "Professional programs",
+    title: "Professional courses",
     description:
       "Product managers and working professionals — learn about the full track, capstone, and enrollment.",
     icon: Briefcase,
     href: "/courses",
-    cta: "View programs",
+    cta: "View courses",
   },
 ];
 
