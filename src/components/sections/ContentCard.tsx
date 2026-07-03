@@ -26,19 +26,27 @@ export function ContentCard({
   type,
   image,
 }: ContentCardProps) {
+  const isIllustration = image.includes("thumb-") || image.includes("-illustration");
+
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
       <Link href={`/library/${slug}`} className="group block h-full">
         <Card hover className="flex h-full flex-col overflow-hidden p-0 group-hover:shadow-lg group-hover:border-accent-teal/25">
-          <div className="relative h-44 overflow-hidden">
+          <div
+            className={`relative h-44 overflow-hidden ${
+              isIllustration ? "bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40" : ""
+            }`}
+          >
             <Image
               src={image}
               alt={`${title} cover`}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className={`transition-transform duration-500 group-hover:scale-[1.03] ${
+                isIllustration ? "object-contain p-3" : "object-cover group-hover:scale-105"
+              }`}
               sizes="(max-width: 640px) 100vw, 300px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           </div>
           <div className="flex flex-1 flex-col p-6">

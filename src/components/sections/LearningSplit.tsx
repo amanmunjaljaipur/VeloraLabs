@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Bot, Brain, Code2, Sparkles } from "lucide-react";
+import { Bot, Brain, CalendarCheck, Code2, Rocket, Sparkles, Trophy } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LearningSplitProps {
   title: string;
@@ -10,9 +11,12 @@ interface LearningSplitProps {
   image: string;
   imageAlt: string;
   reverse?: boolean;
+  illustration?: boolean;
   items?: string[];
   toolIcons?: boolean;
 }
+
+const stepIcons = [CalendarCheck, Code2, Trophy];
 
 export function LearningSplit({
   title,
@@ -20,6 +24,7 @@ export function LearningSplit({
   image,
   imageAlt,
   reverse,
+  illustration,
   items,
   toolIcons,
 }: LearningSplitProps) {
@@ -33,24 +38,51 @@ export function LearningSplit({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.45 }}
     >
-      <div className="group relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/80 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+      <div
+        className={cn(
+          "group relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/80 shadow-lg transition-shadow duration-300 hover:shadow-xl",
+          illustration && "border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/30"
+        )}
+      >
         <Image
           src={image}
           alt={imageAlt}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+          className={cn(
+            "transition-transform duration-500 group-hover:scale-[1.02]",
+            illustration ? "object-contain p-4 md:p-6" : "object-cover"
+          )}
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-tr from-navy/35 via-transparent to-accent-teal/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/15 to-transparent" />
+        {!illustration && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-tr from-navy/35 via-transparent to-accent-teal/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/15 to-transparent" />
+          </>
+        )}
         {toolIcons && (
           <div className="absolute bottom-4 left-4 flex gap-2">
-            {[Brain, Sparkles, Bot, Code2].map((Icon, i) => (
+            {stepIcons.map((Icon, i) => (
               <div
                 key={i}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-card/90 text-teal shadow-sm backdrop-blur-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/90 text-accent-teal shadow-sm backdrop-blur-sm"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
+              </div>
+            ))}
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/90 text-accent-teal shadow-sm backdrop-blur-sm">
+              <Rocket className="h-4 w-4" aria-hidden="true" />
+            </div>
+          </div>
+        )}
+        {!toolIcons && illustration && (
+          <div className="absolute bottom-4 right-4 flex gap-2">
+            {[Brain, Sparkles, Bot].map((Icon, i) => (
+              <div
+                key={i}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card/80 text-accent-teal shadow-sm backdrop-blur-sm"
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               </div>
             ))}
           </div>

@@ -15,6 +15,7 @@ import {
   getFeaturedLibraryItems,
   getTestimonials,
 } from "@/lib/content";
+import { LEARNING_ILLUSTRATIONS } from "@/lib/home-content";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import Link from "next/link";
 
@@ -58,8 +59,9 @@ export function MarketingHome() {
           <LearningSplit
             title="Learn with mental models, not memorization"
             description="Verlin Labs teaches you frameworks that stick — visual maps for complex AI concepts, live explanation, and audience-tailored pacing so understanding compounds instead of fading."
-            image="/images/mental-models.jpg"
-            imageAlt="Mental models turning complex ideas into clear frameworks"
+            image={LEARNING_ILLUSTRATIONS.mentalModels.src}
+            imageAlt={LEARNING_ILLUSTRATIONS.mentalModels.alt}
+            illustration
             items={[
               "Visual frameworks for complex AI concepts",
               "Live sessions, not passive video dumps",
@@ -69,8 +71,9 @@ export function MarketingHome() {
           <LearningSplit
             title="Hands-on from day one"
             description="Every program ends with something you build — a mini project, portfolio piece, or working MVP. Real tools, real feedback, real confidence."
-            image="/images/workshop.jpg"
-            imageAlt="Hands-on workshop with live exercises"
+            image={LEARNING_ILLUSTRATIONS.handsOn.src}
+            imageAlt={LEARNING_ILLUSTRATIONS.handsOn.alt}
+            illustration
             reverse
             toolIcons
             items={[

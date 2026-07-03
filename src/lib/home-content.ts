@@ -50,6 +50,17 @@ export const HOW_IT_WORKS_ILLUSTRATION = {
   alt: "Four-step learning journey from free session through mental models, hands-on practice, to build and demo",
 };
 
+export const LEARNING_ILLUSTRATIONS = {
+  mentalModels: {
+    src: "/images/mental-models-map-illustration.jpg",
+    alt: "Complex ideas transforming into clear mental model frameworks",
+  },
+  handsOn: {
+    src: "/images/hands-on-mvp-illustration.jpg",
+    alt: "Student presenting a hands-on project at demo day",
+  },
+} as const;
+
 export const HOME_FAQS: AccordionItem[] = [
   {
     question: "Is the free session really free?",
