@@ -16,6 +16,16 @@ export function GoogleAuthButton({
 }: GoogleAuthButtonProps) {
   const [csrfToken, setCsrfToken] = useState("");
   const [ready, setReady] = useState(false);
+  const [resolvedCallback, setResolvedCallback] = useState(callbackUrl);
+
+  useEffect(() => {
+    if (callbackUrl.startsWith("http")) {
+      setResolvedCallback(callbackUrl);
+      return;
+    }
+    const path = callbackUrl.startsWith("/") ? callbackUrl : `/${callbackUrl}`;
+    setResolvedCallback(`${window.location.origin}${path}`);
+  }, [callbackUrl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +53,7 @@ export function GoogleAuthButton({
   return (
     <form action="/api/auth/signin/google" method="POST" className={className}>
       <input type="hidden" name="csrfToken" value={csrfToken} />
-      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      <input type="hidden" name="callbackUrl" value={resolvedCallback} />
       <Button type="submit" size="lg" variant="secondary" className="w-full" disabled={!ready}>
         <GoogleIcon />
         {label}
