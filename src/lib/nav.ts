@@ -7,6 +7,8 @@ const NAV_ACTIVE_PREFIXES: Record<string, string[]> = {
   "/about": ["/about"],
   "/faq": ["/faq"],
   "/contact": ["/contact"],
+  "/blog": ["/blog"],
+  "/resources": ["/resources"],
   "/my-course": ["/my-course", "/sessions"],
 };
 

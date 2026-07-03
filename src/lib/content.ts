@@ -20,7 +20,6 @@ export interface SiteConfig {
   nav: { label: string; href: string }[];
   footer: {
     tagline: string;
-    links: { label: string; href: string }[];
     social: { label: string; href: string }[];
   };
   newsletter: { title: string; description: string; cta: string };

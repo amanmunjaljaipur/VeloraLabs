@@ -6,6 +6,7 @@
     { "label": "Free Session", "href": "/free-session" },
     { "label": "Courses", "href": "/courses" },
     { "label": "Library", "href": "/library" },
+    { "label": "Blog", "href": "/blog" },
     { "label": "Mental Models", "href": "/mental-models" },
     { "label": "About", "href": "/about" },
     { "label": "FAQ", "href": "/faq" },
@@ -13,13 +14,6 @@
   ],
   "footer": {
     "tagline": "Clarity-first learning for builders, students, and professionals.",
-    "links": [
-      { "label": "Free Session", "href": "/free-session" },
-      { "label": "Courses", "href": "/courses" },
-      { "label": "Blog", "href": "/blog" },
-      { "label": "Resources", "href": "/resources" },
-      { "label": "Contact", "href": "/contact" }
-    ],
     "social": [
       { "label": "LinkedIn", "href": "https://www.linkedin.com/in/verlin-labs-05678141b/" },
       { "label": "YouTube", "href": "https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" },
