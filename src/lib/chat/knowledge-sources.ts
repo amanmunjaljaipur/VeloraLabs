@@ -6,7 +6,7 @@ import {
   getFreeSession,
   getSiteConfig,
 } from "@/lib/content";
-import { getIntroPricing } from "@/lib/pricing";
+import { buildIntroOfferSummary, getIntroPricing } from "@/lib/pricing";
 import type { KnowledgeEntry } from "./types";
 
 const CONTACT_FAQS = [
@@ -124,8 +124,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
 
   add({
     question: "What is the introductory pricing offer?",
-    answer:
-      "All full programs currently have a 70% introductory discount off list price. School Students: ₹3,000 (was ₹9,999). College Engineers: ₹4,500 (was ₹14,999). Product Managers: ₹7,500 (was ₹24,999). The free 2-hour session remains completely free.",
+    answer: buildIntroOfferSummary(),
     category: "Pricing",
     links: [{ label: "View courses", href: "/courses" }],
     extraKeywords: ["intro", "introductory", "sale", "70", "percent", "off", "pricing", "model"],
@@ -247,7 +246,7 @@ function buildPricingAnswer(): string {
     const label = slug === "professionals" ? "Product Managers" : slug === "engineers" ? "Engineers" : "Students";
     return `${label}: ${p.current} introductory (list ${p.original}, ${course.duration})`;
   });
-  return `Current introductory pricing (70% off): ${lines.join(". ")}. The 2-hour intro session is always free.`;
+  return `Current introductory pricing: ${lines.join(". ")}. The 2-hour intro session is always free.`;
 }
 
 function categoryLinks(categoryId: string) {

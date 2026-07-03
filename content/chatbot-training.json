@@ -107,7 +107,7 @@
         "rupees",
         "pricing"
       ],
-      "answer": "Current introductory pricing (70% off): Students: ₹3,000 introductory (list ₹9,999, 8 days · 2 phases). Engineers: ₹4,500 introductory (list ₹14,999, 10 days · 3 phases). Product Managers: ₹7,500 introductory (list ₹24,999, 16 days · 4 phases). The 2-hour intro session is always free.",
+      "answer": "Current introductory pricing: Students: ₹2,999 introductory (list ₹9,999, 8 days · 2 phases). Engineers: ₹3,999 introductory (list ₹14,999, 10 days · 3 phases). Product Managers: ₹6,999 introductory (list ₹24,999, 16 days · 4 phases). The 2-hour intro session is always free.",
       "bullets": [],
       "keywords": [
         "what",
@@ -166,7 +166,7 @@
         "pricing model",
         "help with pricing"
       ],
-      "answer": "All full programs currently have a 70% introductory discount off list price. School Students: ₹3,000 (was ₹9,999). College Engineers: ₹4,500 (was ₹14,999). Product Managers: ₹7,500 (was ₹24,999). The free 2-hour session remains completely free.",
+      "answer": "All full programs currently have an introductory discount off list price. School Students: ₹2,999 (was ₹9,999). College Engineers: ₹3,999 (was ₹14,999). Product Managers: ₹6,999 (was ₹24,999). The free 2-hour session remains completely free.",
       "bullets": [],
       "keywords": [
         "what",
@@ -2368,7 +2368,7 @@
       "category": "Courses",
       "question": "Tell me about the AI Explorers for School Students program",
       "alternateQuestions": [],
-      "answer": "An 8-day friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects. Duration: 8 days · 2 phases. Introductory price: ₹3,000 (list ₹9,999, 70% off).",
+      "answer": "An 8-day friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects. Duration: 8 days · 2 phases. Introductory price: ₹2,999 (list ₹9,999, save ₹7,000).",
       "bullets": [],
       "keywords": [
         "tell",
@@ -2409,7 +2409,7 @@
         "courses",
         "AI Explorers for School Students",
         "8 days · 2 phases",
-        "₹3,000"
+        "₹2,999"
       ],
       "links": [
         {
@@ -2426,7 +2426,7 @@
       "category": "Courses",
       "question": "Tell me about the AI Engineering Foundations program",
       "alternateQuestions": [],
-      "answer": "A 10-day intensive program for engineering students who want deep intuition for AI systems, hands-on API projects, and portfolio-ready work for internships and interviews. Duration: 10 days · 3 phases. Introductory price: ₹4,500 (list ₹14,999, 70% off).",
+      "answer": "A 10-day intensive program for engineering students who want deep intuition for AI systems, hands-on API projects, and portfolio-ready work for internships and interviews. Duration: 10 days · 3 phases. Introductory price: ₹3,999 (list ₹14,999, save ₹11,000).",
       "bullets": [],
       "keywords": [
         "tell",
@@ -2466,7 +2466,7 @@
         "engineers",
         "AI Engineering Foundations",
         "10 days · 3 phases",
-        "₹4,500"
+        "₹3,999"
       ],
       "links": [
         {
@@ -2483,7 +2483,7 @@
       "category": "Courses",
       "question": "Tell me about the AI Foundations for Product Managers program",
       "alternateQuestions": [],
-      "answer": "A 16-day intensive program designed for Product Managers who want to master AI tools, lead product discovery, build MVPs with vibe coding, and launch growth-ready products. Duration: 16 days · 4 phases. Introductory price: ₹7,500 (list ₹24,999, 70% off).",
+      "answer": "A 16-day intensive program designed for Product Managers who want to master AI tools, lead product discovery, build MVPs with vibe coding, and launch growth-ready products. Duration: 16 days · 4 phases. Introductory price: ₹6,999 (list ₹24,999, save ₹18,000).",
       "bullets": [],
       "keywords": [
         "tell",
@@ -2526,7 +2526,7 @@
         "professionals",
         "AI Foundations for Product Managers",
         "16 days · 4 phases",
-        "₹7,500"
+        "₹6,999"
       ],
       "links": [
         {

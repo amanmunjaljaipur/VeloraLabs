@@ -107,7 +107,7 @@ export function buildTemplateExcel(): ArrayBuffer {
     category: "Pricing",
     question: "What are the course prices?",
     answer:
-      "School Students: ₹3,000 intro (list ₹9,999). Engineers: ₹4,500 (list ₹14,999). PMs: ₹7,500 (list ₹24,999). Free session is always free.",
+      "School Students: ₹2,999 intro (list ₹9,999). Engineers: ₹3,999 (list ₹14,999). PMs: ₹6,999 (list ₹24,999). Free session is always free.",
     alternateQuestions: ["course price", "how much", "pricing model"],
     keywords: ["price", "cost", "rupees", "discount"],
     bullets: [],
