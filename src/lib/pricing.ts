@@ -1,5 +1,6 @@
 /** Introductory offer — 70% off list price */
 export const INTRO_DISCOUNT_PERCENT = 70;
+export const INTRO_OFFER_LABEL = "Introductory offer";
 
 export interface IntroPricing {
   original: string;

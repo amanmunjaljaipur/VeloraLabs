@@ -127,7 +127,7 @@ export function AudienceCoursePage({
             <Card className="border-teal ring-2 ring-teal/10">
               <p className="text-sm font-medium text-teal uppercase tracking-wider">Full Program</p>
               <div className="mt-4 flex justify-center">
-                <CoursePrice price={course.price} size="lg" />
+                <CoursePrice price={course.price} size="lg" align="center" />
               </div>
               <p className="mt-2 text-text-secondary">{course.duration}</p>
               <div className="mt-8 flex flex-col gap-3">
