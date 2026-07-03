@@ -3,7 +3,15 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
-import { ExternalLink, Loader2, Newspaper, RefreshCw, Send } from "lucide-react";
+import {
+  Copy,
+  ExternalLink,
+  Link2,
+  Loader2,
+  Newspaper,
+  RefreshCw,
+  Send,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,7 +25,11 @@ interface DraftPreview {
   html: string;
 }
 
-export function NewsletterStudio() {
+interface NewsletterStudioProps {
+  mcpUrl: string;
+}
+
+export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
   const { toast } = useToast();
   const [draft, setDraft] = useState<DraftPreview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,8 +115,55 @@ export function NewsletterStudio() {
     }
   };
 
+  const handleCopyMcpUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(mcpUrl);
+      toast("MCP link copied", "success");
+    } catch {
+      toast("Could not copy link", "error");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 pb-16 md:px-8">
+      <Card>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+            <Link2 className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-semibold text-foreground">LLM / MCP access</h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              Connect any MCP-compatible LLM (Grok, Claude, Cursor) to generate and email
+              newsletters. Use your <code className="text-xs">NEWSLETTER_MCP_API_KEY</code> as a
+              Bearer token.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <a
+                href={mcpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-teal hover:underline"
+              >
+                {mcpUrl}
+              </a>
+              <div className="flex shrink-0 gap-2">
+                <Button variant="secondary" size="sm" onClick={handleCopyMcpUrl}>
+                  <Copy className="h-4 w-4" />
+                  Copy link
+                </Button>
+                <a href={mcpUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="secondary" size="sm">
+                    <ExternalLink className="h-4 w-4" />
+                    Open
+                  </Button>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       <Card className="border-teal/20 bg-teal/5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

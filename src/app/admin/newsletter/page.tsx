@@ -20,13 +20,19 @@ export default async function AdminNewsletterPage() {
     redirect("/");
   }
 
+  const siteUrl =
+    process.env.AUTH_URL ??
+    process.env.NEXTAUTH_URL ??
+    "https://velora-labs-gamma.vercel.app";
+  const mcpUrl = `${siteUrl.replace(/\/$/, "")}/api/mcp/newsletter`;
+
   return (
     <>
       <PageHeader
         title="Newsletter Studio"
         subtitle="Create a clarity-first AI digest from the latest internet news, preview it, and send whenever you're ready."
       />
-      <NewsletterStudio />
+      <NewsletterStudio mcpUrl={mcpUrl} />
     </>
   );
 }
