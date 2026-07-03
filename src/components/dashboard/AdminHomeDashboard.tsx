@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
-import { Shield, Users, Video } from "lucide-react";
+import { Newspaper, Shield, Users, Video } from "lucide-react";
 import Link from "next/link";
 
 interface AdminHomeDashboardProps {
@@ -12,6 +12,7 @@ interface AdminHomeDashboardProps {
 
 export function AdminHomeDashboard({ userName, role }: AdminHomeDashboardProps) {
   const firstName = userName?.split(" ")[0] ?? "Admin";
+  const isSuperAdmin = role === "super_admin";
 
   return (
     <section className="py-12 md:py-16">
@@ -59,6 +60,19 @@ export function AdminHomeDashboard({ userName, role }: AdminHomeDashboardProps) 
               <Button variant="secondary">View courses</Button>
             </Link>
           </Card>
+
+          {isSuperAdmin && (
+            <Card hover>
+              <Newspaper className="h-8 w-8 text-teal" />
+              <h2 className="mt-4 text-lg font-semibold text-foreground">Weekly newsletter</h2>
+              <p className="mt-2 text-sm text-text-secondary">
+                Publish the Sunday roundup from your account menu, or view past editions.
+              </p>
+              <Link href="/newsletter/weekly" className="mt-6 inline-block">
+                <Button variant="secondary">View newsletter</Button>
+              </Link>
+            </Card>
+          )}
         </div>
       </div>
     </section>

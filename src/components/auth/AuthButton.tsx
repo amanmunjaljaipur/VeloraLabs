@@ -1,10 +1,12 @@
 "use client";
 
+import { PublishNewsletterButton } from "@/components/admin/PublishNewsletterButton";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
 import { ROLE_LABELS } from "@/types/roles";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, Shield } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +15,9 @@ export function AuthButton({ className }: { className?: string }) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const role = session?.user?.role;
+  const adminLinks = getAdminMenuLinks(role);
+  const isSuperAdmin = isSuperAdminRole(role);
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +52,7 @@ export function AuthButton({ className }: { className?: string }) {
     const displayName = session.user.name || session.user.email || "User";
     const navName =
       displayName.split(" ")[0]?.replace(/^\w/, (char) => char.toUpperCase()) || displayName;
-    const roleLabel = session.user.role ? ROLE_LABELS[session.user.role] : null;
+    const roleLabel = role ? ROLE_LABELS[role] : null;
 
     return (
       <div ref={menuRef} className={cn("relative shrink-0", className)}>
@@ -89,7 +94,7 @@ export function AuthButton({ className }: { className?: string }) {
         {open && (
           <div
             role="menu"
-            className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-background shadow-lg"
+            className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-background shadow-lg"
           >
             <div className="border-b border-border px-4 py-3">
               <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
@@ -104,6 +109,34 @@ export function AuthButton({ className }: { className?: string }) {
                   Role
                 </p>
                 <p className="mt-1 text-sm font-medium text-foreground">{roleLabel}</p>
+              </div>
+            )}
+
+            {adminLinks.length > 0 && (
+              <div className="border-b border-border py-1">
+                <p className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  <Shield className="h-3.5 w-3.5" />
+                  {isSuperAdmin ? "Super Admin" : "Admin"}
+                </p>
+                {adminLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    role="menuitem"
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-2.5 transition-colors hover:bg-muted"
+                  >
+                    <span className="text-sm font-medium text-foreground">{link.label}</span>
+                    {link.description && (
+                      <span className="mt-0.5 block text-xs text-text-secondary">
+                        {link.description}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+                {isSuperAdmin && (
+                  <PublishNewsletterButton onComplete={() => setOpen(false)} />
+                )}
               </div>
             )}
 

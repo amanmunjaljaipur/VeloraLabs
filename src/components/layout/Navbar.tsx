@@ -11,8 +11,6 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const MY_COURSE_NAV = { label: "My Course", href: "/my-course" };
-const ADMIN_PANEL_NAV = { label: "Admin Panel", href: "/admin/role-assignment" };
-const ADMIN_SESSIONS_NAV = { label: "Session Videos", href: "/admin/sessions" };
 
 interface NavbarProps {
   nav: { label: string; href: string }[];
@@ -26,14 +24,10 @@ export function Navbar({ nav }: NavbarProps) {
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const role = session?.user?.role;
   const isEnrolled = session?.user?.enrolledLearner ?? false;
-  const isAdmin = role === "admin" || role === "super_admin";
-  const adminNav = [...(isAdmin ? [ADMIN_PANEL_NAV, ADMIN_SESSIONS_NAV] : [])];
   const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
   const learnerNav = isEnrolled ? [MY_COURSE_NAV] : [];
-  const navItems =
-    adminNav.length > 0 ? [...learnerNav, ...baseNav, ...adminNav] : [...learnerNav, ...baseNav];
+  const navItems = [...learnerNav, ...baseNav];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

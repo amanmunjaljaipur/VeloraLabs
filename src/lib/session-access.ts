@@ -15,6 +15,10 @@ export function isAdminRole(role: UserRole): boolean {
   return role === "admin" || role === "super_admin";
 }
 
+export function isSuperAdminRole(role: UserRole | undefined): boolean {
+  return role === "super_admin";
+}
+
 export function isLearnerRole(role: UserRole): boolean {
   return role === "student" || role === "engineer" || role === "professional";
 }
