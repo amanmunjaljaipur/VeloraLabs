@@ -18,7 +18,7 @@
       "What 'training data' means in plain English"
     ],
     "icon": "graduation-cap",
-    "image": "/images/audience-students-premium.jpg"
+    "image": "/images/audience-students-illustration.jpg"
   },
   {
     "slug": "engineers",
@@ -39,7 +39,7 @@
       "System design mental models for scalable apps"
     ],
     "icon": "code",
-    "image": "/images/audience-engineers-premium.jpg"
+    "image": "/images/audience-engineers-illustration.jpg"
   },
   {
     "slug": "professionals",
@@ -60,6 +60,6 @@
       "Building MVPs with Lovable, Bolt, and Replit"
     ],
     "icon": "briefcase",
-    "image": "/images/audience-professionals-premium.jpg"
+    "image": "/images/audience-professionals-illustration.jpg"
   }
 ]

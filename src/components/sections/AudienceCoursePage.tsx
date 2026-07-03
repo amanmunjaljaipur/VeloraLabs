@@ -8,9 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 const audienceImages: Record<AudienceSlug, string> = {
-  students: "/images/audience-students-premium.jpg",
-  engineers: "/images/audience-engineers-premium.jpg",
-  professionals: "/images/audience-professionals-premium.jpg",
+  students: "/images/audience-students-illustration.jpg",
+  engineers: "/images/audience-engineers-illustration.jpg",
+  professionals: "/images/audience-professionals-illustration.jpg",
 };
 
 const audienceLabels: Record<AudienceSlug, string> = {

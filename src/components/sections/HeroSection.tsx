@@ -16,25 +16,13 @@ const trustStats = [
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-hero-mesh">
-      <div className="pattern-grid absolute inset-0 opacity-60" aria-hidden="true" />
+      <div className="pattern-grid absolute inset-0 opacity-40" aria-hidden="true" />
       <div className="hero-orb hero-orb-teal -left-24 top-20 h-72 w-72" aria-hidden="true" />
       <div className="hero-orb hero-orb-amber right-0 top-1/3 h-64 w-64" aria-hidden="true" />
       <div className="hero-orb hero-orb-navy bottom-0 left-1/3 h-80 w-80" aria-hidden="true" />
 
-      <div className="absolute inset-0 lg:hidden">
-        <Image
-          src="/images/hero-premium.jpg"
-          alt=""
-          fill
-          className="object-cover opacity-30"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/92 via-background/88 to-background" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28 lg:py-32">
-        <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-16">
+      <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24 lg:py-28">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-14">
           <motion.div
             className="max-w-2xl"
             initial={{ opacity: 0, y: 24 }}
@@ -48,7 +36,7 @@ export function HeroSection() {
               transition={{ delay: 0.15, duration: 0.4 }}
             >
               <Sparkles className="h-4 w-4 text-accent-teal" />
-              Premium clarity-first learning · Verlin Labs
+              Clarity-first learning · Verlin Labs
             </motion.div>
 
             <h1 className="text-display font-semibold">
@@ -91,26 +79,24 @@ export function HeroSection() {
           </motion.div>
 
           <motion.div
-            className="relative hidden lg:block"
+            className="relative"
             initial={{ opacity: 0, x: 32 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="relative aspect-[5/4] overflow-hidden rounded-3xl border border-border/80 shadow-glow-teal surface-elevated">
+            <div className="relative aspect-[5/4] overflow-hidden rounded-3xl border border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 via-background to-sky-100/30 shadow-glow-teal">
               <Image
-                src="/images/hero-premium.jpg"
-                alt="Learner experiencing clarity in a modern AI learning environment"
+                src={HOME_HERO.illustration}
+                alt={HOME_HERO.illustrationAlt}
                 fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 0vw, 50vw"
+                className="object-contain p-4 md:p-6"
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-navy/30 via-transparent to-accent-teal/15" />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
             </div>
 
             <motion.div
-              className="absolute -bottom-5 -left-6 animate-float-subtle rounded-2xl border border-border bg-card p-4 shadow-lg surface-glass"
+              className="absolute -bottom-4 -left-4 hidden animate-float-subtle rounded-2xl border border-border bg-card p-4 shadow-lg surface-glass sm:block"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
@@ -127,7 +113,7 @@ export function HeroSection() {
             </motion.div>
 
             <motion.div
-              className="absolute -right-4 top-8 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg surface-glass"
+              className="absolute -right-3 top-6 hidden rounded-2xl border border-border bg-card px-4 py-3 shadow-lg surface-glass sm:block"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55 }}
@@ -139,7 +125,7 @@ export function HeroSection() {
             </motion.div>
 
             <motion.div
-              className="absolute -bottom-8 right-8 rounded-2xl border border-cta-amber/30 bg-cta-amber-light px-5 py-3 shadow-md"
+              className="absolute -bottom-6 right-6 hidden rounded-2xl border border-cta-amber/30 bg-cta-amber-light px-5 py-3 shadow-md sm:block"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}

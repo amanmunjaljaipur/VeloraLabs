@@ -38,16 +38,16 @@ export function AudienceCard({
   const inner = (
     <>
       {image ? (
-        <div className="relative -mx-6 -mt-6 md:-mx-8 md:-mt-8 mb-5 h-44 overflow-hidden rounded-t-2xl">
+        <div className="relative -mx-6 -mt-6 md:-mx-8 md:-mt-8 mb-5 h-44 overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40">
           <Image
             src={image}
             alt=""
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="400px"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-navy/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-card/90 text-accent-teal shadow-md backdrop-blur-sm">
             <Icon className="h-5 w-5" />
           </div>

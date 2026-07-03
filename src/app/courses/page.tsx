@@ -28,9 +28,9 @@ const labels = {
 };
 
 const trackImages = {
-  students: "/images/audience-students-premium.jpg",
-  engineers: "/images/audience-engineers-premium.jpg",
-  professionals: "/images/audience-professionals-premium.jpg",
+  students: "/images/audience-students-illustration.jpg",
+  engineers: "/images/audience-engineers-illustration.jpg",
+  professionals: "/images/audience-professionals-illustration.jpg",
 };
 
 export default async function CoursesPage() {
@@ -79,15 +79,15 @@ export default async function CoursesPage() {
               return (
                 <Link key={slug} href={`/for/${slug}`} className="block h-full group">
                   <Card hover className="flex h-full flex-col overflow-hidden p-0">
-                    <div className="relative h-40 overflow-hidden">
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40">
                       <Image
                         src={trackImages[slug]}
                         alt=""
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
                         sizes="400px"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                       <div className="absolute bottom-3 left-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-card/90 text-accent-teal shadow-sm backdrop-blur-sm">
                         <Icon className="h-5 w-5" />
                       </div>

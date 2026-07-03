@@ -4,6 +4,9 @@ export const HOME_HERO = {
   headline: "Clarity-first learning for the AI age",
   subheadline:
     "Understand complex AI concepts through clear mental models — with free 2-hour sessions and hands-on programs for students, engineers, and product managers.",
+  illustration: "/images/hero-illustration.jpg",
+  illustrationAlt:
+    "Illustration of complex ideas transforming into clear mental model frameworks through connected pathways",
 };
 
 export const WHAT_WE_COVER = [
