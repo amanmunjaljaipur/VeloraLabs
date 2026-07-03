@@ -25,7 +25,7 @@ class RateLimitedSignIn extends CredentialsSignin {
   code = "rate_limited";
 }
 
-const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
 if (!authSecret) {
   throw new Error("AUTH_SECRET or NEXTAUTH_SECRET environment variable is required.");
@@ -49,8 +49,8 @@ function resolveSignInEmail(
 }
 
 const canonicalUrl =
-  process.env.AUTH_URL ??
-  process.env.NEXTAUTH_URL ??
+  process.env.AUTH_URL ||
+  process.env.NEXTAUTH_URL ||
   (process.env.NODE_ENV === "production" ? "https://www.verlinlabs.com" : "http://localhost:3000");
 
 export const authOptions: NextAuthConfig = {
@@ -128,68 +128,76 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async jwt({ token, user, account, profile, trigger }) {
-      const isAuthSignIn =
-        trigger === "signIn" || trigger === "signUp" || Boolean(account);
+      try {
+        const isAuthSignIn =
+          trigger === "signIn" || trigger === "signUp" || Boolean(account);
 
-      await ensureRolesLoaded(isAuthSignIn);
+        await ensureRolesLoaded(isAuthSignIn);
 
-      if (isAuthSignIn) {
-        const identity = resolveSignInEmail(user, token, profile as { email?: string });
-        if (identity) {
-          try {
-            await recordKnownUser(
-              identity.email,
-              identity.name,
-              resolveAuthProvider(account?.provider)
-            );
-            await ensureNewsletterSubscriber(identity.email, "Signed-in user");
-          } catch (error) {
-            console.error("Failed to record known user in JWT callback:", error);
+        if (isAuthSignIn) {
+          const identity = resolveSignInEmail(user, token, profile as { email?: string });
+          if (identity) {
+            try {
+              await recordKnownUser(
+                identity.email,
+                identity.name,
+                resolveAuthProvider(account?.provider)
+              );
+              await ensureNewsletterSubscriber(identity.email, "Signed-in user");
+            } catch (error) {
+              console.error("Failed to record known user in JWT callback:", error);
+            }
+            token.authProvider = resolveAuthProvider(account?.provider);
           }
-          token.authProvider = resolveAuthProvider(account?.provider);
         }
-      }
 
-      const email = user?.email ?? token.email;
-      if (email) {
-        const role = getRoleForEmail(email);
-        token.role = role;
-        token.enrolledLearner = isEnrolledLearner(email, role);
-      }
-      if (user?.id) {
-        token.sub = user.id;
-      }
-      if (user && "remember" in user && user.remember) {
-        token.maxAge = THIRTY_DAYS;
-      } else if (user) {
-        token.maxAge = ONE_DAY;
+        const email = user?.email ?? token.email;
+        if (email) {
+          const role = getRoleForEmail(email);
+          token.role = role;
+          token.enrolledLearner = isEnrolledLearner(email, role);
+        }
+        if (user?.id) {
+          token.sub = user.id;
+        }
+        if (user && "remember" in user && user.remember) {
+          token.maxAge = THIRTY_DAYS;
+        } else if (user) {
+          token.maxAge = ONE_DAY;
+        }
+      } catch (error) {
+        console.error("JWT callback error:", error);
       }
       return token;
     },
     async session({ session, token }) {
-      await ensureRolesLoaded();
-      await ensureKnownUsersLoaded();
+      try {
+        await ensureRolesLoaded();
+        await ensureKnownUsersLoaded();
 
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
-      }
-      if (session.user?.email) {
-        await ensureKnownUser(
-          session.user.email,
-          session.user.name,
-          token.authProvider as AuthProvider | undefined
-        );
-        try {
-          await ensureNewsletterSubscriber(session.user.email, "Signed-in user");
-        } catch (error) {
-          console.error("Failed to ensure newsletter subscriber:", error);
+        if (session.user && token.sub) {
+          session.user.id = token.sub;
         }
+        if (session.user?.email) {
+          await ensureKnownUser(
+            session.user.email,
+            session.user.name,
+            token.authProvider as AuthProvider | undefined
+          );
+          try {
+            await ensureNewsletterSubscriber(session.user.email, "Signed-in user");
+          } catch (error) {
+            console.error("Failed to ensure newsletter subscriber:", error);
+          }
 
-        const role = getRoleForEmail(session.user.email) ?? DEFAULT_ROLE;
-        session.user.role = role;
-        session.user.enrolledLearner =
-          token.enrolledLearner === true ||
-          isEnrolledLearner(session.user.email, role);
+          const role = getRoleForEmail(session.user.email) ?? DEFAULT_ROLE;
+          session.user.role = role;
+          session.user.enrolledLearner =
+            token.enrolledLearner === true ||
+            isEnrolledLearner(session.user.email, role);
+        }
+      } catch (error) {
+        console.error("Session callback error:", error);
       }
       return session;
     },
