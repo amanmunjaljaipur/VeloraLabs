@@ -22,7 +22,7 @@ export interface UnassignedUser {
 }
 
 const KNOWN_USERS_FILE = "known-users.json";
-const CACHE_TTL_MS = 15_000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let cachedKnownUsers: KnownUsersFile | null = null;
 let cacheLoadedAt = 0;

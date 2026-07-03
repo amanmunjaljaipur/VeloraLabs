@@ -92,6 +92,14 @@ interface SheetsConfig {
   spreadsheetUrl?: string;
 }
 
+const TOKEN_CACHE_MS = 55 * 60 * 1000;
+const SHEET_TITLES_CACHE_MS = 15 * 60 * 1000;
+
+let cachedAccessToken: { token: string; expiresAt: number } | null = null;
+let cachedSheetTitles: { spreadsheetId: string; titles: string[]; fetchedAt: number } | null =
+  null;
+const ensuredSpreadsheetStructures = new Set<string>();
+
 function normalizeServiceAccount(parsed: ServiceAccount): ServiceAccount | null {
   if (!parsed.client_email || !parsed.private_key) return null;
   return {
@@ -142,6 +150,16 @@ function parseServiceAccount(): ServiceAccount | null {
 
 function base64url(value: string | Buffer): string {
   return Buffer.from(value).toString("base64url");
+}
+
+async function getCachedAccessToken(account: ServiceAccount): Promise<string> {
+  const now = Date.now();
+  if (cachedAccessToken && cachedAccessToken.expiresAt > now) {
+    return cachedAccessToken.token;
+  }
+  const token = await getAccessToken(account);
+  cachedAccessToken = { token, expiresAt: now + TOKEN_CACHE_MS };
+  return token;
 }
 
 async function getAccessToken(account: ServiceAccount): Promise<string> {
@@ -344,6 +362,13 @@ async function ensureFormSheetTabs(token: string, spreadsheetId: string): Promis
   }
 }
 
+async function ensureSpreadsheetStructure(token: string, spreadsheetId: string): Promise<void> {
+  if (ensuredSpreadsheetStructures.has(spreadsheetId)) return;
+  await ensureFormSheetTabs(token, spreadsheetId);
+  await ensureAdminTabs(token, spreadsheetId);
+  ensuredSpreadsheetStructures.add(spreadsheetId);
+}
+
 async function ensureSpreadsheet(token: string): Promise<string> {
   let spreadsheetId = getStoredSpreadsheetId();
 
@@ -358,8 +383,9 @@ async function ensureSpreadsheet(token: string): Promise<string> {
       await writeHeaderRow(token, spreadsheetId, tab, headers);
     }
     await writeSessionDetailsTab(token, spreadsheetId);
+    ensuredSpreadsheetStructures.add(spreadsheetId);
   } else {
-    await ensureFormSheetTabs(token, spreadsheetId);
+    await ensureSpreadsheetStructure(token, spreadsheetId);
   }
 
   return spreadsheetId;
@@ -395,7 +421,7 @@ export async function submitViaServiceAccount(
   if (!account) return false;
 
   try {
-    const token = await getAccessToken(account);
+    const token = await getCachedAccessToken(account);
     const spreadsheetId = await ensureSpreadsheet(token);
 
     switch (payload.type) {
@@ -445,13 +471,28 @@ async function getSheetTitles(token: string, spreadsheetId: string): Promise<str
     .filter((title): title is string => Boolean(title));
 }
 
+async function getSheetTitlesCached(token: string, spreadsheetId: string): Promise<string[]> {
+  const now = Date.now();
+  if (
+    cachedSheetTitles &&
+    cachedSheetTitles.spreadsheetId === spreadsheetId &&
+    now - cachedSheetTitles.fetchedAt < SHEET_TITLES_CACHE_MS
+  ) {
+    return cachedSheetTitles.titles;
+  }
+
+  const titles = await getSheetTitles(token, spreadsheetId);
+  cachedSheetTitles = { spreadsheetId, titles, fetchedAt: now };
+  return titles;
+}
+
 async function ensureSheetTab(
   token: string,
   spreadsheetId: string,
   tab: string,
   headers: string[]
 ): Promise<void> {
-  const titles = await getSheetTitles(token, spreadsheetId);
+  const titles = await getSheetTitlesCached(token, spreadsheetId);
   if (!titles.includes(tab)) {
     const res = await googleFetch(
       token,
@@ -466,8 +507,9 @@ async function ensureSheetTab(
     if (!res.ok) {
       throw new Error(`Failed to add sheet tab "${tab}": ${await res.text()}`);
     }
+    cachedSheetTitles = null;
+    await writeHeaderRow(token, spreadsheetId, tab, headers);
   }
-  await writeHeaderRow(token, spreadsheetId, tab, headers);
 }
 
 async function ensureUserRolesTab(token: string, spreadsheetId: string): Promise<void> {
@@ -493,15 +535,27 @@ async function ensureAdminTabs(token: string, spreadsheetId: string): Promise<vo
   await ensureNewsletterDraftTab(token, spreadsheetId);
 }
 
-async function withSpreadsheetAccess(): Promise<{
+async function withSpreadsheetAccess(options?: {
+  ensureStructure?: boolean;
+}): Promise<{
   token: string;
   spreadsheetId: string;
 } | null> {
   const account = parseServiceAccount();
   if (!account) return null;
-  const token = await getAccessToken(account);
-  const spreadsheetId = await ensureSpreadsheet(token);
-  await ensureAdminTabs(token, spreadsheetId);
+  const token = await getCachedAccessToken(account);
+
+  let spreadsheetId = getStoredSpreadsheetId();
+  if (!spreadsheetId) {
+    if (!options?.ensureStructure) return null;
+    spreadsheetId = await ensureSpreadsheet(token);
+    return { token, spreadsheetId };
+  }
+
+  if (options?.ensureStructure) {
+    await ensureSpreadsheetStructure(token, spreadsheetId);
+  }
+
   return { token, spreadsheetId };
 }
 
@@ -605,7 +659,7 @@ export async function readManualUserRowsFromSheet(): Promise<ManualUserSheetRow[
 }
 
 export async function appendManualUserToSheet(user: ManualUserSheetRow): Promise<boolean> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) return false;
 
   await ensureManualUsersTab(access.token, access.spreadsheetId);
@@ -639,7 +693,7 @@ export async function persistKnownUsersToSheet(
     }
   >
 ): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }
@@ -733,7 +787,7 @@ export async function persistUserRolesToSheet(
   roles: Record<string, string>,
   meta?: { updatedBy?: string; names?: Record<string, string> }
 ): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }
@@ -802,7 +856,7 @@ export interface NewsletterEditionSheetRow {
 }
 
 export async function appendNewsUpdateToSheet(row: NewsUpdateSheetRow): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }
@@ -859,7 +913,7 @@ export async function readNewsUpdatesFromSheet(): Promise<NewsUpdateSheetRow[]> 
 }
 
 export async function persistNewsUpdatesToSheet(rows: NewsUpdateSheetRow[]): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }
@@ -908,7 +962,7 @@ export async function persistNewsUpdatesToSheet(rows: NewsUpdateSheetRow[]): Pro
 export async function appendNewsletterEditionToSheet(
   edition: NewsletterEditionSheetRow
 ): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }
@@ -1008,7 +1062,7 @@ export async function appendNewsletterSubscriberToSheet(
   email: string,
   source: string
 ): Promise<boolean> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) return false;
 
   await ensureSheetTab(access.token, access.spreadsheetId, TAB_NEWSLETTER, HEADERS[TAB_NEWSLETTER]);
@@ -1039,7 +1093,7 @@ export async function persistNewsletterDraftToSheet(
     markdown: string;
   } | null
 ): Promise<void> {
-  const access = await withSpreadsheetAccess();
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) {
     throw new Error("Google Sheets service account is not configured");
   }

@@ -8,7 +8,7 @@ import {
 import { DEFAULT_ROLE, UserRole } from "@/types/roles";
 
 const ROLES_FILE = "user-roles.json";
-const CACHE_TTL_MS = 15_000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let cachedRoles: UserRolesConfig | null = null;
 let cacheLoadedAt = 0;
@@ -47,10 +47,12 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
+    const local = readLocalRolesFile();
+
     if (isRolesPersistenceConfigured()) {
       const fromSheets = await loadRolesFromPersistentStore();
       if (fromSheets) {
-        cachedRoles = fromSheets;
+        cachedRoles = { ...fromSheets, ...local };
         cacheLoadedAt = Date.now();
         return;
       }
@@ -59,7 +61,7 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
       );
     }
 
-    cachedRoles = readLocalRolesFile();
+    cachedRoles = local;
     cacheLoadedAt = Date.now();
   })();
 
@@ -100,17 +102,18 @@ export async function setUserRole(
   const roles = { ...getRolesSnapshot() };
   roles[normalized] = role;
 
+  cachedRoles = roles;
+  cacheLoadedAt = Date.now();
+  writeLocalRolesFile(roles);
+
   if (isRolesPersistenceConfigured()) {
     const saved = await saveRolesToPersistentStore(roles, { updatedBy });
     if (!saved) {
-      throw new Error("Failed to persist role assignment to Google Sheets");
+      console.warn(
+        `Role assigned locally for ${normalized} but Google Sheets sync failed — will retry on next load`
+      );
     }
-  } else {
-    writeLocalRolesFile(roles);
   }
-
-  cachedRoles = roles;
-  cacheLoadedAt = Date.now();
 }
 
 export async function removeUserRole(email: string, updatedBy?: string): Promise<boolean> {
@@ -121,16 +124,18 @@ export async function removeUserRole(email: string, updatedBy?: string): Promise
   if (!(normalized in roles)) return false;
   delete roles[normalized];
 
+  cachedRoles = roles;
+  cacheLoadedAt = Date.now();
+  writeLocalRolesFile(roles);
+
   if (isRolesPersistenceConfigured()) {
     const saved = await saveRolesToPersistentStore(roles, { updatedBy });
     if (!saved) {
-      throw new Error("Failed to persist role removal to Google Sheets");
+      console.warn(
+        `Role removed locally for ${normalized} but Google Sheets sync failed — will retry on next load`
+      );
     }
-  } else {
-    writeLocalRolesFile(roles);
   }
 
-  cachedRoles = roles;
-  cacheLoadedAt = Date.now();
   return true;
 }

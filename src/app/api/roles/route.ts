@@ -48,8 +48,8 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await ensureRolesLoaded(true);
-  await ensureKnownUsersLoaded(true);
+  await ensureRolesLoaded();
+  await ensureKnownUsersLoaded();
 
   const assignments = getAllUserRoles().map(({ email, role }) => ({
     email,
@@ -121,7 +121,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Role assignment failed:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
