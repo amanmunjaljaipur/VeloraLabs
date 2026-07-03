@@ -5,6 +5,7 @@ import { SessionAgenda } from "@/components/sections/SessionAgenda";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
 import { SessionFaq } from "@/components/sections/SessionFaq";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { FreeSessionBooking } from "./FreeSessionBooking";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAudiences, getFreeSession, getTestimonials } from "@/lib/content";
@@ -40,17 +41,16 @@ export default async function FreeSessionPage() {
 
       <SessionAgenda agenda={freeSession.agenda} />
 
-      <section className="py-16 md:py-20 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
-              Sessions tailored to your background
-            </h2>
-            <p className="mt-3 text-text-secondary">
-              Select your audience type when booking — content adapts for students, engineers, and professionals.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <section className="section-y bg-muted/30">
+        <div className="container-verlin">
+          <SectionHeader
+            eyebrow="Audience paths"
+            title="Sessions tailored to your background"
+            subtitle="Select your audience type when booking — content adapts for students, engineers, and professionals."
+            align="left"
+            className="mb-12"
+          />
+          <div className="grid gap-6 md:grid-cols-3">
             {audiences.map((a) => (
               <AudienceCard
                 key={a.slug}
@@ -65,9 +65,14 @@ export default async function FreeSessionPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-10">What attendees say</h2>
+      <section className="section-y">
+        <div className="container-verlin">
+          <SectionHeader
+            eyebrow="Testimonials"
+            title="What attendees say"
+            align="left"
+            className="mb-12"
+          />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {testimonials.slice(0, 3).map((t) => (
               <TestimonialCard key={t.id} {...t} />

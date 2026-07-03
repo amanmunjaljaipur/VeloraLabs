@@ -8,9 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 const audienceImages: Record<AudienceSlug, string> = {
-  students: "/images/students.jpg",
-  engineers: "/images/engineers.jpg",
-  professionals: "/images/professionals.jpg",
+  students: "/images/audience-students-premium.jpg",
+  engineers: "/images/audience-engineers-premium.jpg",
+  professionals: "/images/audience-professionals-premium.jpg",
 };
 
 const audienceLabels: Record<AudienceSlug, string> = {
@@ -45,12 +45,14 @@ export function AudienceCoursePage({
 
   return (
     <>
-      <section className="relative border-b border-border overflow-hidden">
+      <section className="relative overflow-hidden border-b border-border/80">
         <div className="absolute inset-0">
           <Image src={audienceImages[slug]} alt="" fill className="object-cover" sizes="100vw" priority />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/92 to-background/75" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/94 to-background/70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-14 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="pattern-grid absolute inset-0 opacity-30" aria-hidden="true" />
+        <div className="container-verlin relative flex flex-col gap-4 py-12 md:py-16 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-teal uppercase tracking-wider">
               {isMyCourse ? "My Course" : audienceLabels[slug]}

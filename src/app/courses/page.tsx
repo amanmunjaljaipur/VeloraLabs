@@ -2,8 +2,10 @@ import { auth } from "@/auth";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAllCourseTracks } from "@/lib/content";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
 import type { Metadata } from "next";
@@ -25,6 +27,12 @@ const labels = {
   professionals: "Product Managers",
 };
 
+const trackImages = {
+  students: "/images/audience-students-premium.jpg",
+  engineers: "/images/audience-engineers-premium.jpg",
+  professionals: "/images/audience-professionals-premium.jpg",
+};
+
 export default async function CoursesPage() {
   const tracks = getAllCourseTracks();
   const session = await auth();
@@ -35,12 +43,15 @@ export default async function CoursesPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Learning tracks"
         title="Programs"
         subtitle={
           isEnrolled
             ? "Browse all Verlin Labs programs, or go to My Course to continue your enrolled track."
             : "Choose the program that fits your stage — each track includes the full syllabus and session structure."
         }
+        image="/images/presentation.jpg"
+        imageAlt="Structured learning programs"
       />
 
       {isEnrolled && (
@@ -59,18 +70,29 @@ export default async function CoursesPage() {
         </section>
       )}
 
-      <section className="pb-16 md:pb-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <section className="section-y">
+        <div className="container-verlin">
           <div className="grid gap-6 md:grid-cols-3">
             {tracks.map(({ slug, course }) => {
               const Icon = icons[slug];
               const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
               return (
                 <Link key={slug} href={`/for/${slug}`} className="block h-full group">
-                  <Card hover className="h-full flex flex-col">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal/10 text-teal mb-4 group-hover:bg-teal/20 transition-colors">
-                      <Icon className="h-6 w-6" />
+                  <Card hover className="flex h-full flex-col overflow-hidden p-0">
+                    <div className="relative h-40 overflow-hidden">
+                      <Image
+                        src={trackImages[slug]}
+                        alt=""
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="400px"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+                      <div className="absolute bottom-3 left-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-card/90 text-accent-teal shadow-sm backdrop-blur-sm">
+                        <Icon className="h-5 w-5" />
+                      </div>
                     </div>
+                    <div className="flex flex-1 flex-col p-6 md:p-8">
                     <p className="text-xs font-medium text-teal uppercase tracking-wider">
                       {labels[slug]}
                     </p>
@@ -87,10 +109,11 @@ export default async function CoursesPage() {
                           {course.duration} · {dayCount} days
                         </p>
                       </div>
-                      <span className="flex items-center gap-1 text-sm font-medium text-teal group-hover:gap-2 transition-all">
+                      <span className="flex items-center gap-1 text-sm font-medium text-teal transition-all group-hover:gap-2">
                         {isEnrolled ? "View syllabus" : "View program"}{" "}
                         <ArrowRight className="h-4 w-4" />
                       </span>
+                    </div>
                     </div>
                   </Card>
                 </Link>
@@ -101,15 +124,21 @@ export default async function CoursesPage() {
       </section>
 
       {!isEnrolled && (
-        <section className="py-16 bg-muted/30 text-center">
-          <div className="mx-auto max-w-2xl px-4 md:px-8">
-            <h2 className="text-2xl font-semibold mb-4">Not sure which program fits?</h2>
-            <p className="text-text-secondary mb-8">
-              Start with a free 2-hour session — we&apos;ll help you pick the right path.
-            </p>
-            <Link href="/free-session">
-              <Button size="lg">Book Free 2-Hour Session</Button>
-            </Link>
+        <section className="section-y bg-muted/30">
+          <div className="container-verlin">
+            <SectionHeader
+              eyebrow="Get started"
+              title="Not sure which program fits?"
+              subtitle="Start with a free 2-hour session — we'll help you pick the right path."
+              className="mb-8"
+            />
+            <div className="text-center">
+              <Link href="/free-session">
+                <Button size="lg" variant="cta" className="shadow-glow-amber">
+                  Book Free 2-Hour Session
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       )}

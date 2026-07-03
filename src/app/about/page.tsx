@@ -13,10 +13,13 @@ export default async function AboutPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Our mission"
         title={(frontmatter.title as string) || "About Verlin Labs"}
         subtitle={frontmatter.subtitle as string}
+        align="center"
+        compact
       />
-      <section className="pb-16 md:pb-24">
+      <section className="section-y">
         <div
           className="prose-verlin mx-auto max-w-3xl px-4 md:px-8"
           dangerouslySetInnerHTML={{ __html: html }}

@@ -17,13 +17,16 @@ export default function MentalModelsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Frameworks"
         title="Mental Models Hub"
         subtitle="Reusable frameworks with full explanations, real-world examples, and step-by-step application — not just definitions."
+        image="/images/mental-models.jpg"
+        imageAlt="Mental models for understanding complex ideas"
       />
 
-      <section className="border-b border-border bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-          <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">
+      <section className="border-b border-border/80 bg-muted/20">
+        <div className="container-verlin py-8">
+          <p className="max-w-3xl text-body text-sm">
             Each model includes an overview, key principles, how to apply it, examples, common mistakes,
             and a concise takeaway — structured like professional concept guides used in top learning
             platforms.
@@ -31,12 +34,12 @@ export default function MentalModelsPage() {
         </div>
       </section>
 
-      <section className="pb-16 md:pb-24 pt-10">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <section className="section-y pt-10">
+        <div className="container-verlin">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {models.map((model) => (
               <Link key={model.slug} href={`/mental-models/${model.slug}`} className="group block h-full">
-                <Card hover className="flex h-full flex-col">
+                <Card hover className="flex h-full flex-col group-hover:border-accent-teal/25">
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant="difficulty">{model.difficulty}</Badge>
                     <span className="inline-flex items-center gap-1 text-xs text-text-secondary">

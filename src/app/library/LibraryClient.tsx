@@ -60,12 +60,15 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
   return (
     <>
       <PageHeader
+        eyebrow="Resources"
         title="Content Library"
         subtitle="Articles, guides, and workshops — organized for clarity."
+        image="/images/ai-learning.jpg"
+        imageAlt="Curated AI learning resources"
       />
 
-      <section className="pb-16 md:pb-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <section className="section-y">
+        <div className="container-verlin">
           <div className="relative mb-8 max-w-xl">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
             <Input
@@ -77,7 +80,7 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
             />
           </div>
 
-          <div className="mb-10 space-y-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+          <div className="card-verlin mb-10 space-y-6 p-5 md:p-6">
             <FilterTabs label="Level" options={levelOptions} value={level} onChange={setLevel} />
             <FilterTabs
               label="Audience"

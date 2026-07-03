@@ -1,44 +1,63 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
 export function ContactHero() {
   return (
-    <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-navy/5 via-background to-accent-teal/5">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-8 md:py-24 lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-wider text-accent-teal">Contact</p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
-            Let&apos;s talk about clarity-first learning
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-text-secondary">
-            Whether you&apos;re booking a session, exploring team programs, or pitching a
-            partnership — we respond thoughtfully and without pressure.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="#contact-form">
-              <Button size="lg" className="w-full sm:w-auto">
-                Send a message
-              </Button>
-            </Link>
-            <Link href="/free-session">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Book free session
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <section className="relative overflow-hidden border-b border-border/80 bg-hero-mesh">
+      <div className="pattern-grid absolute inset-0 opacity-50" aria-hidden="true" />
+      <div className="hero-orb hero-orb-teal -left-20 top-12 h-56 w-56" aria-hidden="true" />
+      <div className="hero-orb hero-orb-navy bottom-0 right-1/4 h-64 w-64" aria-hidden="true" />
 
-        <div className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-2xl border border-border shadow-xl lg:max-w-none">
-          <Image
-            src="/images/contact-hero.jpg"
-            alt=""
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-navy/20 to-transparent" />
+      <div className="container-verlin relative py-16 md:py-24">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="section-eyebrow mb-4">Contact</p>
+            <h1 className="text-display font-semibold">
+              Let&apos;s talk about{" "}
+              <span className="text-gradient-teal">clarity-first</span> learning
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-text-secondary">
+              Whether you&apos;re booking a session, exploring team programs, or pitching a
+              partnership — we respond thoughtfully and without pressure.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="#contact-form">
+                <Button size="lg" variant="cta" className="w-full shadow-glow-amber sm:w-auto">
+                  Send a message
+                </Button>
+              </Link>
+              <Link href="/free-session">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                  Book free session
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 shadow-lg surface-elevated lg:max-w-none"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.1 }}
+          >
+            <Image
+              src="/images/contact-hero.jpg"
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-navy/30 via-transparent to-accent-teal/15" />
+          </motion.div>
         </div>
       </div>
     </section>
