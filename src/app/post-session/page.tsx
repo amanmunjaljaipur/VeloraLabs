@@ -62,7 +62,7 @@ export default async function PostSessionPage() {
                   <CoursePrice price={courses.price} size="md" />
                   <p className="text-sm text-text-secondary mt-1">{courses.duration}</p>
                   <Link href="/courses#enroll" className="block mt-6">
-                    <Button className="w-full" size="lg">Enroll in Full Program</Button>
+                    <Button className="w-full" size="lg">Enroll in a Course</Button>
                   </Link>
                 </div>
               )}

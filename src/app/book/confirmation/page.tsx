@@ -73,7 +73,7 @@ function ConfirmationContent() {
             <Button variant="secondary">Back to Home</Button>
           </Link>
           <Link href="/courses">
-            <Button>Explore Full Program</Button>
+            <Button>Explore Courses</Button>
           </Link>
         </div>
       </div>

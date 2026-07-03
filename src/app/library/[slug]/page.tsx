@@ -1,3 +1,5 @@
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { LibraryArticle } from "@/components/sections/LibraryArticle";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { Button } from "@/components/ui/Button";
@@ -35,8 +37,18 @@ export default async function LibraryDetailPage({
     (entry) => entry.slug !== item.slug && item.relatedSlugs.includes(entry.slug)
   );
 
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Library", href: "/library" },
+    { label: item.title },
+  ];
+
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath={`/library/${slug}`} />
+      <div className="container-verlin border-b border-border/80 bg-hero-mesh py-4">
+        <Breadcrumbs items={breadcrumbs} />
+      </div>
       <LibraryArticle item={item} />
 
       {related.length > 0 && (

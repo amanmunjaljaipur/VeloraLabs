@@ -1,5 +1,6 @@
 "use client";
 
+import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -14,6 +15,7 @@ interface PageHeaderProps {
   imageAlt?: string;
   align?: "left" | "center";
   compact?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
   children?: React.ReactNode;
   cta?: { label: string; href: string; variant?: "primary" | "secondary" | "cta" };
 }
@@ -26,6 +28,7 @@ export function PageHeader({
   imageAlt = "",
   align = "left",
   compact,
+  breadcrumbs,
   children,
   cta,
 }: PageHeaderProps) {
@@ -56,6 +59,11 @@ export function PageHeader({
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className={cn(centered && !image && "mx-auto")}
           >
+            {breadcrumbs && breadcrumbs.length > 0 && (
+              <div className={cn("mb-4", centered && !image && "flex justify-center")}>
+                <Breadcrumbs items={breadcrumbs} />
+              </div>
+            )}
             {eyebrow && <p className="section-eyebrow mb-4">{eyebrow}</p>}
             <h1 className="text-display font-semibold">{title}</h1>
             {subtitle && (

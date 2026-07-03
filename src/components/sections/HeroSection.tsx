@@ -64,7 +64,7 @@ export function HeroSection() {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-start md:mt-10">
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start md:mt-10">
               <div className="flex w-full flex-col sm:w-auto">
                 <ButtonLink
                   href="/free-session"
@@ -78,6 +78,15 @@ export function HeroSection() {
                   No commitment · Book in 2 minutes
                 </p>
               </div>
+              <ButtonLink
+                href="/courses"
+                variant="secondary"
+                size="lg"
+                delay={0.12}
+                className="w-full"
+              >
+                View Courses <ArrowRight className="h-4 w-4" />
+              </ButtonLink>
               <ButtonLink
                 href="/library"
                 variant="secondary"

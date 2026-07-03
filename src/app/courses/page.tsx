@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -42,9 +43,16 @@ export default async function CoursesPage() {
     ? isEnrolledLearner(session.user.email, session.user.role)
     : false;
 
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Courses" },
+  ];
+
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/courses" />
       <PageHeader
+        breadcrumbs={breadcrumbs}
         eyebrow="Learning tracks"
         title="Courses"
         subtitle={
@@ -128,7 +136,7 @@ export default async function CoursesPage() {
           <div className="container-verlin">
             <SectionHeader
               eyebrow="Get started"
-              title="Not sure which program fits?"
+              title="Not sure which course fits?"
               subtitle="Start with a free 2-hour session — we'll help you pick the right path."
               className="mb-8"
             />

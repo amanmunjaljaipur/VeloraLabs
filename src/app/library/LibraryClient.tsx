@@ -1,5 +1,6 @@
 "use client";
 
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -71,9 +72,16 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
     setType("");
   };
 
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Library" },
+  ];
+
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/library" />
       <PageHeader
+        breadcrumbs={breadcrumbs}
         eyebrow="Resources"
         title="Content Library"
         subtitle="Articles, guides, and workshops — organized for clarity."

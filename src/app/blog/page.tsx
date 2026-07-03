@@ -1,3 +1,4 @@
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getLibraryItems } from "@/lib/content";
 import { createMetadata } from "@/lib/seo";
@@ -15,9 +16,16 @@ export default function BlogPage() {
     ["Article", "Guide", "Workshop"].includes(item.type)
   );
 
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Blog" },
+  ];
+
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/blog" />
       <PageHeader
+        breadcrumbs={breadcrumbs}
         eyebrow="Blog"
         title="Ideas worth understanding"
         subtitle="Clarity-first articles on AI fundamentals, product thinking, and the mental models that make complex technology stick."
