@@ -1024,6 +1024,106 @@ export interface NewsletterSubscriberSheetRow {
   subscribedAt: string;
 }
 
+export interface BookingSheetRow {
+  timestamp: string;
+  bookingId: string;
+  status: string;
+  name: string;
+  email: string;
+  audience: string;
+  audienceLabel: string;
+  sessionTitle: string;
+  sessionDuration: string;
+  date: string;
+  time: string;
+  timezone: string;
+  source: string;
+}
+
+export interface ContactSheetRow {
+  timestamp: string;
+  name: string;
+  email: string;
+  message: string;
+  source: string;
+}
+
+export async function readBookingRowsFromSheet(): Promise<BookingSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  await ensureSheetTab(access.token, access.spreadsheetId, TAB_FREE_SESSION, HEADERS[TAB_FREE_SESSION]);
+
+  const range = `'${TAB_FREE_SESSION}'!A2:M`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read bookings: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: BookingSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const email = row[4]?.trim().toLowerCase();
+    if (!email) continue;
+    rows.push({
+      timestamp: row[0]?.trim() ?? "",
+      bookingId: row[1]?.trim() ?? "",
+      status: row[2]?.trim() ?? "Confirmed",
+      name: row[3]?.trim() ?? "",
+      email,
+      audience: row[5]?.trim() ?? "",
+      audienceLabel: row[6]?.trim() ?? "",
+      sessionTitle: row[7]?.trim() ?? "",
+      sessionDuration: row[8]?.trim() ?? "",
+      date: row[9]?.trim() ?? "",
+      time: row[10]?.trim() ?? "",
+      timezone: row[11]?.trim() ?? "",
+      source: row[12]?.trim() || "Website",
+    });
+  }
+
+  return rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+}
+
+export async function readContactRowsFromSheet(): Promise<ContactSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  await ensureSheetTab(access.token, access.spreadsheetId, TAB_CONTACT, HEADERS[TAB_CONTACT]);
+
+  const range = `'${TAB_CONTACT}'!A2:E`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read contact submissions: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: ContactSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const email = row[2]?.trim().toLowerCase();
+    if (!email) continue;
+    rows.push({
+      timestamp: row[0]?.trim() ?? "",
+      name: row[1]?.trim() ?? "",
+      email,
+      message: row[3]?.trim() ?? "",
+      source: row[4]?.trim() || "Website",
+    });
+  }
+
+  return rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+}
+
 export async function readNewsletterSubscriberRowsFromSheet(): Promise<
   NewsletterSubscriberSheetRow[]
 > {
