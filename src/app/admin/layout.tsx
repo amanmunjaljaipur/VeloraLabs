@@ -1,4 +1,3 @@
-import { AdminLayoutShell } from "@/components/admin/AdminLayoutShell";
 import { auth } from "@/auth";
 import { isAdminRole } from "@/lib/session-access";
 import { redirect } from "next/navigation";
@@ -14,5 +13,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/");
   }
 
-  return <AdminLayoutShell role={session.user.role}>{children}</AdminLayoutShell>;
+  return (
+    <div className="container-verlin py-6 md:py-8">
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { VerlinLogo } from "@/components/ui/VerlinLogo";
 import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/roles";
@@ -21,6 +20,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+const HIDDEN_PREFIXES = ["/login", "/signup"];
 
 const ICONS: Record<string, LucideIcon> = {
   "/admin/analytics": BarChart3,
@@ -51,8 +52,9 @@ export function AdminSidebar({ role, collapsed = false, onToggle }: AdminSidebar
   const pathname = usePathname();
   const links = getAdminMenuLinks(role);
   const isSuperAdmin = isSuperAdminRole(role);
+  const hidden = HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-  if (links.length === 0) return null;
+  if (links.length === 0 || hidden) return null;
 
   return (
     <>
@@ -99,19 +101,7 @@ export function AdminSidebar({ role, collapsed = false, onToggle }: AdminSidebar
         >
           <div
             className={cn(
-              "flex items-center",
-              collapsed ? "justify-center px-1 py-2" : "gap-2 px-2 py-2"
-            )}
-          >
-            <VerlinLogo
-              variant={collapsed ? "icon" : "full"}
-              className={cn(collapsed && "justify-center")}
-            />
-          </div>
-
-          <div
-            className={cn(
-              "mt-2 flex items-center border-b border-border pb-3",
+              "flex items-center border-b border-border pb-3",
               collapsed ? "justify-center px-1" : "gap-2 px-2"
             )}
           >

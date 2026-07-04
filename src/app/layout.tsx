@@ -4,31 +4,69 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import { AdminSiteChrome } from "@/components/admin/AdminSiteChrome";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
+import { LegalAcceptanceGateLoader } from "@/components/legal/LegalAcceptanceGateLoader";
+import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { WebSiteJsonLd } from "@/components/seo/WebSiteJsonLd";
 import { getSiteConfig } from "@/lib/content";
-import { buildFooterLinkGroups } from "@/lib/site-nav";
+import { buildFooterLinkGroups, getHeaderNavLinks } from "@/lib/site-sitemap";
+import { SITE_NAME, SITE_ORIGIN } from "@/lib/seo";
+
+function buildSiteVerification(): Metadata["verification"] | undefined {
+  const verification: NonNullable<Metadata["verification"]> = {};
+  const google = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+  const bing = process.env.BING_SITE_VERIFICATION?.trim();
+
+  if (google) verification.google = google;
+  if (bing) {
+    verification.other = { ...(verification.other ?? {}), "msvalidate.01": bing };
+  }
+
+  return Object.keys(verification).length > 0 ? verification : undefined;
+}
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
+const siteVerification = buildSiteVerification();
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: "Verlin Labs | Clarity-First Learning for the AI Age",
-    template: "%s | Verlin Labs",
+    default: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
+    template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+    "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
+  keywords: [
+    "AI training India",
+    "AI course for product managers",
+    "AI training for students",
+    "mental models AI",
+    "Verlin Labs",
+  ],
+  applicationName: SITE_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Verlin Labs | Clarity-First Learning for the AI Age",
+    title: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
     description:
-      "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+      "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
     type: "website",
-    siteName: "Verlin Labs",
+    url: "/",
+    siteName: SITE_NAME,
+    locale: "en_IN",
     images: [
       {
         url: "/images/hero-side.jpg",
@@ -40,11 +78,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Verlin Labs | Clarity-First Learning for the AI Age",
+    title: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
     description:
-      "Understand complex AI concepts through clear mental models. Free 2-hour sessions and hands-on programs.",
+      "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
     images: ["/images/hero-side.jpg"],
   },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
+  ...(siteVerification ? { verification: siteVerification } : {}),
 };
 
 export default function RootLayout({
@@ -56,26 +99,40 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <link
+          rel="sitemap"
+          type="application/xml"
+          title="Sitemap"
+          href={`${SITE_ORIGIN}/sitemap.xml`}
+        />
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
+      </head>
       <body className="min-h-full flex flex-col antialiased">
         <SessionProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <a
-              href="#main"
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:bg-deep-teal focus:px-4 focus:py-2 focus:text-white"
-            >
-              Skip to content
-            </a>
-            <Navbar nav={site.nav} />
-            <main id="main" className="flex-1">{children}</main>
-            <Footer
-              tagline={site.footer.tagline}
-              linkGroups={buildFooterLinkGroups(site.nav)}
-              social={site.footer.social}
-            />
-            <ChatWidgetLoader />
-          </ToastProvider>
-        </ThemeProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <a
+                href="#main"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:bg-deep-teal focus:px-4 focus:py-2 focus:text-white"
+              >
+                Skip to content
+              </a>
+              <Navbar nav={getHeaderNavLinks()} />
+              <AdminSiteChrome>
+                <main id="main" className="flex-1">{children}</main>
+              </AdminSiteChrome>
+              <Footer
+                tagline={site.footer.tagline}
+                linkGroups={buildFooterLinkGroups()}
+                social={site.footer.social}
+                contact={site.footer.contact}
+              />
+              <ChatWidgetLoader />
+              <LegalAcceptanceGateLoader />
+            </ToastProvider>
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>
