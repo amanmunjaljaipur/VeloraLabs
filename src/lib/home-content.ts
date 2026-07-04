@@ -4,8 +4,7 @@ export const HOME_HERO = {
   headline: "Clarity-first learning for the AI age",
   subheadline:
     "Master the frameworks that matter in our rapidly changing world. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
-  illustration: "/images/hero-home.jpg",
-  /** Graphic-only crop — left portion with baked-in copy is clipped in HeroSection */
+  illustration: "/images/hero-home-visual.jpg",
   illustrationAlt: "Abstract neural network visualization for AI learning",
 };
 
