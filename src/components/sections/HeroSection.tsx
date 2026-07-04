@@ -17,18 +17,19 @@ export function HeroSection() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="overflow-hidden bg-[#0a1628] text-white">
+    <section className="hero-dark overflow-hidden bg-[#0a1628]">
       <div className="grid lg:min-h-[min(88vh,820px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         {/* Copy — solid navy only; never layered on the hero image */}
         <div className="relative z-10 flex items-center bg-[#0a1628] px-4 py-14 sm:px-6 md:py-16 lg:px-8 lg:py-20 xl:px-12">
           <motion.div
-            className="mx-auto w-full max-w-2xl lg:mx-0"
+            className="hero-dark mx-auto w-full max-w-2xl lg:mx-0"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: EASE_OUT }}
           >
             <motion.div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm backdrop-blur-sm"
+              style={{ color: "rgb(248 250 252 / 0.92)" }}
               initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
               animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
               transition={{ delay: 0.1, duration: 0.4, ease: EASE_OUT }}
@@ -37,12 +38,17 @@ export function HeroSection() {
               Clarity-first learning · Verlin Labs
             </motion.div>
 
-            <h1 className="max-w-xl text-[clamp(2.125rem,5.5vw,4rem)] font-extrabold leading-[1.08] tracking-tight text-white">
+            <h1
+              className="max-w-xl text-[clamp(2.125rem,5.5vw,4rem)] font-extrabold leading-[1.08] tracking-tight"
+              style={{ color: "#ffffff" }}
+            >
               Clarity-first learning for the{" "}
-              <span className="text-sky-300">AI age</span>
+              <span className="hero-headline-accent" style={{ color: "#7dd3fc" }}>
+                AI age
+              </span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/90 md:mt-6 md:text-xl">
+            <p className="hero-subtext mt-5 max-w-xl text-lg leading-relaxed md:mt-6 md:text-xl">
               {HOME_HERO.subheadline}
             </p>
 
@@ -55,9 +61,9 @@ export function HeroSection() {
                   transition={{ delay: 0.2 + i * 0.06, duration: 0.35, ease: EASE_OUT }}
                   className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs backdrop-blur-sm"
                 >
-                  <span className="font-semibold text-white">{stat.value}</span>
-                  <span className="mx-1.5 text-white/45">·</span>
-                  <span className="text-white/80">{stat.label}</span>
+                  <span className="font-semibold" style={{ color: "#ffffff" }}>{stat.value}</span>
+                  <span className="mx-1.5 hero-muted">·</span>
+                  <span className="hero-muted">{stat.label}</span>
                 </motion.div>
               ))}
             </div>
@@ -73,7 +79,7 @@ export function HeroSection() {
                 >
                   Start Free 2-Hour Session
                 </ButtonLink>
-                <p className="mt-2.5 text-center text-xs text-white/55 sm:text-left">
+                <p className="hero-muted mt-2.5 text-center text-xs sm:text-left">
                   No commitment · Book in 2 minutes
                 </p>
               </div>
