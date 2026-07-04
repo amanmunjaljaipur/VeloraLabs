@@ -62,38 +62,44 @@ export function HeroSection() {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start md:mt-10">
-              <div className="flex w-full flex-col sm:w-auto">
+            <div className="mt-8 md:mt-10">
+              <div className="max-w-md">
                 <ButtonLink
                   href="/free-session"
                   variant="cta"
                   size="lg"
-                  className="w-full shadow-glow-amber"
+                  className="w-full justify-center shadow-glow-amber sm:w-full"
+                  fullWidth
                 >
                   Start Free 2-Hour Session
                 </ButtonLink>
-                <p className="mt-2 text-center text-xs text-white/55 sm:text-left">
+                <p className="mt-2.5 text-center text-xs text-white/55 sm:text-left">
                   No commitment · Book in 2 minutes
                 </p>
               </div>
-              <ButtonLink
-                href="/courses"
-                variant="secondary"
-                size="lg"
-                delay={0.12}
-                className="w-full border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white sm:w-auto"
-              >
-                View Courses <ArrowRight className="h-4 w-4" />
-              </ButtonLink>
-              <ButtonLink
-                href="/library"
-                variant="secondary"
-                size="lg"
-                delay={0.15}
-                className="w-full border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white sm:w-auto"
-              >
-                Explore the Library <ArrowRight className="h-4 w-4" />
-              </ButtonLink>
+
+              <div className="mt-4 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
+                <ButtonLink
+                  href="/courses"
+                  variant="secondary"
+                  size="lg"
+                  delay={0.12}
+                  fullWidth
+                  className="w-full justify-center border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                >
+                  View Courses <ArrowRight className="h-4 w-4" />
+                </ButtonLink>
+                <ButtonLink
+                  href="/library"
+                  variant="secondary"
+                  size="lg"
+                  delay={0.15}
+                  fullWidth
+                  className="w-full justify-center border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                >
+                  Explore Library <ArrowRight className="h-4 w-4" />
+                </ButtonLink>
+              </div>
             </div>
           </motion.div>
         </div>

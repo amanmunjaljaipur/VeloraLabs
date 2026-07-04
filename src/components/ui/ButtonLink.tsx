@@ -12,6 +12,8 @@ interface ButtonLinkProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   className?: string;
+  /** Keep the link full width at all breakpoints (useful in grids). */
+  fullWidth?: boolean;
   /** Entrance animation delay (seconds) */
   delay?: number;
 }
@@ -22,13 +24,14 @@ export function ButtonLink({
   variant = "primary",
   size = "md",
   className,
+  fullWidth = false,
   delay = 0,
 }: ButtonLinkProps) {
   const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      className="inline-flex w-full sm:w-auto"
+      className={cn("inline-flex w-full", !fullWidth && "sm:w-auto")}
       initial={reduceMotion ? false : { opacity: 0, y: 20, scale: 0.95 }}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, delay, ease: EASE_OUT }}
@@ -47,7 +50,10 @@ export function ButtonLink({
           : { scale: HOVER.tapScale, transition: { duration: DURATION.press, ease: EASE_OUT } }
       }
     >
-      <Link href={href} className={cn(buttonClassNames(variant, size), "w-full sm:w-auto", className)}>
+      <Link
+        href={href}
+        className={cn(buttonClassNames(variant, size), "w-full", !fullWidth && "sm:w-auto", className)}
+      >
         {children}
       </Link>
     </motion.div>
