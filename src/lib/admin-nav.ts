@@ -12,14 +12,34 @@ export interface AdminNavLink {
 
 export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
+    label: "Analytics",
+    href: "/admin/analytics",
+    description: "Bookings, leads, learners, and trends",
+  },
+  {
+    label: "Site CMS",
+    href: "/admin/site-cms",
+    description: "Edit pages, copy, images, and content",
+  },
+  {
+    label: "CRM",
+    href: "/admin/crm",
+    description: "Bookings, contacts, subscribers, people",
+  },
+  {
     label: "Role Assignment",
     href: "/admin/role-assignment",
     description: "Assign roles by email",
   },
   {
+    label: "Legal Policies",
+    href: "/admin/legal",
+    description: "Terms, privacy, and refund policy CMS",
+  },
+  {
     label: "Session Videos",
     href: "/admin/sessions",
-    description: "Manage course recordings",
+    description: "Manage recordings and learner comments",
   },
   {
     label: "Chatbot Training",
