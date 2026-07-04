@@ -3,10 +3,10 @@ import type { AccordionItem } from "@/components/ui/Accordion";
 export const HOME_HERO = {
   headline: "Clarity-first learning for the AI age",
   subheadline:
-    "Clear mental models for complex AI ideas. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
-  illustration: "/images/hero-illustration.jpg",
+    "Master the frameworks that matter in our rapidly changing world. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
+  illustration: "/images/hero-home.jpg",
   illustrationAlt:
-    "Illustration of complex ideas transforming into clear mental model frameworks through connected pathways",
+    "Abstract neural network visualization representing clarity-first AI learning",
 };
 
 export const WHAT_WE_COVER = [
