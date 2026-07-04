@@ -5,8 +5,8 @@ export const HOME_HERO = {
   subheadline:
     "Master the frameworks that matter in our rapidly changing world. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
   illustration: "/images/hero-home.jpg",
-  illustrationAlt:
-    "Abstract neural network visualization representing clarity-first AI learning",
+  /** Graphic-only crop — left portion with baked-in copy is clipped in HeroSection */
+  illustrationAlt: "Abstract neural network visualization for AI learning",
 };
 
 export const WHAT_WE_COVER = [

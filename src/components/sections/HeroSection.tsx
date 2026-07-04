@@ -17,10 +17,10 @@ export function HeroSection() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="overflow-hidden bg-[#0a1628]">
-      <div className="grid min-h-[min(88vh,820px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        {/* Copy column — solid background only, no hero image behind text */}
-        <div className="relative z-10 flex items-center px-4 py-14 sm:px-6 md:py-16 lg:px-8 lg:py-20 xl:px-12">
+    <section className="overflow-hidden bg-[#0a1628] text-white">
+      <div className="grid lg:min-h-[min(88vh,820px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        {/* Copy — solid navy only; never layered on the hero image */}
+        <div className="relative z-10 flex items-center bg-[#0a1628] px-4 py-14 sm:px-6 md:py-16 lg:px-8 lg:py-20 xl:px-12">
           <motion.div
             className="mx-auto w-full max-w-2xl lg:mx-0"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
@@ -37,7 +37,7 @@ export function HeroSection() {
               Clarity-first learning · Verlin Labs
             </motion.div>
 
-            <h1 className="text-display font-semibold leading-[1.08] text-white">
+            <h1 className="max-w-xl text-[clamp(2.125rem,5.5vw,4rem)] font-extrabold leading-[1.08] tracking-tight text-white">
               Clarity-first learning for the{" "}
               <span className="text-sky-300">AI age</span>
             </h1>
@@ -104,22 +104,18 @@ export function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Visual column — cropped to neural graphic only (hides baked-in image text) */}
-        <div className="relative min-h-[240px] sm:min-h-[300px] lg:min-h-full">
+        {/* Graphic only — shift image left so baked-in headline text sits outside the clip */}
+        <div className="relative hidden min-h-[min(88vh,820px)] overflow-hidden bg-[#0a1628] lg:block">
           <Image
             src={HOME_HERO.illustration}
             alt={HOME_HERO.illustrationAlt}
             fill
             priority
-            className="scale-110 object-cover object-[92%_center] lg:scale-100 lg:object-[80%_center]"
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="!left-[-42%] !w-[175%] max-w-none object-cover object-center"
+            sizes="50vw"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-r from-[#0a1628] from-35% via-[#0a1628]/55 to-transparent lg:from-25% lg:via-[#0a1628]/30"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/60 via-transparent to-[#0d1f3a]/20 lg:hidden"
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-[#0a1628] via-[#0a1628]/80 to-transparent"
             aria-hidden="true"
           />
         </div>
