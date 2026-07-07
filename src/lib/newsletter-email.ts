@@ -1,7 +1,9 @@
+import { CONTACT_EMAIL } from "@/lib/brand-email";
 import type { CompiledNewsletter } from "@/lib/newsletter-compile";
 import { generateNewsletterPdf, newsletterPdfFilename } from "@/lib/newsletter-pdf";
 import type { NewsletterDraftContent } from "@/lib/newsletter-rich-compile";
 import { getNewsletterSubscriberEmails } from "@/lib/newsletter-subscribers";
+import { getResendFromAddress, getResendReplyTo } from "@/lib/resend-from";
 
 export interface NewsletterEmailDeliveryResult {
   subscriberCount: number;
@@ -11,17 +13,11 @@ export interface NewsletterEmailDeliveryResult {
   pdfFilename: string;
 }
 
-function getFromAddress(): string {
-  if (process.env.NEWSLETTER_FROM_EMAIL) {
-    return process.env.NEWSLETTER_FROM_EMAIL;
-  }
-
-  const domain = process.env.RESEND_EMAIL_DOMAIN;
-  if (domain) {
-    return `Verlin Labs <newsletter@${domain}>`;
-  }
-
-  return process.env.RESEND_FROM_EMAIL ?? "Verlin Labs <onboarding@resend.dev>";
+async function getFromAddress(apiKey: string): Promise<string> {
+  return getResendFromAddress({
+    newsletterPreferred: process.env.NEWSLETTER_FROM_EMAIL,
+    apiKey,
+  });
 }
 
 function getPublicBaseUrl(): string {
@@ -49,7 +45,7 @@ function buildEmailHtml(edition: CompiledNewsletter, publicUrl: string): string 
         </a>
       </p>
       <p style="font-size: 12px; color: #94a3b8; margin-top: 32px;">
-        You receive this because you subscribed to the Verlin Labs newsletter.
+        You receive this because you subscribed to the Verlin Labs newsletter. Reply to ${CONTACT_EMAIL} to unsubscribe.
       </p>
     </div>
   `;
@@ -75,7 +71,8 @@ async function sendSingleNewsletterEmail(options: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: getFromAddress(),
+      from: await getFromAddress(apiKey),
+      reply_to: getResendReplyTo(),
       to: [options.to],
       subject: options.edition.title,
       html: buildEmailHtml(options.edition, options.publicUrl),

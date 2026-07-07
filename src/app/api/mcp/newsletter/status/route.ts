@@ -1,3 +1,4 @@
+import { getDefaultFromAddress } from "@/lib/brand-email";
 import { loadNewsletterDraft } from "@/lib/newsletter-draft";
 import { newsletterMcpUnauthorized, verifyNewsletterMcpKey } from "@/lib/newsletter-mcp-auth";
 import { getNewsletterSubscriberEmails } from "@/lib/newsletter-subscribers";
@@ -19,8 +20,9 @@ export async function GET(request: NextRequest) {
       resendConfigured: Boolean(process.env.RESEND_API_KEY),
       fromAddress:
         process.env.NEWSLETTER_FROM_EMAIL ??
+        process.env.AUTH_FROM_EMAIL ??
         process.env.RESEND_FROM_EMAIL ??
-        "Verlin Labs <onboarding@resend.dev>",
+        getDefaultFromAddress(),
     },
     subscribers: {
       count: subscribers.length,

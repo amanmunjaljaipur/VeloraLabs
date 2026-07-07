@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/brand-email";
 import { SITE_ORIGIN } from "@/lib/seo";
 
 export function OrganizationJsonLd() {
@@ -9,7 +10,7 @@ export function OrganizationJsonLd() {
     logo: `${SITE_ORIGIN}/images/hero-side.jpg`,
     description:
       "Clarity-first AI training in India — mental models, live sessions, and hands-on programs for students, engineers, and product managers.",
-    email: "snemanenterprises@gmail.com",
+    email: CONTACT_EMAIL,
     areaServed: "IN",
     founder: {
       "@type": "Person",
@@ -19,7 +20,7 @@ export function OrganizationJsonLd() {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      email: "snemanenterprises@gmail.com",
+      email: CONTACT_EMAIL,
       contactType: "customer support",
       areaServed: "IN",
       availableLanguage: "English",

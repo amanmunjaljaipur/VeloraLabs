@@ -1,55 +1,5 @@
-const DOMAIN_STATUS_TTL_MS = 5 * 60 * 1000;
-
-let domainStatusCache: { domain: string; verified: boolean; checkedAt: number } | null = null;
-
-async function isResendDomainVerified(domain: string, apiKey: string): Promise<boolean> {
-  if (
-    domainStatusCache &&
-    domainStatusCache.domain === domain &&
-    Date.now() - domainStatusCache.checkedAt < DOMAIN_STATUS_TTL_MS
-  ) {
-    return domainStatusCache.verified;
-  }
-
-  try {
-    const res = await fetch("https://api.resend.com/domains", {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-
-    if (!res.ok) {
-      return false;
-    }
-
-    const data = (await res.json()) as {
-      data?: Array<{ name: string; status: string }>;
-    };
-    const match = data.data?.find((entry) => entry.name === domain);
-    const verified = match?.status === "verified";
-
-    domainStatusCache = { domain, verified, checkedAt: Date.now() };
-    return verified;
-  } catch (error) {
-    console.error("Failed to check Resend domain status:", error);
-    return false;
-  }
-}
-
-async function getFromAddress(apiKey: string): Promise<string> {
-  if (process.env.AUTH_FROM_EMAIL) {
-    return process.env.AUTH_FROM_EMAIL;
-  }
-
-  const domain = process.env.RESEND_EMAIL_DOMAIN;
-  if (domain && (await isResendDomainVerified(domain, apiKey))) {
-    return `Verlin Labs <noreply@${domain}>`;
-  }
-
-  return (
-    process.env.RESEND_FROM_EMAIL ??
-    process.env.NEWSLETTER_FROM_EMAIL ??
-    "Verlin Labs <onboarding@resend.dev>"
-  );
-}
+import { CONTACT_EMAIL } from "@/lib/brand-email";
+import { getResendFromAddress, getResendReplyTo } from "@/lib/resend-from";
 
 function getPublicBaseUrl(): string {
   return (
@@ -82,6 +32,9 @@ function buildResetEmailHtml(resetUrl: string): string {
       <p style="font-size: 12px; color: #94a3b8; margin-top: 32px; word-break: break-all;">
         Or copy this link: ${resetUrl}
       </p>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">
+        Questions? Reply to this email or write to ${CONTACT_EMAIL}.
+      </p>
     </div>
   `;
 }
@@ -101,7 +54,10 @@ export async function sendPasswordResetEmail(
   }
 
   const resetUrl = `${getPublicBaseUrl()}/login/reset-password?token=${encodeURIComponent(plainToken)}`;
-  const from = await getFromAddress(apiKey);
+  const from = await getResendFromAddress({
+    authPreferred: process.env.AUTH_FROM_EMAIL,
+    apiKey,
+  });
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -111,6 +67,7 @@ export async function sendPasswordResetEmail(
     },
     body: JSON.stringify({
       from,
+      reply_to: getResendReplyTo(),
       to: [email],
       subject: "Reset your Verlin Labs password",
       html: buildResetEmailHtml(resetUrl),

@@ -45,7 +45,7 @@ Every program is **live and participatory**. You think out loud, ask questions, 
 
 Whether you want to book a free session, explore corporate workshops, or just have a conversation about AI learning — I personally read every message.
 
-- **Email:** [snemanenterprises@gmail.com](mailto:snemanenterprises@gmail.com)
+- **Email:** [contact@verlinlabs.com](mailto:contact@verlinlabs.com)
 - **Location:** India
 
 Response within 24–48 hours (India time).

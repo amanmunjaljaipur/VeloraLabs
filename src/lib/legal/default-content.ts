@@ -3,8 +3,8 @@ import type { LegalCmsData, LegalSection } from "./types";
 const LEGAL_DISCLAIMER =
   "This document is provided for operational use by Verlin Labs. It does not constitute legal advice. Have it reviewed by qualified counsel in your jurisdiction before relying on it for compliance purposes.";
 
-const CONTACT = "snemanenterprises@gmail.com";
-const PRIVACY_CONTACT = "snemanenterprises@gmail.com";
+const CONTACT = "contact@verlinlabs.com";
+const PRIVACY_CONTACT = "contact@verlinlabs.com";
 
 function section(id: string, heading: string, content: string): LegalSection {
   return { id, heading, content };

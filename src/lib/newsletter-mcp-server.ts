@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getDefaultFromAddress } from "@/lib/brand-email";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
 import { generateNewsletterDraftFromWeb } from "@/lib/newsletter-generator";
 import { publishWeeklyNewsletterViaMcp } from "@/lib/newsletter-publish-weekly";
@@ -32,8 +33,9 @@ export function createNewsletterMcpServer(): McpServer {
                   resendConfigured: Boolean(process.env.RESEND_API_KEY),
                   fromAddress:
                     process.env.NEWSLETTER_FROM_EMAIL ??
+                    process.env.AUTH_FROM_EMAIL ??
                     process.env.RESEND_FROM_EMAIL ??
-                    "Verlin Labs <onboarding@resend.dev>",
+                    getDefaultFromAddress(),
                 },
                 subscribers: { count: subscribers.length },
                 draft: draft
