@@ -172,26 +172,31 @@ export const authOptions: NextAuthConfig = {
               console.error("Failed to record known user in JWT callback:", error);
             }
             token.authProvider = resolveAuthProvider(account?.provider);
-
-            const cookieStore = await cookies();
-            const cookieAccepted = parseLegalAcceptanceCookie(
-              cookieStore.get(LEGAL_ACCEPTANCE_COOKIE)?.value,
-              identity.email
-            );
-            if (cookieAccepted) {
-              token.legalTermsVersion = cookieAccepted.termsVersion;
-              token.legalPrivacyVersion = cookieAccepted.privacyVersion;
-            } else {
-              const acceptance = getLegalAcceptance(identity.email);
-              if (acceptance) {
-                token.legalTermsVersion = acceptance.termsVersion;
-                token.legalPrivacyVersion = acceptance.privacyVersion;
-              }
-            }
           }
         }
 
         const email = user?.email ?? token.email;
+        if (
+          email &&
+          (token.legalTermsVersion == null || token.legalPrivacyVersion == null)
+        ) {
+          const cookieStore = await cookies();
+          const cookieAccepted = parseLegalAcceptanceCookie(
+            cookieStore.get(LEGAL_ACCEPTANCE_COOKIE)?.value,
+            email
+          );
+          if (cookieAccepted) {
+            token.legalTermsVersion = cookieAccepted.termsVersion;
+            token.legalPrivacyVersion = cookieAccepted.privacyVersion;
+          } else {
+            const acceptance = getLegalAcceptance(email);
+            if (acceptance) {
+              token.legalTermsVersion = acceptance.termsVersion;
+              token.legalPrivacyVersion = acceptance.privacyVersion;
+            }
+          }
+        }
+
         if (email) {
           const role = getRoleForEmail(email);
           token.role = role;

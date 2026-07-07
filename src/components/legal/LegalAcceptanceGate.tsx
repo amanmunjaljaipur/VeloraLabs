@@ -6,9 +6,10 @@ import { formatLegalDate } from "@/lib/legal/render";
 import type { PublicLegalDocument } from "@/lib/legal/types";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const SKIP_PREFIXES = ["/login", "/signup", "/terms", "/privacy", "/refund-policy"];
+const ACCEPTED_SESSION_KEY = "verlin-legal-accepted";
 
 interface LegalStatus {
   pending: boolean;
@@ -25,11 +26,13 @@ export function LegalAcceptanceGate() {
   const [checked, setChecked] = useState(false);
   const [modalType, setModalType] = useState<"terms" | "privacy" | null>(null);
   const [agreed, setAgreed] = useState(false);
+  const checkedForEmail = useRef<string | null>(null);
 
   const shouldSkip = SKIP_PREFIXES.some((p) => pathname.startsWith(p));
+  const userEmail = session?.user?.email?.toLowerCase() ?? null;
 
   const checkStatus = useCallback(async () => {
-    const res = await fetch("/api/legal/status");
+    const res = await fetch("/api/legal/status", { cache: "no-store" });
     if (!res.ok) return;
     const data = (await res.json()) as LegalStatus & { authenticated?: boolean };
     if (!data.authenticated) {
@@ -43,15 +46,41 @@ export function LegalAcceptanceGate() {
       privacy: data.pending ? data.privacy : undefined,
       current: data.current,
     });
+
+    if (!data.pending) {
+      sessionStorage.setItem(ACCEPTED_SESSION_KEY, "1");
+    }
   }, []);
 
   useEffect(() => {
-    if (status !== "authenticated" || shouldSkip) {
+    if (status === "unauthenticated") {
+      sessionStorage.removeItem(ACCEPTED_SESSION_KEY);
+      setLegalStatus(null);
+      setChecked(true);
+      checkedForEmail.current = null;
+      return;
+    }
+
+    if (status !== "authenticated" || shouldSkip || !userEmail) {
       setChecked(true);
       return;
     }
+
+    if (sessionStorage.getItem(ACCEPTED_SESSION_KEY) === "1") {
+      setLegalStatus({ pending: false });
+      setChecked(true);
+      checkedForEmail.current = userEmail;
+      return;
+    }
+
+    if (checkedForEmail.current === userEmail) {
+      setChecked(true);
+      return;
+    }
+
+    checkedForEmail.current = userEmail;
     checkStatus().finally(() => setChecked(true));
-  }, [status, shouldSkip, checkStatus]);
+  }, [status, shouldSkip, userEmail, checkStatus]);
 
   async function handleAccept() {
     setAccepting(true);
@@ -68,11 +97,11 @@ export function LegalAcceptanceGate() {
       legalPrivacyVersion: data.current.privacyVersion,
     });
 
-    setLegalStatus((s) => ({
-      ...s,
+    sessionStorage.setItem(ACCEPTED_SESSION_KEY, "1");
+    setLegalStatus({
       pending: false,
       current: data.current,
-    }));
+    });
     setAgreed(false);
   }
 
@@ -172,7 +201,10 @@ export function LegalAcceptanceGate() {
             <Button
               variant="secondary"
               className="flex-1"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => {
+                sessionStorage.removeItem(ACCEPTED_SESSION_KEY);
+                signOut({ callbackUrl: "/" });
+              }}
             >
               Sign out
             </Button>

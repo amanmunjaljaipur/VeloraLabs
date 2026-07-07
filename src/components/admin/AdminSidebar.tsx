@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Contact,
   FileText,
+  LayoutDashboard,
   LayoutGrid,
   Newspaper,
   ScrollText,
@@ -24,6 +25,7 @@ import { usePathname } from "next/navigation";
 const HIDDEN_PREFIXES = ["/login", "/signup"];
 
 const ICONS: Record<string, LucideIcon> = {
+  "/admin": LayoutDashboard,
   "/admin/analytics": BarChart3,
   "/admin/site-cms": LayoutGrid,
   "/admin/crm": Contact,
@@ -36,6 +38,9 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 function isActivePath(pathname: string, href: string): boolean {
+  if (href === "/admin") {
+    return pathname === "/admin";
+  }
   if (href.startsWith("/admin/")) {
     return pathname === href || pathname.startsWith(`${href}/`);
   }

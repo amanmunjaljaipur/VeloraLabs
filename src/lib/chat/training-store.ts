@@ -1,5 +1,6 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 import { collectLegacyKnowledgeEntries } from "@/lib/chat/knowledge-sources";
+import { getDeployedChatbotIndexMeta } from "@/lib/chat/index-meta";
 import type { KnowledgeEntry } from "./types";
 import type { TrainingDataset, TrainingEntry, TrainingEntryInput, TrainingSource } from "./training-types";
 
@@ -137,14 +138,31 @@ function seedDataset(): TrainingDataset {
   return { version: 1, updatedAt: now, lastTrainedAt: null, entries };
 }
 
+function syncLastTrainedFromDeployedIndex(dataset: TrainingDataset): TrainingDataset {
+  if (dataset.lastTrainedAt) return dataset;
+
+  const deployed = getDeployedChatbotIndexMeta();
+  if (!deployed) return dataset;
+
+  return {
+    ...dataset,
+    lastTrainedAt: deployed.builtAt,
+  };
+}
+
 export function readTrainingDataset(): TrainingDataset {
   const data = readJsonFile<TrainingDataset>(TRAINING_FILE, JSON.stringify(EMPTY_DATASET));
   if (!data.entries?.length) {
-    const seeded = seedDataset();
+    const seeded = syncLastTrainedFromDeployedIndex(seedDataset());
     writeJsonFile(TRAINING_FILE, seeded);
     return seeded;
   }
-  return data;
+
+  const synced = syncLastTrainedFromDeployedIndex(data);
+  if (synced.lastTrainedAt !== data.lastTrainedAt) {
+    writeJsonFile(TRAINING_FILE, synced);
+  }
+  return synced;
 }
 
 export function writeTrainingDataset(dataset: TrainingDataset): void {

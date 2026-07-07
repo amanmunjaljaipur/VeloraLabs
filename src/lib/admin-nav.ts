@@ -12,6 +12,11 @@ export interface AdminNavLink {
 
 export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
+    label: "Overview",
+    href: "/admin",
+    description: "Admin home and quick links",
+  },
+  {
     label: "Analytics",
     href: "/admin/analytics",
     description: "Bookings, leads, learners, and trends",

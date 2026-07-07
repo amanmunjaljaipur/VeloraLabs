@@ -1,8 +1,21 @@
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getAdminMenuLinks } from "@/lib/admin-nav";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
-import { Bot, Newspaper, Shield, Users, Video } from "lucide-react";
+import {
+  BarChart3,
+  Bot,
+  Contact,
+  FileText,
+  LayoutDashboard,
+  LayoutGrid,
+  Newspaper,
+  ScrollText,
+  Shield,
+  Users,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 interface AdminHomeDashboardProps {
@@ -10,83 +23,55 @@ interface AdminHomeDashboardProps {
   role: UserRole;
 }
 
+const ICONS: Record<string, LucideIcon> = {
+  "/admin": LayoutDashboard,
+  "/admin/analytics": BarChart3,
+  "/admin/site-cms": LayoutGrid,
+  "/admin/crm": Contact,
+  "/admin/role-assignment": Users,
+  "/admin/legal": FileText,
+  "/admin/sessions": Video,
+  "/admin/chatbot-training": Bot,
+  "/admin/newsletter": Newspaper,
+  "/newsletter/weekly": ScrollText,
+};
+
 export function AdminHomeDashboard({ userName, role }: AdminHomeDashboardProps) {
   const firstName = userName?.split(" ")[0] ?? "Admin";
-  const isSuperAdmin = role === "super_admin";
+  const links = getAdminMenuLinks(role).filter((link) => link.href !== "/admin");
 
   return (
-    <section className="py-12 md:py-16">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <p className="text-sm font-medium uppercase tracking-wider text-teal">
+    <section className="pb-16">
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-accent-teal">
           {ROLE_LABELS[role]} dashboard
         </p>
-        <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.02em] text-foreground md:text-4xl">
           Welcome back, {firstName}
         </h1>
         <p className="mt-3 max-w-2xl text-text-secondary">
-          Manage learner roles, upload session recordings, and keep programs running smoothly.
+          Manage site content, learner roles, bookings, analytics, and program operations from one
+          place.
         </p>
+      </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card hover>
-            <Users className="h-8 w-8 text-teal" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">Role assignment</h2>
-            <p className="mt-2 text-sm text-text-secondary">
-              Assign Student, Engineer, or Professional roles by email.
-            </p>
-            <Link href="/admin/role-assignment" className="mt-6 inline-block">
-              <Button>Open admin panel</Button>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {links.map((link) => {
+          const Icon = ICONS[link.href] ?? Shield;
+          return (
+            <Link key={link.href} href={link.href}>
+              <Card hover className="h-full p-5">
+                <Icon className="h-6 w-6 text-accent-teal" aria-hidden="true" />
+                <h2 className="mt-4 text-lg font-semibold text-foreground">{link.label}</h2>
+                {link.description && (
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                    {link.description}
+                  </p>
+                )}
+              </Card>
             </Link>
-          </Card>
-
-          <Card hover>
-            <Video className="h-8 w-8 text-teal" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">Session videos</h2>
-            <p className="mt-2 text-sm text-text-secondary">
-              Add or update YouTube recordings for each course day.
-            </p>
-            <Link href="/admin/sessions" className="mt-6 inline-block">
-              <Button variant="secondary">Manage sessions</Button>
-            </Link>
-          </Card>
-
-          <Card hover>
-            <Shield className="h-8 w-8 text-teal" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">Learner experience</h2>
-            <p className="mt-2 text-sm text-text-secondary">
-              Assigned learners see a personalized home page with course progress.
-            </p>
-            <Link href="/courses/students" className="mt-6 inline-block">
-              <Button variant="secondary">View courses</Button>
-            </Link>
-          </Card>
-
-          {isSuperAdmin && (
-            <Card hover>
-              <Bot className="h-8 w-8 text-teal" />
-              <h2 className="mt-4 text-lg font-semibold text-foreground">Chatbot training</h2>
-              <p className="mt-2 text-sm text-text-secondary">
-                Label Q&A pairs, import Excel, export data, and retrain the site assistant.
-              </p>
-              <Link href="/admin/chatbot-training" className="mt-6 inline-block">
-                <Button variant="secondary">Open training panel</Button>
-              </Link>
-            </Card>
-          )}
-
-          {isSuperAdmin && (
-            <Card hover>
-              <Newspaper className="h-8 w-8 text-teal" />
-              <h2 className="mt-4 text-lg font-semibold text-foreground">Weekly newsletter</h2>
-              <p className="mt-2 text-sm text-text-secondary">
-                Publish the Sunday roundup from your account menu, or view past editions.
-              </p>
-              <Link href="/newsletter/weekly" className="mt-6 inline-block">
-                <Button variant="secondary">View newsletter</Button>
-              </Link>
-            </Card>
-          )}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

@@ -4,7 +4,11 @@
 import fs from "fs";
 import path from "path";
 import { buildChatbotIndex } from "../src/lib/chat/embed-index";
-import { getActiveKnowledgeEntries, saveRuntimeIndex } from "../src/lib/chat/training-store";
+import {
+  getActiveKnowledgeEntries,
+  markTrainingComplete,
+  saveRuntimeIndex,
+} from "../src/lib/chat/training-store";
 
 const OUT_DIR = path.join(process.cwd(), "public", "chatbot");
 const OUT_FILE = path.join(OUT_DIR, "index.json");
@@ -18,6 +22,7 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(OUT_FILE, JSON.stringify(index));
   saveRuntimeIndex(index);
+  markTrainingComplete();
 
   const sizeKb = Math.round(fs.statSync(OUT_FILE).size / 1024);
   console.log(`Wrote ${OUT_FILE} (${sizeKb} KB)`);

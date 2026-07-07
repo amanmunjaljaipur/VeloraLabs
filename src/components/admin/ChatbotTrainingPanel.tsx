@@ -28,6 +28,12 @@ interface DatasetResponse {
   lastTrainedAt: string | null;
   updatedAt: string;
   stats: { total: number; enabled: number };
+  live?: {
+    ready: boolean;
+    entryCount: number;
+    builtAt: string | null;
+    model: string | null;
+  };
 }
 
 const emptyForm = {
@@ -58,6 +64,7 @@ export function ChatbotTrainingPanel() {
   const [importing, setImporting] = useState(false);
   const [entries, setEntries] = useState<TrainingEntry[]>([]);
   const [lastTrainedAt, setLastTrainedAt] = useState<string | null>(null);
+  const [liveStatus, setLiveStatus] = useState<DatasetResponse["live"]>(undefined);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,7 +86,8 @@ export function ChatbotTrainingPanel() {
     }
     const data = (await res.json()) as DatasetResponse;
     setEntries(data.entries);
-    setLastTrainedAt(data.lastTrainedAt);
+    setLastTrainedAt(data.lastTrainedAt ?? data.live?.builtAt ?? null);
+    setLiveStatus(data.live);
   }, [toast]);
 
   useEffect(() => {
@@ -219,6 +227,13 @@ export function ChatbotTrainingPanel() {
     const data = (await res.json()) as { entries: number; builtAt: string };
     toast(`Retrained ${data.entries} entries`, "success");
     setLastTrainedAt(data.builtAt);
+    setLiveStatus({
+      ready: true,
+      entryCount: data.entries,
+      builtAt: data.builtAt,
+      model: null,
+    });
+    await fetchData();
   }
 
   async function runTest() {
@@ -256,7 +271,7 @@ export function ChatbotTrainingPanel() {
 
   return (
     <div className="container-verlin space-y-8 pb-16 pt-8">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-5">
           <p className="text-sm text-text-secondary">Labeled entries</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{entries.length}</p>
@@ -268,11 +283,23 @@ export function ChatbotTrainingPanel() {
           </p>
         </Card>
         <Card className="p-5">
-          <p className="text-sm text-text-secondary">Last trained</p>
+          <p className="text-sm text-text-secondary">Live on site</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {liveStatus?.ready ? (
+              <span className="text-emerald-700 dark:text-emerald-300">
+                {liveStatus.entryCount} answers active
+              </span>
+            ) : (
+              "No index loaded"
+            )}
+          </p>
+        </Card>
+        <Card className="p-5">
+          <p className="text-sm text-text-secondary">Index built</p>
           <p className="mt-1 text-sm font-medium text-foreground">
             {lastTrainedAt
               ? new Date(lastTrainedAt).toLocaleString()
-              : "Not yet — click Retrain"}
+              : "Run Retrain after edits"}
           </p>
         </Card>
       </div>
@@ -285,7 +312,8 @@ export function ChatbotTrainingPanel() {
               Training actions
             </h2>
             <p className="mt-1 text-sm text-text-secondary">
-              Add labeled Q&A, import Excel, export backup, then retrain the chatbot index.
+              The site chatbot serves the built index ({liveStatus?.ready ? `${liveStatus.entryCount} live answers` : "retrain required"}).
+              Retrain after adding or editing entries.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

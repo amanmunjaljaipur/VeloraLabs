@@ -1,4 +1,6 @@
 import { requireSuperAdmin } from "@/lib/chat/admin-auth";
+import { getDeployedChatbotIndexMeta } from "@/lib/chat/index-meta";
+import { loadChatbotIndex } from "@/lib/chat/load-index";
 import {
   createTrainingEntry,
   readTrainingDataset,
@@ -30,6 +32,8 @@ export async function GET() {
 
   const dataset = readTrainingDataset();
   const categories = [...new Set(dataset.entries.map((e) => e.category))].sort();
+  const deployed = getDeployedChatbotIndexMeta();
+  const liveIndex = loadChatbotIndex();
 
   return NextResponse.json({
     ...dataset,
@@ -37,6 +41,12 @@ export async function GET() {
     stats: {
       total: dataset.entries.length,
       enabled: dataset.entries.filter((e) => e.enabled).length,
+    },
+    live: {
+      ready: Boolean(liveIndex?.entries?.length),
+      entryCount: liveIndex?.entries?.length ?? 0,
+      builtAt: liveIndex?.builtAt ?? deployed?.builtAt ?? null,
+      model: liveIndex?.model ?? deployed?.model ?? null,
     },
   });
 }
