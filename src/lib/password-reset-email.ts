@@ -1,6 +1,50 @@
-function getFromAddress(): string {
+const DOMAIN_STATUS_TTL_MS = 5 * 60 * 1000;
+
+let domainStatusCache: { domain: string; verified: boolean; checkedAt: number } | null = null;
+
+async function isResendDomainVerified(domain: string, apiKey: string): Promise<boolean> {
+  if (
+    domainStatusCache &&
+    domainStatusCache.domain === domain &&
+    Date.now() - domainStatusCache.checkedAt < DOMAIN_STATUS_TTL_MS
+  ) {
+    return domainStatusCache.verified;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!res.ok) {
+      return false;
+    }
+
+    const data = (await res.json()) as {
+      data?: Array<{ name: string; status: string }>;
+    };
+    const match = data.data?.find((entry) => entry.name === domain);
+    const verified = match?.status === "verified";
+
+    domainStatusCache = { domain, verified, checkedAt: Date.now() };
+    return verified;
+  } catch (error) {
+    console.error("Failed to check Resend domain status:", error);
+    return false;
+  }
+}
+
+async function getFromAddress(apiKey: string): Promise<string> {
+  if (process.env.AUTH_FROM_EMAIL) {
+    return process.env.AUTH_FROM_EMAIL;
+  }
+
+  const domain = process.env.RESEND_EMAIL_DOMAIN;
+  if (domain && (await isResendDomainVerified(domain, apiKey))) {
+    return `Verlin Labs <noreply@${domain}>`;
+  }
+
   return (
-    process.env.AUTH_FROM_EMAIL ??
     process.env.RESEND_FROM_EMAIL ??
     process.env.NEWSLETTER_FROM_EMAIL ??
     "Verlin Labs <onboarding@resend.dev>"
@@ -57,6 +101,7 @@ export async function sendPasswordResetEmail(
   }
 
   const resetUrl = `${getPublicBaseUrl()}/login/reset-password?token=${encodeURIComponent(plainToken)}`;
+  const from = await getFromAddress(apiKey);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -65,7 +110,7 @@ export async function sendPasswordResetEmail(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: getFromAddress(),
+      from,
       to: [email],
       subject: "Reset your Verlin Labs password",
       html: buildResetEmailHtml(resetUrl),

@@ -12,11 +12,16 @@ export interface NewsletterEmailDeliveryResult {
 }
 
 function getFromAddress(): string {
-  return (
-    process.env.NEWSLETTER_FROM_EMAIL ??
-    process.env.RESEND_FROM_EMAIL ??
-    "Verlin Labs <onboarding@resend.dev>"
-  );
+  if (process.env.NEWSLETTER_FROM_EMAIL) {
+    return process.env.NEWSLETTER_FROM_EMAIL;
+  }
+
+  const domain = process.env.RESEND_EMAIL_DOMAIN;
+  if (domain) {
+    return `Verlin Labs <newsletter@${domain}>`;
+  }
+
+  return process.env.RESEND_FROM_EMAIL ?? "Verlin Labs <onboarding@resend.dev>";
 }
 
 function getPublicBaseUrl(): string {

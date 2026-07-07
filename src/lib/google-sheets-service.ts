@@ -14,6 +14,7 @@ export const TAB_NEWSLETTER = "Newsletter Subscribers";
 export const TAB_USER_ROLES = "User Roles";
 export const TAB_KNOWN_USERS = "Known Users";
 export const TAB_MANUAL_USERS = "Manual Users";
+export const TAB_PASSWORD_RESET_TOKENS = "Password Reset Tokens";
 export const TAB_NEWS_UPDATES = "News Updates";
 export const TAB_NEWSLETTER_EDITIONS = "Newsletter Editions";
 export const TAB_NEWSLETTER_DRAFT = "Newsletter Draft";
@@ -47,6 +48,7 @@ const HEADERS: Record<string, string[]> = {
     "Name",
     "Created At",
   ],
+  [TAB_PASSWORD_RESET_TOKENS]: ["Token Hash", "Email", "Expires At", "Created At"],
   [TAB_NEWS_UPDATES]: [
     "ID",
     "Submitted At",
@@ -524,6 +526,15 @@ async function ensureManualUsersTab(token: string, spreadsheetId: string): Promi
   await ensureSheetTab(token, spreadsheetId, TAB_MANUAL_USERS, HEADERS[TAB_MANUAL_USERS]);
 }
 
+async function ensurePasswordResetTokensTab(token: string, spreadsheetId: string): Promise<void> {
+  await ensureSheetTab(
+    token,
+    spreadsheetId,
+    TAB_PASSWORD_RESET_TOKENS,
+    HEADERS[TAB_PASSWORD_RESET_TOKENS]
+  );
+}
+
 async function ensureNewsletterDraftTab(token: string, spreadsheetId: string): Promise<void> {
   await ensureSheetTab(token, spreadsheetId, TAB_NEWSLETTER_DRAFT, HEADERS[TAB_NEWSLETTER_DRAFT]);
 }
@@ -532,6 +543,7 @@ async function ensureAdminTabs(token: string, spreadsheetId: string): Promise<vo
   await ensureUserRolesTab(token, spreadsheetId);
   await ensureKnownUsersTab(token, spreadsheetId);
   await ensureManualUsersTab(token, spreadsheetId);
+  await ensurePasswordResetTokensTab(token, spreadsheetId);
   await ensureNewsletterDraftTab(token, spreadsheetId);
 }
 
@@ -710,6 +722,89 @@ export async function appendManualUserToSheet(user: ManualUserSheetRow): Promise
     user.createdAt,
   ]);
   return true;
+}
+
+export interface PasswordResetTokenSheetRow {
+  tokenHash: string;
+  email: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export async function readPasswordResetTokensFromSheet(): Promise<PasswordResetTokenSheetRow[]> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return [];
+
+  await ensurePasswordResetTokensTab(access.token, access.spreadsheetId);
+
+  const range = `'${TAB_PASSWORD_RESET_TOKENS}'!A2:D`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to read password reset tokens: ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { values?: string[][] };
+  const rows: PasswordResetTokenSheetRow[] = [];
+
+  for (const row of data.values ?? []) {
+    const tokenHash = row[0]?.trim();
+    const email = row[1]?.toLowerCase().trim();
+    const expiresAt = row[2]?.trim();
+    const createdAt = row[3]?.trim();
+    if (!tokenHash || !email || !expiresAt || !createdAt) continue;
+
+    rows.push({ tokenHash, email, expiresAt, createdAt });
+  }
+
+  return rows;
+}
+
+export async function persistPasswordResetTokensToSheet(
+  tokens: PasswordResetTokenSheetRow[]
+): Promise<void> {
+  const access = await withSpreadsheetAccess({ ensureStructure: true });
+  if (!access) {
+    throw new Error("Google Sheets service account is not configured");
+  }
+
+  await ensurePasswordResetTokensTab(access.token, access.spreadsheetId);
+
+  if (tokens.length === 0) {
+    const clearRes = await googleFetch(
+      access.token,
+      `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(`'${TAB_PASSWORD_RESET_TOKENS}'!A2:D`)}:clear`,
+      { method: "POST", body: JSON.stringify({}) }
+    );
+    if (!clearRes.ok) {
+      throw new Error(`Failed to clear password reset tokens: ${await clearRes.text()}`);
+    }
+    return;
+  }
+
+  const rows = tokens.map((token) => [
+    token.tokenHash,
+    token.email,
+    token.expiresAt,
+    token.createdAt,
+  ]);
+
+  const range = `'${TAB_PASSWORD_RESET_TOKENS}'!A2:D${rows.length + 1}`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ values: rows }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to write password reset tokens: ${await res.text()}`);
+  }
 }
 
 export async function persistKnownUsersToSheet(

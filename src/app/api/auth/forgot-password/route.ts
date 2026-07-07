@@ -52,27 +52,15 @@ export async function POST(req: NextRequest) {
     await ensureManualUsersLoaded();
     const manualUser = getManualUserByEmail(email);
 
-    if (manualUser) {
-      if (!isPasswordResetEmailConfigured()) {
-        console.error("Password reset requested but RESEND_API_KEY is not configured");
-        return NextResponse.json(
-          {
-            error:
-              "Password reset emails are not configured yet. Please contact support or sign in with Google.",
-          },
-          { status: 503 }
-        );
-      }
-
-      const token = createPasswordResetToken(email);
+    if (manualUser && isPasswordResetEmailConfigured()) {
+      const token = await createPasswordResetToken(email);
       const sent = await sendPasswordResetEmail(email, token);
 
       if (!sent) {
-        return NextResponse.json(
-          { error: "We could not send the reset email. Please try again shortly." },
-          { status: 500 }
-        );
+        console.error(`Password reset email failed for ${email}`);
       }
+    } else if (manualUser) {
+      console.error("Password reset requested but RESEND_API_KEY is not configured");
     }
 
     return NextResponse.json({

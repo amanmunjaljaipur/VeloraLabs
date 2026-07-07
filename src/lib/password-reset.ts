@@ -1,5 +1,11 @@
 import { createHash, randomBytes } from "crypto";
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  isServiceAccountConfigured,
+  persistPasswordResetTokensToSheet,
+  readPasswordResetTokensFromSheet,
+  type PasswordResetTokenSheetRow,
+} from "@/lib/google-sheets-service";
 
 const TOKENS_FILE = "password-reset-tokens.json";
 const DEFAULT_STORE = '{"tokens":[]}';
@@ -9,6 +15,7 @@ interface StoredResetToken {
   tokenHash: string;
   email: string;
   expiresAt: string;
+  createdAt?: string;
 }
 
 interface ResetTokenStore {
@@ -27,39 +34,82 @@ function writeStore(store: ResetTokenStore): void {
   writeJsonFile(TOKENS_FILE, store, DEFAULT_STORE);
 }
 
-function pruneExpired(store: ResetTokenStore): ResetTokenStore {
+function pruneExpired(tokens: StoredResetToken[]): StoredResetToken[] {
   const now = Date.now();
-  return {
-    tokens: store.tokens.filter((token) => new Date(token.expiresAt).getTime() > now),
-  };
+  return tokens.filter((token) => new Date(token.expiresAt).getTime() > now);
 }
 
-export function createPasswordResetToken(email: string): string {
+function toSheetRows(tokens: StoredResetToken[]): PasswordResetTokenSheetRow[] {
+  return tokens.map((token) => ({
+    tokenHash: token.tokenHash,
+    email: token.email,
+    expiresAt: token.expiresAt,
+    createdAt: token.createdAt ?? token.expiresAt,
+  }));
+}
+
+async function readActiveTokens(): Promise<StoredResetToken[]> {
+  if (isServiceAccountConfigured()) {
+    try {
+      const rows = await readPasswordResetTokensFromSheet();
+      return pruneExpired(
+        rows.map((row) => ({
+          tokenHash: row.tokenHash,
+          email: row.email,
+          expiresAt: row.expiresAt,
+          createdAt: row.createdAt,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to read password reset tokens from Sheets:", error);
+    }
+  }
+
+  return pruneExpired(readStore().tokens);
+}
+
+async function writeActiveTokens(tokens: StoredResetToken[]): Promise<void> {
+  const active = pruneExpired(tokens);
+
+  if (isServiceAccountConfigured()) {
+    try {
+      await persistPasswordResetTokensToSheet(toSheetRows(active));
+      return;
+    } catch (error) {
+      console.error("Failed to persist password reset tokens to Sheets:", error);
+    }
+  }
+
+  writeStore({ tokens: active });
+}
+
+export async function createPasswordResetToken(email: string): Promise<string> {
   const normalized = email.toLowerCase().trim();
   const plainToken = randomBytes(32).toString("hex");
-  const store = pruneExpired(readStore());
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+  const createdAt = new Date().toISOString();
+  const active = (await readActiveTokens()).filter((token) => token.email !== normalized);
 
-  store.tokens = store.tokens.filter((token) => token.email !== normalized);
-  store.tokens.push({
+  active.push({
     tokenHash: hashToken(plainToken),
     email: normalized,
-    expiresAt: new Date(Date.now() + TOKEN_TTL_MS).toISOString(),
+    expiresAt,
+    createdAt,
   });
 
-  writeStore(store);
+  await writeActiveTokens(active);
   return plainToken;
 }
 
-export function consumePasswordResetToken(plainToken: string): string | null {
-  const store = pruneExpired(readStore());
+export async function consumePasswordResetToken(plainToken: string): Promise<string | null> {
   const tokenHash = hashToken(plainToken);
-  const match = store.tokens.find((token) => token.tokenHash === tokenHash);
+  const active = await readActiveTokens();
+  const match = active.find((token) => token.tokenHash === tokenHash);
 
   if (!match) {
     return null;
   }
 
-  store.tokens = store.tokens.filter((token) => token.tokenHash !== tokenHash);
-  writeStore(store);
+  await writeActiveTokens(active.filter((token) => token.tokenHash !== tokenHash));
   return match.email;
 }
