@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import type { CmsPageDefinition } from "@/lib/cms/registry";
-import { applyTextFields, extractTextFields, type CmsTextField } from "@/lib/cms/text-fields";
+import {
+  applyImageField,
+  extractImageFields,
+  getByPath,
+  type CmsImageField,
+} from "@/lib/cms/image-fields";
 import type { RichPageContent } from "@/lib/cms/rich-content";
+import { applyTextFields, extractTextFields, type CmsTextField } from "@/lib/cms/text-fields";
 import { ExternalLink, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -16,43 +22,14 @@ interface SiteCmsEditorProps {
   pageId: string;
 }
 
-function collectImageFields(node: unknown, prefix = ""): string[] {
-  if (!node || typeof node !== "object") return [];
-  if (Array.isArray(node)) {
-    return node.flatMap((item, index) => collectImageFields(item, `${prefix}[${index}]`));
-  }
-  return Object.entries(node as Record<string, unknown>).flatMap(([key, value]) => {
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (typeof value === "string" && /image|illustration|src|avatar|thumb/i.test(key)) {
-      return [path];
-    }
-    if (typeof value === "object") return collectImageFields(value, path);
-    return [];
-  });
-}
-
-function getByPath(obj: unknown, path: string): unknown {
-  const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean);
-  let current: unknown = obj;
-  for (const part of parts) {
-    if (!current || typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[part];
-  }
-  return current;
-}
-
-function setByPath(obj: unknown, path: string, value: string): unknown {
-  const clone = structuredClone(obj) as Record<string, unknown>;
-  const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean);
-  let current: Record<string, unknown> = clone;
-  for (let i = 0; i < parts.length - 1; i++) {
-    const part = parts[i]!;
-    if (!current[part] || typeof current[part] !== "object") current[part] = {};
-    current = current[part] as Record<string, unknown>;
-  }
-  current[parts[parts.length - 1]!] = value;
-  return clone;
-}
+const DEFAULT_RICH: RichPageContent = {
+  title: "",
+  subtitle: "",
+  bodyHtml: "",
+  seoDescription: "",
+  heroImage: "",
+  heroImageAlt: "",
+};
 
 export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
   const { toast } = useToast();
@@ -60,14 +37,10 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState<CmsPageDefinition | null>(null);
   const [format, setFormat] = useState<"json" | "rich">("json");
-  const [richContent, setRichContent] = useState<RichPageContent>({
-    title: "",
-    subtitle: "",
-    bodyHtml: "",
-    seoDescription: "",
-  });
+  const [richContent, setRichContent] = useState<RichPageContent>(DEFAULT_RICH);
   const [parsedJson, setParsedJson] = useState<unknown>(null);
   const [textFields, setTextFields] = useState<CmsTextField[]>([]);
+  const [imageFields, setImageFields] = useState<CmsImageField[]>([]);
   const [pageMeta, setPageMeta] = useState({ label: "", description: "", publicPath: "", group: "" });
   const isCustom = pageId.startsWith("custom-");
 
@@ -92,10 +65,11 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
     });
 
     if (data.format === "rich") {
-      setRichContent(data.content as RichPageContent);
+      setRichContent({ ...DEFAULT_RICH, ...(data.content as RichPageContent) });
     } else {
       setParsedJson(data.content);
       setTextFields(extractTextFields(data.content));
+      setImageFields(extractImageFields(data.content));
     }
   }, [pageId, toast]);
 
@@ -103,10 +77,16 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
     fetchPage().finally(() => setLoading(false));
   }, [fetchPage]);
 
-  const imageFields = useMemo(
-    () => (parsedJson ? collectImageFields(parsedJson) : []),
-    [parsedJson]
-  );
+  const groupedTextFields = useMemo(() => {
+    const groups = new Map<string, CmsTextField[]>();
+    for (const field of textFields) {
+      const section = field.path.split(/[.[]/)[0] ?? "General";
+      const list = groups.get(section) ?? [];
+      list.push(field);
+      groups.set(section, list);
+    }
+    return [...groups.entries()];
+  }, [textFields]);
 
   async function handleSave() {
     if (!page) return;
@@ -141,6 +121,13 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
     }
   }
 
+  function updateImageField(path: string, value: string) {
+    setImageFields((fields) => fields.map((field) => (field.path === path ? { ...field, value } : field)));
+    if (parsedJson) {
+      setParsedJson(applyImageField(parsedJson, path, value));
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-text-secondary">
@@ -161,14 +148,16 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-teal">{page.group}</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-foreground">{page.label}</h1>
-            <p className="mt-2 max-w-2xl text-sm text-text-secondary">{page.description}</p>
+            <p className="mt-2 max-w-2xl text-sm text-text-secondary">
+              Edit text, images, and page content visually — no code or JSON needed. Click Save when you&apos;re done.
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {page.publicPath && (
               <Link href={page.publicPath} target="_blank">
                 <Button variant="secondary" size="sm">
                   <ExternalLink className="mr-1.5 h-4 w-4" />
-                  View live
+                  Preview live
                 </Button>
               </Link>
             )}
@@ -183,9 +172,14 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
         </div>
       </Card>
 
-      {(isCustom || page.type === "rich") && (
+      {(isCustom || page.type === "rich" || page.type === "markdown") && (
         <Card className="space-y-4 p-5 md:p-6">
-          <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Page settings</h2>
+          <div>
+            <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Page header</h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              Title and description shown at the top of the page and in search results.
+            </p>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
               <span className="mb-1 block text-xs font-medium text-text-secondary">Page title</span>
@@ -210,7 +204,7 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
               />
             </label>
             <label className="block text-sm md:col-span-2">
-              <span className="mb-1 block text-xs font-medium text-text-secondary">Subtitle / description</span>
+              <span className="mb-1 block text-xs font-medium text-text-secondary">Subtitle</span>
               <input
                 value={isCustom ? pageMeta.description : richContent.subtitle}
                 onChange={(e) =>
@@ -227,6 +221,7 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
                 value={richContent.seoDescription}
                 onChange={(e) => setRichContent((c) => ({ ...c, seoDescription: e.target.value }))}
                 rows={2}
+                placeholder="Short summary for Google and social sharing"
                 className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
               />
             </label>
@@ -235,62 +230,104 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
       )}
 
       {format === "rich" && (
-        <Card className="p-5 md:p-6">
-          <h2 className="mb-1 text-lg font-semibold tracking-[-0.02em] text-foreground">Page content</h2>
-          <p className="mb-4 text-sm text-text-secondary">Use the toolbar to style text — no JSON or markdown required.</p>
-          <RichTextEditor
-            value={richContent.bodyHtml}
-            onChange={(bodyHtml) => setRichContent((content) => ({ ...content, bodyHtml }))}
-            placeholder="Write your page content…"
-          />
-        </Card>
+        <>
+          <Card className="space-y-4 p-5 md:p-6">
+            <div>
+              <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Hero image</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Large banner image at the top of your page. Browse the library or upload a new image.
+              </p>
+            </div>
+            <MediaPicker
+              label="Banner image"
+              hint="Recommended: wide image, at least 1200px wide"
+              value={richContent.heroImage}
+              onSelect={(heroImage) => setRichContent((c) => ({ ...c, heroImage }))}
+            />
+            <label className="block text-sm">
+              <span className="mb-1 block text-xs font-medium text-text-secondary">Image description (for accessibility)</span>
+              <input
+                value={richContent.heroImageAlt}
+                onChange={(e) => setRichContent((c) => ({ ...c, heroImageAlt: e.target.value }))}
+                placeholder="Describe what the image shows"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2.5"
+              />
+            </label>
+          </Card>
+
+          <Card className="p-5 md:p-6">
+            <h2 className="mb-1 text-lg font-semibold tracking-[-0.02em] text-foreground">Page body</h2>
+            <p className="mb-4 text-sm text-text-secondary">
+              Write and format your full page content. Use the image button in the toolbar to add photos anywhere in the text.
+            </p>
+            <RichTextEditor
+              value={richContent.bodyHtml}
+              onChange={(bodyHtml) => setRichContent((content) => ({ ...content, bodyHtml }))}
+              placeholder="Write your page content…"
+            />
+          </Card>
+        </>
       )}
 
       {format === "json" && (
         <>
-          <Card className="space-y-4 p-5 md:p-6">
-            <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Text content</h2>
-            <p className="text-sm text-text-secondary">
-              Edit copy in plain text fields — the layout and structure stay intact automatically.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              {textFields.map((field) => (
-                <label key={field.path} className="block text-sm">
-                  <span className="mb-1 block text-xs font-medium text-text-secondary">{field.label}</span>
-                  {field.multiline ? (
-                    <textarea
-                      value={field.value}
-                      onChange={(e) => updateTextField(field.path, e.target.value)}
-                      rows={3}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-                    />
-                  ) : (
-                    <input
-                      value={field.value}
-                      onChange={(e) => updateTextField(field.path, e.target.value)}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-                    />
-                  )}
-                </label>
-              ))}
-            </div>
-          </Card>
-
           {imageFields.length > 0 && parsedJson !== null && (
             <Card className="space-y-4 p-5 md:p-6">
-              <h2 className="text-lg font-semibold text-foreground">Images</h2>
-              <div className="grid gap-5 md:grid-cols-2">
-                {imageFields.map((fieldPath) => (
+              <div>
+                <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Images</h2>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Swap any illustration or photo on this page. Browse existing images or upload new ones.
+                </p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                {imageFields.map((field) => (
                   <MediaPicker
-                    key={fieldPath}
-                    label={fieldPath}
-                    value={String(getByPath(parsedJson, fieldPath) ?? "")}
-                    onSelect={(path) => setParsedJson(setByPath(parsedJson, fieldPath, path))}
+                    key={field.path}
+                    label={field.label}
+                    value={String(getByPath(parsedJson, field.path) ?? field.value)}
+                    onSelect={(path) => updateImageField(field.path, path)}
                   />
                 ))}
               </div>
             </Card>
           )}
+
+          <Card className="space-y-6 p-5 md:p-6">
+            <div>
+              <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">Text content</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Edit headlines, descriptions, and other copy. The page layout updates automatically when you save.
+              </p>
+            </div>
+            {groupedTextFields.map(([section, fields]) => (
+              <div key={section} className="space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                  {section.replace(/([A-Z])/g, " $1").trim()}
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {fields.map((field) => (
+                    <label key={field.path} className="block text-sm">
+                      <span className="mb-1 block text-xs font-medium text-text-secondary">{field.label}</span>
+                      {field.multiline ? (
+                        <textarea
+                          value={field.value}
+                          onChange={(e) => updateTextField(field.path, e.target.value)}
+                          rows={3}
+                          className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                        />
+                      ) : (
+                        <input
+                          value={field.value}
+                          onChange={(e) => updateTextField(field.path, e.target.value)}
+                          className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                        />
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </Card>
         </>
       )}
 

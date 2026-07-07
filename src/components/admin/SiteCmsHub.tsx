@@ -67,8 +67,8 @@ export function SiteCmsHub() {
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground md:text-3xl">Site CMS</h1>
           <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
-            Edit website copy with text fields and a visual editor — no JSON required. Create new pages,
-            set their public URL, and connect them anywhere on the site.
+            Revamp any page without touching code — edit text, swap images, upload photos, and build new pages
+            with a visual editor. Pick a page below or create a new one.
           </p>
         </div>
         <button
@@ -122,6 +122,10 @@ export function SiteCmsHub() {
               </button>
             </div>
             <form onSubmit={(e) => void handleCreate(e)} className="space-y-4">
+              <p className="text-sm text-text-secondary">
+                After creating, you&apos;ll get a full visual editor — add a hero banner, write your content,
+                and insert images anywhere in the page.
+              </p>
               <label className="block text-sm">
                 <span className="mb-1 block text-xs font-medium text-text-secondary">Page title</span>
                 <input
@@ -141,14 +145,15 @@ export function SiteCmsHub() {
                   className="w-full rounded-xl border border-border px-3 py-2.5 font-mono text-sm"
                   placeholder="/corporate"
                 />
+                <span className="mt-1 block text-xs text-text-secondary">Start with / — e.g. /corporate or /about-us</span>
               </label>
               <label className="block text-sm">
-                <span className="mb-1 block text-xs font-medium text-text-secondary">Short description</span>
+                <span className="mb-1 block text-xs font-medium text-text-secondary">Subtitle</span>
                 <input
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   className="w-full rounded-xl border border-border px-3 py-2.5"
-                  placeholder="Shown in search and page header"
+                  placeholder="Shown under the title on the live page"
                 />
               </label>
               <button

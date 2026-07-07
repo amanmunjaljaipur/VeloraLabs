@@ -114,6 +114,20 @@
   list-style: disc;
 }
 
+.cms-rich-prose img,
+.cms-rich-editor img {
+  margin: 1.25rem 0;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.cms-rich-prose a {
+  color: var(--accent-teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .cms-rich-editor h2 {
   font-size: 1.25rem;
   font-weight: 700;

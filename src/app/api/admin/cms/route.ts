@@ -44,6 +44,8 @@ export async function POST(request: Request) {
       subtitle: page.description,
       bodyHtml: "<p>Start writing your page content here.</p>",
       seoDescription: page.description,
+      heroImage: "",
+      heroImageAlt: "",
     });
 
     return NextResponse.json({ page }, { status: 201 });

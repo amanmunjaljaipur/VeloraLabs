@@ -5,6 +5,8 @@ export interface RichPageContent {
   subtitle: string;
   bodyHtml: string;
   seoDescription: string;
+  heroImage: string;
+  heroImageAlt: string;
 }
 
 const DEFAULT_RICH: RichPageContent = {
@@ -12,6 +14,8 @@ const DEFAULT_RICH: RichPageContent = {
   subtitle: "",
   bodyHtml: "<p>Start writing your page content here.</p>",
   seoDescription: "",
+  heroImage: "",
+  heroImageAlt: "",
 };
 
 export function readRichPageContent(filename: string): RichPageContent {

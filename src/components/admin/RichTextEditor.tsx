@@ -1,5 +1,6 @@
 "use client";
 
+import { MediaLibraryModal } from "@/components/admin/MediaLibraryModal";
 import { cn } from "@/lib/utils";
 import {
   Bold,
@@ -11,7 +12,7 @@ import {
   List,
   Underline,
 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface RichTextEditorProps {
   value: string;
@@ -47,6 +48,7 @@ function ToolbarButton({
 export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastHtml = useRef(value);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -74,12 +76,14 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     if (url) exec("createLink", url);
   }
 
-  function insertImage() {
-    const url = window.prompt("Image URL");
-    if (url) exec("insertImage", url);
+  function insertImageFromPath(path: string) {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+    exec("insertImage", path);
   }
 
   return (
+    <>
     <div className={cn("overflow-hidden rounded-xl border border-border bg-card", className)}>
       <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/30 px-2 py-2">
         <ToolbarButton label="Bold" onClick={() => exec("bold")}>
@@ -105,7 +109,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
         <ToolbarButton label="Insert link" onClick={insertLink}>
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton label="Insert image" onClick={insertImage}>
+        <ToolbarButton label="Insert image" onClick={() => setShowImagePicker(true)}>
           <ImageIcon className="h-4 w-4" />
         </ToolbarButton>
       </div>
@@ -118,5 +122,12 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
         className="cms-rich-editor min-h-[20rem] px-4 py-4 text-sm leading-relaxed text-foreground outline-none md:min-h-[28rem] md:px-5 md:py-5"
       />
     </div>
+    <MediaLibraryModal
+      open={showImagePicker}
+      onClose={() => setShowImagePicker(false)}
+      onSelect={insertImageFromPath}
+      title="Insert image into page"
+    />
+    </>
   );
 }
