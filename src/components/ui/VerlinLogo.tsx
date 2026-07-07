@@ -1,10 +1,6 @@
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { VerlinBrandMark } from "@/components/ui/VerlinBrandMark";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-/** Bright cyan-teal from brand wordmark — matches reference logo "labs" color */
-const LOGO_LABS = "var(--logo-labs, #24d4ee)";
-const BRAND_ICON = "/images/verlin-brand-icon.png";
 
 interface VerlinLogoProps {
   variant?: "full" | "icon";
@@ -13,25 +9,11 @@ interface VerlinLogoProps {
   className?: string;
 }
 
-function VerlinBrandIcon({ className }: { className?: string }) {
-  return (
-    <OptimizedImage
-      src={BRAND_ICON}
-      alt=""
-      width={48}
-      height={48}
-      aboveFold
-      className={cn(
-        "h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10",
-        className
-      )}
-    />
-  );
-}
-
 function VerlinWordmark({ tone }: { tone: "default" | "light" }) {
   const verlinClass =
     tone === "light" ? "text-white" : "text-[var(--logo-verlin)]";
+  const labsClass =
+    tone === "light" ? "text-accent-teal-light" : "text-gradient-teal";
 
   return (
     <span
@@ -43,7 +25,7 @@ function VerlinWordmark({ tone }: { tone: "default" | "light" }) {
       style={{ fontFamily: "var(--font-inter), Inter, system-ui, sans-serif" }}
     >
       <span className={verlinClass}>verlin</span>
-      <span style={{ color: LOGO_LABS }}>&nbsp;labs</span>
+      <span className={labsClass}>&nbsp;labs</span>
     </span>
   );
 }
@@ -58,7 +40,7 @@ export function VerlinLogo({ variant = "full", tone = "default", className }: Ve
       )}
     >
       <span className="sr-only">Verlin Labs</span>
-      <VerlinBrandIcon />
+      <VerlinBrandMark className="transition-transform duration-200 group-hover:scale-[1.02]" />
       {variant === "full" && <VerlinWordmark tone={tone} />}
     </Link>
   );
