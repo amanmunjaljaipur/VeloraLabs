@@ -4,6 +4,7 @@ import {
   appendManualUserToSheet,
   isServiceAccountConfigured,
   readManualUserRowsFromSheet,
+  updateManualUserPasswordHashInSheet,
 } from "@/lib/google-sheets-service";
 import bcrypt from "bcryptjs";
 
@@ -178,4 +179,47 @@ export async function verifyManualUserPassword(
   }
 
   return user;
+}
+
+export async function updateManualUserPassword(
+  email: string,
+  newPassword: string
+): Promise<boolean> {
+  if (newPassword.length > PASSWORD_MAX_LENGTH) {
+    return false;
+  }
+
+  await ensureManualUsersLoaded(true);
+
+  const normalized = email.toLowerCase().trim();
+  const cachedUser = getManualUserByEmail(normalized);
+  if (!cachedUser) {
+    return false;
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  const data = readLocalUsers();
+  const localIndex = data.users.findIndex((user) => user.email === normalized);
+
+  if (localIndex >= 0) {
+    data.users[localIndex] = { ...data.users[localIndex]!, passwordHash };
+  } else {
+    data.users.push({ ...cachedUser, passwordHash });
+  }
+
+  writeLocalUsers(data);
+  cachedUsers = mergeUsers(data.users, getCachedUsers()).map((user) =>
+    user.email === normalized ? { ...user, passwordHash } : user
+  );
+  cacheLoadedAt = Date.now();
+
+  if (isServiceAccountConfigured()) {
+    try {
+      await updateManualUserPasswordHashInSheet(normalized, passwordHash);
+    } catch (error) {
+      console.error("Failed to persist password update to Sheets:", error);
+    }
+  }
+
+  return true;
 }

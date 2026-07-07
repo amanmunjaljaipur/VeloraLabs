@@ -658,6 +658,37 @@ export async function readManualUserRowsFromSheet(): Promise<ManualUserSheetRow[
   return rows;
 }
 
+export async function updateManualUserPasswordHashInSheet(
+  email: string,
+  passwordHash: string
+): Promise<boolean> {
+  const access = await withSpreadsheetAccess();
+  if (!access) return false;
+
+  await ensureManualUsersTab(access.token, access.spreadsheetId);
+
+  const rows = await readManualUserRowsFromSheet();
+  const rowIndex = rows.findIndex((row) => row.email === email.toLowerCase().trim());
+  if (rowIndex < 0) return false;
+
+  const sheetRow = rowIndex + 2;
+  const range = `'${TAB_MANUAL_USERS}'!C${sheetRow}`;
+  const res = await googleFetch(
+    access.token,
+    `https://sheets.googleapis.com/v4/spreadsheets/${access.spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ values: [[passwordHash]] }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to update manual user password: ${await res.text()}`);
+  }
+
+  return true;
+}
+
 export async function appendManualUserToSheet(user: ManualUserSheetRow): Promise<boolean> {
   const access = await withSpreadsheetAccess({ ensureStructure: true });
   if (!access) return false;
