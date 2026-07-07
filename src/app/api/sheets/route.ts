@@ -1,3 +1,8 @@
+import {
+  ingestBookingLead,
+  ingestContactLead,
+  ingestNewsletterLead,
+} from "@/lib/crm/ingest";
 import { enrichBookingPayload } from "@/lib/sheets-booking";
 import { submitToGoogleSheet } from "@/lib/google-sheets";
 import { NextRequest, NextResponse } from "next/server";
@@ -55,6 +60,29 @@ export async function POST(req: NextRequest) {
         : parsed.data;
 
     const synced = await submitToGoogleSheet(payload);
+
+    try {
+      if (parsed.data.type === "booking") {
+        const booking = enrichBookingPayload(parsed.data);
+        ingestBookingLead({
+          name: booking.name,
+          email: booking.email,
+          audience: booking.audience,
+          audienceLabel: booking.audienceLabel,
+          date: booking.date,
+          time: booking.time,
+          bookingId: booking.bookingId,
+          status: booking.status,
+          source: booking.source,
+        });
+      } else if (parsed.data.type === "contact") {
+        ingestContactLead(parsed.data);
+      } else {
+        ingestNewsletterLead(parsed.data);
+      }
+    } catch (error) {
+      console.error("CRM ingest failed:", error);
+    }
 
     return NextResponse.json({
       success: true,

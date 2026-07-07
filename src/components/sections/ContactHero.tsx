@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import { SITE_IMAGE_ALT } from "@/lib/image-alt";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 
 export function ContactHero() {
@@ -15,9 +16,9 @@ export function ContactHero() {
       <div className="container-verlin relative py-16 md:py-24">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ y: 16 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             <p className="section-eyebrow mb-4">Contact</p>
             <h1 className="text-display font-semibold">
@@ -44,17 +45,17 @@ export function ContactHero() {
 
           <motion.div
             className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 shadow-lg surface-elevated lg:max-w-none"
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.55, delay: 0.1 }}
+            initial={{ x: 16 }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <Image
+            <OptimizedImage
               src="/images/contact-hero.jpg"
-              alt=""
+              alt={SITE_IMAGE_ALT.contact}
               fill
+              aboveFold
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
             />
             <div className="absolute inset-0 bg-gradient-to-tr from-navy/30 via-transparent to-accent-teal/15" />
           </motion.div>

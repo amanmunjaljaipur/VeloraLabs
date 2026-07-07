@@ -1,0 +1,94 @@
+{
+  "categories": [
+    {
+      "id": "general",
+      "title": "General",
+      "description": "What Verlin Labs is and who it's for",
+      "items": [
+        {
+          "question": "What is Verlin Labs?",
+          "answer": "Verlin Labs is a clarity-first learning platform for AI and technology. We teach through mental models, live sessions, and hands-on practice — helping students, engineers, and product managers understand how modern systems actually work, not just memorize buzzwords."
+        }
+      ]
+    },
+    {
+      "id": "free-session",
+      "title": "Free Session",
+      "description": "Booking, expectations, and what happens next",
+      "items": [
+        {
+          "question": "Is the 2-hour session really free?",
+          "answer": "Yes — the full introductory session is free. No enrollment fee, no credit card to book, and no hidden charges during or after the session."
+        }
+      ]
+    },
+    {
+      "id": "programs",
+      "title": "Courses & Tracks",
+      "description": "Tracks, duration, and enrollment",
+      "items": [
+        {
+          "question": "What's the difference between the three tracks?",
+          "answer": "All tracks share the same clarity-first framework, but examples, pace, and project depth adapt to your background."
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "title": "Learning Experience",
+      "description": "How we teach and what you'll use",
+      "items": [
+        {
+          "question": "How is this different from YouTube or other online courses?",
+          "answer": "Most content optimizes for watch time. Verlin Labs optimizes for understanding — live mental models, mentor Q&A, audience-tailored pacing, and hands-on exercises with feedback. You leave knowing what to do next, not just what to watch next."
+        },
+        {
+          "question": "Do I need any technical background?",
+          "answer": "Not for the free session or student track. Engineer and PM tracks go deeper, but we still build from frameworks first. Bring curiosity; we handle structure and scaffolding."
+        },
+        {
+          "question": "What tools will I use?",
+          "answer": "Tools vary by track — from accessible AI assistants and no-code builders for students and PMs, to coding environments and APIs for engineers. We introduce tools only after the underlying concept is clear, and we never require expensive paid software for the free session."
+        },
+        {
+          "question": "Are the sessions live or recorded?",
+          "answer": "The free session and core program sessions are live and interactive. Enrolled learners in the full program get access to session recordings and structured modules through the My Course dashboard for review."
+        }
+      ]
+    },
+    {
+      "id": "teams",
+      "title": "For Teams & Organizations",
+      "description": "Corporate workshops and custom programs",
+      "items": [
+        {
+          "question": "Do you offer corporate or team training?",
+          "answer": "Yes. We run clarity-first AI literacy workshops for teams — tailored examples, live Q&A, and follow-up resources. Contact us with your team size, goals, and timeline for options."
+        },
+        {
+          "question": "Can we customize a program for our team?",
+          "answer": "Yes. We can adapt modules, case studies, and pacing for your industry and skill mix. Share your context through the contact form and we'll propose a structure that fits."
+        }
+      ]
+    },
+    {
+      "id": "logistics",
+      "title": "Technical & Logistics",
+      "description": "Scheduling, format, and attendance",
+      "items": [
+        {
+          "question": "What time zones do you support?",
+          "answer": "Sessions are scheduled in India Standard Time (IST) by default, with slots designed for learners in India and compatible regions. If you're in another time zone, mention it when booking or contacting us — we'll suggest the best available options."
+        },
+        {
+          "question": "How are the sessions conducted?",
+          "answer": "Online via video conferencing. You'll receive a link after booking. A laptop or tablet with stable internet is recommended. Camera and microphone are optional but helpful for interaction."
+        },
+        {
+          "question": "What if I miss a session?",
+          "answer": "For the free session, reschedule via your confirmation email (24 hours' notice when possible). Enrolled program learners can review recordings in My Course and contact support for catch-up guidance on missed live days."
+        }
+      ]
+    }
+  ]
+}

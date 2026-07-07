@@ -27,8 +27,8 @@ const options: ConnectOption[] = [
     description:
       "Clarity-first AI literacy for teams — custom pacing, practical frameworks, and follow-up resources.",
     icon: Building2,
-    href: "#contact-form",
-    cta: "Request team info",
+    href: "/corporate",
+    cta: "View team workshops",
   },
   {
     title: "Partnerships & Collaborations",

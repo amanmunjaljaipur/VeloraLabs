@@ -8,6 +8,8 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       enrolledLearner: boolean;
+      legalTermsVersion?: number;
+      legalPrivacyVersion?: number;
     } & DefaultSession["user"];
   }
 }
@@ -18,6 +20,8 @@ declare module "next-auth/jwt" {
     maxAge?: number;
     enrolledLearner?: boolean;
     authProvider?: AuthProvider;
+    legalTermsVersion?: number;
+    legalPrivacyVersion?: number;
   }
 }
 

@@ -233,6 +233,18 @@ export async function publishWeeklyNewsletter(options?: {
   return edition;
 }
 
+/** Fast path for public pages — reads local cache only (no Google Sheets round-trip). */
+export function getLatestNewsletterEditionCached(): CompiledNewsletter | null {
+  const editions = readLocalEditions().editions;
+  if (editions.length === 0) return null;
+  return editions.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0];
+}
+
+export function getNewsletterEditionBySlugCached(slug: string): CompiledNewsletter | null {
+  const editions = readLocalEditions().editions;
+  return editions.find((edition) => edition.slug === slug) ?? null;
+}
+
 export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter | null> {
   const editions = await loadAllEditions();
   if (editions.length === 0) return null;

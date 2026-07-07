@@ -1,7 +1,7 @@
 {
   "title": "AI Explorers for School Students",
   "subtitle": "Classes 6–12 · Understand tech with clarity, not confusion",
-  "description": "An 8-day friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects.",
+  "description": "An 8-day student-friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects.",
   "price": "₹9,999",
   "duration": "8 days · 2 phases",
   "phases": [
@@ -44,7 +44,7 @@
         {
           "day": 4,
           "title": "Mental Models for Learning Tech",
-          "description": "Learn Verlin's clarity-first frameworks so any new technology feels understandable instead of overwhelming.",
+          "description": "Learn Verlin Labs' clarity-first frameworks so any new technology feels understandable instead of overwhelming.",
           "topics": [
             "The Information Pipeline model",
             "Breaking big ideas into small pieces",

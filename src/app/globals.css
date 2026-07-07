@@ -80,6 +80,57 @@
   --duration-normal: 280ms;
 }
 
+.cms-rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.cms-rich-prose h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.cms-rich-prose h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.cms-rich-prose p,
+.cms-rich-prose ul {
+  margin-bottom: 1rem;
+  line-height: 1.65;
+}
+
+.cms-rich-prose ul {
+  margin-left: 1.25rem;
+  list-style: disc;
+}
+
+.cms-rich-editor h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.75rem 0;
+}
+
+.cms-rich-editor h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.cms-rich-editor ul {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  list-style: disc;
+}
+
 .dark {
   --logo-verlin: #f8fafc;
   --background: var(--bg-dark);

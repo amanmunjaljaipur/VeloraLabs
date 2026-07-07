@@ -101,7 +101,7 @@ export function Navbar({ nav }: NavbarProps) {
           className="container-verlin-nav flex h-16 items-center gap-3 md:h-[4.25rem] lg:gap-4"
           aria-label="Main navigation"
         >
-          <VerlinLogo className="shrink-0" />
+          <VerlinLogo className="mr-1 shrink-0 sm:mr-2" />
 
           <div className="hidden flex-1 items-center justify-center gap-x-4 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-6 2xl:gap-x-7">
             {navItems.map((item) =>

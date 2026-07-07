@@ -1,3 +1,4 @@
+import { formatKnowledgeAnswer } from "./format-answer";
 import type { ChatResponse, KnowledgeEntry, ScoredEntry } from "./types";
 
 const STOP_WORDS = new Set([
@@ -133,14 +134,10 @@ const FALLBACK_SUGGESTIONS = [
 ];
 
 const LOW_CONFIDENCE =
-  "I'm not fully sure about that one. You can browse our FAQ, book a free session to ask live, or contact us directly — we'll get you a clear answer.";
+  "I'm not fully sure about that one.\n\nYou can browse our **FAQ**, book a **free session** to ask live, or **contact us** directly — we'll get you a clear answer.";
 
 export function formatAnswer(entry: KnowledgeEntry): string {
-  let text = entry.answer;
-  if (entry.bullets && entry.bullets.length > 0) {
-    text += ` ${entry.bullets.join(". ")}.`;
-  }
-  return text;
+  return formatKnowledgeAnswer(entry);
 }
 
 export function buildChatResponse(

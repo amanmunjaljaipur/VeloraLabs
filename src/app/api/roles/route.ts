@@ -103,9 +103,16 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+      if (!canManageAssignment(actorRole, parsed.data.role)) {
+        return NextResponse.json(
+          { error: "You cannot assign Admin or Super Admin roles" },
+          { status: 403 }
+        );
+      }
     }
 
-    if (email === session.user.email?.toLowerCase() && parsed.data.role !== actorRole) {
+    const isSelf = email === session.user.email?.toLowerCase();
+    if (isSelf && parsed.data.role !== actorRole) {
       return NextResponse.json({ error: "You cannot change your own role" }, { status: 400 });
     }
 

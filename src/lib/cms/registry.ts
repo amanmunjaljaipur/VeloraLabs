@@ -1,4 +1,6 @@
-export type CmsContentType = "json" | "markdown";
+import { listCustomCmsPages } from "@/lib/cms/dynamic-pages";
+
+export type CmsContentType = "json" | "markdown" | "rich";
 
 export interface CmsPageDefinition {
   id: string;
@@ -184,6 +186,10 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
 ];
 
+export function getAllCmsPages(): CmsPageDefinition[] {
+  return [...CMS_PAGES, ...listCustomCmsPages()];
+}
+
 export function getCmsPage(id: string): CmsPageDefinition | undefined {
-  return CMS_PAGES.find((page) => page.id === id);
+  return getAllCmsPages().find((page) => page.id === id);
 }

@@ -1,12 +1,15 @@
 import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { CourseTrackLinks } from "@/components/sections/CourseTrackLinks";
 import { LibraryArticle } from "@/components/sections/LibraryArticle";
 import { ContentCard } from "@/components/sections/ContentCard";
+import { ArticleJsonLd } from "@/components/seo/ArticleJsonLd";
 import { Button } from "@/components/ui/Button";
 import { getLibraryItem, getLibraryItems } from "@/lib/content";
+import { trimMetaDescription } from "@/lib/meta-description";
+import { createMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 
 export function generateStaticParams() {
   return getLibraryItems().map((item) => ({ slug: item.slug }));
@@ -16,11 +19,20 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+}) {
   const { slug } = await params;
   const item = getLibraryItem(slug);
   if (!item) return { title: "Not Found" };
-  return { title: item.title, description: item.description };
+  return createMetadata({
+    title: `${item.title} — AI ${item.type}`,
+    description: trimMetaDescription(
+      `${item.description} ${item.duration} read · ${item.level} · Verlin Labs library.`
+    ),
+    keywords: [...item.tags, "AI learning", item.level, "Verlin Labs"],
+    path: `/library/${slug}`,
+    image: item.image,
+    type: "article",
+  });
 }
 
 export default async function LibraryDetailPage({
@@ -45,11 +57,25 @@ export default async function LibraryDetailPage({
 
   return (
     <>
+      <ArticleJsonLd item={item} />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath={`/library/${slug}`} />
       <div className="container-verlin border-b border-border/80 bg-hero-mesh py-4">
         <Breadcrumbs items={breadcrumbs} />
       </div>
       <LibraryArticle item={item} />
+
+      <CourseTrackLinks
+          title={
+            item.audience === "professionals"
+              ? "Ready for structured AI training for PMs?"
+              : item.audience === "engineers"
+                ? "Continue with the college engineers track"
+                : item.audience === "students"
+                  ? "Continue with the school students track"
+                  : "Apply what you learned in a live program"
+          }
+          className="section-y border-t border-border bg-muted/15"
+        />
 
       {related.length > 0 && (
         <section className="border-t border-border bg-muted/30 py-16">

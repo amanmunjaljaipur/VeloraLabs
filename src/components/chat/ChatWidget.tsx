@@ -1,57 +1,50 @@
 "use client";
 
+import { ChatMessageContent } from "@/components/chat/ChatMessageContent";
 import { useChatbot } from "@/components/chat/useChatbot";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { ArrowLeft, Bot, ChevronRight, Loader2, MessageCircle, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const HIDDEN_PREFIXES = ["/admin", "/login", "/signup"];
 
-const QUICK_PROMPTS = [
-  "Is the free session free?",
-  "Course prices?",
-  "How to book?",
-];
-
-export function ChatWidget() {
+export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const { messages, loading, modelReady, sendMessage, reset } = useChatbot();
+  const [open, setOpen] = useState(autoOpen);
+  const {
+    messages,
+    loading,
+    menu,
+    menuError,
+    step,
+    selectedCategory,
+    selectCategory,
+    selectQuestion,
+    backToCategories,
+    showMoreQuestions,
+    reset,
+  } = useChatbot();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
   if (hidden) return null;
+
+  const activeCategory = menu?.categories.find((category) => category.name === selectedCategory);
+  const questionLookup = new Map(
+    menu?.categories.flatMap((category) =>
+      category.questions.map((question) => [question.question, question.id] as const)
+    ) ?? []
+  );
 
   useEffect(() => {
     if (open && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, open, loading]);
-
-  useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 200);
-      return () => clearTimeout(t);
-    }
-  }, [open]);
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!input.trim()) return;
-    const msg = input;
-    setInput("");
-    void sendMessage(msg);
-  }
-
-  function handlePrompt(prompt: string) {
-    void sendMessage(prompt);
-  }
+  }, [messages, open, loading, step]);
 
   return (
     <>
@@ -89,9 +82,7 @@ export function ChatWidget() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Verlin Assistant</p>
-                  <p className="text-[11px] text-text-secondary">
-                    {modelReady ? "On-device AI ready" : "FAQ-trained · runs locally"}
-                  </p>
+                  <p className="text-[11px] text-text-secondary">Browse FAQs by topic</p>
                 </div>
               </div>
               <button
@@ -118,7 +109,11 @@ export function ChatWidget() {
                         : "border border-border bg-muted/60 text-foreground dark:bg-muted/80"
                     )}
                   >
-                    <p>{msg.content}</p>
+                    {msg.role === "assistant" ? (
+                      <ChatMessageContent content={msg.content} />
+                    ) : (
+                      <p>{msg.content}</p>
+                    )}
                     {msg.links && msg.links.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {msg.links.map((link) => (
@@ -133,18 +128,24 @@ export function ChatWidget() {
                         ))}
                       </div>
                     )}
-                    {msg.suggestions && msg.suggestions.length > 0 && msg.role === "assistant" && (
+                    {msg.suggestions && msg.suggestions.length > 0 && msg.role === "assistant" && step === "answered" && (
                       <div className="mt-2.5 flex flex-col gap-1">
-                        {msg.suggestions.map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => handlePrompt(s)}
-                            className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal"
-                          >
-                            {s}
-                          </button>
-                        ))}
+                        {msg.suggestions.map((suggestion) => {
+                          const entryId = questionLookup.get(suggestion);
+                          if (!entryId) return null;
+
+                          return (
+                            <button
+                              key={suggestion}
+                              type="button"
+                              onClick={() => void selectQuestion(entryId, suggestion)}
+                              disabled={loading}
+                              className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
+                            >
+                              {suggestion}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -153,46 +154,104 @@ export function ChatWidget() {
               {loading && (
                 <div className="flex items-center gap-2 text-xs text-text-secondary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Thinking…
+                  Loading answer…
                 </div>
               )}
             </div>
 
-            {!loading && messages.length <= 2 && (
-              <div className="flex flex-wrap gap-1.5 border-t border-border/60 px-4 py-2">
-                {QUICK_PROMPTS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => handlePrompt(p)}
-                    className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="border-t border-border bg-card/80 px-3 py-3">
+              {menuError && (
+                <p className="mb-2 text-center text-xs text-text-secondary">
+                  Could not load topics.{" "}
+                  <Link href="/faq" className="text-accent-teal hover:underline" onClick={() => setOpen(false)}>
+                    Visit FAQ
+                  </Link>
+                </p>
+              )}
 
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-border p-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about courses, pricing, booking…"
-                maxLength={500}
-                className="h-10 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm text-foreground placeholder:text-text-secondary/60 focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
-                disabled={loading}
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-teal text-white transition-colors hover:bg-teal disabled:opacity-50"
-                aria-label="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
+              {!menu && !menuError && (
+                <div className="flex items-center justify-center gap-2 py-2 text-xs text-text-secondary">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading topics…
+                </div>
+              )}
+
+              {menu && step === "categories" && (
+                <div className="space-y-2">
+                  <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                    Choose a topic
+                  </p>
+                  <div className="max-h-40 space-y-1 overflow-y-auto">
+                    {menu.categories.map((category) => (
+                      <button
+                        key={category.name}
+                        type="button"
+                        onClick={() => selectCategory(category.name)}
+                        disabled={loading}
+                        className="flex w-full items-center justify-between rounded-xl border border-border bg-background px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
+                      >
+                        <span>{category.name}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {menu && step === "questions" && activeCategory && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={backToCategories}
+                    disabled={loading}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary transition-colors hover:text-accent-teal disabled:opacity-50"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                    All topics
+                  </button>
+                  <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                    {activeCategory.name}
+                  </p>
+                  <div className="max-h-40 space-y-1 overflow-y-auto">
+                    {activeCategory.questions.map((question) => (
+                      <button
+                        key={question.id}
+                        type="button"
+                        onClick={() => void selectQuestion(question.id, question.question)}
+                        disabled={loading}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-left text-sm leading-snug text-foreground transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
+                      >
+                        {question.question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {menu && step === "answered" && (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={backToCategories}
+                    disabled={loading}
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
+                  >
+                    <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+                    Browse topics
+                  </button>
+                  {activeCategory && (
+                    <button
+                      type="button"
+                      onClick={showMoreQuestions}
+                      disabled={loading}
+                      className="inline-flex flex-1 items-center justify-center rounded-xl border border-accent-teal/30 bg-accent-teal/10 px-3 py-2 text-sm font-medium text-accent-teal transition-colors hover:bg-accent-teal/20 disabled:opacity-50"
+                    >
+                      More in {activeCategory.name}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center justify-between border-t border-border/60 px-4 py-1.5">
               <button
@@ -200,7 +259,7 @@ export function ChatWidget() {
                 onClick={reset}
                 className="text-[10px] text-text-secondary transition-colors hover:text-foreground"
               >
-                Clear chat
+                Start over
               </button>
               <Link
                 href="/faq"

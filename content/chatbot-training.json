@@ -8,7 +8,7 @@
       "category": "General",
       "question": "What is Verlin Labs?",
       "alternateQuestions": [],
-      "answer": "Verlin Labs — Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+      "answer": "Verlin Labs — Understand complex AI concepts through clear mental models. Free 2-hour session, hands-on programs for students, engineers, and product managers.",
       "bullets": [],
       "keywords": [
         "what",
@@ -421,7 +421,7 @@
       "category": "Free Session",
       "question": "Will there be any sales pitch during the session?",
       "alternateQuestions": [],
-      "answer": "No hard sell. The session is a structured teaching experience — mental models, a live AI walkthrough, hands-on exercise, and Q&A. We may mention the full program if it's relevant to your goals, but there's no pressure or time-limited tactics.",
+      "answer": "No hard sell. The session is a structured teaching experience — mental models, a live AI walkthrough, a hands-on exercise, and Q&A. We may mention the full program if it's relevant to your goals, but there's no pressure or time-limited tactics.",
       "bullets": [],
       "keywords": [
         "will",
@@ -1954,7 +1954,7 @@
       "bullets": [
         "Starter reading list and framework reference sheet (PDF or Notion-style summary)",
         "Practice prompts based on the hands-on segment from your session",
-        "Links to relevant Verlin Labs library and mental model guides",
+        "Links to relevant guides from the Verlin Labs library and mental models hub",
         "Live session recordings are not shared by default to protect open discussion",
         "Enrolled program learners access recordings and syllabus via My Course"
       ],
@@ -2233,7 +2233,7 @@
       "category": "Courses",
       "question": "Who is the School Students track for?",
       "alternateQuestions": [],
-      "answer": "Make AI and tech click — without the jargon. An 8-day friendly program with fun analogies, safe AI tool use, and a hands-on showcase project.",
+      "answer": "Make AI and tech click — without the jargon. An 8-day student-friendly program with fun analogies, safe AI tool use, and a hands-on showcase project.",
       "bullets": [],
       "keywords": [
         "who",
@@ -2368,7 +2368,7 @@
       "category": "Courses",
       "question": "Tell me about the AI Explorers for School Students program",
       "alternateQuestions": [],
-      "answer": "An 8-day friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects. Duration: 8 days · 2 phases. Introductory price: ₹2,999 (list ₹9,999, save ₹7,000).",
+      "answer": "An 8-day student-friendly program that helps school students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini projects. Duration: 8 days · 2 phases. Introductory price: ₹2,999 (list ₹9,999, save ₹7,000).",
       "bullets": [],
       "keywords": [
         "tell",

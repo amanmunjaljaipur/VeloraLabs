@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { SessionCommentsPanel } from "@/components/admin/SessionCommentsPanel";
 import { SessionVideosPanel } from "@/components/admin/SessionVideosPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { isAdminRole } from "@/lib/session-access";
@@ -25,9 +26,10 @@ export default async function AdminSessionsPage() {
     <>
       <PageHeader
         title="Session Videos"
-        subtitle="Manage recordings by course and module — the same structure as Courses. Select a track, open a lesson, and paste the YouTube link."
+        subtitle="Manage recordings by course and module, and review learner comments on session videos."
       />
       <SessionVideosPanel />
+      <SessionCommentsPanel />
     </>
   );
 }

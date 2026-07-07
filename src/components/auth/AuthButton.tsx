@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
 import { ROLE_LABELS } from "@/types/roles";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, LogOut, Shield } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -21,8 +20,6 @@ export function AuthButton({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const role = session?.user?.role;
-  const adminLinks = getAdminMenuLinks(role);
-  const isSuperAdmin = isSuperAdminRole(role);
 
   useEffect(() => {
     if (!open) return;
@@ -117,30 +114,16 @@ export function AuthButton({
               </div>
             )}
 
-            {adminLinks.length > 0 && (
-              <div className="border-b border-border py-1">
-                <p className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                  <Shield className="h-3.5 w-3.5" />
-                  {isSuperAdmin ? "Super Admin" : "Admin"}
-                </p>
-                {adminLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    role="menuitem"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-2.5 transition-colors hover:bg-muted"
-                  >
-                    <span className="text-sm font-medium text-foreground">{link.label}</span>
-                    {link.description && (
-                      <span className="mt-0.5 block text-xs text-text-secondary">
-                        {link.description}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
+            {role === "admin" || role === "super_admin" ? (
+              <Link
+                href="/admin/sessions"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Admin dashboard
+              </Link>
+            ) : null}
 
             {session.user.enrolledLearner && (
               <Link

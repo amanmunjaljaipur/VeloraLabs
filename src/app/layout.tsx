@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { AdminSiteChrome } from "@/components/admin/AdminSiteChrome";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
 import { LegalAcceptanceGateLoader } from "@/components/legal/LegalAcceptanceGateLoader";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
@@ -129,6 +130,7 @@ export default function RootLayout({
                 social={site.footer.social}
                 contact={site.footer.contact}
               />
+              <PageViewTracker />
               <ChatWidgetLoader />
               <LegalAcceptanceGateLoader />
             </ToastProvider>

@@ -1,38 +1,58 @@
 import type { Metadata } from "next";
+import { trimMetaDescription } from "@/lib/meta-description";
 
 export const SITE_NAME = "Verlin Labs";
+export const SITE_ORIGIN = "https://www.verlinlabs.com";
+
+const DEFAULT_OG_IMAGE = "/images/hero-side.jpg";
 
 /**
- * Build per-page metadata with a page-specific OpenGraph/Twitter card.
- *
- * The root layout sets a title template ("%s | Verlin Labs") and a default
- * social card. Next.js does NOT automatically derive per-page OG titles from
- * that template, so every page would otherwise share the same OG title and
- * description. Use this helper on each page to give it its own social preview.
+ * Build per-page metadata with canonical URLs, robots, and social cards.
  */
 export function createMetadata({
   title,
   description,
   path = "/",
-  image = "/images/hero-side.jpg",
+  image = DEFAULT_OG_IMAGE,
+  keywords,
+  noIndex = false,
+  type = "website",
+  absoluteTitle = false,
 }: {
   title: string;
   description: string;
   path?: string;
   image?: string;
+  keywords?: readonly string[];
+  noIndex?: boolean;
+  type?: "website" | "article";
+  absoluteTitle?: boolean;
 }): Metadata {
-  const ogTitle = `${title} | ${SITE_NAME}`;
+  const ogTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+  const canonicalPath = path.startsWith("/") ? path : `/${path}`;
+
+  const metaDescription = trimMetaDescription(description);
 
   return {
-    title,
-    description,
-    alternates: { canonical: path },
+    title: absoluteTitle ? { absolute: title } : title,
+    description: metaDescription,
+    ...(keywords?.length ? { keywords: [...keywords] } : {}),
+    metadataBase: new URL(SITE_ORIGIN),
+    alternates: { canonical: canonicalPath },
+    robots: noIndex
+      ? { index: false, follow: false }
+      : {
+          index: true,
+          follow: true,
+          googleBot: { index: true, follow: true, "max-image-preview": "large" },
+        },
     openGraph: {
       title: ogTitle,
-      description,
-      type: "website",
-      url: path,
+      description: metaDescription,
+      type,
+      url: canonicalPath,
       siteName: SITE_NAME,
+      locale: "en_IN",
       images: [
         {
           url: image,
@@ -45,7 +65,7 @@ export function createMetadata({
     twitter: {
       card: "summary_large_image",
       title: ogTitle,
-      description,
+      description: metaDescription,
       images: [image],
     },
   };

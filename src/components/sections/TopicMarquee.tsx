@@ -9,7 +9,7 @@ const topics = [
   "Vibe Coding",
   "Portfolio Projects",
   "Capstone Demo Day",
-  "Free 2-Hour Sessions",
+  "Free 2-Hour Session",
   "Interview Prep",
 ];
 

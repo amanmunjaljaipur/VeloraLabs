@@ -10,8 +10,9 @@ import type { LibraryItem } from "@/lib/content";
 import { useLoadMore } from "@/hooks/useLoadMore";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Calendar, Search, User } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
+import { formatContentDateTime } from "@/lib/utils";
 import { useMemo, useState } from "react";
 
 const BLOG_PAGE_SIZE = 6;
@@ -27,20 +28,15 @@ const categoryOptions = [
   { value: "Students", label: "Students" },
 ];
 
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function BlogClient({ posts }: { posts: LibraryItem[] }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
 
   const sorted = useMemo(
-    () => [...posts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)),
+    () =>
+      [...posts].sort((a, b) =>
+        (b.updatedAt ?? b.publishedAt).localeCompare(a.updatedAt ?? a.publishedAt)
+      ),
     [posts]
   );
 
@@ -111,13 +107,13 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                         isIllustration ? "bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40" : ""
                       }`}
                     >
-                      <Image
+                      <OptimizedImage
                         src={featured.image}
                         alt={featured.title}
                         fill
+                        aboveFold
                         className={isIllustration ? "object-contain p-6" : "object-cover"}
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        priority
                       />
                     </div>
                     <div className="flex flex-col justify-center p-6 md:p-10">
@@ -133,7 +129,8 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                       <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-text-secondary">
                         <span className="inline-flex items-center gap-1.5">
                           <Calendar className="h-4 w-4" />
-                          {formatDate(featured.publishedAt)}
+                          {featured.updatedAt ? "Updated " : "Published "}
+                          {formatContentDateTime(featured.updatedAt ?? featured.publishedAt)}
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <User className="h-4 w-4" />
@@ -165,6 +162,8 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                           level={post.level}
                           type={post.type}
                           image={post.image}
+                          publishedAt={post.publishedAt}
+                          updatedAt={post.updatedAt}
                         />
                       </MotionStaggerItem>
                     ))}

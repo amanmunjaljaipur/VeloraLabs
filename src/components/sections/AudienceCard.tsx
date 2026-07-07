@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/Card";
 import { Briefcase, Code, GraduationCap, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -37,15 +37,15 @@ export function AudienceCard({
   const inner = (
     <>
       {image ? (
-        <div className="relative -mx-5 -mt-5 mb-5 h-44 overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40 md:-mx-8 md:-mt-8">
-          <Image
+        <div className="relative -mx-5 -mt-5 mb-5 h-48 overflow-hidden rounded-t-2xl bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40 md:-mx-8 md:-mt-8">
+          <OptimizedImage
             src={image}
-            alt=""
+            alt={`${title} — Verlin Labs AI training program`}
             fill
-            className="object-contain p-3 transition-transform duration-250 ease-out group-hover:scale-[1.04]"
-            sizes="400px"
+            className="object-cover object-center transition-transform duration-250 ease-out group-hover:scale-[1.04]"
+            sizes="(max-width: 768px) 100vw, 400px"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/20 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/8 via-transparent to-transparent opacity-0 transition-opacity duration-250 group-hover:opacity-100" />
           <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-card/90 text-accent-teal shadow-md backdrop-blur-sm">
             <Icon className="h-5 w-5" />

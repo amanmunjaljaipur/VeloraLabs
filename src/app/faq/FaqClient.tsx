@@ -3,7 +3,7 @@
 import { Accordion } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { SITE_FAQ_CATEGORIES, getTotalFaqCount, type SiteFaqCategory } from "@/lib/faq-content";
+import type { SiteFaqCategory } from "@/lib/cms/faq-content-types";
 import {
   BookOpen,
   Building2,
@@ -44,21 +44,25 @@ function matchesSearch(
   return haystack.includes(query);
 }
 
-function filterCategories(query: string): SiteFaqCategory[] {
+function filterCategories(query: string, categories: SiteFaqCategory[]): SiteFaqCategory[] {
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return SITE_FAQ_CATEGORIES;
+  if (!normalized) return categories;
 
-  return SITE_FAQ_CATEGORIES.map((category) => ({
+  return categories.map((category) => ({
     ...category,
     items: category.items.filter((item) => matchesSearch(normalized, category, item)),
   })).filter((category) => category.items.length > 0);
 }
 
-export function FaqClient() {
-  const [search, setSearch] = useState("");
-  const totalCount = getTotalFaqCount();
+interface FaqClientProps {
+  categories: SiteFaqCategory[];
+  totalCount: number;
+}
 
-  const filtered = useMemo(() => filterCategories(search), [search]);
+export function FaqClient({ categories, totalCount }: FaqClientProps) {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => filterCategories(search, categories), [search, categories]);
   const resultCount = filtered.reduce((sum, cat) => sum + cat.items.length, 0);
   const isSearching = search.trim().length > 0;
 
@@ -93,7 +97,7 @@ export function FaqClient() {
                 {resultCount === 0 && " — try different keywords"}
               </>
             ) : (
-              <>Search across {totalCount} answers in {SITE_FAQ_CATEGORIES.length} categories</>
+              <>Search across {totalCount} answers in {categories.length} categories</>
             )}
           </p>
         </div>

@@ -1,5 +1,5 @@
-import { SITE_FAQ_CATEGORIES } from "@/lib/faq-content";
-import { HOME_FAQS } from "@/lib/home-content";
+import { getSiteFaqCategories } from "@/lib/cms/faq-content-data";
+import { getHomeContentData } from "@/lib/cms/home-content-data";
 import {
   getAllCourseTracks,
   getAudiences,
@@ -139,7 +139,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
     extraKeywords: ["framework", "structure", "understand", "mental", "model"],
   });
 
-  for (const cat of SITE_FAQ_CATEGORIES) {
+  for (const cat of getSiteFaqCategories()) {
     for (const item of cat.items) {
       add({
         question: item.question,
@@ -151,7 +151,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
     }
   }
 
-  for (const item of HOME_FAQS) {
+  for (const item of getHomeContentData().homeFaqs) {
     add({
       question: item.question,
       answer: item.answer,
@@ -165,7 +165,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
     for (const item of cat.items) {
       add({
         question: item.question,
-        answer: item.answer.replace(/\n\n/g, " "),
+        answer: item.answer.trim(),
         category: cat.title,
         bullets: item.bullets,
         links: [{ label: "Book free session", href: "/free-session" }],
@@ -196,7 +196,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
     const pricing = getIntroPricing(course.price);
     add({
       question: `Tell me about the ${course.title} program`,
-      answer: `${course.description} Duration: ${course.duration}. Introductory price: ${pricing.current} (list ${pricing.original}, ${pricing.discountPercent}% off).`,
+      answer: `${course.description}\n\n**Duration:** ${course.duration}\n\n**Introductory price:** ${pricing.current} (list ${pricing.original}, ${pricing.discountPercent}% off)`,
       category: "Courses",
       links: [{ label: "View program", href: `/courses/${slug}` }],
       extraKeywords: [slug, course.title, course.duration, pricing.current],
@@ -240,13 +240,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
 }
 
 function buildPricingAnswer(): string {
-  const tracks = getAllCourseTracks();
-  const lines = tracks.map(({ slug, course }) => {
-    const p = getIntroPricing(course.price);
-    const label = slug === "professionals" ? "Product Managers" : slug === "engineers" ? "Engineers" : "Students";
-    return `${label}: ${p.current} introductory (list ${p.original}, ${course.duration})`;
-  });
-  return `Current introductory pricing: ${lines.join(". ")}. The 2-hour intro session is always free.`;
+  return "All full programs currently have an introductory discount off list price. See the table below for each track.";
 }
 
 function categoryLinks(categoryId: string) {

@@ -1,106 +1,164 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import type { ChatMessage, ChatResponse } from "@/lib/chat/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ChatMenu, ChatMessage, ChatResponse } from "@/lib/chat/types";
 
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hi! I'm the Verlin Labs assistant — trained on our FAQs, courses, and free session info. Ask me anything about programs, pricing, or booking.",
-  suggestions: [
-    "Is the free session really free?",
-    "What are the course prices?",
-    "How do I book the free session?",
-  ],
+    "Hi! I'm the Verlin Labs assistant.\n\n**Choose a topic below** — then pick a question for a quick, accurate answer from our FAQs.",
 };
 
-let embedderPromise: Promise<(text: string) => Promise<number[]>> | null = null;
-
-async function getQueryEmbedding(text: string): Promise<number[] | undefined> {
-  try {
-    if (!embedderPromise) {
-      embedderPromise = (async () => {
-        const { pipeline, env } = await import("@xenova/transformers");
-        env.allowLocalModels = false;
-        env.useBrowserCache = true;
-        const pipe = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-        return async (input: string) => {
-          const output = await (pipe as (t: string, o: object) => Promise<{ data: Float32Array }>)(
-            input,
-            { pooling: "mean", normalize: true }
-          );
-          return Array.from(output.data as Float32Array);
-        };
-      })();
-    }
-    const embed = await embedderPromise;
-    return await embed(text);
-  } catch {
-    return undefined;
-  }
-}
+export type ChatStep = "categories" | "questions" | "answered";
 
 export function useChatbot() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [loading, setLoading] = useState(false);
-  const [modelReady, setModelReady] = useState(false);
+  const [menu, setMenu] = useState<ChatMenu | null>(null);
+  const [menuError, setMenuError] = useState(false);
+  const [step, setStep] = useState<ChatStep>("categories");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const idRef = useRef(1);
 
-  const sendMessage = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || loading) return;
+  useEffect(() => {
+    let cancelled = false;
 
-    const userMsg: ChatMessage = {
-      id: `user-${idRef.current++}`,
-      role: "user",
-      content: trimmed,
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
-
-    try {
-      const embedding = await getQueryEmbedding(trimmed);
-      if (embedding) setModelReady(true);
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, embedding }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Request failed");
+    async function loadMenu() {
+      try {
+        const res = await fetch("/api/chat");
+        if (!res.ok) throw new Error("Failed to load menu");
+        const data = (await res.json()) as ChatMenu;
+        if (!cancelled) {
+          setMenu(data);
+          setMenuError(false);
+        }
+      } catch {
+        if (!cancelled) setMenuError(true);
       }
+    }
 
-      const data = (await res.json()) as ChatResponse;
-      const assistantMsg: ChatMessage = {
+    void loadMenu();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectCategory = useCallback((category: string) => {
+    setSelectedCategory(category);
+    setStep("questions");
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `user-${idRef.current++}`,
+        role: "user",
+        content: category,
+      },
+      {
         id: `assistant-${idRef.current++}`,
         role: "assistant",
-        content: data.answer,
-        links: data.links,
-        suggestions: data.suggestions,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
+        content: `Great — pick a question about **${category}**: `,
+      },
+    ]);
+  }, []);
+
+  const selectQuestion = useCallback(
+    async (entryId: string, question: string) => {
+      if (loading) return;
+
       setMessages((prev) => [
         ...prev,
         {
-          id: `error-${idRef.current++}`,
-          role: "assistant",
-          content: "Something went wrong. Please try again or visit our FAQ page.",
-          links: [{ label: "FAQ", href: "/faq" }],
+          id: `user-${idRef.current++}`,
+          role: "user",
+          content: question,
         },
       ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading]);
+      setLoading(true);
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ entryId }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Request failed");
+        }
+
+        const data = (await res.json()) as ChatResponse;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-${idRef.current++}`,
+            role: "assistant",
+            content: data.answer,
+            links: data.links,
+            suggestions: data.suggestions,
+          },
+        ]);
+        setStep("answered");
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `error-${idRef.current++}`,
+            role: "assistant",
+            content: "Something went wrong. Please try again or visit our FAQ page.",
+            links: [{ label: "FAQ", href: "/faq" }],
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading]
+  );
+
+  const backToCategories = useCallback(() => {
+    setStep("categories");
+    setSelectedCategory(null);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `assistant-${idRef.current++}`,
+        role: "assistant",
+        content: "No problem — **choose another topic** below.",
+      },
+    ]);
+  }, []);
+
+  const showMoreQuestions = useCallback(() => {
+    if (!selectedCategory) return;
+    setStep("questions");
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `assistant-${idRef.current++}`,
+        role: "assistant",
+        content: `More questions about **${selectedCategory}**:`,
+      },
+    ]);
+  }, [selectedCategory]);
 
   const reset = useCallback(() => {
     setMessages([WELCOME]);
+    setStep("categories");
+    setSelectedCategory(null);
   }, []);
 
-  return { messages, loading, modelReady, sendMessage, reset };
+  return {
+    messages,
+    loading,
+    menu,
+    menuError,
+    step,
+    selectedCategory,
+    selectCategory,
+    selectQuestion,
+    backToCategories,
+    showMoreQuestions,
+    reset,
+  };
 }

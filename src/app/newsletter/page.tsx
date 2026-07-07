@@ -1,26 +1,28 @@
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Newsletter } from "@/components/sections/Newsletter";
 import { getSiteConfig } from "@/lib/content";
-import { getLatestNewsletterEdition } from "@/lib/news-updates";
-import { createMetadata } from "@/lib/seo";
+import { getLatestNewsletterEditionCached } from "@/lib/news-updates";
+import { formatContentDateTime } from "@/lib/utils";
+import { staticPageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 
-export const metadata = createMetadata({
-  title: "Newsletter",
-  description:
-    "Subscribe to the Verlin Labs weekly newsletter — mental models, AI clarity, and technology insights in your inbox.",
-  path: "/newsletter",
-});
+export const metadata = staticPageMetadata("newsletter", "/newsletter");
 
-export const dynamic = "force-dynamic";
-
-export default async function NewsletterPage() {
+export default function NewsletterPage() {
   const site = getSiteConfig();
-  const latestEdition = await getLatestNewsletterEdition();
+  const latestEdition = getLatestNewsletterEditionCached();
+
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Newsletter" },
+  ];
 
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/newsletter" />
       <PageHeader
+        breadcrumbs={breadcrumbs}
         eyebrow="Newsletter"
         title="Weekly clarity on AI and technology"
         subtitle="Mental models, frameworks, and practical insights — delivered every Sunday. No hype, no noise."
@@ -40,12 +42,7 @@ export default async function NewsletterPage() {
           {latestEdition ? (
             <div className="mt-6 rounded-2xl border border-border bg-card p-6 md:p-8">
               <p className="text-sm text-text-secondary">
-                {new Date(latestEdition.publishedAt).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                Published {formatContentDateTime(latestEdition.publishedAt)}
               </p>
               <h3 className="mt-2 text-lg font-semibold text-foreground">{latestEdition.title}</h3>
               <p className="mt-3 leading-relaxed text-text-secondary">{latestEdition.intro}</p>

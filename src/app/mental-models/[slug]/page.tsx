@@ -1,12 +1,15 @@
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MentalModelArticle } from "@/components/sections/MentalModelArticle";
+import { CourseTrackLinks } from "@/components/sections/CourseTrackLinks";
+import { MentalModelJsonLd } from "@/components/seo/MentalModelJsonLd";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getMentalModel, getMentalModels, getLibraryItems } from "@/lib/content";
+import { createMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 
 export function generateStaticParams() {
   return getMentalModels().map((m) => ({ slug: m.slug }));
@@ -16,11 +19,17 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+}) {
   const { slug } = await params;
   const model = getMentalModel(slug);
   if (!model) return { title: "Not Found" };
-  return { title: model.name, description: model.shortDescription };
+  return createMetadata({
+    title: `${model.name} — AI Mental Model`,
+    description: `${model.shortDescription} Learn this clarity-first framework from Verlin Labs.`,
+    keywords: ["AI mental model", model.name, "Verlin Labs", model.difficulty],
+    path: `/mental-models/${slug}`,
+    image: "/images/mental-models-map-illustration.jpg",
+  });
 }
 
 export default async function MentalModelDetailPage({
@@ -39,9 +48,17 @@ export default async function MentalModelDetailPage({
   const library = getLibraryItems();
   const relatedLibrary = library.filter((item) => model.relatedSlugs.includes(item.slug));
 
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Mental Models", href: "/mental-models" },
+    { label: model.name },
+  ];
+
   return (
     <>
-      <PageHeader title={model.name} subtitle={model.shortDescription}>
+      <MentalModelJsonLd model={model} />
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath={`/mental-models/${slug}`} />
+      <PageHeader title={model.name} subtitle={model.shortDescription} breadcrumbs={breadcrumbs}>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="difficulty">{model.difficulty}</Badge>
           <span className="text-sm text-text-secondary">{model.readTime}</span>
@@ -97,6 +114,12 @@ export default async function MentalModelDetailPage({
           </div>
         </section>
       )}
+
+      <CourseTrackLinks
+        title="Turn this mental model into practice"
+        subtitle="Live programs connect frameworks to real projects — with mentor feedback and a demo-day capstone on every track."
+        className="section-y border-t border-border bg-muted/15"
+      />
 
       <section className="py-16 text-center">
         <Link href="/mental-models">

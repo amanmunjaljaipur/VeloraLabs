@@ -1,13 +1,11 @@
-import { getLibraryItems } from "@/lib/content";
+import { getLearnContentLastUpdated, getLibraryItems } from "@/lib/content";
+import { staticPageMetadata } from "@/lib/page-metadata";
 import { LibraryClient } from "./LibraryClient";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Content Library",
-  description: "Explore articles, guides, and workshops on AI and technology.",
-};
+export const metadata = staticPageMetadata("library", "/library");
 
 export default function LibraryPage() {
   const items = getLibraryItems();
-  return <LibraryClient items={items} />;
+  const lastUpdated = getLearnContentLastUpdated();
+  return <LibraryClient items={items} lastUpdated={lastUpdated} />;
 }

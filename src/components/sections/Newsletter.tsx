@@ -70,7 +70,7 @@ export function Newsletter({ title, description, cta, linkToPage = false }: News
             <SuccessBanner
               className="mt-8"
               title="You're subscribed!"
-              description="Welcome to the Verlin community — check your inbox soon."
+              description="Welcome to the Verlin Labs community — check your inbox soon."
             />
           ) : (
             <form

@@ -1,12 +1,12 @@
 import { loadChatbotIndex } from "@/lib/chat/load-index";
+import { buildChatMenu, getEntryAnswer } from "@/lib/chat/menu";
 import { getActiveKnowledgeEntries } from "@/lib/chat/training-store";
-import { retrieveAnswer, retrieveHybrid } from "@/lib/chat/retrieval";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
 const RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
-const MAX_REQUESTS = 30;
+const MAX_REQUESTS = 60;
 const WINDOW_MS = 60_000;
 
 function checkRateLimit(ip: string): boolean {
@@ -21,31 +21,39 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
+function getKnowledgeEntries() {
+  const index = loadChatbotIndex();
+  return index?.entries ?? getActiveKnowledgeEntries();
+}
+
+export async function GET() {
+  const entries = getKnowledgeEntries();
+  return NextResponse.json(buildChatMenu(entries));
+}
+
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!checkRateLimit(ip)) {
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 
-  let body: { message?: string; embedding?: number[] };
+  let body: { entryId?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const message = body.message?.trim();
-  if (!message || message.length > 500) {
-    return NextResponse.json({ error: "Message must be 1–500 characters." }, { status: 400 });
+  const entryId = body.entryId?.trim();
+  if (!entryId) {
+    return NextResponse.json({ error: "entryId is required." }, { status: 400 });
   }
 
-  const index = loadChatbotIndex();
-  const entries = index?.entries ?? getActiveKnowledgeEntries();
-
-  const response =
-    body.embedding && index
-      ? retrieveHybrid(message, entries, body.embedding)
-      : retrieveAnswer(message, entries);
+  const entries = getKnowledgeEntries();
+  const response = getEntryAnswer(entryId, entries);
+  if (!response) {
+    return NextResponse.json({ error: "Question not found." }, { status: 404 });
+  }
 
   return NextResponse.json(response);
 }

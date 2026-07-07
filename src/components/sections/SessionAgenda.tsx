@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/Badge";
 import type { AgendaItem } from "@/lib/content";
+import { sessionAgendaImageAlt, SITE_IMAGE_ALT } from "@/lib/image-alt";
 import {
   Brain,
   Clock,
@@ -55,7 +56,7 @@ export function SessionAgenda({ agenda }: SessionAgendaProps) {
               <div className="relative aspect-[4/3]">
                 <Image
                   src="/images/workshop.jpg"
-                  alt="Learners in a live Verlin Labs session"
+                  alt={SITE_IMAGE_ALT.freeSessionWorkshop}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 0vw, 40vw"
@@ -102,7 +103,7 @@ export function SessionAgenda({ agenda }: SessionAgendaProps) {
                             <div className="relative h-36 shrink-0 sm:h-auto sm:w-36 md:w-44">
                               <Image
                                 src={item.image}
-                                alt=""
+                                alt={sessionAgendaImageAlt(item.title)}
                                 fill
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 sizes="(max-width: 640px) 100vw, 176px"

@@ -1,42 +1,42 @@
 [
   {
     "id": "1",
-    "quote": "I finally understood how AI works — not just memorized definitions. The mental models made everything click.",
+    "quote": "Before this, AI felt like magic I was supposed to already understand. The mental models broke it into pieces I could actually think through — and explain to my friends without sounding like I was reading from a textbook.",
     "name": "Priya Sharma",
     "role": "Class 10 Student",
     "audience": "students"
   },
   {
     "id": "2",
-    "quote": "The free session showed me a way of learning I never had in college. I enrolled in the full course the same week.",
+    "quote": "I'd sat through plenty of ML lectures that jumped straight to formulas. The free session was different — we talked through how things work, asked messy questions, and left with frameworks I still use when I'm reading papers or debugging code.",
     "name": "Arjun Mehta",
     "role": "CS Engineering Student",
     "audience": "engineers"
   },
   {
     "id": "3",
-    "quote": "As a product manager, I needed to evaluate AI vendors intelligently. Verlin gave me frameworks I use every week.",
+    "quote": "Vendor demos all sound the same until you know what questions to ask. Verlin Labs gave me a way to evaluate AI features honestly — what they can do, where they break, and what my team actually needs — without pretending I have a PhD.",
     "name": "Sarah Chen",
     "role": "Senior Product Manager",
     "audience": "professionals"
   },
   {
     "id": "4",
-    "quote": "My daughter went from confused to confident about technology. The friendly approach made all the difference.",
+    "quote": "My daughter used to nod along when people talked about AI. Now she pushes back thoughtfully — she asks why something works, not just whether it works. That shift in how she thinks is what I cared about most.",
     "name": "Rajesh Kumar",
     "role": "Parent of Class 8 Student",
     "audience": "students"
   },
   {
     "id": "5",
-    "quote": "The transformer explanation alone was worth it. I aced my ML interview questions after the full course.",
+    "quote": "I'm an EE student, not a CS major, so I expected to feel behind. Instead, the focus on intuition and clear structure helped me reason about transformers and LLMs in a way that finally stuck — not just for an exam, but for actual projects.",
     "name": "David Okonkwo",
     "role": "Final Year EE Student",
     "audience": "engineers"
   },
   {
     "id": "6",
-    "quote": "I started with the free session skeptical. Left with a clear roadmap for AI adoption in my team.",
+    "quote": "I came to the free session skeptical — another AI workshop, I assumed. I left with a plain-language map of what my team should learn first, what to ignore for now, and how to talk about risk without shutting down good ideas.",
     "name": "Maria Gonzalez",
     "role": "Engineering Director",
     "audience": "professionals"

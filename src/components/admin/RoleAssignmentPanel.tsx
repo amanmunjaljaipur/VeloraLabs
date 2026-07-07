@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
-import { Mail, Trash2, UserPlus, Users } from "lucide-react";
+import { Mail, Save, Trash2, UserPlus, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Assignment {
@@ -69,7 +69,9 @@ export function RoleAssignmentPanel({
   const [role, setRole] = useState<UserRole>(roleOptions[0]?.value ?? "student");
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [rowRoles, setRowRoles] = useState<Record<string, UserRole>>({});
+  const [assignmentRoles, setAssignmentRoles] = useState<Record<string, UserRole>>({});
   const [bulkRole, setBulkRole] = useState<UserRole>("student");
+  const [updatingEmail, setUpdatingEmail] = useState<string | null>(null);
   const isSuperAdmin = actorRole === "super_admin";
 
   const fetchAssignments = useCallback(async () => {
@@ -85,6 +87,9 @@ export function RoleAssignmentPanel({
     setAssignments(data.assignments);
     setUnassigned(data.unassigned ?? []);
     setSelectedEmails(new Set());
+    setAssignmentRoles(
+      Object.fromEntries(data.assignments.map((assignment) => [assignment.email, assignment.role]))
+    );
     setRowRoles(
       Object.fromEntries(
         (data.unassigned ?? []).map((user) => [user.email, "student" as UserRole])
@@ -174,6 +179,23 @@ export function RoleAssignmentPanel({
       }
     } finally {
       setBulkAssigning(false);
+    }
+  };
+
+  const handleUpdateAssignment = async (assignmentEmail: string) => {
+    const targetRole = assignmentRoles[assignmentEmail];
+    if (!targetRole) return;
+
+    setUpdatingEmail(assignmentEmail);
+
+    try {
+      await assignRole(assignmentEmail, targetRole);
+      toast(`Updated ${assignmentEmail} to ${ROLE_LABELS[targetRole]}`, "success");
+      await fetchAssignments();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Failed to update role", "error");
+    } finally {
+      setUpdatingEmail(null);
     }
   };
 
@@ -402,6 +424,7 @@ export function RoleAssignmentPanel({
         <h2 className="text-lg font-semibold text-foreground">Current Assignments</h2>
         <p className="mt-2 text-sm text-text-secondary">
           {assignments.length} user{assignments.length === 1 ? "" : "s"} with custom roles.
+          {isSuperAdmin && " As Super Admin, you can change any assignment below."}
         </p>
 
         {loading ? (
@@ -417,27 +440,69 @@ export function RoleAssignmentPanel({
             {assignments.map((assignment) => {
               const isSelf = assignment.email === currentUserEmail.toLowerCase();
               const canRemove = !isSelf && canManageAssignment(actorRole, assignment.role);
+              const canEdit =
+                isSuperAdmin && !isSelf && canManageAssignment(actorRole, assignment.role);
+              const selectedRole = assignmentRoles[assignment.email] ?? assignment.role;
+              const hasRoleChange = selectedRole !== assignment.role;
+
               return (
                 <li
                   key={assignment.email}
-                  className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+                  className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-foreground">{assignment.email}</p>
-                    <div className="mt-1">
-                      <Badge>{assignment.label}</Badge>
-                    </div>
+                    {isSelf && (
+                      <p className="mt-1 text-xs text-text-secondary">
+                        Your role cannot be changed here.
+                      </p>
+                    )}
                   </div>
-                  {canRemove && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(assignment.email)}
-                      className="shrink-0 rounded-xl p-2 text-text-secondary transition-colors hover:bg-muted hover:text-red-500"
-                      aria-label={`Remove role for ${assignment.email}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {canEdit ? (
+                      <>
+                        <select
+                          value={selectedRole}
+                          onChange={(e) =>
+                            setAssignmentRoles((prev) => ({
+                              ...prev,
+                              [assignment.email]: e.target.value as UserRole,
+                            }))
+                          }
+                          aria-label={`Role for ${assignment.email}`}
+                          className="h-10 min-w-[10rem] rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
+                        >
+                          {roleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          type="button"
+                          size="sm"
+                          loading={updatingEmail === assignment.email}
+                          disabled={!hasRoleChange}
+                          onClick={() => handleUpdateAssignment(assignment.email)}
+                        >
+                          <Save className="h-4 w-4" />
+                          Update
+                        </Button>
+                      </>
+                    ) : (
+                      <Badge>{assignment.label}</Badge>
+                    )}
+                    {canRemove && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(assignment.email)}
+                        className="rounded-xl p-2 text-text-secondary transition-colors hover:bg-muted hover:text-red-500"
+                        aria-label={`Remove role for ${assignment.email}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </li>
               );
             })}

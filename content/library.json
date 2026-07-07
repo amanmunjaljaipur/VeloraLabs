@@ -12,8 +12,13 @@
     "featured": true,
     "image": "/images/thumb-how-llms-work.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-01-15",
-    "tags": ["LLMs", "Fundamentals", "Tokens", "Attention"],
+    "publishedAt": "2026-05-15T04:00:00.000Z",
+    "tags": [
+      "LLMs",
+      "Fundamentals",
+      "Tokens",
+      "Attention"
+    ],
     "sections": [
       {
         "title": "What an LLM actually does",
@@ -72,7 +77,12 @@
       }
     ],
     "keyTakeaway": "LLMs predict likely next tokens from learned patterns — not guaranteed truth. Master the pipeline (tokenize → attend → predict) and you can prompt, debug, and evaluate AI outputs with the same rigour you bring to any other system.",
-    "relatedSlugs": ["transformers-pipeline", "prompt-engineering-basics", "neural-networks-analogy"]
+    "relatedSlugs": [
+      "transformers-pipeline",
+      "prompt-engineering-basics",
+      "neural-networks-analogy"
+    ],
+    "updatedAt": "2026-05-16T06:11:00.000Z"
   },
   {
     "id": "2",
@@ -87,8 +97,13 @@
     "featured": true,
     "image": "/images/thumb-transformers-pipeline.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-01-22",
-    "tags": ["Transformers", "Architecture", "Encoders", "Decoders"],
+    "publishedAt": "2026-05-17T05:13:00.000Z",
+    "tags": [
+      "Transformers",
+      "Architecture",
+      "Encoders",
+      "Decoders"
+    ],
     "sections": [
       {
         "title": "Why pipeline thinking beats memorising layers",
@@ -147,7 +162,12 @@
       }
     ],
     "keyTakeaway": "Draw transformers as pipelines: embed → contextualise (encoder and/or decoder blocks) → predict or export representations. Naming each stage tells you where to optimise, which components to swap, and how your RAG or fine-tuning layer fits the stack.",
-    "relatedSlugs": ["how-llms-work", "rag-vs-finetuning", "neural-networks-analogy"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "rag-vs-finetuning",
+      "neural-networks-analogy"
+    ],
+    "updatedAt": "2026-05-19T08:18:00.000Z"
   },
   {
     "id": "3",
@@ -162,8 +182,13 @@
     "featured": true,
     "image": "/images/thumb-ai-decision-makers.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-02-03",
-    "tags": ["Strategy", "Leadership", "ROI", "Governance"],
+    "publishedAt": "2026-05-19T06:26:00.000Z",
+    "tags": [
+      "Strategy",
+      "Leadership",
+      "ROI",
+      "Governance"
+    ],
     "sections": [
       {
         "title": "Start with the decision, not the technology",
@@ -222,7 +247,13 @@
       }
     ],
     "keyTakeaway": "Treat AI adoption like any capital decision: define the business outcome, screen feasibility, pilot with real metrics, then scale with governance. The organisations that win treat AI as infrastructure for better decisions — not a strategy on its own.",
-    "relatedSlugs": ["ai-risk-assessment", "rag-vs-finetuning", "prompt-engineering-basics"]
+    "relatedSlugs": [
+      "how-to-learn-ai-for-product-management",
+      "ai-risk-assessment",
+      "rag-vs-finetuning",
+      "prompt-engineering-basics"
+    ],
+    "updatedAt": "2026-05-22T10:25:00.000Z"
   },
   {
     "id": "4",
@@ -237,8 +268,13 @@
     "featured": true,
     "image": "/images/thumb-chatgpt-students.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-02-10",
-    "tags": ["Students", "Study skills", "Academic integrity", "ChatGPT"],
+    "publishedAt": "2026-05-21T07:39:00.000Z",
+    "tags": [
+      "Students",
+      "Study skills",
+      "Academic integrity",
+      "ChatGPT"
+    ],
     "sections": [
       {
         "title": "What ChatGPT is — in one analogy",
@@ -293,7 +329,12 @@
       }
     ],
     "keyTakeaway": "Use ChatGPT to understand faster and practise smarter — never to skip thinking. Verify facts, follow your school's integrity rules, and keep your own voice in every assignment that carries your name.",
-    "relatedSlugs": ["how-llms-work", "prompt-engineering-basics", "neural-networks-analogy"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "prompt-engineering-basics",
+      "neural-networks-analogy"
+    ],
+    "updatedAt": "2026-05-25T12:32:00.000Z"
   },
   {
     "id": "5",
@@ -308,8 +349,13 @@
     "featured": false,
     "image": "/images/engineers.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-02-18",
-    "tags": ["RAG", "Fine-tuning", "MLOps", "Architecture"],
+    "publishedAt": "2026-05-23T08:52:00.000Z",
+    "tags": [
+      "RAG",
+      "Fine-tuning",
+      "MLOps",
+      "Architecture"
+    ],
     "sections": [
       {
         "title": "Two levers, two failure modes",
@@ -365,12 +411,17 @@
       }
     ],
     "keyTakeaway": "Default to RAG for changing, citeable knowledge; add fine-tuning when behaviour and format must be locked in. Measure each layer separately — most \"model quality\" issues are retrieval or prompt bugs in disguise.",
-    "relatedSlugs": ["transformers-pipeline", "prompt-engineering-basics", "ai-for-decision-makers"]
+    "relatedSlugs": [
+      "transformers-pipeline",
+      "prompt-engineering-basics",
+      "ai-for-decision-makers"
+    ],
+    "updatedAt": "2026-05-24T14:39:00.000Z"
   },
   {
     "id": "6",
     "slug": "neural-networks-analogy",
-    "title": "Neural Networks as Pattern Recognizers",
+    "title": "Neural Networks as Pattern Recognisers",
     "description": "Build intuition for how networks learn — using everyday examples.",
     "summary": "A neural network is a stack of adjustable filters that gradually learn useful patterns — edges in images, phonemes in audio, or phrases in text. You do not need calculus to grasp the learning loop: guess, measure error, nudge weights, repeat. That intuition transfers directly to how modern AI systems are trained and where they break.",
     "duration": "16 min",
@@ -380,8 +431,13 @@
     "featured": false,
     "image": "/images/workshop.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-02-25",
-    "tags": ["Neural networks", "Machine learning", "Intuition", "Workshop"],
+    "publishedAt": "2026-05-25T09:05:00.000Z",
+    "tags": [
+      "Neural networks",
+      "Machine learning",
+      "Intuition",
+      "Workshop"
+    ],
     "sections": [
       {
         "title": "The pattern-recognition story",
@@ -435,7 +491,12 @@
       }
     ],
     "keyTakeaway": "Neural networks learn hierarchical patterns by adjusting weights to reduce error on examples. Carry that picture into every AI discussion: data defines behaviour, training is guess-and-correct at scale, and failures are usually pattern gaps — not mystical model caprice.",
-    "relatedSlugs": ["how-llms-work", "transformers-pipeline", "chatgpt-for-students"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "transformers-pipeline",
+      "chatgpt-for-students"
+    ],
+    "updatedAt": "2026-05-27T11:46:00.000Z"
   },
   {
     "id": "7",
@@ -450,8 +511,13 @@
     "featured": false,
     "image": "/images/collaboration.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-05",
-    "tags": ["Prompting", "Best practices", "Evaluation", "Workflow"],
+    "publishedAt": "2026-05-27T10:18:00.000Z",
+    "tags": [
+      "Prompting",
+      "Best practices",
+      "Evaluation",
+      "Workflow"
+    ],
     "sections": [
       {
         "title": "What prompting can and cannot do",
@@ -505,13 +571,18 @@
       }
     ],
     "keyTakeaway": "Write prompts as clear specs: role, context, task, format, criteria — then measure against real examples. Techniques tied to how models process context outperform hype; pipelines beat single-shot genius prompts for serious work.",
-    "relatedSlugs": ["how-llms-work", "chatgpt-for-students", "rag-vs-finetuning"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "chatgpt-for-students",
+      "rag-vs-finetuning"
+    ],
+    "updatedAt": "2026-05-30T13:53:00.000Z"
   },
   {
     "id": "8",
     "slug": "ai-risk-assessment",
     "title": "AI Risk Assessment for Teams",
-    "description": "A structured framework for evaluating AI deployment risks in your organization.",
+    "description": "A structured framework for evaluating AI deployment risks in your organisation.",
     "summary": "Deploying AI without a risk assessment is deploying blind. This framework walks teams through impact, likelihood, detectability, and mitigation across privacy, safety, bias, security, and operational dependency — producing a documented decision record leaders and regulators can trust.",
     "duration": "14 min",
     "level": "Intermediate",
@@ -520,8 +591,13 @@
     "featured": false,
     "image": "/images/presentation.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-12",
-    "tags": ["Risk", "Compliance", "Security", "Governance"],
+    "publishedAt": "2026-05-29T11:31:00.000Z",
+    "tags": [
+      "Risk",
+      "Compliance",
+      "Security",
+      "Governance"
+    ],
     "sections": [
       {
         "title": "Why risk assessment before rollout",
@@ -582,7 +658,12 @@
       }
     ],
     "keyTakeaway": "Score AI risks across privacy, safety, bias, security, and operations — then assign mitigations owners can ship. Documented assessments turn \"we hope it's fine\" into accountable, reviewable decisions.",
-    "relatedSlugs": ["ai-for-decision-makers", "rag-vs-finetuning", "prompt-engineering-basics"]
+    "relatedSlugs": [
+      "ai-for-decision-makers",
+      "rag-vs-finetuning",
+      "prompt-engineering-basics"
+    ],
+    "updatedAt": "2026-06-02T15:00:00.000Z"
   },
   {
     "id": "9",
@@ -597,8 +678,13 @@
     "featured": true,
     "image": "/images/coding.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-18",
-    "tags": ["Agents", "Engineering", "Tools", "Fundamentals"],
+    "publishedAt": "2026-05-31T12:44:00.000Z",
+    "tags": [
+      "Agents",
+      "Engineering",
+      "Tools",
+      "Fundamentals"
+    ],
     "sections": [
       {
         "title": "From chatbot to agent",
@@ -633,7 +719,12 @@
       }
     ],
     "keyTakeaway": "Agents are LLMs in a supervised tool loop — design narrow tools, validate outputs, and cap autonomy. Reliability comes from orchestration and permissions, not a smarter model prompt alone.",
-    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+    "relatedSlugs": [
+      "rag-vs-finetuning",
+      "prompt-engineering-basics",
+      "vector-search-rag-in-practice"
+    ],
+    "updatedAt": "2026-06-01T17:07:00.000Z"
   },
   {
     "id": "10",
@@ -648,8 +739,13 @@
     "featured": true,
     "image": "/images/engineers.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-20",
-    "tags": ["RAG", "Engineering", "Embeddings", "Fundamentals"],
+    "publishedAt": "2026-06-02T13:57:00.000Z",
+    "tags": [
+      "RAG",
+      "Engineering",
+      "Embeddings",
+      "Fundamentals"
+    ],
     "sections": [
       {
         "title": "The RAG pipeline end to end",
@@ -684,7 +780,12 @@
       }
     ],
     "keyTakeaway": "Production RAG is an information retrieval problem first. Invest in chunking, hybrid search, evaluation sets, and citations — then tune the generator prompt.",
-    "relatedSlugs": ["rag-vs-finetuning", "ai-agents-tool-use", "hallucination-detection-guide"]
+    "relatedSlugs": [
+      "rag-vs-finetuning",
+      "ai-agents-tool-use",
+      "hallucination-detection-guide"
+    ],
+    "updatedAt": "2026-06-04T19:14:00.000Z"
   },
   {
     "id": "11",
@@ -699,8 +800,13 @@
     "featured": false,
     "image": "/images/professionals.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-22",
-    "tags": ["Product", "Discovery", "MVP", "Strategy"],
+    "publishedAt": "2026-06-04T04:10:00.000Z",
+    "tags": [
+      "Product",
+      "Discovery",
+      "MVP",
+      "Strategy"
+    ],
     "sections": [
       {
         "title": "Job-first, model-second",
@@ -734,7 +840,12 @@
       }
     ],
     "keyTakeaway": "Discover the job, score AI fit honestly, prototype on real inputs, and ship assistive MVPs with logged overrides. PMs who document non-goals ship faster and safer than teams chasing demo magic.",
-    "relatedSlugs": ["ai-for-decision-makers", "build-mvp-with-ai-coding-tools", "ai-risk-assessment"]
+    "relatedSlugs": [
+      "ai-for-decision-makers",
+      "build-mvp-with-ai-coding-tools",
+      "ai-risk-assessment"
+    ],
+    "updatedAt": "2026-06-07T06:21:00.000Z"
   },
   {
     "id": "12",
@@ -749,8 +860,13 @@
     "featured": false,
     "image": "/images/workshop.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-25",
-    "tags": ["Engineering", "Fine-tuning", "Fundamentals", "Evaluation"],
+    "publishedAt": "2026-06-06T05:23:00.000Z",
+    "tags": [
+      "Engineering",
+      "Fine-tuning",
+      "Fundamentals",
+      "Evaluation"
+    ],
     "sections": [
       {
         "title": "Default to prompting and RAG",
@@ -778,7 +894,12 @@
       }
     ],
     "keyTakeaway": "Prompt + RAG solves most production needs. Fine-tune when you have scale, stable tasks, quality labels, and ops to maintain custom weights — not when you are avoiding good prompt design.",
-    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+    "relatedSlugs": [
+      "rag-vs-finetuning",
+      "prompt-engineering-basics",
+      "vector-search-rag-in-practice"
+    ],
+    "updatedAt": "2026-06-10T08:28:00.000Z"
   },
   {
     "id": "13",
@@ -793,8 +914,13 @@
     "featured": false,
     "image": "/images/students.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-03-28",
-    "tags": ["Students", "Ethics", "Fundamentals", "Best practices"],
+    "publishedAt": "2026-06-08T06:36:00.000Z",
+    "tags": [
+      "Students",
+      "Ethics",
+      "Fundamentals",
+      "Best practices"
+    ],
     "sections": [
       {
         "title": "Learning vs shortcutting",
@@ -823,7 +949,12 @@
       }
     ],
     "keyTakeaway": "Use AI to understand faster and practise more — not to skip thinking. Cite assistance honestly, verify facts, and protect privacy; those habits keep you ahead as rules and tools evolve.",
-    "relatedSlugs": ["chatgpt-for-students", "hallucination-detection-guide", "prompt-engineering-basics"]
+    "relatedSlugs": [
+      "chatgpt-for-students",
+      "hallucination-detection-guide",
+      "prompt-engineering-basics"
+    ],
+    "updatedAt": "2026-06-09T10:35:00.000Z"
   },
   {
     "id": "14",
@@ -838,8 +969,13 @@
     "featured": false,
     "image": "/images/hands-on-mvp-illustration.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-04-01",
-    "tags": ["MVP", "Engineering", "Product", "Best practices"],
+    "publishedAt": "2026-06-10T07:49:00.000Z",
+    "tags": [
+      "MVP",
+      "Engineering",
+      "Product",
+      "Best practices"
+    ],
     "sections": [
       {
         "title": "Scope the smallest demo",
@@ -867,7 +1003,12 @@
       }
     ],
     "keyTakeaway": "AI coding tools multiply execution speed — not product judgment. Narrow scope, verify each slice, and demo real clicks; that is how MVPs become learning engines instead of fragile demos.",
-    "relatedSlugs": ["ai-product-discovery-playbook", "prompt-engineering-basics", "ai-agents-tool-use"]
+    "relatedSlugs": [
+      "ai-product-discovery-playbook",
+      "prompt-engineering-basics",
+      "ai-agents-tool-use"
+    ],
+    "updatedAt": "2026-06-12T12:42:00.000Z"
   },
   {
     "id": "15",
@@ -882,8 +1023,13 @@
     "featured": false,
     "image": "/images/mental-models-map-illustration.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-04-03",
-    "tags": ["Fundamentals", "LLMs", "Best practices", "Engineering"],
+    "publishedAt": "2026-06-12T08:02:00.000Z",
+    "tags": [
+      "Fundamentals",
+      "LLMs",
+      "Best practices",
+      "Engineering"
+    ],
     "sections": [
       {
         "title": "Budget tokens deliberately",
@@ -911,7 +1057,12 @@
       }
     ],
     "keyTakeaway": "Treat context as a scarce resource: structure inputs, retrieve selectively, summarise hierarchically, and reset threads. Bigger windows are not permission to dump everything — they reward better information design.",
-    "relatedSlugs": ["how-llms-work", "prompt-engineering-basics", "vector-search-rag-in-practice"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "prompt-engineering-basics",
+      "vector-search-rag-in-practice"
+    ],
+    "updatedAt": "2026-06-15T14:49:00.000Z"
   },
   {
     "id": "16",
@@ -926,8 +1077,13 @@
     "featured": false,
     "image": "/images/ai-learning.jpg",
     "author": "Verlin Labs",
-    "publishedAt": "2026-04-05",
-    "tags": ["Fundamentals", "Evaluation", "Best practices", "Students"],
+    "publishedAt": "2026-06-14T09:15:00.000Z",
+    "tags": [
+      "Fundamentals",
+      "Evaluation",
+      "Best practices",
+      "Students"
+    ],
     "sections": [
       {
         "title": "Why hallucinations happen",
@@ -955,6 +1111,197 @@
       }
     ],
     "keyTakeaway": "Hallucinations are structural, not accidental — design for verification with citations, scepticism in high-risk domains, and user-visible uncertainty. Teams that log corrections improve faster than teams that trust fluent answers.",
-    "relatedSlugs": ["how-llms-work", "chatgpt-for-students", "vector-search-rag-in-practice"]
+    "relatedSlugs": [
+      "how-llms-work",
+      "chatgpt-for-students",
+      "vector-search-rag-in-practice"
+    ],
+    "updatedAt": "2026-06-18T11:56:00.000Z"
+  },
+  {
+    "id": "17",
+    "slug": "how-to-learn-ai-for-product-management",
+    "title": "How to Learn AI for Product Management",
+    "description": "A long-form guide for PMs — build AI literacy, evaluate tools honestly, and ship MVPs without drowning in hype or jargon.",
+    "summary": "Product managers do not need a PhD to lead with AI — they need a learning path that connects mental models, tool evaluation, and hands-on product work. This guide walks through what to learn first, what to defer, how to practice with real workflows, and when a structured program accelerates your progress.",
+    "duration": "35 min",
+    "level": "Beginner",
+    "audience": "professionals",
+    "type": "Guide",
+    "featured": true,
+    "image": "/images/thumb-ai-decision-makers.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-06-20T10:00:00.000Z",
+    "tags": [
+      "Product management",
+      "AI literacy",
+      "Career",
+      "Mental models",
+      "PM training"
+    ],
+    "sections": [
+      {
+        "title": "Why PMs need a different AI learning path",
+        "paragraphs": [
+          "Most AI content is built for engineers (code-first) or executives (slide-deck summaries). Product managers sit in the middle: you need enough technical intuition to ask sharp questions, enough product craft to frame problems, and enough scepticism to avoid shipping features that demo well but fail in production.",
+          "The goal is not to become a machine learning researcher. The goal is to develop durable judgement — when AI helps, when it hurts, and how to run discovery without outsourcing your thinking to a chatbot."
+        ]
+      },
+      {
+        "title": "Start with mental models, not tool tutorials",
+        "paragraphs": [
+          "Before you bookmark another \"top 50 AI tools\" list, learn how LLMs actually behave: they predict plausible text, they hallucinate under uncertainty, and they need context like any other system. Mental models turn every new vendor announcement into a familiar pattern instead of a fresh panic.",
+          "Verlin Labs teaches PMs through frameworks such as the information pipeline, compression lens, and feedback loop — the same models we use in live sessions before anyone opens ChatGPT or Claude."
+        ],
+        "bullets": [
+          "Understand tokens, context windows, and why longer prompts are not always better.",
+          "Separate pattern-matching fluency from verified factual accuracy.",
+          "Map AI capabilities to product jobs: research, drafting, classification, summarisation, prototyping."
+        ]
+      },
+      {
+        "title": "Phase 1 — Build AI literacy (weeks 1–2)",
+        "paragraphs": [
+          "Spend your first two weeks on vocabulary and boundaries. Learn what generative AI can reliably do in your domain (drafting, brainstorming, structuring messy notes) versus what needs human verification (legal claims, financial figures, compliance language).",
+          "Run a personal audit: list five recurring PM tasks you do every week. For each, note whether AI could assist, automate partially, or should stay human-only. That map becomes your practice syllabus."
+        ],
+        "bullets": [
+          "Read: How LLMs work, AI decision frameworks, and hallucination detection guides.",
+          "Practice: One structured prompt per day on real work — PRD outlines, meeting summaries, user interview synthesis.",
+          "Avoid: Chasing every new model release before you have evaluation criteria."
+        ]
+      },
+      {
+        "title": "Phase 2 — Tool evaluation without vendor theatre",
+        "paragraphs": [
+          "Vendor demos optimise for wow moments. Your job is to translate wow into workflow fit. Build a simple scorecard: data privacy, integration effort, output verifiability, latency, cost at your usage volume, and failure modes when the model is wrong.",
+          "Ask questions demos avoid: What happens on empty retrieval? How do we audit prompts? Can we export logs? Who owns prompt versioning when the model updates?"
+        ]
+      },
+      {
+        "title": "Phase 3 — AI-assisted discovery and PRDs",
+        "paragraphs": [
+          "Use AI as a co-pilot for discovery — not a replacement for customer contact. Strong PMs use models to summarise interviews, cluster themes, and stress-test assumptions, then validate with users and data.",
+          "For PRDs, specify structure in the prompt: problem statement, non-goals, success metrics, risks, and rollout plan. Iterate in sections rather than asking for a full document in one shot — quality improves when context is scoped."
+        ],
+        "bullets": [
+          "Pair NotebookLM or similar tools with primary sources — never cite without opening the source.",
+          "Keep a \"human checkpoint\" list for every AI-generated requirement.",
+          "Link metrics to behaviour change, not feature completion."
+        ]
+      },
+      {
+        "title": "Phase 4 — Ship an MVP with vibe coding",
+        "paragraphs": [
+          "Modern PMs can prototype faster with AI-assisted builders (Lovable, Bolt, Replit, and similar). The skill is framing constraints: user flow, data inputs, edge cases, and what \"done\" means for a learning prototype versus production software.",
+          "Capstone-style practice — building a small AI-assisted workflow end-to-end — is the fastest way to internalise trade-offs engineers face daily. You do not need to write every line of code; you need to own the problem definition and acceptance criteria."
+        ]
+      },
+      {
+        "title": "Phase 5 — Present, measure, and iterate",
+        "paragraphs": [
+          "Learning AI for product management is incomplete until you present outcomes to stakeholders. Demo Day-style presentations force clarity: what problem you solved, what the model did, where it failed, and what you would do next.",
+          "Define success before launch: time saved, quality of decisions, user satisfaction, or error rates on AI-assisted steps. Without metrics, AI features become permanent experiments."
+        ]
+      },
+      {
+        "title": "Common mistakes PMs make when learning AI",
+        "paragraphs": [
+          "Treating the model as an oracle instead of a draft engine. Skipping fundamentals and jumping to automation. Letting vendor marketing define your roadmap. Building AI features users did not ask for because the technology is available."
+        ],
+        "bullets": [
+          "Mistake: One-shot mega-prompts for complex product docs.",
+          "Mistake: No eval set when switching models or prompts.",
+          "Mistake: Ignoring privacy, retention, and data residency in procurement."
+        ]
+      },
+      {
+        "title": "When a structured program helps",
+        "paragraphs": [
+          "Self-study works for motivated PMs with time to curate resources. A live program accelerates learning when you want mentor feedback, accountable practice, peer cohorts, and a capstone you can show in interviews or internal reviews.",
+          "Verlin Labs runs a 16-day AI training track for product managers — from literacy and tool stack through discovery, PRDs, vibe-coding MVPs, and Capstone Demo Day. Start with a free 2-hour session if you want to experience the teaching style first."
+        ]
+      }
+    ],
+    "keyTakeaway": "Learn AI for product management in layers: mental models first, then tool evaluation, then AI-assisted discovery and prototyping, then measured launch. PMs who can explain trade-offs beat PMs who can only list tools — and a live program compresses months of scattered tutorials into a coherent path.",
+    "relatedSlugs": [
+      "ai-for-decision-makers",
+      "how-llms-work",
+      "ai-agents-tool-use",
+      "prompt-engineering-basics"
+    ],
+    "updatedAt": "2026-06-20T10:00:00.000Z"
+  },
+  {
+    "id": "18",
+    "slug": "how-to-learn-ai-as-an-engineering-student",
+    "title": "How to Learn AI as an Engineering Student",
+    "description": "A practical roadmap from LLM fundamentals to portfolio projects — for CS and non-CS engineers who want intuition that survives interviews and real builds.",
+    "summary": "Engineering students often jump between math-heavy courses and shallow API tutorials without connecting the two. This guide shows how to learn AI systematically: mental models for transformers and LLMs, hands-on API projects, responsible practice, and portfolio work that recruiters can evaluate.",
+    "duration": "28 min",
+    "level": "Intermediate",
+    "audience": "engineers",
+    "type": "Guide",
+    "featured": true,
+    "image": "/images/thumb-transformers-pipeline.jpg",
+    "author": "Verlin Labs",
+    "publishedAt": "2026-06-22T09:30:00.000Z",
+    "tags": [
+      "Engineering",
+      "LLMs",
+      "Career",
+      "Portfolio",
+      "Students"
+    ],
+    "sections": [
+      {
+        "title": "The gap between coursework and industry AI",
+        "paragraphs": [
+          "University modules often emphasise theory — loss functions, backpropagation, classical ML — while industry hiring screens for practical intuition: embeddings, RAG pipelines, agent tool use, evaluation, and shipping. Neither alone is enough; the bridge is mental models plus projects.",
+          "You do not need to memorise every architecture paper. You need to explain, in plain language, how data flows from prompt to response and where systems break under load, bad retrieval, or ambiguous specs."
+        ]
+      },
+      {
+        "title": "Month 1 — Foundations without math overwhelm",
+        "paragraphs": [
+          "Begin with how LLMs work at a systems level: tokenisation, attention as relevance weighting, autoregressive decoding, and context limits. Pair reading with small experiments — count tokens, compare temperatures, break a model with ambiguous prompts on purpose.",
+          "Study transformers as information pipelines rather than as monolithic black boxes. That framing carries into RAG, agents, and fine-tuning conversations later."
+        ],
+        "bullets": [
+          "Library picks: How LLMs work, Transformers pipeline, Prompt engineering basics.",
+          "Mental models: Information pipeline, compression lens, feedback loop.",
+          "Build: A CLI or notebook that calls an API and logs prompt, latency, and cost."
+        ]
+      },
+      {
+        "title": "Month 2 — APIs, RAG, and evaluation",
+        "paragraphs": [
+          "Move from single-shot prompts to systems: chunk documents, embed, retrieve, rerank, generate. Learn why chunk size, metadata, and query rewriting change answer quality more than swapping model brands.",
+          "Start an eval habit early — even five golden questions you rerun after each change. Engineering credibility comes from measurable improvement, not subjective \"seems better.\""
+        ]
+      },
+      {
+        "title": "Month 3 — Portfolio projects that interview well",
+        "paragraphs": [
+          "Pick one problem you understand deeply — campus FAQ bot, code review assistant, research summariser — and ship a thin vertical slice: ingest, retrieve, answer, cite sources, log failures. Document architecture decisions in a short README recruiters can skim in two minutes.",
+          "Interviewers reward clarity: what you tried, what failed, what you would do with another week. A modest project explained well beats a flashy demo you cannot defend."
+        ]
+      },
+      {
+        "title": "Accelerating with a live engineering track",
+        "paragraphs": [
+          "Self-study works if you enforce deadlines. A cohort program helps when you want daily structure, mentor code review, interview prep, and peers debugging the same concepts.",
+          "Verlin Labs offers a 10-day AI engineering track for college students — LLM fundamentals through capstone demo day. Book a free 2-hour session to see if the pace and depth match your goals."
+        ]
+      }
+    ],
+    "keyTakeaway": "Engineering students learn AI best by chaining mental models → API fluency → RAG/eval → one portfolio story told clearly. Depth on one project beats shallow familiarity with ten frameworks.",
+    "relatedSlugs": [
+      "how-llms-work",
+      "transformers-pipeline",
+      "vector-search-rag-in-practice",
+      "ai-agents-tool-use"
+    ],
+    "updatedAt": "2026-06-22T09:30:00.000Z"
   }
 ]

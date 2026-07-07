@@ -8,6 +8,7 @@ import { FilterTabs } from "@/components/ui/FilterTabs";
 import { Input } from "@/components/ui/Input";
 import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import type { LibraryItem } from "@/lib/content";
+import { formatContentDateTime } from "@/lib/utils";
 import { useLoadMore } from "@/hooks/useLoadMore";
 import { DURATION, EASE_OUT } from "@/lib/motion";
 import { AnimatePresence, motion } from "framer-motion";
@@ -39,7 +40,13 @@ const formatOptions = [
   { value: "Video", label: "Video" },
 ];
 
-export function LibraryClient({ items }: { items: LibraryItem[] }) {
+export function LibraryClient({
+  items,
+  lastUpdated,
+}: {
+  items: LibraryItem[];
+  lastUpdated?: string | null;
+}) {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("");
   const [audience, setAudience] = useState("");
@@ -47,7 +54,9 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
 
   const filtered = useMemo(() => {
     return [...items]
-      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .sort((a, b) =>
+        (b.updatedAt ?? b.publishedAt).localeCompare(a.updatedAt ?? a.publishedAt)
+      )
       .filter((item) => {
       const matchesSearch =
         !search ||
@@ -94,6 +103,9 @@ export function LibraryClient({ items }: { items: LibraryItem[] }) {
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-text-secondary">
               {items.length} resources across articles, guides, workshops, and videos.
+              {lastUpdated && (
+                <> · Last updated {formatContentDateTime(lastUpdated)}</>
+              )}
             </p>
             <Link href="/blog" className="text-sm font-medium text-teal hover:underline">
               Browse blog →

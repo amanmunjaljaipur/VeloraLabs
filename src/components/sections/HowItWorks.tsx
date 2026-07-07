@@ -2,11 +2,12 @@
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
+import type { HomeContentData } from "@/lib/cms/home-content-types";
 import { HOW_IT_WORKS, HOW_IT_WORKS_ILLUSTRATION } from "@/lib/home-content";
 import { DURATION, EASE_OUT, HOVER } from "@/lib/motion";
 import { motion, useReducedMotion } from "framer-motion";
 import { Brain, CalendarCheck, Rocket, Wrench } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 const icons = {
   calendar: CalendarCheck,
@@ -15,7 +16,15 @@ const icons = {
   rocket: Rocket,
 };
 
-export function HowItWorks() {
+interface HowItWorksProps {
+  steps?: readonly HomeContentData["howItWorks"][number][];
+  illustration?: HomeContentData["howItWorksIllustration"];
+}
+
+export function HowItWorks({
+  steps = HOW_IT_WORKS,
+  illustration = HOW_IT_WORKS_ILLUSTRATION,
+}: HowItWorksProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -36,20 +45,20 @@ export function HowItWorks() {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: DURATION.reveal, ease: EASE_OUT }}
         >
-          <div className="relative aspect-[16/7] w-full md:aspect-[16/6]">
-            <Image
-              src={HOW_IT_WORKS_ILLUSTRATION.src}
-              alt={HOW_IT_WORKS_ILLUSTRATION.alt}
+          <div className="relative aspect-[16/9] w-full md:aspect-[16/8]">
+            <OptimizedImage
+              src={illustration.src}
+              alt={illustration.alt}
               fill
-              className="object-contain p-4 md:p-8"
+              className="object-cover object-center"
               sizes="(max-width: 1280px) 100vw, 1280px"
             />
           </div>
         </motion.div>
 
         <MotionStagger className="relative grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4" stagger={0.1}>
-          {HOW_IT_WORKS.map((item) => {
-            const Icon = icons[item.icon];
+          {steps.map((item) => {
+            const Icon = icons[item.icon as keyof typeof icons];
             return (
               <MotionStaggerItem key={item.step}>
                 <motion.div

@@ -1,11 +1,12 @@
 import type { AccordionItem } from "@/components/ui/Accordion";
 
 export const HOME_HERO = {
-  headline: "Clarity-first learning for the AI age",
+  headline: "Verlin Labs — clarity-first learning for the AI age",
   subheadline:
-    "Master the frameworks that matter in our rapidly changing world. Free 2-hour sessions and hands-on programs for students, engineers, and PMs.",
+    "Verlin Labs helps you master the frameworks that matter in our rapidly changing world. Free 2-hour session and hands-on programs for students, engineers, and PMs.",
   illustration: "/images/hero-home-visual.jpg",
-  illustrationAlt: "Abstract neural network visualization for AI learning",
+  illustrationAlt:
+    "Verlin Labs AI training hero — neural network visualization for clarity-first learning",
 };
 
 export const WHAT_WE_COVER = [
@@ -20,43 +21,43 @@ export const WHAT_WE_COVER = [
 export const HOW_IT_WORKS = [
   {
     step: 1,
-    title: "Join Free Session",
-    description: "Book a free 2-hour intro matched to your background.",
+    title: "Discover",
+    description: "Join a free session and explore.",
     icon: "calendar",
   },
   {
     step: 2,
-    title: "Learn Mental Models",
-    description: "Learn frameworks you can reuse — not facts to memorize.",
+    title: "Understand",
+    description: "Learn mental models and core concepts.",
     icon: "brain",
   },
   {
     step: 3,
-    title: "Hands-on Practice",
-    description: "Practice with real tools and mentor feedback.",
+    title: "Build",
+    description: "Create real AI projects hands-on from day one.",
     icon: "wrench",
   },
   {
     step: 4,
-    title: "Build & Demo",
-    description: "Ship a project, present it, and plan your next step.",
+    title: "Showcase",
+    description: "Present your project on Demo Day.",
     icon: "rocket",
   },
 ] as const;
 
 export const HOW_IT_WORKS_ILLUSTRATION = {
   src: "/images/how-it-works-timeline.jpg",
-  alt: "Four-step learning journey from free session through mental models, hands-on practice, to build and demo",
+  alt: "How it works — Discover, Understand, Build, and Showcase your AI learning journey from free session to Demo Day",
 };
 
 export const LEARNING_ILLUSTRATIONS = {
   mentalModels: {
     src: "/images/mental-models-map-illustration.jpg",
-    alt: "Complex ideas transforming into clear mental model frameworks",
+    alt: "Mental models infographic — turn complexity into clarity from information to understanding",
   },
   handsOn: {
     src: "/images/hands-on-mvp-illustration.jpg",
-    alt: "Student presenting a hands-on project at demo day",
+    alt: "Instructor leading a hands-on workshop with students around a laptop — practical tech learning from day one",
   },
 } as const;
 

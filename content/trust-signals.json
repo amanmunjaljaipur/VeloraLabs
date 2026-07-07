@@ -1,0 +1,59 @@
+{
+  "headline": "Trusted clarity-first AI education",
+  "summary": "Learners across India choose Verlin Labs for live sessions, mental models, and hands-on programs — with open learning on YouTube and LinkedIn.",
+  "channels": [
+    {
+      "name": "YouTube",
+      "href": "https://youtube.com/@verlinlabs",
+      "description": "Free AI explainers, session highlights, and clarity-first learning videos",
+      "category": "Education platform"
+    },
+    {
+      "name": "LinkedIn",
+      "href": "https://www.linkedin.com/in/verlin-labs-05678141b/",
+      "description": "Founder updates on AI education, product thinking, and live program announcements",
+      "category": "Professional network"
+    },
+    {
+      "name": "Newsletter",
+      "href": "/newsletter",
+      "description": "Weekly mental models and AI frameworks — curated for students, engineers, and PMs",
+      "category": "Published insights",
+      "internal": true
+    }
+  ],
+  "directories": [
+    {
+      "name": "YouTube",
+      "href": "https://youtube.com/@verlinlabs",
+      "note": "Free AI explainers and session highlights — cite and share"
+    },
+    {
+      "name": "LinkedIn",
+      "href": "https://www.linkedin.com/in/verlin-labs-05678141b/",
+      "note": "Founder updates and program announcements"
+    },
+    {
+      "name": "Google Search",
+      "href": "https://www.google.com/search?q=Verlin+Labs+AI+training",
+      "note": "Brand and program discovery"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Verified learner reviews",
+      "value": "6 testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "label": "Audience-specific tracks",
+      "value": "3 programs",
+      "href": "/courses"
+    },
+    {
+      "label": "Try before you enroll",
+      "value": "Free 2-hour session",
+      "href": "/free-session"
+    }
+  ]
+}

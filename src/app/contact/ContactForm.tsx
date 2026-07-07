@@ -7,7 +7,8 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,22 +62,38 @@ function formatMessage(data: FormData): string {
   return lines.join("\n");
 }
 
+const TOPIC_VALUES = TOPICS.map((t) => t.value);
+
+function resolveTopicFromQuery(value: string | null): FormData["topic"] {
+  if (value && TOPIC_VALUES.includes(value as FormData["topic"])) {
+    return value as FormData["topic"];
+  }
+  return "general";
+}
+
 export function ContactForm() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
+  const initialTopic = resolveTopicFromQuery(searchParams.get("topic"));
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      topic: "general",
+      topic: initialTopic,
       preferredContact: "email",
     },
   });
+
+  useEffect(() => {
+    setValue("topic", resolveTopicFromQuery(searchParams.get("topic")));
+  }, [searchParams, setValue]);
 
   const onSubmit = async (data: FormData) => {
     const result = await submitForm({

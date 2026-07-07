@@ -13,6 +13,13 @@ import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
+
+import { getLegalAcceptance } from "@/lib/legal/acceptances";
+import {
+  LEGAL_ACCEPTANCE_COOKIE,
+  parseLegalAcceptanceCookie,
+} from "@/lib/legal/acceptance-cookie";
+import { cookies } from "next/headers";
 import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { DEFAULT_ROLE } from "@/types/roles";
 
@@ -131,12 +138,25 @@ export const authOptions: NextAuthConfig = {
     },
   },
   callbacks: {
-    async jwt({ token, user, account, profile, trigger }) {
+    async jwt({ token, user, account, profile, trigger, session }) {
       try {
         const isAuthSignIn =
           trigger === "signIn" || trigger === "signUp" || Boolean(account);
 
         await ensureRolesLoaded(isAuthSignIn);
+
+        if (trigger === "update" && session) {
+          const patch = session as {
+            legalTermsVersion?: number;
+            legalPrivacyVersion?: number;
+          };
+          if (typeof patch.legalTermsVersion === "number") {
+            token.legalTermsVersion = patch.legalTermsVersion;
+          }
+          if (typeof patch.legalPrivacyVersion === "number") {
+            token.legalPrivacyVersion = patch.legalPrivacyVersion;
+          }
+        }
 
         if (isAuthSignIn) {
           const identity = resolveSignInEmail(user, token, profile as { email?: string });
@@ -152,6 +172,22 @@ export const authOptions: NextAuthConfig = {
               console.error("Failed to record known user in JWT callback:", error);
             }
             token.authProvider = resolveAuthProvider(account?.provider);
+
+            const cookieStore = await cookies();
+            const cookieAccepted = parseLegalAcceptanceCookie(
+              cookieStore.get(LEGAL_ACCEPTANCE_COOKIE)?.value,
+              identity.email
+            );
+            if (cookieAccepted) {
+              token.legalTermsVersion = cookieAccepted.termsVersion;
+              token.legalPrivacyVersion = cookieAccepted.privacyVersion;
+            } else {
+              const acceptance = getLegalAcceptance(identity.email);
+              if (acceptance) {
+                token.legalTermsVersion = acceptance.termsVersion;
+                token.legalPrivacyVersion = acceptance.privacyVersion;
+              }
+            }
           }
         }
 
@@ -199,6 +235,13 @@ export const authOptions: NextAuthConfig = {
           session.user.enrolledLearner =
             token.enrolledLearner === true ||
             isEnrolledLearner(session.user.email, role);
+
+          if (typeof token.legalTermsVersion === "number") {
+            session.user.legalTermsVersion = token.legalTermsVersion;
+          }
+          if (typeof token.legalPrivacyVersion === "number") {
+            session.user.legalPrivacyVersion = token.legalPrivacyVersion;
+          }
         }
       } catch (error) {
         console.error("Session callback error:", error);

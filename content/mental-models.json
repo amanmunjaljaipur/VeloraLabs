@@ -37,13 +37,21 @@
     ],
     "commonMistakes": [
       "Treating the middle of the pipeline as a magic box instead of a sequence of inspectable steps.",
-      "Optimizing the output stage while ignoring dirty or incomplete inputs.",
+      "Optimising the output stage while ignoring dirty or incomplete inputs.",
       "Assuming one pipeline diagram fits every use case — batch processing, real-time APIs, and human workflows differ.",
       "Forgetting feedback paths — many production pipelines loop outputs back as inputs (monitoring, retraining, human review)."
     ],
     "keyTakeaway": "When something confuses you, do not ask only \"what is the answer?\" — ask \"what is the pipeline, and which stage needs attention?\"",
-    "relatedModelSlugs": ["compression-lens", "feedback-loop"],
-    "relatedSlugs": ["how-llms-work", "transformers-pipeline"]
+    "relatedModelSlugs": [
+      "compression-lens",
+      "feedback-loop"
+    ],
+    "relatedSlugs": [
+      "how-llms-work",
+      "transformers-pipeline"
+    ],
+    "publishedAt": "2026-06-01T04:00:00.000Z",
+    "updatedAt": "2026-06-02T06:11:00.000Z"
   },
   {
     "slug": "compression-lens",
@@ -88,8 +96,16 @@
       "Assuming everyone in the room shares the same compression dictionary (especially mixed student/professional audiences)."
     ],
     "keyTakeaway": "Treat every elegant one-liner as a zip file — unzip it until you can rebuild it yourself, then zip it back up for others.",
-    "relatedModelSlugs": ["information-pipeline", "map-not-territory"],
-    "relatedSlugs": ["neural-networks-analogy", "chatgpt-for-students"]
+    "relatedModelSlugs": [
+      "information-pipeline",
+      "map-not-territory"
+    ],
+    "relatedSlugs": [
+      "neural-networks-analogy",
+      "chatgpt-for-students"
+    ],
+    "publishedAt": "2026-06-04T05:13:00.000Z",
+    "updatedAt": "2026-06-06T08:18:00.000Z"
   },
   {
     "slug": "feedback-loop",
@@ -134,8 +150,16 @@
       "Confusing a one-time evaluation with a continuous loop — models and user needs drift over time."
     ],
     "keyTakeaway": "Progress is not a straight line — it is a loop. If you are not measuring and adjusting, you are not learning; you are guessing.",
-    "relatedModelSlugs": ["information-pipeline", "abstraction-ladder"],
-    "relatedSlugs": ["rag-vs-finetuning", "prompt-engineering-basics"]
+    "relatedModelSlugs": [
+      "information-pipeline",
+      "abstraction-ladder"
+    ],
+    "relatedSlugs": [
+      "rag-vs-finetuning",
+      "prompt-engineering-basics"
+    ],
+    "publishedAt": "2026-06-07T06:26:00.000Z",
+    "updatedAt": "2026-06-10T10:25:00.000Z"
   },
   {
     "slug": "abstraction-ladder",
@@ -180,8 +204,16 @@
       "Teaching only at one rung — pure theory without application, or tutorials without conceptual framing."
     ],
     "keyTakeaway": "Clarity is not one depth — it is choosing the right rung for the room, then moving deliberately when confusion appears.",
-    "relatedModelSlugs": ["constraint-box", "compression-lens"],
-    "relatedSlugs": ["ai-for-decision-makers", "ai-risk-assessment"]
+    "relatedModelSlugs": [
+      "constraint-box",
+      "compression-lens"
+    ],
+    "relatedSlugs": [
+      "ai-for-decision-makers",
+      "ai-risk-assessment"
+    ],
+    "publishedAt": "2026-06-10T07:39:00.000Z",
+    "updatedAt": "2026-06-14T12:32:00.000Z"
   },
   {
     "slug": "constraint-box",
@@ -226,8 +258,16 @@
       "Confusing aspirational goals with hard constraints — goals motivate; constraints bound."
     ],
     "keyTakeaway": "Innovation inside a well-drawn box is engineering; innovation that ignores the box is fantasy until proven otherwise.",
-    "relatedModelSlugs": ["abstraction-ladder", "map-not-territory"],
-    "relatedSlugs": ["rag-vs-finetuning", "ai-risk-assessment"]
+    "relatedModelSlugs": [
+      "abstraction-ladder",
+      "map-not-territory"
+    ],
+    "relatedSlugs": [
+      "rag-vs-finetuning",
+      "ai-risk-assessment"
+    ],
+    "publishedAt": "2026-06-13T08:52:00.000Z",
+    "updatedAt": "2026-06-14T14:39:00.000Z"
   },
   {
     "slug": "map-not-territory",
@@ -272,7 +312,15 @@
       "Letting the map become identity (\"we are an AI-first company\") when territory signals say otherwise."
     ],
     "keyTakeaway": "Use the map to move fast; touch the territory before you bet the company — or the grade — on it.",
-    "relatedModelSlugs": ["compression-lens", "constraint-box"],
-    "relatedSlugs": ["how-llms-work", "ai-for-decision-makers"]
+    "relatedModelSlugs": [
+      "compression-lens",
+      "constraint-box"
+    ],
+    "relatedSlugs": [
+      "how-llms-work",
+      "ai-for-decision-makers"
+    ],
+    "publishedAt": "2026-06-16T09:05:00.000Z",
+    "updatedAt": "2026-06-18T11:46:00.000Z"
   }
 ]

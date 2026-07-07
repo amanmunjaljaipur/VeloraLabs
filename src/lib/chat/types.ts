@@ -39,3 +39,17 @@ export interface ChatResponse {
   suggestions?: string[];
   confidence: number;
 }
+
+export interface ChatMenuQuestion {
+  id: string;
+  question: string;
+}
+
+export interface ChatMenuCategory {
+  name: string;
+  questions: ChatMenuQuestion[];
+}
+
+export interface ChatMenu {
+  categories: ChatMenuCategory[];
+}

@@ -1,3 +1,4 @@
+import { readCmsJson, readCmsText } from "@/lib/cms/store";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
@@ -7,8 +8,7 @@ import html from "remark-html";
 const contentDir = path.join(process.cwd(), "content");
 
 function readJson<T>(filename: string): T {
-  const filePath = path.join(contentDir, filename);
-  return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
+  return readCmsJson<T>(filename);
 }
 
 export type AudienceSlug = "students" | "engineers" | "professionals";
@@ -20,6 +20,12 @@ export interface SiteConfig {
   nav: { label: string; href: string }[];
   footer: {
     tagline: string;
+    contact?: {
+      email: string;
+      phone?: string;
+      location: string;
+      responseNote?: string;
+    };
     social: { label: string; href: string }[];
   };
   newsletter: { title: string; description: string; cta: string };
@@ -106,6 +112,7 @@ export interface LibraryItem {
   image: string;
   author: string;
   publishedAt: string;
+  updatedAt?: string;
   tags: string[];
   sections: LibrarySection[];
   keyTakeaway: string;
@@ -132,6 +139,8 @@ export interface MentalModel {
   keyTakeaway: string;
   relatedModelSlugs: string[];
   relatedSlugs: string[];
+  publishedAt?: string;
+  updatedAt?: string;
 }
 
 export interface CourseDay {
@@ -191,11 +200,29 @@ export function getLibraryItems() {
   return readJson<LibraryItem[]>("library.json");
 }
 
+function contentSortKey(iso: string, updatedAt?: string): string {
+  return updatedAt ?? iso;
+}
+
 export function getFeaturedLibraryItems(limit = 6) {
   return getLibraryItems()
     .filter((item) => item.featured)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .sort((a, b) =>
+      contentSortKey(b.publishedAt, b.updatedAt).localeCompare(
+        contentSortKey(a.publishedAt, a.updatedAt)
+      )
+    )
     .slice(0, limit);
+}
+
+export function getLearnContentLastUpdated(): string | null {
+  const stamps = [
+    ...getLibraryItems().map((item) => item.updatedAt ?? item.publishedAt),
+    ...getMentalModels().map((model) => model.updatedAt ?? model.publishedAt ?? ""),
+  ].filter(Boolean);
+
+  if (stamps.length === 0) return null;
+  return stamps.sort((a, b) => b.localeCompare(a))[0];
 }
 
 export function getLibraryItem(slug: string) {
@@ -232,8 +259,7 @@ export function getAllCourseTracks(): { slug: AudienceSlug; course: CourseConten
 }
 
 export async function getMarkdownPage(filename: string) {
-  const filePath = path.join(contentDir, filename);
-  const file = fs.readFileSync(filePath, "utf8");
+  const file = readCmsText(filename);
   const { data, content } = matter(file);
   const processed = await remark().use(html).process(content);
   return { frontmatter: data as Record<string, string>, html: processed.toString() };
@@ -247,6 +273,26 @@ const RESOURCE_DOWNLOAD_FILES: Record<string, string> = {
 
 export function getResourceDownloadSlugs() {
   return Object.keys(RESOURCE_DOWNLOAD_FILES);
+}
+
+export interface ResourceDownloadIndexItem {
+  slug: string;
+  title: string;
+  subtitle: string;
+  downloadLabel?: string;
+}
+
+export function getResourceDownloadsIndex(): ResourceDownloadIndexItem[] {
+  return getResourceDownloadSlugs().map((slug) => {
+    const filename = RESOURCE_DOWNLOAD_FILES[slug];
+    const { data } = matter(readCmsText(filename));
+    return {
+      slug,
+      title: (data.title as string) ?? slug,
+      subtitle: (data.subtitle as string) ?? "",
+      downloadLabel: data.downloadLabel as string | undefined,
+    };
+  });
 }
 
 export async function getResourceDownload(slug: string) {

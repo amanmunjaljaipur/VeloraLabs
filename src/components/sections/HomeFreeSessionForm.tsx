@@ -9,7 +9,8 @@ import { mapHomepageRoleToAudience } from "@/lib/audience-map";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { SITE_IMAGE_ALT } from "@/lib/image-alt";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -76,9 +77,9 @@ export function HomeFreeSessionForm() {
               ))}
             </ul>
             <div className="relative mt-8 hidden aspect-[16/10] overflow-hidden rounded-2xl border border-border sm:block lg:max-w-md">
-              <Image
+              <OptimizedImage
                 src="/images/workshop.jpg"
-                alt="Calm live online learning session"
+                alt={SITE_IMAGE_ALT.homeFreeSession}
                 fill
                 className="object-cover"
                 sizes="400px"

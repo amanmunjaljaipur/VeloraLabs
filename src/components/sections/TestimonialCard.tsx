@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { TESTIMONIAL_AVATARS } from "@/lib/home-content";
 import { Quote } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 interface TestimonialCardProps {
   quote: string;
@@ -36,7 +36,14 @@ export function TestimonialCard({ quote, name, role, audience }: TestimonialCard
       <div className="mt-8 flex items-center gap-4 border-t border-border/60 pt-6">
         {avatarSrc ? (
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-accent-teal/25 shadow-sm">
-            <Image src={avatarSrc} alt={`${name} avatar`} fill className="object-cover" sizes="48px" />
+            <OptimizedImage
+              src={avatarSrc}
+              alt={`${name} — Verlin Labs AI training learner testimonial`}
+              fill
+              className="object-cover"
+              sizes="48px"
+              quality={60}
+            />
           </div>
         ) : (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal to-accent-teal text-sm font-semibold text-white shadow-sm">

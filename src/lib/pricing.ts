@@ -45,14 +45,5 @@ export function getIntroPricing(price: string): IntroPricing {
 }
 
 export function buildIntroOfferSummary(): string {
-  const tracks = [
-    { label: "School Students", list: 9999 },
-    { label: "College Engineers", list: 14999 },
-    { label: "Product Managers", list: 24999 },
-  ];
-  const parts = tracks.map(({ label, list }) => {
-    const p = getIntroPricing(formatInrPrice(list));
-    return `${label}: ${p.current} (was ${p.original})`;
-  });
-  return `All full programs currently have an introductory discount off list price. ${parts.join(". ")}. The free 2-hour session remains completely free.`;
+  return "All full programs currently have an introductory discount off list price.\n\nThe free 2-hour session remains completely free — no payment required to book.";
 }

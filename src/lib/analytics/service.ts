@@ -1,7 +1,9 @@
 import { CMS_PAGES } from "@/lib/cms/registry";
 import { loadCrmDashboard } from "@/lib/crm/service";
+import { getPageViewSummary, type PageViewSummary } from "@/lib/analytics/page-views";
 import { readTrainingDataset } from "@/lib/chat/training-store";
 import { getAllVideoComments } from "@/lib/video-comments";
+
 export interface CountBucket {
   label: string;
   count: number;
@@ -9,39 +11,33 @@ export interface CountBucket {
 
 export interface RecentActivity {
   last7Days: {
-    bookings: number;
-    contacts: number;
-    subscribers: number;
-    signIns: number;
+    leads: number;
+    pageViews: number;
     videoComments: number;
   };
   last30Days: {
-    bookings: number;
-    contacts: number;
-    subscribers: number;
-    signIns: number;
+    leads: number;
+    pageViews: number;
     videoComments: number;
   };
 }
 
 export interface AnalyticsDashboardData {
   generatedAt: string;
-  sheetsConnected: boolean;
   totals: {
-    people: number;
-    bookings: number;
-    contacts: number;
-    subscribers: number;
+    leads: number;
+    pendingFollowUps: number;
+    pageViews: number;
+    uniquePages: number;
     videoComments: number;
     chatbotFaqs: number;
     cmsPages: number;
   };
   recent: RecentActivity;
-  bookingsByAudience: CountBucket[];
-  bookingsByStatus: CountBucket[];
-  peopleByRole: CountBucket[];
-  subscribersBySource: CountBucket[];
+  leadsByStage: CountBucket[];
+  leadsBySource: CountBucket[];
   chatbotByCategory: CountBucket[];
+  pageViews: PageViewSummary;
 }
 
 function daysAgoMs(days: number): number {
@@ -57,17 +53,10 @@ function countSince(dates: Array<string | null | undefined>, days: number): numb
   }).length;
 }
 
-function bucketCounts(
-  items: Array<{ label: string }>,
-  labelKey: (item: { label: string }) => string
-): CountBucket[] {
-  const map = new Map<string, number>();
-  for (const item of items) {
-    const label = labelKey(item).trim() || "Unknown";
-    map.set(label, (map.get(label) ?? 0) + 1);
-  }
-  return [...map.entries()]
+function bucketFromRecord(record: Record<string, number>): CountBucket[] {
+  return Object.entries(record)
     .map(([label, count]) => ({ label, count }))
+    .filter((item) => item.count > 0)
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
@@ -76,60 +65,42 @@ export async function loadAnalyticsDashboard(): Promise<AnalyticsDashboardData> 
   const comments = getAllVideoComments();
   const training = readTrainingDataset();
   const enabledFaqs = training.entries.filter((entry) => entry.enabled);
+  const pageViews = getPageViewSummary();
 
-  const bookingTimestamps = crm.bookings.map((row) => row.timestamp);
-  const contactTimestamps = crm.contacts.map((row) => row.timestamp);
-  const subscriberTimestamps = crm.subscribers.map((row) => row.subscribedAt);
-  const signInTimestamps = crm.people.map((person) => person.lastSeenAt);
+  const leadTimestamps = crm.leads.map((lead) => lead.createdAt);
   const commentTimestamps = comments.map((comment) => comment.createdAt);
 
   return {
     generatedAt: new Date().toISOString(),
-    sheetsConnected: crm.sheetsConnected,
     totals: {
-      people: crm.stats.people,
-      bookings: crm.stats.bookings,
-      contacts: crm.stats.contacts,
-      subscribers: crm.stats.subscribers,
+      leads: crm.stats.total,
+      pendingFollowUps: crm.stats.pendingFollowUps,
+      pageViews: pageViews.totalViews,
+      uniquePages: pageViews.uniquePages,
       videoComments: comments.length,
       chatbotFaqs: enabledFaqs.length,
       cmsPages: CMS_PAGES.length,
     },
     recent: {
       last7Days: {
-        bookings: countSince(bookingTimestamps, 7),
-        contacts: countSince(contactTimestamps, 7),
-        subscribers: countSince(subscriberTimestamps, 7),
-        signIns: countSince(signInTimestamps, 7),
+        leads: countSince(leadTimestamps, 7),
+        pageViews: pageViews.last7Days,
         videoComments: countSince(commentTimestamps, 7),
       },
       last30Days: {
-        bookings: countSince(bookingTimestamps, 30),
-        contacts: countSince(contactTimestamps, 30),
-        subscribers: countSince(subscriberTimestamps, 30),
-        signIns: countSince(signInTimestamps, 30),
+        leads: countSince(leadTimestamps, 30),
+        pageViews: pageViews.last30Days,
         videoComments: countSince(commentTimestamps, 30),
       },
     },
-    bookingsByAudience: bucketCounts(
-      crm.bookings.map((row) => ({ label: row.audienceLabel || row.audience || "Unknown" })),
-      (row) => row.label
+    leadsByStage: crm.funnel.map((item) => ({ label: item.label, count: item.count })),
+    leadsBySource: bucketFromRecord(crm.stats.bySource),
+    chatbotByCategory: bucketFromRecord(
+      enabledFaqs.reduce<Record<string, number>>((acc, entry) => {
+        acc[entry.category] = (acc[entry.category] ?? 0) + 1;
+        return acc;
+      }, {})
     ),
-    bookingsByStatus: bucketCounts(
-      crm.bookings.map((row) => ({ label: row.status || "Unknown" })),
-      (row) => row.label
-    ),
-    peopleByRole: bucketCounts(
-      crm.people.map((person) => ({ label: person.roleLabel || person.role })),
-      (row) => row.label
-    ),
-    subscribersBySource: bucketCounts(
-      crm.subscribers.map((row) => ({ label: row.source || "Unknown" })),
-      (row) => row.label
-    ),
-    chatbotByCategory: bucketCounts(
-      enabledFaqs.map((entry) => ({ label: entry.category })),
-      (row) => row.label
-    ),
+    pageViews,
   };
 }

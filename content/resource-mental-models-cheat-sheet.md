@@ -1,6 +1,6 @@
 ---
 title: Mental Models Cheat Sheet
-subtitle: One-page reference for Verlin Labs core frameworks
+subtitle: One-page reference for Verlin Labs' core frameworks
 downloadLabel: Print cheat sheet
 ---
 

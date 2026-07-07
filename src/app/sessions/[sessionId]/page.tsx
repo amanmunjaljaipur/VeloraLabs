@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { SessionVideoAdmin } from "@/components/sessions/SessionVideoAdmin";
+import { SessionVideoComments } from "@/components/sessions/SessionVideoComments";
 import { SessionVideoPlayer } from "@/components/sessions/SessionVideoPlayer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -103,22 +104,27 @@ export default async function SessionPage({
         )}
 
         {!isAdmin && hasAccess && video && (
-          <div>
-            <div className="mb-4 flex items-center gap-2">
-              <Video className="h-5 w-5 text-teal" />
-              <h2 className="text-lg font-semibold text-foreground">Session recording</h2>
+          <div className="space-y-10">
+            <div>
+              <div className="mb-4 flex items-center gap-2">
+                <Video className="h-5 w-5 text-teal" />
+                <h2 className="text-lg font-semibold text-foreground">Session recording</h2>
+              </div>
+              <SessionVideoPlayer
+                sessionId={sessionId}
+                videoId={video.youtubeId}
+                title={meta.title}
+                initialWatchedSeconds={videoProgress?.watchedSeconds}
+                initialDurationSeconds={videoProgress?.durationSeconds}
+                initialPercent={videoProgress?.percent}
+                reviewMode={reviewMode}
+              />
             </div>
-            <SessionVideoPlayer
-              sessionId={sessionId}
-              videoId={video.youtubeId}
-              title={meta.title}
-              initialWatchedSeconds={videoProgress?.watchedSeconds}
-              initialDurationSeconds={videoProgress?.durationSeconds}
-              initialPercent={videoProgress?.percent}
-              reviewMode={reviewMode}
-            />
+            <SessionVideoComments sessionId={sessionId} />
           </div>
         )}
+
+        {isAdmin && video && <SessionVideoComments sessionId={sessionId} />}
 
         {!isAdmin && hasAccess && !video && (
           <Card className="text-center py-12">

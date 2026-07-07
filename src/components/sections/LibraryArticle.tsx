@@ -1,8 +1,12 @@
+import { AuthorByline } from "@/components/sections/AuthorByline";
+import { ArticleLearningPath } from "@/components/sections/ArticleLearningPath";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import type { LibraryItem } from "@/lib/content";
-import { Calendar, User } from "lucide-react";
-import Image from "next/image";
+import { formatContentDateTime } from "@/lib/utils";
+import { Calendar } from "lucide-react";
+import { libraryCoverAlt } from "@/lib/image-alt";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 const audienceLabels = {
   all: "All learners",
@@ -15,25 +19,17 @@ interface LibraryArticleProps {
   item: LibraryItem;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function LibraryArticle({ item }: LibraryArticleProps) {
   return (
     <article>
       <div className="relative h-56 overflow-hidden border-b border-border sm:h-72 md:h-96">
-        <Image
+        <OptimizedImage
           src={item.image}
-          alt=""
+          alt={libraryCoverAlt(item.title, item.type)}
           fill
+          aboveFold
           className="object-cover"
           sizes="100vw"
-          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
@@ -51,17 +47,21 @@ export function LibraryArticle({ item }: LibraryArticleProps) {
 
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-text-secondary">
           <span className="inline-flex items-center gap-1.5">
-            <User className="h-4 w-4" />
-            {item.author}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
             <Calendar className="h-4 w-4" />
-            {formatDate(item.publishedAt)}
+            Published {formatContentDateTime(item.publishedAt)}
           </span>
+          {item.updatedAt && (
+            <span className="inline-flex items-center gap-1.5">
+              Updated {formatContentDateTime(item.updatedAt)}
+            </span>
+          )}
           <span>{item.duration} read</span>
         </div>
 
         <p className="mt-6 text-lg leading-relaxed text-text-secondary">{item.summary}</p>
+
+        <AuthorByline />
+        <ArticleLearningPath item={item} />
 
         <div className="mt-6 flex flex-wrap gap-2">
           {item.tags.map((tag) => (

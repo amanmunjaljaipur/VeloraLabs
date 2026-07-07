@@ -21,7 +21,7 @@ export default async function MyCoursePage() {
   }
 
   if (isAdminRole(session.user.role)) {
-    redirect("/");
+    redirect("/admin/sessions");
   }
 
   if (!isEnrolledLearner(session.user.email, session.user.role)) {

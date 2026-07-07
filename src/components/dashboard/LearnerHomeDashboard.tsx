@@ -5,6 +5,7 @@ import type { LearnerDashboardData } from "@/lib/learner-dashboard";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
 import { BookOpen, CheckCircle2, Circle, PlayCircle } from "lucide-react";
+import { audienceTrackImageAlt } from "@/lib/image-alt";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -59,7 +60,7 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
         <div className="absolute inset-0">
           <Image
             src={audienceImages[data.audience]}
-            alt=""
+            alt={audienceTrackImageAlt(data.audience)}
             fill
             className="object-cover opacity-20"
             sizes="100vw"

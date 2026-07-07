@@ -47,3 +47,18 @@ export function writeJsonFile(filename: string, data: unknown, defaultContent = 
     // chmod is best-effort (e.g. Windows, /tmp on Vercel)
   }
 }
+
+export function readTextFile(filename: string, defaultContent = ""): string {
+  const filePath = ensureRuntimeFile(filename, defaultContent);
+  return fs.readFileSync(filePath, "utf8");
+}
+
+export function writeTextFile(filename: string, content: string, defaultContent = ""): void {
+  const filePath = ensureRuntimeFile(filename, defaultContent);
+  fs.writeFileSync(filePath, content, "utf8");
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    // chmod is best-effort
+  }
+}

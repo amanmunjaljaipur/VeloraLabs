@@ -1,12 +1,10 @@
 {
   "name": "Verlin Labs",
   "tagline": "Clarity-first learning for the AI age",
-  "description": "Understand complex AI concepts through clear mental models. Free 2-hour sessions, hands-on programs for students, engineers, and product managers.",
+  "description": "Understand complex AI concepts through clear mental models. Free 2-hour session, hands-on programs for students, engineers, and product managers.",
   "nav": [
     { "label": "Free Session", "href": "/free-session" },
     { "label": "Courses", "href": "/courses" },
-    { "label": "Library", "href": "/library" },
-    { "label": "Blog", "href": "/blog" },
     { "label": "Mental Models", "href": "/mental-models" },
     { "label": "About", "href": "/about" },
     { "label": "FAQ", "href": "/faq" },
@@ -14,6 +12,11 @@
   ],
   "footer": {
     "tagline": "Clarity-first learning for builders, students, and professionals.",
+    "contact": {
+      "email": "snemanenterprises@gmail.com",
+      "location": "India",
+      "responseNote": "Response within 24–48 hours (India time)"
+    },
     "social": [
       { "label": "LinkedIn", "href": "https://www.linkedin.com/in/verlin-labs-05678141b/" },
       { "label": "YouTube", "href": "https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" },

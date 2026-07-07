@@ -1,27 +1,29 @@
+import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getMarkdownPage } from "@/lib/content";
-import type { Metadata } from "next";
+import { ResourcesHub } from "@/components/resources/ResourcesHub";
+import { ResourcesPageContent } from "@/components/resources/ResourcesPageContent";
+import { staticPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Resources",
-  description: "Curated tools and references for clarity-first learners.",
-};
+export const metadata = staticPageMetadata("resources", "/resources");
 
-export default async function ResourcesPage() {
-  const { frontmatter, html } = await getMarkdownPage("resources.md");
+export default function ResourcesPage() {
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Resources Hub" },
+  ];
 
   return (
     <>
+      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/resources" />
       <PageHeader
-        title={(frontmatter.title as string) || "Resources"}
-        subtitle={frontmatter.subtitle as string}
+        breadcrumbs={breadcrumbs}
+        title="Resources Hub"
+        subtitle="Library, blog, mental models, downloads, and curated tools — everything in one place for clarity-first learners."
+        image="/images/mental-models.jpg"
+        imageAlt="Learning resources and mental models"
       />
-      <section className="pb-16 md:pb-24">
-        <div
-          className="prose-verlin mx-auto max-w-3xl px-4 md:px-8"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      </section>
+      <ResourcesHub />
+      <ResourcesPageContent />
     </>
   );
 }

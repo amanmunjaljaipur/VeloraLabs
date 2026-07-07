@@ -2,9 +2,13 @@
 
 import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { WHAT_WE_COVER } from "@/lib/home-content";
+
+interface WhatWeCoverProps {
+  topics?: string[];
+}
 import { motion } from "framer-motion";
 
-export function WhatWeCover() {
+export function WhatWeCover({ topics = WHAT_WE_COVER }: WhatWeCoverProps) {
   return (
     <section className="border-b border-border/80 bg-gradient-to-b from-muted/30 to-background py-10 md:py-12">
       <div className="container-verlin">
@@ -12,7 +16,7 @@ export function WhatWeCover() {
           What we cover
         </p>
         <MotionStagger className="flex flex-wrap items-center justify-center gap-2.5" stagger={0.05}>
-          {WHAT_WE_COVER.map((topic) => (
+          {topics.map((topic) => (
             <MotionStaggerItem key={topic}>
               <motion.span
                 whileHover={{ scale: 1.03, y: -1 }}

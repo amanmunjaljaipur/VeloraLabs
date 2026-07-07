@@ -3,9 +3,10 @@ import { Card } from "@/components/ui/Card";
 import { CoursePrice } from "@/components/ui/CoursePrice";
 import { CourseCurriculum } from "@/components/sections/CourseCurriculum";
 import type { AudienceSlug, CourseContent } from "@/lib/content";
+import { audienceTrackImageAlt } from "@/lib/image-alt";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
 import { CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 
 const audienceImages: Record<AudienceSlug, string> = {
@@ -48,7 +49,14 @@ export function AudienceCoursePage({
     <>
       <section className="relative overflow-hidden border-b border-border/80">
         <div className="absolute inset-0">
-          <Image src={audienceImages[slug]} alt="" fill className="object-cover" sizes="100vw" priority />
+          <OptimizedImage
+            src={audienceImages[slug]}
+            alt={audienceTrackImageAlt(slug, audienceLabels[slug])}
+            fill
+            aboveFold
+            className="object-cover"
+            sizes="100vw"
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/94 to-background/70" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
         </div>

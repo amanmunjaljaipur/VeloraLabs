@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { TrainerProfile as TrainerProfileData } from "@/lib/content";
 import { CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 
 interface TrainerProfileProps {
@@ -14,9 +14,9 @@ export function TrainerProfile({ trainer }: TrainerProfileProps) {
     <section className="section-y section-divider bg-muted/20">
       <div className="container-verlin">
         <SectionHeader
-          eyebrow="Your instructor"
-          title="Meet your trainer"
-          subtitle="Learn directly from the founder who built Verlin Labs' clarity-first approach."
+          eyebrow="About the instructors"
+          title="Meet Aman Munjal — founder & lead instructor"
+          subtitle="Learn directly from the educator who designed Verlin Labs' mental-model curriculum across every track."
           className="mb-12 md:mb-16"
         />
 
@@ -24,13 +24,12 @@ export function TrainerProfile({ trainer }: TrainerProfileProps) {
           <div className="grid lg:grid-cols-[minmax(280px,340px)_1fr]">
             <div className="relative bg-gradient-to-br from-accent-teal/10 via-background to-sky-50/40 p-8 lg:p-10">
               <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-2xl border border-accent-teal/20 shadow-lg">
-                <Image
+                <OptimizedImage
                   src={trainer.image}
                   alt={trainer.imageAlt}
                   fill
                   className="object-cover object-top"
                   sizes="(max-width: 1024px) 80vw, 340px"
-                  priority
                 />
               </div>
               <div className="mt-6 text-center lg:text-left">

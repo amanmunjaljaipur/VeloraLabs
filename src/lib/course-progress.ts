@@ -1,6 +1,5 @@
 import type { AudienceSlug } from "@/lib/content";
-import fs from "fs";
-import path from "path";
+import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 
 export interface UserCourseProgress {
   completedDays: number[];
@@ -9,14 +8,14 @@ export interface UserCourseProgress {
 
 type CourseProgressFile = Record<string, UserCourseProgress>;
 
-const progressFilePath = path.join(process.cwd(), "content", "course-progress.json");
+const PROGRESS_FILE = "course-progress.json";
 
 function readProgressFile(): CourseProgressFile {
-  return JSON.parse(fs.readFileSync(progressFilePath, "utf8")) as CourseProgressFile;
+  return readJsonFile<CourseProgressFile>(PROGRESS_FILE, "{}");
 }
 
 function writeProgressFile(data: CourseProgressFile): void {
-  fs.writeFileSync(progressFilePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  writeJsonFile(PROGRESS_FILE, data, "{}");
 }
 
 export function getCourseProgress(email: string | null | undefined): UserCourseProgress {

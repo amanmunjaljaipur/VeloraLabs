@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { Bot, Brain, CalendarCheck, Check, Code2, Rocket, Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,13 +45,13 @@ export function LearningSplit({
           illustration && "border-accent-teal/15 bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/30"
         )}
       >
-        <Image
+        <OptimizedImage
           src={image}
           alt={imageAlt}
           fill
           className={cn(
             "transition-transform duration-500 group-hover:scale-[1.02]",
-            illustration ? "object-contain p-4 md:p-6" : "object-cover"
+            illustration ? "object-cover object-center" : "object-cover"
           )}
           sizes="(max-width: 1024px) 100vw, 50vw"
         />

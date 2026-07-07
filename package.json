@@ -6,6 +6,7 @@
     "dev": "next dev",
     "train:chatbot": "tsx scripts/build-chatbot-index.ts",
     "build": "npm run train:chatbot && next build",
+    "indexnow": "tsx scripts/submit-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
     "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs",

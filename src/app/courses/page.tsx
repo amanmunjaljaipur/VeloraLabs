@@ -1,22 +1,21 @@
-import { auth } from "@/auth";
+
 import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { CoursePrice } from "@/components/ui/CoursePrice";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { isEnrolledLearner } from "@/lib/enrollment";
 import { getAllCourseTracks } from "@/lib/content";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Code, GraduationCap } from "lucide-react";
-import type { Metadata } from "next";
+import { SiteExploreLinks } from "@/components/layout/SiteExploreLinks";
+import { CoursesGraphJsonLd } from "@/components/seo/CoursesGraphJsonLd";
+import { audienceTrackImageAlt } from "@/lib/image-alt";
+import { staticPageMetadata } from "@/lib/page-metadata";
+import type { AudienceSlug } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "Courses",
-  description: "Clarity-first learning courses for school students, college engineers, and product managers.",
-};
+export const metadata = staticPageMetadata("courses", "/courses");
 
 const icons = {
   students: GraduationCap,
@@ -36,49 +35,27 @@ const trackImages = {
   professionals: "/images/audience-professionals-illustration.jpg",
 };
 
-export default async function CoursesPage() {
+export default function CoursesPage() {
   const tracks = getAllCourseTracks();
-  const session = await auth();
-  const isEnrolled = session?.user
-    ? isEnrolledLearner(session.user.email, session.user.role)
-    : false;
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
+    { label: "Programs", href: "/programs" },
     { label: "Courses" },
   ];
 
   return (
     <>
+      <CoursesGraphJsonLd />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath="/courses" />
       <PageHeader
         breadcrumbs={breadcrumbs}
         eyebrow="Learning tracks"
         title="Courses"
-        subtitle={
-          isEnrolled
-            ? "Browse all Verlin Labs courses, or go to My Course to continue your enrolled track."
-            : "Choose the course that fits your stage — each track includes the full syllabus and session structure."
-        }
+        subtitle="Choose the course that fits your stage — each track includes the full syllabus and session structure."
         image="/images/presentation.jpg"
-        imageAlt="Structured learning courses"
+        imageAlt="Verlin Labs AI courses — structured learning tracks for students, engineers, and PMs"
       />
-
-      {isEnrolled && (
-        <section className="border-b border-border bg-teal/5">
-          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:flex-row sm:items-center md:px-8">
-            <div>
-              <p className="text-sm font-medium text-teal">You&apos;re enrolled</p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Open My Course to view your syllabus and session recordings.
-              </p>
-            </div>
-            <Link href="/my-course">
-              <Button size="sm">My Course</Button>
-            </Link>
-          </div>
-        </section>
-      )}
 
       <section className="section-y">
         <div className="container-verlin">
@@ -90,9 +67,9 @@ export default async function CoursesPage() {
                 <Link key={slug} href={`/courses/${slug}`} className="block h-full group">
                   <Card hover className="flex h-full flex-col overflow-hidden p-0">
                     <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40">
-                      <Image
+                      <OptimizedImage
                         src={trackImages[slug]}
-                        alt=""
+                        alt={audienceTrackImageAlt(slug as AudienceSlug, labels[slug])}
                         fill
                         className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
                         sizes="400px"
@@ -111,15 +88,13 @@ export default async function CoursesPage() {
                       {course.description}
                     </p>
                     <div className="mt-6 space-y-3 border-t border-border pt-4">
-                      {!isEnrolled && (
-                        <CoursePrice price={course.price} size="compact" className="w-full" />
-                      )}
+                      <CoursePrice price={course.price} size="compact" className="w-full" />
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs text-text-secondary">
                           {course.duration} · {dayCount} days
                         </p>
                         <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-teal transition-all group-hover:gap-2">
-                          {isEnrolled ? "View syllabus" : "View course"}{" "}
+                          View course{" "}
                           <ArrowRight className="h-4 w-4" />
                         </span>
                       </div>
@@ -133,24 +108,24 @@ export default async function CoursesPage() {
         </div>
       </section>
 
-      {!isEnrolled && (
-        <section className="section-y bg-muted/30">
-          <div className="container-verlin">
-            <SectionHeader
-              eyebrow="Get started"
-              title="Not sure which course fits?"
-              subtitle="Start with a free 2-hour session — we'll help you pick the right path."
-              className="mb-8"
-            />
-            <div className="text-center">
-              <ButtonLink href="/free-session" size="lg" variant="cta" className="shadow-glow-amber">
-                Book Free 2-Hour Session
-              </ButtonLink>
-              <p className="mt-2 text-xs text-text-muted">No commitment · We&apos;ll help you choose</p>
-            </div>
+      <section className="section-y bg-muted/30">
+        <div className="container-verlin">
+          <SectionHeader
+            eyebrow="Get started"
+            title="Not sure which course fits?"
+            subtitle="Start with a free 2-hour session — we'll help you pick the right path."
+            className="mb-8"
+          />
+          <div className="text-center">
+            <ButtonLink href="/free-session" size="lg" variant="cta" className="shadow-glow-amber">
+              Book Free 2-Hour Session
+            </ButtonLink>
+            <p className="mt-2 text-xs text-text-muted">No commitment · We&apos;ll help you choose</p>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      <SiteExploreLinks section="learn" title="Supporting resources" limit={4} />
     </>
   );
 }

@@ -1,25 +1,47 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const CANONICAL_HOST = "www.verlinlabs.com";
+const CANONICAL_ORIGIN = `https://${CANONICAL_HOST}`;
 
-function shouldRedirectToCanonical(host: string): boolean {
+function shouldCanonicalize(host: string): boolean {
   if (!host) return false;
   const normalized = host.toLowerCase();
   return normalized === "verlinlabs.com" || normalized.endsWith(".vercel.app");
 }
 
-export function middleware(request: NextRequest) {
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
+function isRouterFlightRequest(request: NextRequest): boolean {
+  return (
+    request.headers.get("rsc") === "1" ||
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("next-router-state-tree") != null
+  );
+}
 
-  if (!shouldRedirectToCanonical(host)) {
+function resolveHost(request: NextRequest): string {
+  const raw =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("x-vercel-forwarded-host") ??
+    request.headers.get("host") ??
+    "";
+  return raw.split(",")[0]?.trim().toLowerCase() ?? "";
+}
+
+export function middleware(request: NextRequest) {
+  const host = resolveHost(request);
+
+  if (!shouldCanonicalize(host)) {
     return NextResponse.next();
   }
 
-  const url = request.nextUrl.clone();
-  url.protocol = "https";
-  url.host = CANONICAL_HOST;
+  const canonicalUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, CANONICAL_ORIGIN);
 
-  return NextResponse.redirect(url, 308);
+  // Next.js client navigations cannot follow cross-host redirects for RSC payloads.
+  // Rewrite flight requests internally so soft navigation works on apex / preview hosts.
+  if (isRouterFlightRequest(request)) {
+    return NextResponse.rewrite(canonicalUrl);
+  }
+
+  return NextResponse.redirect(canonicalUrl, 308);
 }
 
 export const config = {

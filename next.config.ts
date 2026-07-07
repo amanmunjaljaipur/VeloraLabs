@@ -8,11 +8,18 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
   serverExternalPackages: ["@xenova/transformers", "onnxruntime-node"],
   outputFileTracingIncludes: {
     "/*": ["./content/**/*"],
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: "https",
@@ -24,6 +31,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: securityHeaders,
       },
@@ -34,6 +50,26 @@ const nextConfig: NextConfig = {
       {
         source: "/for/:slug",
         destination: "/courses/:slug",
+        permanent: true,
+      },
+      {
+        source: "/terms-of-service",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/privacy-policy",
+        destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/refund",
+        destination: "/refund-policy",
+        permanent: true,
+      },
+      {
+        source: "/workshops",
+        destination: "/corporate",
         permanent: true,
       },
     ];

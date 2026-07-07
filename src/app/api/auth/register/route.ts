@@ -1,4 +1,7 @@
 import { signUpSchema } from "@/lib/auth-validation";
+import { recordLegalAcceptance } from "@/lib/legal/acceptances";
+import { setLegalAcceptanceCookie } from "@/lib/legal/acceptance-cookie";
+import { getCurrentVersions } from "@/lib/legal/store";
 import { recordKnownUser } from "@/lib/known-users";
 import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { createManualUser } from "@/lib/manual-users";
@@ -32,7 +35,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    const { firstName, lastName, email, password } = parsed.data;
+    const { firstName, lastName, email, password, acceptTerms } = parsed.data;
+
+    if (!acceptTerms) {
+      return NextResponse.json(
+        { error: "You must accept the Terms of Service and Privacy Policy" },
+        { status: 400 }
+      );
+    }
 
     try {
       const user = await createManualUser({ firstName, lastName, email, password });
@@ -49,10 +59,19 @@ export async function POST(req: NextRequest) {
         console.error("Failed to add newsletter subscriber after registration:", error);
       }
 
-      return NextResponse.json({
+      const currentVersions = getCurrentVersions();
+      try {
+        recordLegalAcceptance(user.email);
+      } catch (error) {
+        console.error("Failed to record legal acceptance after registration:", error);
+      }
+
+      const response = NextResponse.json({
         success: true,
         user: { id: user.id, email: user.email, name: user.name },
       });
+      setLegalAcceptanceCookie(response, user.email, currentVersions);
+      return response;
     } catch (error) {
       if (error instanceof Error && error.message === "email_exists") {
         return NextResponse.json(

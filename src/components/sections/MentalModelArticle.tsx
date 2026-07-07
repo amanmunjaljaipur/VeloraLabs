@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import type { MentalModel } from "@/lib/content";
-import { AlertTriangle, BookOpen, CheckCircle2, Clock, Lightbulb, ListOrdered } from "lucide-react";
+import { formatContentDateTime } from "@/lib/utils";
+import { AlertTriangle, BookOpen, Calendar, CheckCircle2, Clock, Lightbulb, ListOrdered } from "lucide-react";
 
 interface MentalModelArticleProps {
   model: MentalModel;
@@ -16,6 +17,17 @@ export function MentalModelArticle({ model }: MentalModelArticleProps) {
           <Clock className="h-4 w-4 text-teal" />
           {model.readTime}
         </span>
+        {model.publishedAt && (
+          <span className="inline-flex items-center gap-1.5 text-sm text-text-secondary">
+            <Calendar className="h-4 w-4 text-teal" />
+            Published {formatContentDateTime(model.publishedAt)}
+          </span>
+        )}
+        {model.updatedAt && (
+          <span className="inline-flex items-center gap-1.5 text-sm text-text-secondary">
+            Updated {formatContentDateTime(model.updatedAt)}
+          </span>
+        )}
       </div>
 
       <Card className="border-teal/20 bg-teal/5">

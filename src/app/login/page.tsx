@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { LoginForm } from "./LoginForm";
+import { isAdminRole } from "@/lib/session-access";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   const session = await auth();
-  if (session?.user) redirect("/");
+  if (session?.user) {
+    redirect(isAdminRole(session.user.role) ? "/admin/sessions" : "/");
+  }
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">

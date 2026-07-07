@@ -53,7 +53,7 @@ export const SITE_FAQ_CATEGORIES: SiteFaqCategory[] = [
       {
         question: "Will there be any sales pitch during the session?",
         answer:
-          "No hard sell. The session is a structured teaching experience — mental models, a live AI walkthrough, hands-on exercise, and Q&A. We may mention the full program if it's relevant to your goals, but there's no pressure or time-limited tactics.",
+          "No hard sell. The session is a structured teaching experience — mental models, a live AI walkthrough, a hands-on exercise, and Q&A. We may mention the full program if it's relevant to your goals, but there's no pressure or time-limited tactics.",
       },
       {
         question: "What happens after the free session?",
@@ -82,7 +82,7 @@ export const SITE_FAQ_CATEGORIES: SiteFaqCategory[] = [
         answer:
           "All tracks share the same clarity-first framework, but examples, pace, and project depth adapt to your background.",
         bullets: [
-          "School Students (Classes 6–12) — friendly analogies, safe AI tool use, showcase project (8-day program)",
+          "School Students (Classes 6–12) — friendly analogies, safe AI tool use, showcase project (8-day student-friendly program)",
           "College Engineers — LLM fundamentals to portfolio projects and interview prep (10-day intensive)",
           "Product Managers — AI-first PM workflow, discovery, PRDs, MVP build, capstone demo (16-day program)",
         ],

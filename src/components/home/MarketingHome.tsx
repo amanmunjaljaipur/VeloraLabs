@@ -1,13 +1,27 @@
+import dynamic from "next/dynamic";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { HeroSection } from "@/components/sections/HeroSection";
-import { HomeFreeSessionForm } from "@/components/sections/HomeFreeSessionForm";
-import { HowItWorks } from "@/components/sections/HowItWorks";
 import { LearningSplit } from "@/components/sections/LearningSplit";
-import { Newsletter } from "@/components/sections/Newsletter";
 import { StatsBar } from "@/components/sections/StatsBar";
-import { TestimonialCarousel } from "@/components/sections/TestimonialCarousel";
+import { TrustSignals } from "@/components/sections/TrustSignals";
 import { WhatWeCover } from "@/components/sections/WhatWeCover";
+
+const HowItWorks = dynamic(() =>
+  import("@/components/sections/HowItWorks").then((m) => m.HowItWorks)
+);
+const HomeFreeSessionForm = dynamic(() =>
+  import("@/components/sections/HomeFreeSessionForm").then((m) => m.HomeFreeSessionForm)
+);
+const TestimonialCarousel = dynamic(() =>
+  import("@/components/sections/TestimonialCarousel").then((m) => m.TestimonialCarousel)
+);
+const Newsletter = dynamic(() =>
+  import("@/components/sections/Newsletter").then((m) => m.Newsletter)
+);
+const HomeFaq = dynamic(() =>
+  import("@/components/sections/HomeFaq").then((m) => m.HomeFaq)
+);
 import { SectionShell } from "@/components/layout/SectionShell";
 import {
   getSiteConfig,
@@ -15,7 +29,7 @@ import {
   getFeaturedLibraryItems,
   getTestimonials,
 } from "@/lib/content";
-import { LEARNING_ILLUSTRATIONS } from "@/lib/home-content";
+import { getHomeContentData } from "@/lib/cms/home-content-data";
 import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import Link from "next/link";
@@ -25,11 +39,12 @@ export function MarketingHome() {
   const audiences = getAudiences();
   const featured = getFeaturedLibraryItems();
   const testimonials = getTestimonials();
+  const home = getHomeContentData();
 
   return (
     <>
-      <HeroSection />
-      <WhatWeCover />
+      <HeroSection hero={home.hero} />
+      <WhatWeCover topics={home.whatWeCover} />
       <StatsBar />
 
       <SectionShell id="audiences" divider={false}>
@@ -47,7 +62,15 @@ export function MarketingHome() {
                 description={a.heroSubtitle}
                 icon={a.icon}
                 image={a.image}
-                href={`/courses/${a.slug}`}
+                href={
+                  a.slug === "students"
+                    ? "/ai-for-students"
+                    : a.slug === "engineers"
+                      ? "/ai-for-engineers"
+                      : a.slug === "professionals"
+                        ? "/ai-for-pms"
+                        : `/courses/${a.slug}`
+                }
               />
             </MotionStaggerItem>
           ))}
@@ -59,8 +82,8 @@ export function MarketingHome() {
           <LearningSplit
             title="Learn with mental models, not memorization"
             description="Frameworks that stick — visual maps, live explanation, and pacing matched to you."
-            image={LEARNING_ILLUSTRATIONS.mentalModels.src}
-            imageAlt={LEARNING_ILLUSTRATIONS.mentalModels.alt}
+            image={home.learningIllustrations.mentalModels.src}
+            imageAlt={home.learningIllustrations.mentalModels.alt}
             illustration
             items={[
               "Visual frameworks for complex AI concepts",
@@ -71,8 +94,8 @@ export function MarketingHome() {
           <LearningSplit
             title="Hands-on from day one"
             description="Every program ends with something real — a project, portfolio piece, or working MVP."
-            image={LEARNING_ILLUSTRATIONS.handsOn.src}
-            imageAlt={LEARNING_ILLUSTRATIONS.handsOn.alt}
+            image={home.learningIllustrations.handsOn.src}
+            imageAlt={home.learningIllustrations.handsOn.alt}
             illustration
             reverse
             toolIcons
@@ -87,7 +110,10 @@ export function MarketingHome() {
 
       <HomeFreeSessionForm />
 
-      <HowItWorks />
+      <HowItWorks
+        steps={home.howItWorks}
+        illustration={home.howItWorksIllustration}
+      />
 
       <SectionShell id="library">
         <div className="mb-10 flex flex-col gap-4 sm:mb-16 sm:flex-row sm:items-end sm:justify-between">
@@ -114,6 +140,10 @@ export function MarketingHome() {
         </MotionStagger>
       </SectionShell>
 
+      <TrustSignals compact />
+
+      <HomeFaq items={home.homeFaqs} />
+
       <SectionShell id="testimonials" tinted>
         <SectionHeader
           eyebrow="Testimonials"
@@ -122,6 +152,14 @@ export function MarketingHome() {
           className="mb-10 md:mb-16"
         />
         <TestimonialCarousel testimonials={testimonials} />
+        <p className="mt-8 text-center">
+          <a
+            href="/testimonials"
+            className="text-sm font-medium text-teal hover:underline"
+          >
+            Read all testimonials →
+          </a>
+        </p>
       </SectionShell>
 
       <Newsletter

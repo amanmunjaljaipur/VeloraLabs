@@ -3,7 +3,7 @@
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +54,9 @@ export function PageHeader({
           )}
         >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ y: 16 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className={cn(centered && !image && "mx-auto")}
           >
             {breadcrumbs && breadcrumbs.length > 0 && (
@@ -102,11 +102,18 @@ export function PageHeader({
           {image && (
             <motion.div
               className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 shadow-lg surface-elevated lg:max-w-none"
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.55, delay: 0.1 }}
+              initial={{ x: 16 }}
+              animate={{ x: 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
             >
-              <Image src={image} alt={imageAlt} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" priority />
+              <OptimizedImage
+                src={image}
+                alt={imageAlt}
+                fill
+                aboveFold
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
               <div className="absolute inset-0 bg-gradient-to-tr from-navy/30 via-transparent to-accent-teal/15" />
             </motion.div>
           )}

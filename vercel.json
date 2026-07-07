@@ -2,12 +2,6 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "velora-labs-gamma.vercel.app" }],
-      "destination": "https://www.verlinlabs.com/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
       "has": [{ "type": "host", "value": "verlinlabs.com" }],
       "destination": "https://www.verlinlabs.com/:path*",
       "permanent": true
@@ -17,6 +11,10 @@
     {
       "path": "/api/cron/newsletter",
       "schedule": "30 3 * * 0"
+    },
+    {
+      "path": "/api/cron/indexnow",
+      "schedule": "0 4 * * *"
     }
   ]
 }

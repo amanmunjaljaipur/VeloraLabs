@@ -1,6 +1,5 @@
 import type { BreadcrumbItem } from "@/components/layout/Breadcrumbs";
-
-const SITE_ORIGIN = "https://www.verlinlabs.com";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 export function BreadcrumbJsonLd({
   items,

@@ -1,6 +1,7 @@
 import { BookingSection } from "./BookingSection";
 import { Card } from "@/components/ui/Card";
 import { CheckCircle2 } from "lucide-react";
+import { SITE_IMAGE_ALT } from "@/lib/image-alt";
 import Image from "next/image";
 
 const highlights = [
@@ -43,7 +44,7 @@ export function FreeSessionBooking() {
               <div className="relative aspect-[4/3]">
                 <Image
                   src="/images/workshop.jpg"
-                  alt="Live online learning workshop"
+                  alt={SITE_IMAGE_ALT.freeSessionWorkshop}
                   fill
                   className="object-cover"
                   sizes="300px"
