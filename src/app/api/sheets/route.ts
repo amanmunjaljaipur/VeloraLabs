@@ -3,6 +3,7 @@ import {
   ingestContactLead,
   ingestNewsletterLead,
 } from "@/lib/crm/ingest";
+import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { enrichBookingPayload } from "@/lib/sheets-booking";
 import { submitToGoogleSheet } from "@/lib/google-sheets";
 import { NextRequest, NextResponse } from "next/server";
@@ -79,6 +80,14 @@ export async function POST(req: NextRequest) {
         ingestContactLead(parsed.data);
       } else {
         ingestNewsletterLead(parsed.data);
+        try {
+          await ensureNewsletterSubscriber(
+            parsed.data.email,
+            parsed.data.source ?? "Newsletter signup"
+          );
+        } catch (error) {
+          console.error("Failed to persist newsletter subscriber:", error);
+        }
       }
     } catch (error) {
       console.error("CRM ingest failed:", error);

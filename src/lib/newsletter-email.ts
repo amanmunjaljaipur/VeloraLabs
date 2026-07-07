@@ -49,7 +49,7 @@ function buildEmailHtml(edition: CompiledNewsletter, publicUrl: string): string 
         </a>
       </p>
       <p style="font-size: 12px; color: #94a3b8; margin-top: 32px;">
-        You receive this because you subscribe to Verlin Labs or signed in with an account.
+        You receive this because you subscribed to the Verlin Labs newsletter.
       </p>
     </div>
   `;

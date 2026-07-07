@@ -247,6 +247,15 @@ const STATIC_PAGES: SitemapPage[] = [
     changeFrequency: "weekly",
   },
   {
+    href: "/newsletter/archive",
+    label: "Newsletter Archive",
+    title: "Newsletter Archive",
+    description: "Browse every published Verlin Labs weekly newsletter edition.",
+    section: "learn",
+    priority: 0.5,
+    changeFrequency: "weekly",
+  },
+  {
     href: "/about",
     label: "About",
     title: "About Verlin Labs",
@@ -469,7 +478,14 @@ export function buildFooterLinkGroups(): FooterLinkGroup[] {
     "/courses/professionals",
     "/corporate",
   ];
-  const learnOrder = ["/library", "/blog", "/mental-models", "/resources", "/newsletter"];
+  const learnOrder = [
+    "/library",
+    "/blog",
+    "/mental-models",
+    "/resources",
+    "/newsletter",
+    "/newsletter/archive",
+  ];
   const companyOrder = ["/about", "/testimonials", "/faq", "/contact"];
   const legalOrder = ["/terms", "/privacy", "/refund-policy", "/sitemap"];
 
@@ -504,7 +520,7 @@ export function buildSitemapSections(): SitemapSection[] {
       id === "programs"
         ? ["/free-session", "/programs", "/courses", "/ai-for-students", "/ai-for-engineers", "/ai-for-pms", "/courses/students", "/courses/engineers", "/courses/professionals", "/corporate"]
         : id === "learn"
-          ? ["/library", "/blog", "/mental-models", "/resources", "/newsletter"]
+          ? ["/library", "/blog", "/mental-models", "/resources", "/newsletter", "/newsletter/archive"]
           : id === "company"
             ? ["/about", "/testimonials", "/faq", "/contact"]
             : id === "legal"

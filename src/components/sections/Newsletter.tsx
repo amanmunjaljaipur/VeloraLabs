@@ -15,9 +15,17 @@ interface NewsletterProps {
   cta: string;
   /** When true, CTA links to /newsletter instead of showing an inline signup form. */
   linkToPage?: boolean;
+  /** Stored with the subscriber record for attribution. */
+  subscribeSource?: string;
 }
 
-export function Newsletter({ title, description, cta, linkToPage = false }: NewsletterProps) {
+export function Newsletter({
+  title,
+  description,
+  cta,
+  linkToPage = false,
+  subscribeSource = "Homepage Newsletter",
+}: NewsletterProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
@@ -33,7 +41,7 @@ export function Newsletter({ title, description, cta, linkToPage = false }: News
     const result = await submitForm({
       type: "newsletter",
       email,
-      source: "Homepage Newsletter",
+      source: subscribeSource,
     });
     setSubmitting(false);
 
@@ -70,7 +78,7 @@ export function Newsletter({ title, description, cta, linkToPage = false }: News
             <SuccessBanner
               className="mt-8"
               title="You're subscribed!"
-              description="Welcome to the Verlin Labs community — check your inbox soon."
+              description="You'll receive our Sunday newsletter when the next edition is published."
             />
           ) : (
             <form

@@ -3,7 +3,7 @@ import { recordLegalAcceptance } from "@/lib/legal/acceptances";
 import { setLegalAcceptanceCookie } from "@/lib/legal/acceptance-cookie";
 import { getCurrentVersions } from "@/lib/legal/store";
 import { recordKnownUser } from "@/lib/known-users";
-import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
+
 import { createManualUser } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
@@ -51,12 +51,6 @@ export async function POST(req: NextRequest) {
         await recordKnownUser(user.email, user.name, "credentials");
       } catch (error) {
         console.error("Failed to record known user after registration:", error);
-      }
-
-      try {
-        await ensureNewsletterSubscriber(user.email, "Signed-in user");
-      } catch (error) {
-        console.error("Failed to add newsletter subscriber after registration:", error);
       }
 
       const currentVersions = getCurrentVersions();

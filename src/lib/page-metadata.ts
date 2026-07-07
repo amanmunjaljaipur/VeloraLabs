@@ -158,6 +158,12 @@ export const PAGE_SEO = {
       "Read the latest Verlin Labs weekly newsletter — curated AI news, mental models, and clarity-first analysis for students, engineers, and PMs.",
     keywords: ["AI weekly roundup", "Verlin Labs newsletter edition"],
   },
+  newsletterArchive: {
+    title: "Newsletter Archive — Weekly AI Editions",
+    description:
+      "Browse every published Verlin Labs weekly newsletter — clarity-first AI roundups organized by Sunday week in India Standard Time.",
+    keywords: ["AI newsletter archive", "weekly AI editions", "Verlin Labs newsletter"],
+  },
   aiForStudents: {
     title: "AI for Students — Classes 6–12 AI Training India",
     description:

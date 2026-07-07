@@ -233,11 +233,22 @@ export async function publishWeeklyNewsletter(options?: {
   return edition;
 }
 
+function sortEditionsNewestFirst(editions: CompiledNewsletter[]): CompiledNewsletter[] {
+  return [...editions].sort((a, b) => {
+    const weekCompare = b.weekOf.localeCompare(a.weekOf);
+    if (weekCompare !== 0) return weekCompare;
+    return b.publishedAt.localeCompare(a.publishedAt);
+  });
+}
+
 /** Fast path for public pages — reads local cache only (no Google Sheets round-trip). */
+export function listPublishedNewsletterEditionsCached(): CompiledNewsletter[] {
+  return sortEditionsNewestFirst(readLocalEditions().editions);
+}
+
 export function getLatestNewsletterEditionCached(): CompiledNewsletter | null {
-  const editions = readLocalEditions().editions;
-  if (editions.length === 0) return null;
-  return editions.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0];
+  const editions = listPublishedNewsletterEditionsCached();
+  return editions[0] ?? null;
 }
 
 export function getNewsletterEditionBySlugCached(slug: string): CompiledNewsletter | null {
@@ -245,10 +256,13 @@ export function getNewsletterEditionBySlugCached(slug: string): CompiledNewslett
   return editions.find((edition) => edition.slug === slug) ?? null;
 }
 
+export async function listPublishedNewsletterEditions(): Promise<CompiledNewsletter[]> {
+  return sortEditionsNewestFirst(await loadAllEditions());
+}
+
 export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter | null> {
-  const editions = await loadAllEditions();
-  if (editions.length === 0) return null;
-  return editions.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0];
+  const editions = await listPublishedNewsletterEditions();
+  return editions[0] ?? null;
 }
 
 export async function getNewsletterEditionBySlug(

@@ -4,8 +4,6 @@ import {
   isServiceAccountConfigured,
   readNewsletterSubscriberRowsFromSheet,
 } from "@/lib/google-sheets-service";
-import { getKnownUserEmails } from "@/lib/known-users";
-
 const SUBSCRIBERS_FILE = "newsletter-subscribers.json";
 
 export interface NewsletterSubscriber {
@@ -90,9 +88,17 @@ export async function getNewsletterSubscriberEmails(): Promise<string[]> {
     emails.add(row.email);
   }
 
-  for (const email of await getKnownUserEmails()) {
-    emails.add(email);
+  return [...emails].sort();
+}
+
+export async function isNewsletterSubscriber(email: string): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
+
+  if (readLocalSubscribers().subscribers[normalized]) {
+    return true;
   }
 
-  return [...emails].sort();
+  const sheetRows = await loadSheetSubscribers();
+  return sheetRows.some((row) => row.email === normalized);
 }
