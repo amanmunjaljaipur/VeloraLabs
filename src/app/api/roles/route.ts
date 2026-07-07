@@ -87,6 +87,9 @@ export async function POST(req: NextRequest) {
 
     const email = parsed.data.email.toLowerCase().trim();
     const actorRole = session.user.role;
+    if (!actorRole) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     if (!canManageAssignment(actorRole, parsed.data.role)) {
       return NextResponse.json(
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
 
     if (hasCustomRoleAssignment(email)) {
       const existingRole = getRoleForEmail(email);
-      if (!canManageAssignment(actorRole, existingRole)) {
+      if (!existingRole || !canManageAssignment(actorRole, existingRole)) {
         return NextResponse.json(
           { error: "You cannot change Admin or Super Admin assignments" },
           { status: 403 }
@@ -151,9 +154,12 @@ export async function DELETE(req: NextRequest) {
 
     const email = parsed.data.email.toLowerCase().trim();
     const actorRole = session.user.role;
+    if (!actorRole) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     if (hasCustomRoleAssignment(email)) {
       const existingRole = getRoleForEmail(email);
-      if (!canManageAssignment(actorRole, existingRole)) {
+      if (!existingRole || !canManageAssignment(actorRole, existingRole)) {
         return NextResponse.json(
           { error: "You cannot remove Admin or Super Admin assignments" },
           { status: 403 }

@@ -253,9 +253,9 @@ export function RoleAssignmentPanel({
                 </h2>
               </div>
               <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-                These users have signed in or registered but don&apos;t have a custom role yet.
-                They currently default to Student and won&apos;t see enrolled learner features until
-                you assign a role.
+                These users have signed in or registered but don&apos;t have a role yet. They see
+                &quot;Role assignment pending&quot; until you assign Student, Engineer, or
+                Professional.
               </p>
             </div>
             <Badge className="w-fit shrink-0 border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">

@@ -67,14 +67,15 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isLearnerRole(session.user.role)) {
+  const role = session.user.role;
+  if (!role || !isLearnerRole(role)) {
     return NextResponse.json(
       { error: "Only enrolled learners can post comments" },
       { status: 403 }
     );
   }
 
-  if (!canAccessSessionVideo(session.user.role, meta.audience)) {
+  if (!canAccessSessionVideo(role, meta.audience)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -97,7 +98,7 @@ export async function POST(
       sessionId,
       email: session.user.email,
       authorName: session.user.name ?? session.user.email,
-      role: session.user.role,
+      role,
       body: body.body,
     });
 

@@ -106,8 +106,11 @@ export async function syncCrmFromSources(): Promise<{
       name: user.name ?? user.email.split("@")[0] ?? user.email,
       email: user.email,
       source: "known_user",
-      stage: role === "student" || role === "engineer" || role === "professional" ? "enrolled" : "contacted",
-      learnerRole: role,
+      stage:
+        role === "student" || role === "engineer" || role === "professional"
+          ? "enrolled"
+          : "contacted",
+      learnerRole: role ?? undefined,
     });
     counts.people += 1;
   }

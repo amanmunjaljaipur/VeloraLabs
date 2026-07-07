@@ -21,7 +21,7 @@ import {
 } from "@/lib/legal/acceptance-cookie";
 import { cookies } from "next/headers";
 import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
-import { DEFAULT_ROLE } from "@/types/roles";
+
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
 const ONE_DAY = 24 * 60 * 60;
@@ -200,7 +200,8 @@ export const authOptions: NextAuthConfig = {
         if (email) {
           const role = getRoleForEmail(email);
           token.role = role;
-          token.enrolledLearner = isEnrolledLearner(email, role);
+          token.rolePending = role === null;
+          token.enrolledLearner = isEnrolledLearner(email, role ?? undefined);
         }
         if (user?.id) {
           token.sub = user.id;
@@ -235,11 +236,12 @@ export const authOptions: NextAuthConfig = {
             console.error("Failed to ensure newsletter subscriber:", error);
           }
 
-          const role = getRoleForEmail(session.user.email) ?? DEFAULT_ROLE;
+          const role = getRoleForEmail(session.user.email);
           session.user.role = role;
+          session.user.rolePending = role === null;
           session.user.enrolledLearner =
             token.enrolledLearner === true ||
-            isEnrolledLearner(session.user.email, role);
+            isEnrolledLearner(session.user.email, role ?? undefined);
 
           if (typeof token.legalTermsVersion === "number") {
             session.user.legalTermsVersion = token.legalTermsVersion;

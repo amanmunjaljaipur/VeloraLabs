@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { ROLE_LABELS } from "@/types/roles";
+import { ROLE_LABELS, ROLE_PENDING_LABEL } from "@/types/roles";
 import { signOut, useSession } from "next-auth/react";
 import { ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
@@ -54,7 +54,11 @@ export function AuthButton({
     const displayName = session.user.name || session.user.email || "User";
     const navName =
       displayName.split(" ")[0]?.replace(/^\w/, (char) => char.toUpperCase()) || displayName;
-    const roleLabel = role ? ROLE_LABELS[role] : null;
+    const roleLabel = session.user.rolePending
+      ? ROLE_PENDING_LABEL
+      : role
+        ? ROLE_LABELS[role]
+        : null;
 
     return (
       <div ref={menuRef} className={cn("relative shrink-0", className)}>
@@ -110,7 +114,16 @@ export function AuthButton({
                 <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
                   Role
                 </p>
-                <p className="mt-1 text-sm font-medium text-foreground">{roleLabel}</p>
+                <p
+                  className={cn(
+                    "mt-1 text-sm font-medium",
+                    session.user.rolePending
+                      ? "text-amber-700 dark:text-amber-300"
+                      : "text-foreground"
+                  )}
+                >
+                  {roleLabel}
+                </p>
               </div>
             )}
 

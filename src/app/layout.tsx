@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
+import { RolePendingNotice } from "@/components/auth/RolePendingNotice";
 import { LegalAcceptanceGateLoader } from "@/components/legal/LegalAcceptanceGateLoader";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import { WebSiteJsonLd } from "@/components/seo/WebSiteJsonLd";
@@ -121,6 +122,7 @@ export default function RootLayout({
                 Skip to content
               </a>
               <Navbar nav={getHeaderNavLinks()} />
+              <RolePendingNotice />
               <AdminSiteChrome>
                 <main id="main" className="flex-1">{children}</main>
               </AdminSiteChrome>

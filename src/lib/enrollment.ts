@@ -5,7 +5,7 @@ import type { UserRole } from "@/types/roles";
 
 export function isEnrolledLearner(
   email: string | null | undefined,
-  role: UserRole | undefined
+  role: UserRole | null | undefined
 ): boolean {
   if (!email || !role) return false;
   return hasCustomRoleAssignment(email) && isLearnerRole(role);
@@ -13,7 +13,7 @@ export function isEnrolledLearner(
 
 export function getEnrolledLearnerAudience(
   email: string | null | undefined,
-  role: UserRole | undefined
+  role: UserRole | null | undefined
 ): AudienceSlug | null {
   if (!isEnrolledLearner(email, role)) return null;
   return getAudienceForRole(role!);

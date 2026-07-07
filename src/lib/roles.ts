@@ -5,7 +5,7 @@ import {
   saveRolesToPersistentStore,
   type UserRolesConfig,
 } from "@/lib/roles-sheets";
-import { DEFAULT_ROLE, UserRole } from "@/types/roles";
+import { UserRole } from "@/types/roles";
 
 const ROLES_FILE = "user-roles.json";
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -72,10 +72,10 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 }
 
-export function getRoleForEmail(email: string | null | undefined): UserRole {
-  if (!email) return DEFAULT_ROLE;
+export function getRoleForEmail(email: string | null | undefined): UserRole | null {
+  if (!email) return null;
   const roles = getRolesSnapshot();
-  return roles[email.toLowerCase()] ?? DEFAULT_ROLE;
+  return roles[email.toLowerCase()] ?? null;
 }
 
 export function hasCustomRoleAssignment(email: string | null | undefined): boolean {

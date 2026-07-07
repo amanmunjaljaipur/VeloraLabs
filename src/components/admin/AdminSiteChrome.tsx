@@ -5,9 +5,10 @@ import { isAdminRole } from "@/lib/session-access";
 export async function AdminSiteChrome({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
-  if (!session?.user || !isAdminRole(session.user.role)) {
+  const role = session?.user?.role;
+  if (!role || !isAdminRole(role)) {
     return <>{children}</>;
   }
 
-  return <AdminLayoutShell role={session.user.role}>{children}</AdminLayoutShell>;
+  return <AdminLayoutShell role={role}>{children}</AdminLayoutShell>;
 }

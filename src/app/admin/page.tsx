@@ -11,7 +11,7 @@ export const metadata = createMetadata({
 
 export default async function AdminOverviewPage() {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.role) {
     redirect("/login?callbackUrl=/admin");
   }
 

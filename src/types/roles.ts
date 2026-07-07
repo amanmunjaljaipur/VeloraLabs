@@ -8,7 +8,10 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
+/** Fallback only for legacy callers — new sign-ups stay unassigned until an admin assigns a role. */
 export const DEFAULT_ROLE: UserRole = "student";
+
+export const ROLE_PENDING_LABEL = "Role assignment pending";
 
 export const LEARNER_ROLES = ["student", "engineer", "professional"] as const;
 

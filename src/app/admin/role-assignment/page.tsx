@@ -17,11 +17,12 @@ export default async function RoleAssignmentPage() {
     redirect("/login?callbackUrl=/admin/role-assignment");
   }
 
-  if (!isAdminRole(session.user.role)) {
+  const role = session.user.role;
+  if (!role || !isAdminRole(role)) {
     redirect("/");
   }
 
-  const isSuperAdmin = session.user.role === "super_admin";
+  const isSuperAdmin = role === "super_admin";
 
   return (
     <>
@@ -35,7 +36,7 @@ export default async function RoleAssignmentPage() {
       />
       <RoleAssignmentPanel
         currentUserEmail={session.user.email ?? ""}
-        actorRole={session.user.role}
+        actorRole={role}
       />
     </>
   );

@@ -96,7 +96,7 @@ export function ManualSignUpForm({ callbackUrl, onBack }: ManualSignUpFormProps)
       return;
     }
 
-    router.push(callbackUrl);
+    router.push(callbackUrl || "/");
     router.refresh();
   });
 
@@ -114,7 +114,8 @@ export function ManualSignUpForm({ callbackUrl, onBack }: ManualSignUpFormProps)
 
         <h1 className="text-2xl font-semibold text-foreground">Create your account</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          Fill in your details to get started with Verlin Labs.
+          Fill in your details to get started. After sign-up, an admin will assign your learner track
+          — you&apos;ll see &quot;Role assignment pending&quot; until then.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-5">
