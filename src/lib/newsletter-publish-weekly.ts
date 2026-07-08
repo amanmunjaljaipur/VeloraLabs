@@ -1,5 +1,6 @@
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
 import { generateNewsletterDraftFromWeb } from "@/lib/newsletter-generator";
+import { isTransactionalEmailConfigured } from "@/lib/send-email";
 
 export interface PublishWeeklyResult {
   generated: boolean;
@@ -45,7 +46,7 @@ export async function publishWeeklyNewsletterViaMcp(): Promise<PublishWeeklyResu
       sentCount: email.sentCount,
       failedCount: email.failedCount,
       pdfFilename: email.pdfFilename,
-      configured: Boolean(process.env.RESEND_API_KEY),
+      configured: isTransactionalEmailConfigured(),
       failedEmails: email.failedEmails,
     },
   };

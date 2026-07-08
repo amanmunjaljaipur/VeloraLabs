@@ -3,7 +3,10 @@ import type { CompiledNewsletter } from "@/lib/newsletter-compile";
 import { generateNewsletterPdf, newsletterPdfFilename } from "@/lib/newsletter-pdf";
 import type { NewsletterDraftContent } from "@/lib/newsletter-rich-compile";
 import { getNewsletterSubscriberEmails } from "@/lib/newsletter-subscribers";
-import { getResendFromAddress, getResendReplyTo } from "@/lib/resend-from";
+import {
+  isTransactionalEmailConfigured,
+  sendTransactionalEmail,
+} from "@/lib/send-email";
 
 export interface NewsletterEmailDeliveryResult {
   subscriberCount: number;
@@ -11,13 +14,6 @@ export interface NewsletterEmailDeliveryResult {
   failedCount: number;
   failedEmails: string[];
   pdfFilename: string;
-}
-
-async function getFromAddress(apiKey: string): Promise<string> {
-  return getResendFromAddress({
-    newsletterPreferred: process.env.NEWSLETTER_FROM_EMAIL,
-    apiKey,
-  });
 }
 
 function getPublicBaseUrl(): string {
@@ -54,44 +50,22 @@ function buildEmailHtml(edition: CompiledNewsletter, publicUrl: string): string 
 async function sendSingleNewsletterEmail(options: {
   to: string;
   edition: CompiledNewsletter;
-  draft: NewsletterDraftContent;
   pdfBuffer: Buffer;
   pdfFilename: string;
   publicUrl: string;
 }): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY is not configured");
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: await getFromAddress(apiKey),
-      reply_to: getResendReplyTo(),
-      to: [options.to],
-      subject: options.edition.title,
-      html: buildEmailHtml(options.edition, options.publicUrl),
-      attachments: [
-        {
-          filename: options.pdfFilename,
-          content: options.pdfBuffer.toString("base64"),
-        },
-      ],
-    }),
+  return sendTransactionalEmail({
+    to: options.to,
+    subject: options.edition.title,
+    html: buildEmailHtml(options.edition, options.publicUrl),
+    from: process.env.NEWSLETTER_FROM_EMAIL,
+    attachments: [
+      {
+        filename: options.pdfFilename,
+        content: options.pdfBuffer,
+      },
+    ],
   });
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`Newsletter email failed for ${options.to}:`, body);
-    return false;
-  }
-
-  return true;
 }
 
 export async function deliverNewsletterByEmail(
@@ -103,7 +77,7 @@ export async function deliverNewsletterByEmail(
   const pdfFilename = newsletterPdfFilename(draft);
   const publicUrl = `${getPublicBaseUrl()}/newsletter/weekly?edition=${edition.slug}`;
 
-  if (!process.env.RESEND_API_KEY) {
+  if (!isTransactionalEmailConfigured()) {
     return {
       subscriberCount: subscribers.length,
       sentCount: 0,
@@ -120,7 +94,6 @@ export async function deliverNewsletterByEmail(
     const ok = await sendSingleNewsletterEmail({
       to: email,
       edition,
-      draft,
       pdfBuffer,
       pdfFilename,
       publicUrl,

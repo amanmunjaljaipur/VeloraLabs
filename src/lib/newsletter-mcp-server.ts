@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getDefaultFromAddress } from "@/lib/brand-email";
+import { getConfiguredFromPreview, getEmailProvider, isTransactionalEmailConfigured } from "@/lib/send-email";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
 import { generateNewsletterDraftFromWeb } from "@/lib/newsletter-generator";
 import { publishWeeklyNewsletterViaMcp } from "@/lib/newsletter-publish-weekly";
@@ -30,12 +30,11 @@ export function createNewsletterMcpServer(): McpServer {
               {
                 success: true,
                 email: {
+                  configured: isTransactionalEmailConfigured(),
+                  provider: getEmailProvider(),
                   resendConfigured: Boolean(process.env.RESEND_API_KEY),
-                  fromAddress:
-                    process.env.NEWSLETTER_FROM_EMAIL ??
-                    process.env.AUTH_FROM_EMAIL ??
-                    process.env.RESEND_FROM_EMAIL ??
-                    getDefaultFromAddress(),
+                  smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER),
+                  fromAddress: getConfiguredFromPreview(),
                 },
                 subscribers: { count: subscribers.length },
                 draft: draft

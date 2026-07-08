@@ -1,5 +1,8 @@
 import { CONTACT_EMAIL } from "@/lib/brand-email";
-import { getResendFromAddress, getResendReplyTo } from "@/lib/resend-from";
+import {
+  isTransactionalEmailConfigured,
+  sendTransactionalEmail,
+} from "@/lib/send-email";
 
 function getPublicBaseUrl(): string {
   return (
@@ -40,45 +43,19 @@ function buildResetEmailHtml(resetUrl: string): string {
 }
 
 export function isPasswordResetEmailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+  return isTransactionalEmailConfigured();
 }
 
 export async function sendPasswordResetEmail(
   email: string,
   plainToken: string
 ): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error("Password reset email skipped: RESEND_API_KEY is not configured");
-    return false;
-  }
-
   const resetUrl = `${getPublicBaseUrl()}/login/reset-password?token=${encodeURIComponent(plainToken)}`;
-  const from = await getResendFromAddress({
-    authPreferred: process.env.AUTH_FROM_EMAIL,
-    apiKey,
+
+  return sendTransactionalEmail({
+    to: email,
+    subject: "Reset your Verlin Labs password",
+    html: buildResetEmailHtml(resetUrl),
+    from: process.env.AUTH_FROM_EMAIL,
   });
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      reply_to: getResendReplyTo(),
-      to: [email],
-      subject: "Reset your Verlin Labs password",
-      html: buildResetEmailHtml(resetUrl),
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`Password reset email failed for ${email}:`, body);
-    return false;
-  }
-
-  return true;
 }

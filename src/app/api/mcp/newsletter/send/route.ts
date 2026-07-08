@@ -1,4 +1,5 @@
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
+import { isTransactionalEmailConfigured } from "@/lib/send-email";
 import { newsletterMcpUnauthorized, verifyNewsletterMcpKey } from "@/lib/newsletter-mcp-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
         sentCount: email.sentCount,
         failedCount: email.failedCount,
         pdfFilename: email.pdfFilename,
-        configured: Boolean(process.env.RESEND_API_KEY),
+        configured: isTransactionalEmailConfigured(),
         failedEmails: email.failedEmails,
       },
     });

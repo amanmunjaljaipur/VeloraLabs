@@ -1,4 +1,4 @@
-import { getDefaultFromAddress } from "@/lib/brand-email";
+import { getConfiguredFromPreview, getEmailProvider, isTransactionalEmailConfigured } from "@/lib/send-email";
 import { loadNewsletterDraft } from "@/lib/newsletter-draft";
 import { newsletterMcpUnauthorized, verifyNewsletterMcpKey } from "@/lib/newsletter-mcp-auth";
 import { getNewsletterSubscriberEmails } from "@/lib/newsletter-subscribers";
@@ -17,12 +17,11 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     email: {
+      configured: isTransactionalEmailConfigured(),
+      provider: getEmailProvider(),
       resendConfigured: Boolean(process.env.RESEND_API_KEY),
-      fromAddress:
-        process.env.NEWSLETTER_FROM_EMAIL ??
-        process.env.AUTH_FROM_EMAIL ??
-        process.env.RESEND_FROM_EMAIL ??
-        getDefaultFromAddress(),
+      smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER),
+      fromAddress: getConfiguredFromPreview(),
     },
     subscribers: {
       count: subscribers.length,

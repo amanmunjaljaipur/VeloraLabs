@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         console.error(`Password reset email failed for ${email}`);
       }
     } else if (manualUser) {
-      console.error("Password reset requested but RESEND_API_KEY is not configured");
+      console.error("Password reset requested but email delivery is not configured");
     }
 
     return NextResponse.json({

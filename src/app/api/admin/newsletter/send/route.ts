@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
+import { isTransactionalEmailConfigured } from "@/lib/send-email";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -40,7 +41,7 @@ export async function POST() {
         sentCount: email.sentCount,
         failedCount: email.failedCount,
         pdfFilename: email.pdfFilename,
-        configured: Boolean(process.env.RESEND_API_KEY),
+        configured: isTransactionalEmailConfigured(),
       },
     });
   } catch (error) {
