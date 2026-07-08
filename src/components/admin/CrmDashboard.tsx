@@ -50,12 +50,26 @@ export function CrmDashboard() {
     return (await res.json()) as CrmDashboardData;
   }, []);
 
+  const syncAndLoadDashboard = useCallback(async () => {
+    const res = await fetch("/api/admin/crm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "sync" }),
+    });
+    if (!res.ok) throw new Error("Failed to sync CRM");
+    return (await res.json()) as CrmDashboardData;
+  }, []);
+
   useEffect(() => {
-    loadDashboard()
+    setSyncing(true);
+    syncAndLoadDashboard()
       .then(setData)
       .catch(() => setData(null))
-      .finally(() => setLoading(false));
-  }, [loadDashboard]);
+      .finally(() => {
+        setLoading(false);
+        setSyncing(false);
+      });
+  }, [syncAndLoadDashboard]);
 
   const loadDetail = useCallback(async (leadId: string) => {
     setDetailLoading(true);
@@ -91,12 +105,11 @@ export function CrmDashboard() {
   async function handleSync() {
     setSyncing(true);
     try {
-      const res = await fetch("/api/admin/crm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "sync" }),
-      });
-      if (res.ok) setData((await res.json()) as CrmDashboardData);
+      const dashboard = await syncAndLoadDashboard();
+      setData(dashboard);
+      if (selectedId) await loadDetail(selectedId);
+    } catch {
+      setData(null);
     } finally {
       setSyncing(false);
     }
@@ -184,7 +197,7 @@ export function CrmDashboard() {
     return (
       <div className="flex items-center justify-center py-20 text-text-secondary">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Loading CRM…
+        {syncing ? "Syncing sources and loading CRM…" : "Loading CRM…"}
       </div>
     );
   }
@@ -200,7 +213,7 @@ export function CrmDashboard() {
           <h1 className="text-2xl font-semibold text-foreground md:text-3xl">CRM</h1>
           <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
             Verlin Labs lead pipeline — free sessions, inquiries, newsletter signups, and learners.
-            Edit stages, notes, and follow-ups. Data is stored in your site database (not read-only).
+            Sources sync automatically when you open this page. Edit stages, notes, and follow-ups anytime.
           </p>
           {data.lastSyncedAt && (
             <p className="mt-2 text-xs text-text-secondary">
@@ -315,7 +328,7 @@ export function CrmDashboard() {
               </table>
               {filteredLeads.length === 0 && (
                 <p className="py-10 text-center text-sm text-text-secondary">
-                  No leads yet. Click <strong>Sync sources</strong> to import bookings, contacts, and subscribers.
+                  No leads yet. Sources sync automatically when you open CRM — use <strong>Sync sources</strong> to refresh.
                 </p>
               )}
             </div>
