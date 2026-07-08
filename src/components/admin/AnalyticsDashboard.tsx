@@ -14,6 +14,7 @@ import {
   Video,
 } from "lucide-react";
 import Link from "next/link";
+import { formatSiteDateTime } from "@/lib/format-datetime";
 import { useEffect, useState } from "react";
 
 function BucketList({ items, emptyLabel = "No data yet" }: { items: CountBucket[]; emptyLabel?: string }) {
@@ -97,7 +98,7 @@ export function AnalyticsDashboard() {
     return <p className="py-12 text-center text-text-secondary">Unable to load analytics.</p>;
   }
 
-  const generated = new Date(data.generatedAt).toLocaleString();
+  const generated = formatSiteDateTime(data.generatedAt);
   const maxTrend = Math.max(...data.pageViews.dailyTrend.map((d) => d.views), 1);
 
   return (

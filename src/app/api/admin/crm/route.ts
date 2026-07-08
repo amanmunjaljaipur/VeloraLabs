@@ -1,12 +1,13 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { createLead, readCrmStore } from "@/lib/crm/store";
 import { loadCrmDashboard } from "@/lib/crm/service";
-import { syncCrmFromSources } from "@/lib/crm/sync";
+import { ensureCrmSynced, syncCrmFromSources } from "@/lib/crm/sync";
 import type { CrmLeadInput, CrmSource, CrmStage } from "@/lib/crm/types";
 import { CRM_SOURCES, CRM_STAGES } from "@/lib/crm/types";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET() {
   const session = await requireCmsEditor();
@@ -14,6 +15,7 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  await ensureCrmSynced();
   const data = await loadCrmDashboard();
   return NextResponse.json(data);
 }
@@ -50,5 +52,6 @@ export async function POST(request: Request) {
   }
 
   const lead = createLead(body, session.user.email ?? "admin");
-  return NextResponse.json({ lead, store: readCrmStore() }, { status: 201 });
+  const dashboard = await loadCrmDashboard();
+  return NextResponse.json({ lead, dashboard, store: readCrmStore() }, { status: 201 });
 }

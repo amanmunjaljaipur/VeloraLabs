@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { isDayCompleted } from "@/lib/course-progress";
 import { isEnrolledLearner } from "@/lib/enrollment";
-import { getSessionDocument } from "@/lib/session-documents";
+import { getSessionDocuments } from "@/lib/session-documents";
 import { canAccessSession } from "@/lib/session-access-grants";
 import { isAdminRole } from "@/lib/session-access";
 import { getSessionMeta, getSessionVideo } from "@/lib/session-videos";
@@ -47,8 +47,8 @@ export default async function SessionPage({
 
   const authSession = await auth();
   const video = getSessionVideo(sessionId);
-  const document = getSessionDocument(sessionId);
   const isAdmin = authSession?.user ? isAdminRole(authSession.user.role) : false;
+  const documents = getSessionDocuments(sessionId, { learnersOnly: !isAdmin });
 
   if (!authSession?.user) {
     redirect(`/login?callbackUrl=/sessions/${sessionId}`);
@@ -70,6 +70,7 @@ export default async function SessionPage({
   const isEnrolled = isEnrolledLearner(authSession.user.email, authSession.user.role);
   const courseBackHref = isEnrolled ? "/my-course" : `/courses/${meta.audience}#curriculum`;
   const courseBackLabel = isEnrolled ? "My Course" : `${audienceLabels[meta.audience]} course`;
+  const adminDocuments = isAdmin ? getSessionDocuments(sessionId) : documents;
 
   return (
     <div className="pb-16 md:pb-24">
@@ -95,11 +96,7 @@ export default async function SessionPage({
             sessionId={sessionId}
             initialVideoUrl={video?.youtubeUrl ?? ""}
             videoId={video?.youtubeId}
-            initialDocument={
-              document
-                ? { title: document.title, url: document.url, type: document.type }
-                : null
-            }
+            initialDocuments={adminDocuments}
             title={meta.title}
           />
         )}
@@ -115,30 +112,49 @@ export default async function SessionPage({
           </Card>
         )}
 
-        {!isAdmin && hasAccess && document && (
-          <Card className="border-teal/15 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-teal">Training document</p>
-                  <h2 className="mt-1 text-lg font-semibold text-foreground">{document.title}</h2>
-                  <p className="mt-1 text-sm text-text-secondary capitalize">{document.type}</p>
-                </div>
-              </div>
-              <a
-                href={document.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal/90 transition-colors"
-              >
-                Open document
-                <ExternalLink className="h-4 w-4" />
-              </a>
+        {!isAdmin && hasAccess && documents.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-teal" />
+              <h2 className="text-lg font-semibold text-foreground">Training documents</h2>
             </div>
-          </Card>
+            {documents.map((document) => (
+              <Card key={document.id} className="border-teal/15 p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <a
+                        href={document.learnerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-lg font-semibold text-teal hover:underline"
+                      >
+                        {document.title}
+                      </a>
+                      <p className="mt-1 text-sm text-text-secondary capitalize">{document.type}</p>
+                      {document.summary && (
+                        <p className="mt-2 text-sm text-text-secondary leading-relaxed">
+                          {document.summary}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href={document.learnerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal/90 transition-colors shrink-0"
+                  >
+                    Open document
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              </Card>
+            ))}
+          </div>
         )}
 
         {!isAdmin && hasAccess && video && (
@@ -164,7 +180,7 @@ export default async function SessionPage({
 
         {isAdmin && video && <SessionVideoComments sessionId={sessionId} />}
 
-        {!isAdmin && hasAccess && !video && !document && (
+        {!isAdmin && hasAccess && !video && documents.length === 0 && (
           <Card className="text-center py-12">
             <Video className="mx-auto h-10 w-10 text-text-secondary" />
             <h2 className="mt-4 text-lg font-semibold text-foreground">Content coming soon</h2>
@@ -174,11 +190,11 @@ export default async function SessionPage({
           </Card>
         )}
 
-        {!isAdmin && hasAccess && !video && document && (
+        {!isAdmin && hasAccess && !video && documents.length > 0 && (
           <Card className="text-center py-8">
             <p className="text-sm text-text-secondary">
               The training video for this lesson hasn&apos;t been uploaded yet. You can still use the
-              training document above.
+              training documents above.
             </p>
           </Card>
         )}

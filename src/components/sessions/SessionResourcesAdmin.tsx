@@ -2,39 +2,43 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import type { SessionDocumentType } from "@/lib/session-documents";
-import { FileText, Video } from "lucide-react";
+import type { SessionDocumentRecord, SessionDocumentType } from "@/lib/session-documents";
+import { ExternalLink, FileText, Plus, Sparkles, Video } from "lucide-react";
 import { useState } from "react";
 import { YouTubeEmbed } from "./YouTubeEmbed";
-
-interface SessionDocumentState {
-  title: string;
-  url: string;
-  type: SessionDocumentType;
-}
 
 interface SessionResourcesAdminProps {
   sessionId: string;
   initialVideoUrl: string;
   videoId?: string;
-  initialDocument?: SessionDocumentState | null;
+  initialDocuments: SessionDocumentRecord[];
   title: string;
 }
 
-const documentTypeOptions = [
-  { value: "link", label: "Link" },
-  { value: "pdf", label: "PDF" },
-  { value: "doc", label: "Document" },
-  { value: "slides", label: "Slides" },
-];
+interface DraftDocument {
+  adminUrl: string;
+  title: string;
+  learnerUrl: string;
+  type: SessionDocumentType;
+  summary: string;
+  visibleToLearners: boolean;
+}
+
+const emptyDraft = (): DraftDocument => ({
+  adminUrl: "",
+  title: "",
+  learnerUrl: "",
+  type: "link",
+  summary: "",
+  visibleToLearners: true,
+});
 
 export function SessionResourcesAdmin({
   sessionId,
   initialVideoUrl,
   videoId,
-  initialDocument,
+  initialDocuments,
   title,
 }: SessionResourcesAdminProps) {
   const { toast } = useToast();
@@ -43,14 +47,12 @@ export function SessionResourcesAdmin({
   const [savingVideo, setSavingVideo] = useState(false);
   const [removingVideo, setRemovingVideo] = useState(false);
 
-  const [documentTitle, setDocumentTitle] = useState(initialDocument?.title ?? "");
-  const [documentUrl, setDocumentUrl] = useState(initialDocument?.url ?? "");
-  const [documentType, setDocumentType] = useState<SessionDocumentType>(
-    initialDocument?.type ?? "link"
-  );
-  const [hasDocument, setHasDocument] = useState(Boolean(initialDocument));
+  const [documents, setDocuments] = useState(initialDocuments);
+  const [draft, setDraft] = useState<DraftDocument>(emptyDraft());
+  const [previewing, setPreviewing] = useState(false);
   const [savingDocument, setSavingDocument] = useState(false);
-  const [removingDocument, setRemovingDocument] = useState(false);
+  const [removingDocumentId, setRemovingDocumentId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(initialDocuments.length === 0);
 
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,28 +101,75 @@ export function SessionResourcesAdmin({
     }
   };
 
+  const handlePreviewDocument = async () => {
+    if (!draft.adminUrl.trim()) {
+      toast("Paste a Google Drive link first", "error");
+      return;
+    }
+
+    setPreviewing(true);
+    try {
+      const res = await fetch("/api/session-documents/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: draft.adminUrl, title: draft.title || undefined }),
+      });
+      const data = (await res.json()) as DraftDocument & {
+        error?: string;
+        summaryGeneratedBy?: string;
+      };
+
+      if (!res.ok) {
+        toast(data.error || "Could not fetch document details", "error");
+        return;
+      }
+
+      setDraft({
+        adminUrl: data.adminUrl,
+        title: data.title,
+        learnerUrl: data.learnerUrl,
+        type: data.type,
+        summary: data.summary,
+        visibleToLearners: draft.visibleToLearners,
+      });
+      toast(
+        data.summaryGeneratedBy === "ai" ? "Fetched title and AI summary" : "Fetched document details",
+        "success"
+      );
+    } catch {
+      toast("Could not fetch document details", "error");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const handleSaveDocument = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavingDocument(true);
+    if (!draft.adminUrl.trim() || !draft.title.trim()) {
+      toast("Fetch document details or enter a title before saving", "error");
+      return;
+    }
 
+    setSavingDocument(true);
     try {
       const res = await fetch(`/api/session-documents/${sessionId}`, {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: documentTitle,
-          url: documentUrl,
-          type: documentType,
-        }),
+        body: JSON.stringify(draft),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        documents?: SessionDocumentRecord[];
+      };
 
       if (!res.ok) {
         toast(data.error || "Failed to save training document", "error");
         return;
       }
 
-      setHasDocument(true);
+      setDocuments(data.documents ?? []);
+      setDraft(emptyDraft());
+      setShowAddForm(false);
       toast("Training document saved", "success");
     } catch {
       toast("Failed to save training document", "error");
@@ -129,23 +178,37 @@ export function SessionResourcesAdmin({
     }
   };
 
-  const handleRemoveDocument = async () => {
-    setRemovingDocument(true);
+  const handleToggleVisibility = async (document: SessionDocumentRecord) => {
+    const res = await fetch(`/api/session-documents/${sessionId}/${document.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibleToLearners: !document.visibleToLearners }),
+    });
+    const data = (await res.json()) as { documents?: SessionDocumentRecord[]; error?: string };
+    if (!res.ok) {
+      toast(data.error || "Failed to update visibility", "error");
+      return;
+    }
+    setDocuments(data.documents ?? []);
+  };
+
+  const handleRemoveDocument = async (documentId: string) => {
+    setRemovingDocumentId(documentId);
     try {
-      const res = await fetch(`/api/session-documents/${sessionId}`, { method: "DELETE" });
+      const res = await fetch(`/api/session-documents/${sessionId}/${documentId}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { documents?: SessionDocumentRecord[]; error?: string };
       if (!res.ok) {
-        toast("Failed to remove training document", "error");
+        toast(data.error || "Failed to remove training document", "error");
         return;
       }
-      setDocumentTitle("");
-      setDocumentUrl("");
-      setDocumentType("link");
-      setHasDocument(false);
+      setDocuments(data.documents ?? []);
       toast("Training document removed", "success");
     } catch {
       toast("Failed to remove training document", "error");
     } finally {
-      setRemovingDocument(false);
+      setRemovingDocumentId(null);
     }
   };
 
@@ -162,8 +225,7 @@ export function SessionResourcesAdmin({
           <div>
             <h2 className="text-lg font-semibold text-foreground">Training video</h2>
             <p className="mt-1 text-sm text-text-secondary">
-              Paste a YouTube link for this lesson. Only learners with access to this module can
-              watch it.
+              Paste a YouTube link for this lesson.
             </p>
           </div>
         </div>
@@ -194,60 +256,156 @@ export function SessionResourcesAdmin({
         </div>
       )}
 
-      <form
-        onSubmit={handleSaveDocument}
-        className="rounded-2xl border border-border bg-muted/40 p-6 space-y-4"
-      >
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
-            <FileText className="h-5 w-5" />
+      <div className="rounded-2xl border border-border bg-muted/40 p-6 space-y-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Training documents</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Add Google Drive links. Learners see the student link when access is enabled.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Training document</h2>
-            <p className="mt-1 text-sm text-text-secondary">
-              Add a workbook, slides, or reference link for this lesson. Learners with module access
-              can open it from the session page.
-            </p>
-          </div>
-        </div>
-        <Input
-          label="Document title"
-          type="text"
-          placeholder="Day 1 workbook"
-          value={documentTitle}
-          onChange={(e) => setDocumentTitle(e.target.value)}
-          required
-        />
-        <Input
-          label="Document URL"
-          type="url"
-          placeholder="https://drive.google.com/..."
-          value={documentUrl}
-          onChange={(e) => setDocumentUrl(e.target.value)}
-          required
-        />
-        <Select
-          label="Document type"
-          value={documentType}
-          onChange={(e) => setDocumentType(e.target.value as SessionDocumentType)}
-          options={documentTypeOptions}
-        />
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" loading={savingDocument}>
-            Save training document
+          <Button type="button" variant="secondary" onClick={() => setShowAddForm((value) => !value)}>
+            <Plus className="h-4 w-4" />
+            Add document
           </Button>
-          {hasDocument && (
-            <Button
-              type="button"
-              variant="secondary"
-              loading={removingDocument}
-              onClick={handleRemoveDocument}
-            >
-              Remove document
-            </Button>
-          )}
         </div>
-      </form>
+
+        {documents.length > 0 && (
+          <div className="space-y-3">
+            {documents.map((document) => (
+              <div key={document.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-foreground">{document.title}</p>
+                    <p className="mt-1 text-sm text-text-secondary capitalize">{document.type}</p>
+                    {document.summary && (
+                      <p className="mt-2 text-sm text-text-secondary">{document.summary}</p>
+                    )}
+                  </div>
+                  <span
+                    className={
+                      document.visibleToLearners
+                        ? "rounded-full bg-teal/10 px-2.5 py-1 text-xs font-medium text-teal"
+                        : "rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-text-secondary"
+                    }
+                  >
+                    {document.visibleToLearners ? "Visible to learners" : "Hidden from learners"}
+                  </span>
+                </div>
+
+                <div className="grid gap-2 text-sm">
+                  <a
+                    href={document.adminUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-teal hover:underline"
+                  >
+                    Admin Google Drive link
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href={document.learnerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-teal hover:underline"
+                  >
+                    Learner view link
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleToggleVisibility(document)}
+                  >
+                    {document.visibleToLearners ? "Hide from learners" : "Allow learner access"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    loading={removingDocumentId === document.id}
+                    onClick={() => void handleRemoveDocument(document.id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showAddForm && (
+          <form onSubmit={handleSaveDocument} className="space-y-4 border-t border-border pt-4">
+            <Input
+              label="Google Drive URL"
+              type="url"
+              placeholder="https://drive.google.com/file/d/..."
+              value={draft.adminUrl}
+              onChange={(e) => setDraft((value) => ({ ...value, adminUrl: e.target.value }))}
+              required
+            />
+            <div className="flex flex-wrap gap-3">
+              <Button type="button" variant="secondary" loading={previewing} onClick={handlePreviewDocument}>
+                <Sparkles className="h-4 w-4" />
+                Fetch name & summary
+              </Button>
+            </div>
+            <Input
+              label="Document title"
+              type="text"
+              placeholder="Fetched automatically from Google Drive"
+              value={draft.title}
+              onChange={(e) => setDraft((value) => ({ ...value, title: e.target.value }))}
+              required
+            />
+            <label className="block text-sm">
+              <span className="mb-2 block font-medium text-foreground">Summary</span>
+              <textarea
+                value={draft.summary}
+                onChange={(e) => setDraft((value) => ({ ...value, summary: e.target.value }))}
+                rows={3}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                placeholder="Generated automatically for public documents"
+              />
+            </label>
+            <Input
+              label="Learner view link"
+              type="url"
+              placeholder="Link students and other roles will open"
+              value={draft.learnerUrl}
+              onChange={(e) => setDraft((value) => ({ ...value, learnerUrl: e.target.value }))}
+            />
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={draft.visibleToLearners}
+                onChange={(e) =>
+                  setDraft((value) => ({ ...value, visibleToLearners: e.target.checked }))
+                }
+                className="h-4 w-4 rounded border-border text-teal focus:ring-teal/30"
+              />
+              Allow learners to access this document
+            </label>
+            <div className="flex flex-wrap gap-3">
+              <Button type="submit" loading={savingDocument}>
+                Save document
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setShowAddForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

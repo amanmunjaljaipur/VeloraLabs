@@ -53,7 +53,9 @@ export function AudienceCoursePage({
     phase.days.map((day) => buildSessionId(slug, day.day))
   );
   const sessionVideoIds = sessionIds.filter((id) => id in sessionVideos);
-  const sessionDocumentIds = sessionIds.filter((id) => id in sessionDocuments);
+  const sessionDocumentIds = sessionIds.filter(
+    (id) => (sessionDocuments[id]?.length ?? 0) > 0
+  );
 
   return (
     <>

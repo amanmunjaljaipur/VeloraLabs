@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
+import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import type { CrmDashboardData } from "@/lib/crm/service";
 import type { CrmLead, CrmSource, CrmStage } from "@/lib/crm/types";
@@ -15,6 +16,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
+import { formatSiteDateTime } from "@/lib/format-datetime";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type LeadDetail = {
@@ -24,6 +26,7 @@ type LeadDetail = {
 };
 
 export function CrmDashboard() {
+  const { toast } = useToast();
   const [data, setData] = useState<CrmDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -32,6 +35,7 @@ export function CrmDashboard() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<LeadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newLead, setNewLead] = useState<{ name: string; email: string; phone: string; source: CrmSource; notes: string }>({
@@ -61,22 +65,50 @@ export function CrmDashboard() {
   }, []);
 
   useEffect(() => {
-    setSyncing(true);
-    syncAndLoadDashboard()
-      .then(setData)
-      .catch(() => setData(null))
-      .finally(() => {
-        setLoading(false);
-        setSyncing(false);
-      });
-  }, [syncAndLoadDashboard]);
+    let cancelled = false;
+
+    async function initialize() {
+      setLoading(true);
+      try {
+        const cached = await loadDashboard();
+        if (!cancelled) setData(cached);
+      } catch {
+        if (!cancelled) setData(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+
+      setSyncing(true);
+      try {
+        const fresh = await syncAndLoadDashboard();
+        if (!cancelled) setData(fresh);
+      } catch {
+        // Keep cached dashboard visible if background sync fails.
+      } finally {
+        if (!cancelled) setSyncing(false);
+      }
+    }
+
+    void initialize();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadDashboard, syncAndLoadDashboard]);
 
   const loadDetail = useCallback(async (leadId: string) => {
     setDetailLoading(true);
+    setDetailError(null);
+    setDetail(null);
     try {
-      const res = await fetch(`/api/admin/crm/${leadId}`);
-      if (!res.ok) throw new Error("Failed");
-      setDetail((await res.json()) as LeadDetail);
+      const res = await fetch(`/api/admin/crm/${encodeURIComponent(leadId)}`);
+      const payload = (await res.json()) as LeadDetail & { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error || "Could not load lead details");
+      }
+      setDetail(payload);
+    } catch (error) {
+      setDetail(null);
+      setDetailError(error instanceof Error ? error.message : "Could not load lead details");
     } finally {
       setDetailLoading(false);
     }
@@ -84,7 +116,10 @@ export function CrmDashboard() {
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId);
-    else setDetail(null);
+    else {
+      setDetail(null);
+      setDetailError(null);
+    }
   }, [selectedId, loadDetail]);
 
   const filteredLeads = useMemo(() => {
@@ -109,7 +144,7 @@ export function CrmDashboard() {
       setData(dashboard);
       if (selectedId) await loadDetail(selectedId);
     } catch {
-      setData(null);
+      toast("Background sync failed. Showing the latest saved CRM data.", "error");
     } finally {
       setSyncing(false);
     }
@@ -124,11 +159,21 @@ export function CrmDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newLead),
       });
+      const payload = (await res.json()) as {
+        lead?: CrmLead;
+        dashboard?: CrmDashboardData;
+        error?: string;
+      };
       if (res.ok) {
-        setData(await loadDashboard());
+        setData(payload.dashboard ?? (await loadDashboard()));
+        setSelectedId(payload.lead?.id ?? null);
         setShowAdd(false);
         setNewLead({ name: "", email: "", phone: "", source: "manual", notes: "" });
+      } else {
+        throw new Error(payload.error || "Failed to create lead");
       }
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Failed to create lead", "error");
     } finally {
       setSaving(false);
     }
@@ -215,11 +260,13 @@ export function CrmDashboard() {
             Verlin Labs lead pipeline — free sessions, inquiries, newsletter signups, and learners.
             Sources sync automatically when you open this page. Edit stages, notes, and follow-ups anytime.
           </p>
-          {data.lastSyncedAt && (
-            <p className="mt-2 text-xs text-text-secondary">
-              Last synced {new Date(data.lastSyncedAt).toLocaleString("en-IN")}
-            </p>
-          )}
+          <p className="mt-2 text-xs text-text-secondary">
+            {syncing
+              ? "Syncing sources…"
+              : data.lastSyncedAt
+                ? `Last synced ${formatSiteDateTime(data.lastSyncedAt)}`
+                : "Sources not synced yet"}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -338,10 +385,23 @@ export function CrmDashboard() {
         <Card className="sticky top-24 h-fit p-4">
           {!selectedId ? (
             <p className="py-8 text-center text-sm text-text-secondary">Select a lead to view and edit details.</p>
-          ) : detailLoading || !detail ? (
+          ) : detailLoading ? (
             <div className="flex items-center justify-center py-12 text-text-secondary">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
+          ) : detailError ? (
+            <div className="py-8 text-center text-sm text-red-600">
+              <p>{detailError}</p>
+              <button
+                type="button"
+                onClick={() => selectedId && void loadDetail(selectedId)}
+                className="mt-3 text-teal hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : !detail ? (
+            <p className="py-8 text-center text-sm text-text-secondary">Lead details unavailable.</p>
           ) : (
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-2">
@@ -487,8 +547,5 @@ export function CrmDashboard() {
 }
 
 function formatStamp(value: string) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+  return formatSiteDateTime(value);
 }

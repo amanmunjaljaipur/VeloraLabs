@@ -28,9 +28,10 @@ export async function GET() {
           description: day.description,
           phaseTitle: phase.title,
           hasVideo: id in videos,
-          hasDocument: id in documents,
+          hasDocument: (documents[id]?.length ?? 0) > 0,
+          documentCount: documents[id]?.length ?? 0,
           video: videos[id] ?? null,
-          document: documents[id] ?? null,
+          documents: documents[id] ?? [],
         };
       }),
     }));

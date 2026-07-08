@@ -80,7 +80,7 @@ export function buildLearnerDashboard(
         sessionId,
         description: day.description,
         hasVideo: sessionId in sessionVideos,
-        hasDocument: sessionId in sessionDocuments,
+        hasDocument: (sessionDocuments[sessionId]?.length ?? 0) > 0,
         videoPercent: completedSet.has(day.day)
           ? 100
           : (videoProgress[sessionId]?.percent ?? 0),

@@ -45,7 +45,8 @@ function findLeadByEmail(store: CrmDataStore, email: string): CrmLead | undefine
 }
 
 function findLeadById(store: CrmDataStore, id: string): CrmLead | undefined {
-  return activeLeads(store).find((lead) => lead.id === id);
+  const trimmed = id.trim();
+  return activeLeads(store).find((lead) => lead.id === trimmed);
 }
 
 function addActivity(
@@ -210,6 +211,14 @@ export function updateLead(
 
   writeStore(store);
   return lead;
+}
+
+export function archiveLeadByEmail(email: string, deletedBy: string): boolean {
+  const store = readStore();
+  const normalized = normalizeEmail(email);
+  const lead = activeLeads(store).find((item) => normalizeEmail(item.email) === normalized);
+  if (!lead) return false;
+  return deleteLead(lead.id, deletedBy);
 }
 
 export function deleteLead(id: string, deletedBy: string): boolean {

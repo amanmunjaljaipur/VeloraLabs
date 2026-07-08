@@ -7,7 +7,7 @@ import {
 } from "@/lib/google-sheets-service";
 import { readJsonFile } from "@/lib/data-store";
 import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
-import { upsertLead, setLastSyncedAt } from "@/lib/crm/store";
+import { archiveLeadByEmail, readCrmStore, setLastSyncedAt, upsertLead } from "@/lib/crm/store";
 import type { CrmStage } from "@/lib/crm/types";
 
 function stageFromBookingStatus(status: string): CrmStage {
@@ -115,6 +115,19 @@ export async function syncCrmFromSources(): Promise<{
     counts.people += 1;
   }
 
+  archiveLeadByEmail("qa.test.lead@example.com", "system");
   setLastSyncedAt(new Date().toISOString());
   return { imported: counts };
+}
+
+const DEFAULT_SYNC_MAX_AGE_MS = 5 * 60 * 1000;
+
+export async function ensureCrmSynced(maxAgeMs = DEFAULT_SYNC_MAX_AGE_MS): Promise<boolean> {
+  const store = readCrmStore();
+  if (store.lastSyncedAt) {
+    const age = Date.now() - new Date(store.lastSyncedAt).getTime();
+    if (age < maxAgeMs) return false;
+  }
+  await syncCrmFromSources();
+  return true;
 }
