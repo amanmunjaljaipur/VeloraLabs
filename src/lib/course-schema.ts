@@ -5,6 +5,7 @@ import {
   type AudienceSlug,
   type CourseContent,
 } from "@/lib/content";
+import { LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL } from "@/lib/brand-social";
 import { SITE_ORIGIN } from "@/lib/seo";
 
 export const COURSE_DURATION_DAYS: Record<AudienceSlug, number> = {
@@ -71,10 +72,7 @@ export function buildCourseJsonLd({
       "@type": "Organization",
       name: "Verlin Labs",
       url: SITE_ORIGIN,
-      sameAs: [
-        "https://youtube.com/@verlinlabs",
-        "https://www.linkedin.com/in/verlin-labs-05678141b/",
-      ],
+      sameAs: [YOUTUBE_CHANNEL_URL, LINKEDIN_COMPANY_URL],
     },
     instructor: {
       "@type": "Person",

@@ -1,3 +1,4 @@
+import { LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL } from "@/lib/brand-social";
 import { SITE_ORIGIN } from "@/lib/seo";
 
 export function WebSiteJsonLd() {
@@ -15,10 +16,7 @@ export function WebSiteJsonLd() {
       name: "Verlin Labs",
       url: SITE_ORIGIN,
     },
-    sameAs: [
-      "https://www.linkedin.com/in/verlin-labs-05678141b/",
-      "https://youtube.com/@verlinlabs",
-    ],
+    sameAs: [LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL],
   };
 
   return (

@@ -1,7 +1,11 @@
 import { CONTACT_EMAIL } from "@/lib/brand-email";
+import { LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL } from "@/lib/brand-social";
+import { getLeadTrainer } from "@/lib/content";
 import { SITE_ORIGIN } from "@/lib/seo";
 
 export function OrganizationJsonLd() {
+  const trainer = getLeadTrainer();
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": ["Organization", "EducationalOrganization"],
@@ -16,7 +20,7 @@ export function OrganizationJsonLd() {
       "@type": "Person",
       name: "Aman Munjal",
       jobTitle: "Founder & Lead Instructor",
-      url: "https://www.linkedin.com/in/verlin-labs-05678141b/",
+      url: trainer.linkedin,
     },
     contactPoint: {
       "@type": "ContactPoint",
@@ -26,8 +30,8 @@ export function OrganizationJsonLd() {
       availableLanguage: "English",
     },
     sameAs: [
-      "https://www.linkedin.com/in/verlin-labs-05678141b/",
-      "https://youtube.com/@verlinlabs",
+      LINKEDIN_COMPANY_URL,
+      YOUTUBE_CHANNEL_URL,
       `${SITE_ORIGIN}/testimonials`,
       `${SITE_ORIGIN}/newsletter`,
     ],
