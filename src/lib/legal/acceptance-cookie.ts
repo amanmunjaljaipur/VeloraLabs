@@ -1,3 +1,4 @@
+import { resolveAuthSecret } from "@/lib/auth-secret";
 import { createHmac, timingSafeEqual } from "crypto";
 import type { NextResponse } from "next/server";
 import type { LegalAcceptanceVersions } from "./acceptances";
@@ -16,11 +17,7 @@ function normalizeEmail(email: string): string {
 }
 
 function getCookieSecret(): string {
-  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("AUTH_SECRET or NEXTAUTH_SECRET is required for legal acceptance cookies.");
-  }
-  return secret;
+  return resolveAuthSecret();
 }
 
 function signPayload(encodedPayload: string): string {

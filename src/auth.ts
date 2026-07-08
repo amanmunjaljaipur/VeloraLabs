@@ -12,6 +12,7 @@ import {
 import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { resolveAuthSecret } from "@/lib/auth-secret";
 import { getClientIp } from "@/lib/request-security";
 
 import {
@@ -37,11 +38,7 @@ class RateLimitedSignIn extends CredentialsSignin {
   code = "rate_limited";
 }
 
-const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
-
-if (!authSecret) {
-  throw new Error("AUTH_SECRET or NEXTAUTH_SECRET environment variable is required.");
-}
+const authSecret = resolveAuthSecret();
 
 function resolveAuthProvider(accountProvider?: string | null): AuthProvider {
   return accountProvider === "google" ? "google" : "credentials";
