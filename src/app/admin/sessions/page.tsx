@@ -7,8 +7,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Session Videos",
-  description: "Manage YouTube recordings for course sessions.",
+  title: "Course Training",
+  description: "Manage training videos and documents for course sessions.",
 };
 
 export default async function AdminSessionsPage() {
@@ -25,8 +25,8 @@ export default async function AdminSessionsPage() {
   return (
     <>
       <PageHeader
-        title="Session Videos"
-        subtitle="Manage recordings by course and module, and review learner comments on session videos."
+        title="Course Training"
+        subtitle="Add training videos and documents for each lesson, and review learner comments."
       />
       <SessionVideosPanel />
       <SessionCommentsPanel />

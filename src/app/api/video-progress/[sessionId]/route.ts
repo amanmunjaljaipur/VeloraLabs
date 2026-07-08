@@ -2,7 +2,8 @@ import { auth } from "@/auth";
 import { isDayCompleted, markDayComplete } from "@/lib/course-progress";
 import { getCourseTrack } from "@/lib/content";
 import { getSessionMeta } from "@/lib/session-videos";
-import { canAccessSessionVideo, isAdminRole } from "@/lib/session-access";
+import { canAccessSession } from "@/lib/session-access-grants";
+import { isAdminRole } from "@/lib/session-access";
 import { getVideoProgress, setVideoProgress } from "@/lib/video-progress";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -30,7 +31,7 @@ export async function GET(
   }
 
   const isAdmin = isAdminRole(session.user.role);
-  if (!isAdmin && !canAccessSessionVideo(session.user.role, meta.audience)) {
+  if (!isAdmin && !canAccessSession(session.user.email, session.user.role, sessionId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -54,7 +55,7 @@ export async function PUT(
   }
 
   const isAdmin = isAdminRole(session.user.role);
-  if (!isAdmin && !canAccessSessionVideo(session.user.role, meta.audience)) {
+  if (!isAdmin && !canAccessSession(session.user.email, session.user.role, sessionId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

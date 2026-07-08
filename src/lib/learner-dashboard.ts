@@ -1,8 +1,13 @@
 import type { AudienceSlug, CourseContent } from "@/lib/content";
 import { getCourseTrack } from "@/lib/content";
 import { getCourseProgress } from "@/lib/course-progress";
-import { getAudienceForRole } from "@/lib/session-access";
+import { getEnrolledLearnerAudience } from "@/lib/enrollment";
+import {
+  filterCoursePhasesByAccessibleDays,
+  getAccessibleSessionDays,
+} from "@/lib/session-access-grants";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
+import { getAllSessionDocuments } from "@/lib/session-documents";
 import { getAllVideoProgressForUser } from "@/lib/video-progress";
 import type { UserRole } from "@/types/roles";
 
@@ -18,6 +23,7 @@ export interface ModuleProgress {
     sessionId: string;
     description: string;
     hasVideo: boolean;
+    hasDocument: boolean;
     videoPercent: number;
   }[];
 }
@@ -41,17 +47,30 @@ function clampPercent(value: number): number {
   return Math.round(Math.min(100, Math.max(0, value)));
 }
 
-export function buildLearnerDashboard(email: string, role: UserRole): LearnerDashboardData | null {
-  const audience = getAudienceForRole(role);
+export function buildLearnerDashboard(
+  email: string,
+  role: UserRole
+): LearnerDashboardData | null {
+  const audience = getEnrolledLearnerAudience(email, role);
   if (!audience) return null;
 
   const course = getCourseTrack(audience);
+  const accessibleDays = getAccessibleSessionDays(email, role, audience);
+  const visiblePhases = filterCoursePhasesByAccessibleDays(course.phases, accessibleDays);
+  const accessibleDaySet =
+    accessibleDays === "all"
+      ? new Set(visiblePhases.flatMap((phase) => phase.days.map((day) => day.day)))
+      : new Set(accessibleDays);
+
   const progress = getCourseProgress(email);
-  const completedSet = new Set(progress.completedDays);
+  const completedSet = new Set(
+    progress.completedDays.filter((day) => accessibleDaySet.has(day))
+  );
   const sessionVideos = getAllSessionVideos();
+  const sessionDocuments = getAllSessionDocuments();
   const videoProgress = getAllVideoProgressForUser(email);
 
-  const modules: ModuleProgress[] = course.phases.map((phase) => {
+  const modules: ModuleProgress[] = visiblePhases.map((phase) => {
     const days = phase.days.map((day) => {
       const sessionId = buildSessionId(audience, day.day);
       return {
@@ -61,6 +80,7 @@ export function buildLearnerDashboard(email: string, role: UserRole): LearnerDas
         sessionId,
         description: day.description,
         hasVideo: sessionId in sessionVideos,
+        hasDocument: sessionId in sessionDocuments,
         videoPercent: completedSet.has(day.day)
           ? 100
           : (videoProgress[sessionId]?.percent ?? 0),
@@ -79,7 +99,7 @@ export function buildLearnerDashboard(email: string, role: UserRole): LearnerDas
   });
 
   const totalDays = modules.reduce((sum, module) => sum + module.totalDays, 0);
-  const completedDays = progress.completedDays.length;
+  const completedDays = completedSet.size;
   const overallPercent = totalDays > 0 ? clampPercent((completedDays / totalDays) * 100) : 0;
 
   let nextDay: LearnerDashboardData["nextDay"] = null;

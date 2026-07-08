@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { getAllCourseTracks, type AudienceSlug } from "@/lib/content";
+import { getAllSessionDocuments } from "@/lib/session-documents";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
 import { isAdminRole } from "@/lib/session-access";
 import { NextResponse } from "next/server";
@@ -11,6 +12,7 @@ export async function GET() {
   }
 
   const videos = getAllSessionVideos();
+  const documents = getAllSessionDocuments();
   const tracks = getAllCourseTracks();
 
   const programs = tracks.map(({ slug, course }) => {
@@ -26,7 +28,9 @@ export async function GET() {
           description: day.description,
           phaseTitle: phase.title,
           hasVideo: id in videos,
+          hasDocument: id in documents,
           video: videos[id] ?? null,
+          document: documents[id] ?? null,
         };
       }),
     }));
@@ -45,11 +49,18 @@ export async function GET() {
   });
 
   const totals = programs.reduce(
-    (acc, program) => ({
-      videoCount: acc.videoCount + program.videoCount,
-      totalSessions: acc.totalSessions + program.totalSessions,
-    }),
-    { videoCount: 0, totalSessions: 0 }
+    (acc, program) => {
+      const programDocuments = program.phases
+        .flatMap((phase) => phase.sessions)
+        .filter((session) => session.hasDocument).length;
+
+      return {
+        videoCount: acc.videoCount + program.videoCount,
+        documentCount: acc.documentCount + programDocuments,
+        totalSessions: acc.totalSessions + program.totalSessions,
+      };
+    },
+    { videoCount: 0, documentCount: 0, totalSessions: 0 }
   );
 
   // Flat list kept for backward compatibility

@@ -4,6 +4,8 @@ import { CoursePrice } from "@/components/ui/CoursePrice";
 import { CourseCurriculum } from "@/components/sections/CourseCurriculum";
 import type { AudienceSlug, CourseContent } from "@/lib/content";
 import { audienceTrackImageAlt } from "@/lib/image-alt";
+import { getAllSessionDocuments } from "@/lib/session-documents";
+import { filterCoursePhasesByAccessibleDays } from "@/lib/session-access-grants";
 import { buildSessionId, getAllSessionVideos } from "@/lib/session-videos";
 import { CheckCircle2 } from "lucide-react";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
@@ -27,6 +29,7 @@ interface AudienceCoursePageProps {
   isEnrolled?: boolean;
   videoProgressMap?: Record<string, number>;
   completedDays?: number[];
+  accessibleDays?: number[] | "all";
   variant?: "catalog" | "my-course";
 }
 
@@ -36,14 +39,21 @@ export function AudienceCoursePage({
   isEnrolled = false,
   videoProgressMap = {},
   completedDays = [],
+  accessibleDays = "all",
   variant = "catalog",
 }: AudienceCoursePageProps) {
   const isMyCourse = variant === "my-course";
-  const dayCount = course.phases.reduce((sum, p) => sum + p.days.length, 0);
+  const visiblePhases = isEnrolled
+    ? filterCoursePhasesByAccessibleDays(course.phases, accessibleDays)
+    : course.phases;
+  const dayCount = visiblePhases.reduce((sum, phase) => sum + phase.days.length, 0);
   const sessionVideos = getAllSessionVideos();
-  const sessionVideoIds = course.phases
-    .flatMap((phase) => phase.days.map((day) => buildSessionId(slug, day.day)))
-    .filter((id) => id in sessionVideos);
+  const sessionDocuments = getAllSessionDocuments();
+  const sessionIds = visiblePhases.flatMap((phase) =>
+    phase.days.map((day) => buildSessionId(slug, day.day))
+  );
+  const sessionVideoIds = sessionIds.filter((id) => id in sessionVideos);
+  const sessionDocumentIds = sessionIds.filter((id) => id in sessionDocuments);
 
   return (
     <>
@@ -118,16 +128,19 @@ export function AudienceCoursePage({
               </h2>
               <p className="mt-2 text-text-secondary max-w-2xl">
                 {isMyCourse
-                  ? `${course.phases.length} modules · ${dayCount} lessons — pick up any session below.`
+                  ? accessibleDays === "all"
+                    ? `${visiblePhases.length} modules · ${dayCount} lessons — pick up any session below.`
+                    : `${dayCount} lesson${dayCount === 1 ? "" : "s"} available to you — open a module to watch the video or training document.`
                   : course.description}
               </p>
             </div>
             <p className="text-sm font-medium text-teal shrink-0">{course.duration}</p>
           </div>
           <CourseCurriculum
-            phases={course.phases}
+            phases={visiblePhases}
             audience={slug}
             sessionVideoIds={sessionVideoIds}
+            sessionDocumentIds={sessionDocumentIds}
             videoProgressMap={videoProgressMap}
             completedDays={completedDays}
           />

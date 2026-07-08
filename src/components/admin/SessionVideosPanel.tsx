@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Briefcase,
   Code,
+  FileText,
   GraduationCap,
   LayoutGrid,
   Search,
@@ -26,6 +27,7 @@ interface SessionRow {
   description: string;
   phaseTitle: string;
   hasVideo: boolean;
+  hasDocument: boolean;
 }
 
 interface ProgramPhase {
@@ -60,7 +62,11 @@ type ProgramFilter = "all" | AudienceSlug;
 export function SessionVideosPanel() {
   const { toast } = useToast();
   const [programs, setPrograms] = useState<ProgramGroup[]>([]);
-  const [totals, setTotals] = useState({ videoCount: 0, totalSessions: 0 });
+  const [totals, setTotals] = useState({
+    videoCount: 0,
+    documentCount: 0,
+    totalSessions: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [activeProgram, setActiveProgram] = useState<ProgramFilter>("all");
   const [search, setSearch] = useState("");
@@ -73,7 +79,7 @@ export function SessionVideosPanel() {
     }
     const data = (await res.json()) as {
       programs: ProgramGroup[];
-      totals: { videoCount: number; totalSessions: number };
+      totals: { videoCount: number; documentCount: number; totalSessions: number };
     };
     setPrograms(data.programs);
     setTotals(data.totals);
@@ -119,12 +125,12 @@ export function SessionVideosPanel() {
       <Card className="border-teal/20 bg-teal/5 p-5 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-teal">Upload progress</p>
+            <p className="text-sm font-medium text-teal">Training content progress</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">
               {totals.videoCount}
               <span className="text-lg font-normal text-text-secondary">
                 {" "}
-                / {totals.totalSessions} session recordings
+                videos · {totals.documentCount} docs / {totals.totalSessions} lessons
               </span>
             </p>
           </div>
@@ -288,23 +294,38 @@ export function SessionVideosPanel() {
                                   </p>
                                 </div>
                               </div>
-                              {session.hasVideo ? (
-                                <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-teal/10 px-2 py-1 text-xs font-medium text-teal">
-                                  <Video className="h-3.5 w-3.5" />
-                                  Uploaded
-                                </span>
-                              ) : (
-                                <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium text-text-secondary">
-                                  <VideoOff className="h-3.5 w-3.5" />
-                                  Missing
-                                </span>
-                              )}
+                              <div className="flex shrink-0 flex-col items-end gap-1">
+                                {session.hasVideo ? (
+                                  <span className="inline-flex items-center gap-1 rounded-lg bg-teal/10 px-2 py-1 text-xs font-medium text-teal">
+                                    <Video className="h-3.5 w-3.5" />
+                                    Video
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium text-text-secondary">
+                                    <VideoOff className="h-3.5 w-3.5" />
+                                    No video
+                                  </span>
+                                )}
+                                {session.hasDocument ? (
+                                  <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium text-text-secondary">
+                                    <FileText className="h-3.5 w-3.5" />
+                                    Document
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-lg bg-muted/60 px-2 py-1 text-xs font-medium text-text-secondary/70">
+                                    <FileText className="h-3.5 w-3.5" />
+                                    No doc
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <p className="mt-3 flex-1 text-sm text-text-secondary leading-relaxed line-clamp-2">
                               {session.description}
                             </p>
                             <p className="mt-4 text-xs font-medium text-teal opacity-0 transition-opacity group-hover:opacity-100">
-                              {session.hasVideo ? "Edit recording →" : "Add recording →"}
+                              {session.hasVideo || session.hasDocument
+                                ? "Edit training content →"
+                                : "Add video & document →"}
                             </p>
                           </Card>
                         </Link>

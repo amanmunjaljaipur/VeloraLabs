@@ -1,20 +1,22 @@
 import { auth } from "@/auth";
 import {
-  getSessionMeta,
-  getSessionVideo,
-  removeSessionVideo,
-  setSessionVideo,
-} from "@/lib/session-videos";
+  getSessionDocument,
+  removeSessionDocument,
+  setSessionDocument,
+  type SessionDocumentType,
+} from "@/lib/session-documents";
 import { canAccessSession } from "@/lib/session-access-grants";
 import { isAdminRole } from "@/lib/session-access";
-import { isValidYouTubeUrl } from "@/lib/youtube";
+import { getSessionMeta } from "@/lib/session-videos";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 export const runtime = "nodejs";
 
 const updateSchema = z.object({
-  youtubeUrl: z.string().min(1),
+  title: z.string().min(1),
+  url: z.string().url(),
+  type: z.enum(["pdf", "doc", "slides", "link"]).default("link"),
 });
 
 export async function GET(
@@ -36,18 +38,16 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const video = getSessionVideo(sessionId);
+  const document = getSessionDocument(sessionId);
   const isAdmin = isAdminRole(session.user.role);
 
-  if (!video && !isAdmin) {
-    return NextResponse.json({ error: "Video not available" }, { status: 404 });
+  if (!document && !isAdmin) {
+    return NextResponse.json({ error: "Document not available" }, { status: 404 });
   }
 
   return NextResponse.json({
     meta,
-    video: video
-      ? { youtubeId: video.youtubeId, updatedAt: video.updatedAt }
-      : null,
+    document,
     isAdmin,
   });
 }
@@ -77,50 +77,24 @@ export async function PUT(
 
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "YouTube URL is required" }, { status: 400 });
+      return NextResponse.json({ error: "Title and document URL are required" }, { status: 400 });
     }
 
-    if (!isValidYouTubeUrl(parsed.data.youtubeUrl)) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid YouTube URL. Paste a standard watch, youtu.be, embed, shorts, or live link.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const video = setSessionVideo(
+    const document = setSessionDocument(
       sessionId,
-      parsed.data.youtubeUrl,
+      {
+        title: parsed.data.title,
+        url: parsed.data.url,
+        type: parsed.data.type as SessionDocumentType,
+      },
       session.user.email ?? "admin"
     );
 
-    return NextResponse.json({
-      success: true,
-      video: {
-        youtubeUrl: video.youtubeUrl,
-        youtubeId: video.youtubeId,
-        updatedAt: video.updatedAt,
-      },
-    });
+    return NextResponse.json({ success: true, document });
   } catch (error) {
-    console.error("Failed to save session video:", error);
-
-    if (error instanceof Error) {
-      if (error.message === "Invalid YouTube URL") {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-      if (error.message.includes("EROFS") || error.message.includes("read-only")) {
-        return NextResponse.json(
-          { error: "Video storage is read-only in this environment." },
-          { status: 500 }
-        );
-      }
-    }
-
+    console.error("Failed to save session document:", error);
     return NextResponse.json(
-      { error: "Could not save video link. Please try again." },
+      { error: "Could not save training document. Please try again." },
       { status: 500 }
     );
   }
@@ -141,9 +115,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const removed = removeSessionVideo(sessionId);
+  const removed = removeSessionDocument(sessionId);
   if (!removed) {
-    return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
   return NextResponse.json({ success: true });

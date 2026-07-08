@@ -1,11 +1,9 @@
 import { auth } from "@/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
-import {
-  canAccessSessionVideo,
-  isAdminRole,
-  isLearnerRole,
-} from "@/lib/session-access";
+import { isEnrolledLearner } from "@/lib/enrollment";
+import { canAccessSession } from "@/lib/session-access-grants";
+import { isAdminRole } from "@/lib/session-access";
 import { getSessionMeta } from "@/lib/session-videos";
 import { addVideoComment, getCommentsForSession } from "@/lib/video-comments";
 import { NextRequest, NextResponse } from "next/server";
@@ -36,13 +34,15 @@ export async function GET(
   }
 
   const isAdmin = isAdminRole(session.user.role);
-  if (!isAdmin && !canAccessSessionVideo(session.user.role, meta.audience)) {
+  if (!isAdmin && !canAccessSession(session.user.email, session.user.role, sessionId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const comments = getCommentsForSession(sessionId);
   const canComment =
-    !isAdmin && isLearnerRole(session.user.role) && canAccessSessionVideo(session.user.role, meta.audience);
+    !isAdmin &&
+    isEnrolledLearner(session.user.email, session.user.role) &&
+    canAccessSession(session.user.email, session.user.role, sessionId);
 
   return NextResponse.json({
     comments,
@@ -68,14 +68,14 @@ export async function POST(
   }
 
   const role = session.user.role;
-  if (!role || !isLearnerRole(role)) {
+  if (!role || !isEnrolledLearner(session.user.email, role)) {
     return NextResponse.json(
       { error: "Only enrolled learners can post comments" },
       { status: 403 }
     );
   }
 
-  if (!canAccessSessionVideo(role, meta.audience)) {
+  if (!canAccessSession(session.user.email, session.user.role, sessionId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

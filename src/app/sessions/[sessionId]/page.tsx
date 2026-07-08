@@ -1,15 +1,17 @@
 import { auth } from "@/auth";
-import { SessionVideoAdmin } from "@/components/sessions/SessionVideoAdmin";
+import { SessionResourcesAdmin } from "@/components/sessions/SessionResourcesAdmin";
 import { SessionVideoComments } from "@/components/sessions/SessionVideoComments";
 import { SessionVideoPlayer } from "@/components/sessions/SessionVideoPlayer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { isDayCompleted } from "@/lib/course-progress";
 import { isEnrolledLearner } from "@/lib/enrollment";
-import { canAccessSessionVideo, isAdminRole } from "@/lib/session-access";
+import { getSessionDocument } from "@/lib/session-documents";
+import { canAccessSession } from "@/lib/session-access-grants";
+import { isAdminRole } from "@/lib/session-access";
 import { getSessionMeta, getSessionVideo } from "@/lib/session-videos";
 import { getVideoProgress } from "@/lib/video-progress";
-import { Lock, Video } from "lucide-react";
+import { ExternalLink, FileText, Lock, Video } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -45,13 +47,18 @@ export default async function SessionPage({
 
   const authSession = await auth();
   const video = getSessionVideo(sessionId);
+  const document = getSessionDocument(sessionId);
   const isAdmin = authSession?.user ? isAdminRole(authSession.user.role) : false;
 
   if (!authSession?.user) {
     redirect(`/login?callbackUrl=/sessions/${sessionId}`);
   }
 
-  const hasAccess = canAccessSessionVideo(authSession.user.role, meta.audience);
+  const hasAccess = canAccessSession(
+    authSession.user.email,
+    authSession.user.role,
+    sessionId
+  );
   const videoProgress =
     hasAccess && authSession.user.email
       ? getVideoProgress(authSession.user.email, sessionId)
@@ -84,10 +91,15 @@ export default async function SessionPage({
 
       <div className="mx-auto max-w-4xl px-4 md:px-8 pt-10 space-y-8">
         {isAdmin && (
-          <SessionVideoAdmin
+          <SessionResourcesAdmin
             sessionId={sessionId}
-            initialUrl={video?.youtubeUrl ?? ""}
+            initialVideoUrl={video?.youtubeUrl ?? ""}
             videoId={video?.youtubeId}
+            initialDocument={
+              document
+                ? { title: document.title, url: document.url, type: document.type }
+                : null
+            }
             title={meta.title}
           />
         )}
@@ -97,9 +109,35 @@ export default async function SessionPage({
             <Lock className="mx-auto h-10 w-10 text-text-secondary" />
             <h2 className="mt-4 text-lg font-semibold text-foreground">Access restricted</h2>
             <p className="mt-2 text-sm text-text-secondary max-w-md mx-auto">
-              This session recording is only available to enrolled{" "}
-              {audienceLabels[meta.audience].toLowerCase()} learners.
+              This lesson is only available to learners who have been granted access to this module.
+              Contact your instructor if you believe you should have access.
             </p>
+          </Card>
+        )}
+
+        {!isAdmin && hasAccess && document && (
+          <Card className="border-teal/15 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-teal">Training document</p>
+                  <h2 className="mt-1 text-lg font-semibold text-foreground">{document.title}</h2>
+                  <p className="mt-1 text-sm text-text-secondary capitalize">{document.type}</p>
+                </div>
+              </div>
+              <a
+                href={document.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal/90 transition-colors"
+              >
+                Open document
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
           </Card>
         )}
 
@@ -108,7 +146,7 @@ export default async function SessionPage({
             <div>
               <div className="mb-4 flex items-center gap-2">
                 <Video className="h-5 w-5 text-teal" />
-                <h2 className="text-lg font-semibold text-foreground">Session recording</h2>
+                <h2 className="text-lg font-semibold text-foreground">Training video</h2>
               </div>
               <SessionVideoPlayer
                 sessionId={sessionId}
@@ -126,12 +164,21 @@ export default async function SessionPage({
 
         {isAdmin && video && <SessionVideoComments sessionId={sessionId} />}
 
-        {!isAdmin && hasAccess && !video && (
+        {!isAdmin && hasAccess && !video && !document && (
           <Card className="text-center py-12">
             <Video className="mx-auto h-10 w-10 text-text-secondary" />
-            <h2 className="mt-4 text-lg font-semibold text-foreground">Video coming soon</h2>
+            <h2 className="mt-4 text-lg font-semibold text-foreground">Content coming soon</h2>
             <p className="mt-2 text-sm text-text-secondary">
-              Your instructor hasn&apos;t uploaded this session recording yet. Check back later.
+              Your instructor hasn&apos;t uploaded the training video or document for this lesson yet.
+            </p>
+          </Card>
+        )}
+
+        {!isAdmin && hasAccess && !video && document && (
+          <Card className="text-center py-8">
+            <p className="text-sm text-text-secondary">
+              The training video for this lesson hasn&apos;t been uploaded yet. You can still use the
+              training document above.
             </p>
           </Card>
         )}

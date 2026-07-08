@@ -3,6 +3,7 @@ import { AudienceCoursePage } from "@/components/sections/AudienceCoursePage";
 import { getCourseProgress } from "@/lib/course-progress";
 import { getCourseTrack } from "@/lib/content";
 import { getEnrolledLearnerAudience, isEnrolledLearner } from "@/lib/enrollment";
+import { getAccessibleSessionDays } from "@/lib/session-access-grants";
 import { isAdminRole } from "@/lib/session-access";
 import { getAllVideoProgressForUser } from "@/lib/video-progress";
 import type { Metadata } from "next";
@@ -44,6 +45,11 @@ export default async function MyCoursePage() {
   const completedDays = session.user.email
     ? getCourseProgress(session.user.email).completedDays
     : [];
+  const accessibleDays = getAccessibleSessionDays(
+    session.user.email,
+    session.user.role,
+    audience
+  );
 
   return (
     <AudienceCoursePage
@@ -52,6 +58,7 @@ export default async function MyCoursePage() {
       isEnrolled
       videoProgressMap={videoProgressMap}
       completedDays={completedDays}
+      accessibleDays={accessibleDays}
       variant="my-course"
     />
   );

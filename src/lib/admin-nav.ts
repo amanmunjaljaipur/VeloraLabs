@@ -37,6 +37,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "Assign roles by email",
   },
   {
+    label: "Course Access",
+    href: "/admin/module-access",
+    description: "Grant full program or selected module access by email",
+  },
+  {
     label: "Legal Policies",
     href: "/admin/legal",
     description: "Terms, privacy, and refund policy CMS",

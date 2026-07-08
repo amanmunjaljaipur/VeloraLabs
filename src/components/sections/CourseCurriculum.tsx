@@ -3,13 +3,14 @@ import { Card } from "@/components/ui/Card";
 import { VideoProgressBar } from "@/components/ui/VideoProgressBar";
 import type { AudienceSlug, CoursePhase } from "@/lib/content";
 import { buildSessionId } from "@/lib/session-videos";
-import { PlayCircle, Video } from "lucide-react";
+import { FileText, PlayCircle, Video } from "lucide-react";
 import Link from "next/link";
 
 interface CourseCurriculumProps {
   phases: CoursePhase[];
   audience: AudienceSlug;
   sessionVideoIds?: string[];
+  sessionDocumentIds?: string[];
   videoProgressMap?: Record<string, number>;
   completedDays?: number[];
 }
@@ -18,10 +19,12 @@ export function CourseCurriculum({
   phases,
   audience,
   sessionVideoIds = [],
+  sessionDocumentIds = [],
   videoProgressMap = {},
   completedDays = [],
 }: CourseCurriculumProps) {
   const videoSet = new Set(sessionVideoIds);
+  const documentSet = new Set(sessionDocumentIds);
   const completedSet = new Set(completedDays);
 
   return (
@@ -33,6 +36,7 @@ export function CourseCurriculum({
             {phase.days.map((day) => {
               const sessionId = buildSessionId(audience, day.day);
               const hasVideo = videoSet.has(sessionId);
+              const hasDocument = documentSet.has(sessionId);
               const isCompleted = completedSet.has(day.day);
               const videoPercent = isCompleted ? 100 : (videoProgressMap[sessionId] ?? 0);
 
@@ -48,14 +52,22 @@ export function CourseCurriculum({
                           {day.title}
                         </h3>
                       </div>
-                      {hasVideo ? (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-teal/10 px-2 py-1 text-xs font-medium text-teal">
-                          <Video className="h-3.5 w-3.5" />
-                          Recording
-                        </span>
-                      ) : (
-                        <PlayCircle className="h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" />
-                      )}
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {hasVideo ? (
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-teal/10 px-2 py-1 text-xs font-medium text-teal">
+                            <Video className="h-3.5 w-3.5" />
+                            Video
+                          </span>
+                        ) : (
+                          <PlayCircle className="h-5 w-5 text-text-secondary/50 group-hover:text-teal transition-colors" />
+                        )}
+                        {hasDocument && (
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium text-text-secondary">
+                            <FileText className="h-3.5 w-3.5" />
+                            Document
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-text-secondary leading-relaxed mb-4">{day.description}</p>
                     {hasVideo && (
@@ -85,7 +97,9 @@ export function CourseCurriculum({
                             : videoPercent > 0 && videoPercent < 100
                               ? "Resume session →"
                               : "Watch session →"
-                          : "Open session →"}
+                          : hasDocument
+                            ? "Open training materials →"
+                            : "Open session →"}
                       </p>
                     </div>
                   </Card>
