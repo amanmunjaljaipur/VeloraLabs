@@ -14,7 +14,12 @@ import { verifyManualUserPassword } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
 
-import { getLegalAcceptance } from "@/lib/legal/acceptances";
+import {
+  getLegalAcceptance,
+  isLegalAcceptanceCurrent,
+  type LegalVersionPair,
+} from "@/lib/legal/acceptances";
+import { getCurrentVersions } from "@/lib/legal/store";
 import {
   LEGAL_ACCEPTANCE_COOKIE,
   parseLegalAcceptanceCookie,
@@ -174,23 +179,51 @@ export const authOptions: NextAuthConfig = {
         }
 
         const email = user?.email ?? token.email;
-        if (
-          email &&
-          (token.legalTermsVersion == null || token.legalPrivacyVersion == null)
-        ) {
+        if (email) {
+          const currentLegal = getCurrentVersions();
           const cookieStore = await cookies();
           const cookieAccepted = parseLegalAcceptanceCookie(
             cookieStore.get(LEGAL_ACCEPTANCE_COOKIE)?.value,
             email
           );
-          if (cookieAccepted) {
-            token.legalTermsVersion = cookieAccepted.termsVersion;
-            token.legalPrivacyVersion = cookieAccepted.privacyVersion;
-          } else {
-            const acceptance = getLegalAcceptance(email);
-            if (acceptance) {
-              token.legalTermsVersion = acceptance.termsVersion;
-              token.legalPrivacyVersion = acceptance.privacyVersion;
+          const fileAccepted = getLegalAcceptance(email);
+          const tokenTermsVersion =
+            typeof token.legalTermsVersion === "number" ? token.legalTermsVersion : null;
+          const tokenPrivacyVersion =
+            typeof token.legalPrivacyVersion === "number" ? token.legalPrivacyVersion : null;
+          const acceptedSources: Array<LegalVersionPair | null> = [
+            cookieAccepted
+              ? {
+                  termsVersion: cookieAccepted.termsVersion,
+                  privacyVersion: cookieAccepted.privacyVersion,
+                }
+              : null,
+            fileAccepted
+              ? {
+                  termsVersion: fileAccepted.termsVersion,
+                  privacyVersion: fileAccepted.privacyVersion,
+                }
+              : null,
+            tokenTermsVersion != null && tokenPrivacyVersion != null
+              ? {
+                  termsVersion: tokenTermsVersion,
+                  privacyVersion: tokenPrivacyVersion,
+                }
+              : null,
+          ];
+
+          const currentAcceptance = acceptedSources.find((source) =>
+            isLegalAcceptanceCurrent(source, currentLegal)
+          );
+
+          if (currentAcceptance) {
+            token.legalTermsVersion = currentAcceptance.termsVersion;
+            token.legalPrivacyVersion = currentAcceptance.privacyVersion;
+          } else if (tokenTermsVersion == null || tokenPrivacyVersion == null) {
+            const fallback = cookieAccepted ?? fileAccepted;
+            if (fallback) {
+              token.legalTermsVersion = fallback.termsVersion;
+              token.legalPrivacyVersion = fallback.privacyVersion;
             }
           }
         }
@@ -234,6 +267,10 @@ export const authOptions: NextAuthConfig = {
           session.user.enrolledLearner =
             token.enrolledLearner === true ||
             isEnrolledLearner(session.user.email, role ?? undefined);
+
+          const currentLegal = getCurrentVersions();
+          session.user.requiredLegalTermsVersion = currentLegal.termsVersion;
+          session.user.requiredLegalPrivacyVersion = currentLegal.privacyVersion;
 
           if (typeof token.legalTermsVersion === "number") {
             session.user.legalTermsVersion = token.legalTermsVersion;

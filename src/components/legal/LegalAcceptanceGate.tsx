@@ -13,9 +13,36 @@ const ACCEPTED_SESSION_KEY = "verlin-legal-accepted";
 
 interface LegalStatus {
   pending: boolean;
+  firstTime?: boolean;
   terms?: PublicLegalDocument;
   privacy?: PublicLegalDocument;
   current?: { termsVersion: number; privacyVersion: number };
+}
+
+function sessionHasCurrentLegalAcceptance(
+  user:
+    | {
+        legalTermsVersion?: number;
+        legalPrivacyVersion?: number;
+        requiredLegalTermsVersion?: number;
+        requiredLegalPrivacyVersion?: number;
+      }
+    | undefined
+): boolean {
+  if (!user) return false;
+  if (
+    user.legalTermsVersion == null ||
+    user.legalPrivacyVersion == null ||
+    user.requiredLegalTermsVersion == null ||
+    user.requiredLegalPrivacyVersion == null
+  ) {
+    return false;
+  }
+
+  return (
+    user.legalTermsVersion >= user.requiredLegalTermsVersion &&
+    user.legalPrivacyVersion >= user.requiredLegalPrivacyVersion
+  );
 }
 
 export function LegalAcceptanceGate() {
@@ -34,7 +61,10 @@ export function LegalAcceptanceGate() {
   const checkStatus = useCallback(async () => {
     const res = await fetch("/api/legal/status", { cache: "no-store" });
     if (!res.ok) return;
-    const data = (await res.json()) as LegalStatus & { authenticated?: boolean };
+    const data = (await res.json()) as LegalStatus & {
+      authenticated?: boolean;
+      accepted?: { termsVersion: number; privacyVersion: number } | null;
+    };
     if (!data.authenticated) {
       setLegalStatus(null);
       return;
@@ -42,6 +72,7 @@ export function LegalAcceptanceGate() {
 
     setLegalStatus({
       pending: data.pending,
+      firstTime: data.pending && !data.accepted,
       terms: data.pending ? data.terms : undefined,
       privacy: data.pending ? data.privacy : undefined,
       current: data.current,
@@ -63,6 +94,14 @@ export function LegalAcceptanceGate() {
 
     if (status !== "authenticated" || shouldSkip || !userEmail) {
       setChecked(true);
+      return;
+    }
+
+    if (sessionHasCurrentLegalAcceptance(session?.user)) {
+      setLegalStatus({ pending: false });
+      setChecked(true);
+      checkedForEmail.current = userEmail;
+      sessionStorage.setItem(ACCEPTED_SESSION_KEY, "1");
       return;
     }
 
@@ -134,10 +173,13 @@ export function LegalAcceptanceGate() {
           aria-label="Accept updated legal policies"
           className="max-h-[min(90dvh,36rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl"
         >
-          <h2 className="text-xl font-semibold text-foreground">Updated policies</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            {legalStatus.firstTime ? "Legal policies" : "Updated policies"}
+          </h2>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            We&apos;ve updated our Terms of Service and/or Privacy Policy. Please review and
-            accept to continue using your Verlin Labs account.
+            {legalStatus.firstTime
+              ? "Please review and accept our Terms of Service and Privacy Policy to continue using your Verlin Labs account."
+              : "We've updated our Terms of Service and/or Privacy Policy. Please review and accept to continue using your Verlin Labs account."}
           </p>
 
           <ul className="mt-4 space-y-2 text-sm">

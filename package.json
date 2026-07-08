@@ -13,6 +13,7 @@
     "sync:roles": "tsx scripts/sync-user-roles-sheet.ts",
     "sync:known-users": "tsx scripts/sync-known-users-sheet.ts",
     "sync:sheet-tabs": "tsx scripts/init-sheet-tabs.ts",
+    "seed:blob": "tsx --env-file=.env.local scripts/seed-blob-data.ts",
     "test:sheets": "tsx scripts/test-google-sheets.ts",
     "mcp:newsletter:build": "npm run build --prefix mcp/newsletter-email",
     "mcp:newsletter:dev": "tsx mcp/newsletter-email/src/server.ts"
@@ -20,6 +21,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@vercel/blob": "^2.6.1",
     "@xenova/transformers": "^2.17.2",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

@@ -11,6 +11,8 @@ declare module "next-auth" {
       enrolledLearner: boolean;
       legalTermsVersion?: number;
       legalPrivacyVersion?: number;
+      requiredLegalTermsVersion?: number;
+      requiredLegalPrivacyVersion?: number;
     } & DefaultSession["user"];
   }
 }
