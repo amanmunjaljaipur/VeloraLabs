@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { SessionDocumentsLearner } from "@/components/sessions/SessionDocumentsLearner";
 import { SessionResourcesAdmin } from "@/components/sessions/SessionResourcesAdmin";
 import { SessionVideoComments } from "@/components/sessions/SessionVideoComments";
 import { SessionVideoPlayer } from "@/components/sessions/SessionVideoPlayer";
@@ -11,7 +12,7 @@ import { canAccessSession } from "@/lib/session-access-grants";
 import { isAdminRole } from "@/lib/session-access";
 import { getSessionMeta, getSessionVideo } from "@/lib/session-videos";
 import { getVideoProgress } from "@/lib/video-progress";
-import { ExternalLink, FileText, Lock, Video } from "lucide-react";
+import { Lock, Video } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -113,48 +114,7 @@ export default async function SessionPage({
         )}
 
         {!isAdmin && hasAccess && documents.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-teal" />
-              <h2 className="text-lg font-semibold text-foreground">Training documents</h2>
-            </div>
-            {documents.map((document) => (
-              <Card key={document.id} className="border-teal/15 p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-teal">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <a
-                        href={document.learnerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg font-semibold text-teal hover:underline"
-                      >
-                        {document.title}
-                      </a>
-                      <p className="mt-1 text-sm text-text-secondary capitalize">{document.type}</p>
-                      {document.summary && (
-                        <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-                          {document.summary}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <a
-                    href={document.learnerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal/90 transition-colors shrink-0"
-                  >
-                    Open document
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <SessionDocumentsLearner documents={documents} />
         )}
 
         {!isAdmin && hasAccess && video && (

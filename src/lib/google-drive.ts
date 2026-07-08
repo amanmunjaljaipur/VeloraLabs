@@ -39,6 +39,25 @@ export function buildGoogleDriveLearnerUrl(url: string): string {
   return `https://drive.google.com/file/d/${fileId}/view`;
 }
 
+export function buildGoogleDriveEmbedUrl(url: string): string {
+  const trimmed = url.trim();
+  const fileId = extractGoogleDriveFileId(trimmed);
+  if (!fileId) return trimmed;
+
+  const lower = trimmed.toLowerCase();
+  if (lower.includes("/presentation/") || lower.includes("docs.google.com/presentation")) {
+    return `https://docs.google.com/presentation/d/${fileId}/embed?start=false&loop=false&delayms=3000`;
+  }
+  if (lower.includes("/document/") || lower.includes("docs.google.com/document")) {
+    return `https://docs.google.com/document/d/${fileId}/preview`;
+  }
+  if (lower.includes("/spreadsheets/") || lower.includes("docs.google.com/spreadsheets")) {
+    return `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+  }
+
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
 export async function fetchGoogleDriveTitle(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {

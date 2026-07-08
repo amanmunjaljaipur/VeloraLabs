@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import type { SessionDocumentRecord, SessionDocumentType } from "@/lib/session-documents";
-import { ExternalLink, FileText, Plus, Sparkles, Video } from "lucide-react";
+import { FileText, Plus, Sparkles, Video } from "lucide-react";
 import { useState } from "react";
+import { CopyLinkButton } from "./CopyLinkButton";
+import { SessionDocumentEmbed } from "./SessionDocumentEmbed";
 import { YouTubeEmbed } from "./YouTubeEmbed";
 
 interface SessionResourcesAdminProps {
@@ -33,6 +35,24 @@ const emptyDraft = (): DraftDocument => ({
   summary: "",
   visibleToLearners: true,
 });
+
+function DocumentLinkRow({
+  label,
+  url,
+  onCopied,
+}: {
+  label: string;
+  url: string;
+  onCopied: (label: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="shrink-0 text-text-secondary">{label}</span>
+      <span className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/80">{url}</span>
+      <CopyLinkButton url={url} label={label} onCopied={onCopied} />
+    </div>
+  );
+}
 
 export function SessionResourcesAdmin({
   sessionId,
@@ -299,25 +319,29 @@ export function SessionResourcesAdmin({
                 </div>
 
                 <div className="grid gap-2 text-sm">
-                  <a
-                    href={document.adminUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-teal hover:underline"
-                  >
-                    Admin Google Drive link
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                  <a
-                    href={document.learnerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-teal hover:underline"
-                  >
-                    Learner view link
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  <DocumentLinkRow
+                    label="Admin link"
+                    url={document.adminUrl}
+                    onCopied={(label) => {
+                      if (label) toast(`${label} copied`, "success");
+                      else toast("Could not copy", "error");
+                    }}
+                  />
+                  <DocumentLinkRow
+                    label="Learner link"
+                    url={document.learnerUrl}
+                    onCopied={(label) => {
+                      if (label) toast(`${label} copied`, "success");
+                      else toast("Could not copy", "error");
+                    }}
+                  />
                 </div>
+
+                <SessionDocumentEmbed
+                  url={document.adminUrl}
+                  title={document.title}
+                  type={document.type}
+                />
 
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -345,14 +369,26 @@ export function SessionResourcesAdmin({
 
         {showAddForm && (
           <form onSubmit={handleSaveDocument} className="space-y-4 border-t border-border pt-4">
-            <Input
-              label="Google Drive URL"
-              type="url"
-              placeholder="https://drive.google.com/file/d/..."
-              value={draft.adminUrl}
-              onChange={(e) => setDraft((value) => ({ ...value, adminUrl: e.target.value }))}
-              required
-            />
+            <div className="space-y-2">
+              <Input
+                label="Google Drive URL"
+                type="url"
+                placeholder="https://drive.google.com/file/d/..."
+                value={draft.adminUrl}
+                onChange={(e) => setDraft((value) => ({ ...value, adminUrl: e.target.value }))}
+                required
+              />
+              {draft.adminUrl.trim() && (
+                <DocumentLinkRow
+                  label="Admin link"
+                  url={draft.adminUrl.trim()}
+                  onCopied={(label) => {
+                    if (label) toast(`${label} copied`, "success");
+                    else toast("Could not copy", "error");
+                  }}
+                />
+              )}
+            </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" variant="secondary" loading={previewing} onClick={handlePreviewDocument}>
                 <Sparkles className="h-4 w-4" />
@@ -377,13 +413,35 @@ export function SessionResourcesAdmin({
                 placeholder="Generated automatically for public documents"
               />
             </label>
-            <Input
-              label="Learner view link"
-              type="url"
-              placeholder="Link students and other roles will open"
-              value={draft.learnerUrl}
-              onChange={(e) => setDraft((value) => ({ ...value, learnerUrl: e.target.value }))}
-            />
+            <div className="space-y-2">
+              <Input
+                label="Learner view link"
+                type="url"
+                placeholder="Link students and other roles will open"
+                value={draft.learnerUrl}
+                onChange={(e) => setDraft((value) => ({ ...value, learnerUrl: e.target.value }))}
+              />
+              {draft.learnerUrl.trim() && (
+                <DocumentLinkRow
+                  label="Learner link"
+                  url={draft.learnerUrl.trim()}
+                  onCopied={(label) => {
+                    if (label) toast(`${label} copied`, "success");
+                    else toast("Could not copy", "error");
+                  }}
+                />
+              )}
+            </div>
+            {draft.adminUrl.trim() && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">Presentation preview</p>
+                <SessionDocumentEmbed
+                  url={draft.adminUrl.trim()}
+                  title={draft.title || "Document preview"}
+                  type={draft.type}
+                />
+              </div>
+            )}
             <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
