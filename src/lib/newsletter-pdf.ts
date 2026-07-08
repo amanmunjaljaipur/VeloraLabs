@@ -1,10 +1,36 @@
-import PDFDocument from "pdfkit";
 import type { NewsletterDraftContent } from "@/lib/newsletter-rich-compile";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFPage,
+  type PDFFont,
+  type RGB,
+} from "pdf-lib";
 
-type PdfDoc = InstanceType<typeof PDFDocument>;
+const PAGE_WIDTH = 595.28;
+const PAGE_HEIGHT = 841.89;
+const MARGIN = 56;
+const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 
-const BRAND = "#0d9488";
-const MUTED = "#64748b";
+const BRAND = rgb(13 / 255, 148 / 255, 136 / 255);
+const MUTED = rgb(100 / 255, 116 / 255, 139 / 255);
+const TEXT = rgb(30 / 255, 41 / 255, 59 / 255);
+const TEXT_SOFT = rgb(51 / 255, 65 / 255, 85 / 255);
+const DIVIDER = rgb(226 / 255, 232 / 255, 240 / 255);
+const WHITE = rgb(1, 1, 1);
+
+interface Fonts {
+  regular: PDFFont;
+  bold: PDFFont;
+}
+
+interface LayoutContext {
+  doc: PDFDocument;
+  page: PDFPage;
+  fonts: Fonts;
+  y: number;
+}
 
 function sanitizeFilename(title: string): string {
   return title
@@ -14,28 +40,111 @@ function sanitizeFilename(title: string): string {
     .slice(0, 60);
 }
 
-function writeWrappedText(
-  doc: PdfDoc,
-  text: string,
-  options?: { font?: string; size?: number; color?: string; indent?: number }
-): void {
-  const font = options?.font ?? "Helvetica";
-  const size = options?.size ?? 11;
-  const color = options?.color ?? "#1e293b";
-  const indent = options?.indent ?? 0;
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  const paragraphs = text.split("\n");
+  const lines: string[] = [];
 
-  doc.font(font).fontSize(size).fillColor(color);
-  doc.text(text, doc.page.margins.left + indent, doc.y, {
-    width: doc.page.width - doc.page.margins.left - doc.page.margins.right - indent,
-    align: "left",
-  });
+  for (const paragraph of paragraphs) {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+
+    let current = "";
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (font.widthOfTextAtSize(candidate, size) > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else if (font.widthOfTextAtSize(candidate, size) > maxWidth) {
+        let chunk = "";
+        for (const char of word) {
+          const next = chunk + char;
+          if (font.widthOfTextAtSize(next, size) > maxWidth && chunk) {
+            lines.push(chunk);
+            chunk = char;
+          } else {
+            chunk = next;
+          }
+        }
+        current = chunk;
+      } else {
+        current = candidate;
+      }
+    }
+
+    if (current) lines.push(current);
+  }
+
+  return lines.length ? lines : [""];
 }
 
-function ensureSpace(doc: PdfDoc, minHeight: number): void {
-  const bottom = doc.page.height - doc.page.margins.bottom;
-  if (doc.y + minHeight > bottom) {
-    doc.addPage();
+function addPage(ctx: LayoutContext): void {
+  ctx.page = ctx.doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  ctx.y = MARGIN;
+}
+
+function ensureSpace(ctx: LayoutContext, height: number): void {
+  if (ctx.y + height > PAGE_HEIGHT - MARGIN) {
+    addPage(ctx);
   }
+}
+
+function drawLines(
+  ctx: LayoutContext,
+  lines: string[],
+  options: {
+    font: PDFFont;
+    size: number;
+    color: RGB;
+    lineHeight?: number;
+    indent?: number;
+  }
+): void {
+  const lineHeight = options.lineHeight ?? options.size * 1.45;
+  const x = MARGIN + (options.indent ?? 0);
+
+  for (const line of lines) {
+    ensureSpace(ctx, lineHeight);
+    ctx.page.drawText(line, {
+      x,
+      y: PAGE_HEIGHT - ctx.y - options.size,
+      size: options.size,
+      font: options.font,
+      color: options.color,
+    });
+    ctx.y += lineHeight;
+  }
+}
+
+function drawParagraph(
+  ctx: LayoutContext,
+  text: string,
+  options: {
+    font: PDFFont;
+    size: number;
+    color: RGB;
+    lineHeight?: number;
+    indent?: number;
+    gapAfter?: number;
+  }
+): void {
+  const maxWidth = CONTENT_WIDTH - (options.indent ?? 0);
+  const lines = wrapText(text, options.font, options.size, maxWidth);
+  drawLines(ctx, lines, options);
+  ctx.y += options.gapAfter ?? 0;
+}
+
+function drawDivider(ctx: LayoutContext): void {
+  ensureSpace(ctx, 12);
+  ctx.page.drawLine({
+    start: { x: MARGIN, y: PAGE_HEIGHT - ctx.y },
+    end: { x: PAGE_WIDTH - MARGIN, y: PAGE_HEIGHT - ctx.y },
+    thickness: 1,
+    color: DIVIDER,
+  });
+  ctx.y += 12;
 }
 
 export function newsletterPdfFilename(draft: NewsletterDraftContent): string {
@@ -43,95 +152,137 @@ export function newsletterPdfFilename(draft: NewsletterDraftContent): string {
 }
 
 export async function generateNewsletterPdf(draft: NewsletterDraftContent): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({
-      size: "A4",
-      margins: { top: 56, bottom: 56, left: 56, right: 56 },
-      info: {
-        Title: draft.title,
-        Author: "Verlin Labs",
-        Subject: "AI Weekly Newsletter",
-      },
-    });
+  const doc = await PDFDocument.create();
+  doc.setTitle(draft.title);
+  doc.setAuthor("Verlin Labs");
+  doc.setSubject("AI Weekly Newsletter");
 
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+  const fonts: Fonts = {
+    regular: await doc.embedFont(StandardFonts.Helvetica),
+    bold: await doc.embedFont(StandardFonts.HelveticaBold),
+  };
 
-    doc.rect(0, 0, doc.page.width, 120).fill(BRAND);
-    doc.fillColor("#ffffff").font("Helvetica-Bold").fontSize(11);
-    doc.text("VERLIN LABS NEWSLETTER", 56, 42);
-    doc.fontSize(22).text(draft.title, 56, 62, {
-      width: doc.page.width - 112,
-    });
+  const firstPage = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  const ctx: LayoutContext = { doc, page: firstPage, fonts, y: MARGIN };
 
-    doc.moveDown(3);
-    doc.fillColor(MUTED).font("Helvetica").fontSize(10);
-    doc.text(
-      `Published ${new Date(draft.updatedAt).toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })}`,
-      56,
-      140
-    );
-
-    doc.y = 170;
-    writeWrappedText(doc, draft.intro, { size: 12, color: "#334155" });
-    doc.moveDown(1.2);
-
-    draft.stories.forEach((story, index) => {
-      ensureSpace(doc, 180);
-
-      doc.fillColor(BRAND).font("Helvetica-Bold").fontSize(10);
-      doc.text(`${story.source.toUpperCase()} · ${story.category.toUpperCase()}`);
-      doc.moveDown(0.4);
-
-      writeWrappedText(doc, `${index + 1}. ${story.title}`, {
-        font: "Helvetica-Bold",
-        size: 14,
-      });
-      doc.moveDown(0.5);
-
-      writeWrappedText(doc, story.summary, { size: 11, color: "#475569" });
-      doc.moveDown(0.6);
-
-      doc.rect(doc.x, doc.y, doc.page.width - 112, 1).fill("#e2e8f0");
-      doc.moveDown(0.6);
-
-      writeWrappedText(doc, "Clarity lens", {
-        font: "Helvetica-Bold",
-        size: 10,
-        color: BRAND,
-      });
-      doc.moveDown(0.2);
-      writeWrappedText(doc, story.mentalModelTip, { size: 10, color: "#334155" });
-      doc.moveDown(0.6);
-
-      if (story.url) {
-        writeWrappedText(doc, `Read more: ${story.url}`, {
-          size: 9,
-          color: BRAND,
-        });
-      }
-
-      doc.moveDown(1.4);
-      doc.strokeColor("#e2e8f0").moveTo(56, doc.y).lineTo(doc.page.width - 56, doc.y).stroke();
-      doc.moveDown(1);
-    });
-
-    ensureSpace(doc, 80);
-    doc.fillColor(MUTED).font("Helvetica").fontSize(9);
-    doc.text(
-      "Curated for Verlin Labs learners. Mental models for clarity-first AI learning.",
-      56,
-      doc.y,
-      { width: doc.page.width - 112, align: "center" }
-    );
-
-    doc.end();
+  firstPage.drawRectangle({
+    x: 0,
+    y: PAGE_HEIGHT - 120,
+    width: PAGE_WIDTH,
+    height: 120,
+    color: BRAND,
   });
+
+  firstPage.drawText("VERLIN LABS NEWSLETTER", {
+    x: MARGIN,
+    y: PAGE_HEIGHT - 78,
+    size: 11,
+    font: fonts.bold,
+    color: WHITE,
+  });
+
+  const titleLines = wrapText(draft.title, fonts.bold, 22, CONTENT_WIDTH);
+  let titleY = PAGE_HEIGHT - 100;
+  for (const line of titleLines.slice(0, 3)) {
+    firstPage.drawText(line, {
+      x: MARGIN,
+      y: titleY,
+      size: 22,
+      font: fonts.bold,
+      color: WHITE,
+    });
+    titleY -= 26;
+  }
+
+  ctx.y = 140;
+
+  drawParagraph(
+    ctx,
+    `Published ${new Date(draft.updatedAt).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })}`,
+    {
+      font: fonts.regular,
+      size: 10,
+      color: MUTED,
+      gapAfter: 16,
+    }
+  );
+
+  drawParagraph(ctx, draft.intro, {
+    font: fonts.regular,
+    size: 12,
+    color: TEXT_SOFT,
+    gapAfter: 20,
+  });
+
+  draft.stories.forEach((story, index) => {
+    ensureSpace(ctx, 180);
+
+    drawParagraph(ctx, `${story.source.toUpperCase()} · ${story.category.toUpperCase()}`, {
+      font: fonts.bold,
+      size: 10,
+      color: BRAND,
+      gapAfter: 8,
+    });
+
+    drawParagraph(ctx, `${index + 1}. ${story.title}`, {
+      font: fonts.bold,
+      size: 14,
+      color: TEXT,
+      gapAfter: 10,
+    });
+
+    drawParagraph(ctx, story.summary, {
+      font: fonts.regular,
+      size: 11,
+      color: TEXT_SOFT,
+      gapAfter: 12,
+    });
+
+    drawDivider(ctx);
+
+    drawParagraph(ctx, "Clarity lens", {
+      font: fonts.bold,
+      size: 10,
+      color: BRAND,
+      gapAfter: 6,
+    });
+
+    drawParagraph(ctx, story.mentalModelTip, {
+      font: fonts.regular,
+      size: 10,
+      color: TEXT,
+      gapAfter: 10,
+    });
+
+    if (story.url) {
+      drawParagraph(ctx, `Read more: ${story.url}`, {
+        font: fonts.regular,
+        size: 9,
+        color: BRAND,
+        gapAfter: 16,
+      });
+    }
+
+    drawDivider(ctx);
+    ctx.y += 8;
+  });
+
+  ensureSpace(ctx, 60);
+  drawParagraph(
+    ctx,
+    "Curated for Verlin Labs learners. Mental models for clarity-first AI learning.",
+    {
+      font: fonts.regular,
+      size: 9,
+      color: MUTED,
+    }
+  );
+
+  const bytes = await doc.save();
+  return Buffer.from(bytes);
 }
