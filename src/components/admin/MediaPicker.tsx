@@ -76,7 +76,14 @@ export function MediaPicker({ value, onSelect, label = "Image", hint }: MediaPic
 
       {value ? (
         <div className="relative h-32 w-full max-w-xs overflow-hidden rounded-xl border border-border bg-muted/30">
-          <Image src={value} alt="" fill className="object-cover" unoptimized />
+          <div className="absolute inset-0 animate-pulse bg-muted/80" aria-hidden="true" />
+          <Image
+            src={value}
+            alt={label ? `${label} preview` : "Selected image preview"}
+            fill
+            className="object-cover"
+            unoptimized
+          />
         </div>
       ) : (
         <p className="text-xs text-text-secondary">No image selected yet.</p>

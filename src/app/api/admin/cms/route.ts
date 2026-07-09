@@ -1,6 +1,8 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { createCustomCmsPage } from "@/lib/cms/dynamic-pages";
 import { getAllCmsPages } from "@/lib/cms/registry";
+import type { BuilderTemplateId } from "@/lib/cms/block-registry";
+import { seedBuilderPageContent, writeBuilderPageContent } from "@/lib/cms/page-builder-content";
 import { writeRichPageContent } from "@/lib/cms/rich-content";
 import { NextResponse } from "next/server";
 
@@ -24,7 +26,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { label?: string; description?: string; publicPath?: string; group?: string };
+  let body: {
+    label?: string;
+    description?: string;
+    publicPath?: string;
+    group?: string;
+    editorLayout?: "rich" | "builder";
+    templateId?: BuilderTemplateId;
+  };
   try {
     body = await request.json();
   } catch {
@@ -32,21 +41,34 @@ export async function POST(request: Request) {
   }
 
   try {
+    const editorLayout = body.editorLayout === "builder" ? "builder" : "rich";
     const page = createCustomCmsPage({
       label: body.label ?? "",
       description: body.description,
       publicPath: body.publicPath ?? "",
-      group: body.group,
+      group: body.group ?? (editorLayout === "builder" ? "Design Your Own Page" : undefined),
+      editorLayout,
     });
 
-    writeRichPageContent(page.filename, {
-      title: page.label,
-      subtitle: page.description,
-      bodyHtml: "<p>Start writing your page content here.</p>",
-      seoDescription: page.description,
-      heroImage: "",
-      heroImageAlt: "",
-    });
+    if (editorLayout === "builder") {
+      writeBuilderPageContent(
+        page.filename,
+        seedBuilderPageContent({
+          title: page.label,
+          subtitle: page.description,
+          templateId: body.templateId,
+        })
+      );
+    } else {
+      writeRichPageContent(page.filename, {
+        title: page.label,
+        subtitle: page.description,
+        bodyHtml: "<p>Start writing your page content here.</p>",
+        seoDescription: page.description,
+        heroImage: "",
+        heroImageAlt: "",
+      });
+    }
 
     return NextResponse.json({ page }, { status: 201 });
   } catch (error) {

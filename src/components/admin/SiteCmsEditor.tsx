@@ -12,9 +12,12 @@ import {
   getByPath,
   type CmsImageField,
 } from "@/lib/cms/image-fields";
+import { PageBuilderEditor } from "@/components/admin/PageBuilder/PageBuilderEditor";
+import type { BuilderPageContent } from "@/lib/cms/page-builder-types";
 import type { RichPageContent } from "@/lib/cms/rich-content";
 import { applyTextFields, extractTextFields, type CmsTextField } from "@/lib/cms/text-fields";
-import { ExternalLink, Loader2, Save } from "lucide-react";
+import { PageLoader } from "@/components/ui/PageLoader";
+import { ExternalLink, Save } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -36,8 +39,9 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState<CmsPageDefinition | null>(null);
-  const [format, setFormat] = useState<"json" | "rich">("json");
+  const [format, setFormat] = useState<"json" | "rich" | "builder">("json");
   const [richContent, setRichContent] = useState<RichPageContent>(DEFAULT_RICH);
+  const [builderContent, setBuilderContent] = useState<BuilderPageContent | null>(null);
   const [parsedJson, setParsedJson] = useState<unknown>(null);
   const [textFields, setTextFields] = useState<CmsTextField[]>([]);
   const [imageFields, setImageFields] = useState<CmsImageField[]>([]);
@@ -53,7 +57,7 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
     const data = (await res.json()) as {
       page: CmsPageDefinition;
       content: unknown;
-      format: "json" | "rich";
+      format: "json" | "rich" | "builder";
     };
     setPage(data.page);
     setFormat(data.format);
@@ -64,7 +68,9 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
       group: data.page.group,
     });
 
-    if (data.format === "rich") {
+    if (data.format === "builder") {
+      setBuilderContent(data.content as BuilderPageContent);
+    } else if (data.format === "rich") {
       setRichContent({ ...DEFAULT_RICH, ...(data.content as RichPageContent) });
     } else {
       setParsedJson(data.content);
@@ -129,16 +135,22 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-text-secondary">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Loading content…
-      </div>
-    );
+    return <PageLoader message="Loading page content…" />;
   }
 
   if (!page) {
     return <p className="py-12 text-center text-text-secondary">Page not found.</p>;
+  }
+
+  if (format === "builder" && builderContent) {
+    return (
+      <PageBuilderEditor
+        pageId={pageId}
+        page={page}
+        initialContent={builderContent}
+        onMetaChange={(meta) => setPageMeta({ ...meta, group: pageMeta.group })}
+      />
+    );
   }
 
   return (

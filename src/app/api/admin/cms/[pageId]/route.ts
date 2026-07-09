@@ -6,6 +6,15 @@ import {
 } from "@/lib/cms/dynamic-pages";
 import { getCmsPage } from "@/lib/cms/registry";
 import {
+  isBuilderPageContent,
+  type BuilderPageContent,
+} from "@/lib/cms/page-builder-types";
+import {
+  publishBuilderPage,
+  readBuilderPageContent,
+  writeBuilderPageContent,
+} from "@/lib/cms/page-builder-content";
+import {
   buildMarkdownFromRich,
   markdownBodyToHtml,
   parseMarkdownFrontmatter,
@@ -33,10 +42,28 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   }
 
   if (page.type === "rich") {
-    const rich = readRichPageContent(page.filename);
+    const custom = getCustomCmsPage(pageId);
+    if (custom?.editorLayout === "builder") {
+      const builder = readBuilderPageContent(page.filename);
+      return NextResponse.json({
+        page,
+        content: builder,
+        format: "builder",
+      });
+    }
+
+    const stored = readRichPageContent(page.filename);
+    if (isBuilderPageContent(stored)) {
+      return NextResponse.json({
+        page,
+        content: stored,
+        format: "builder",
+      });
+    }
+
     return NextResponse.json({
       page,
-      content: rich,
+      content: stored,
       format: "rich",
     });
   }
@@ -79,6 +106,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   const body = (await req.json()) as {
     content?: unknown;
     meta?: { label?: string; description?: string; publicPath?: string; group?: string };
+    publish?: boolean;
   };
 
   try {
@@ -87,7 +115,15 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
 
     if (page.type === "rich") {
-      writeRichPageContent(page.filename, body.content as RichPageContent);
+      const incoming = body.content;
+      if (isBuilderPageContent(incoming)) {
+        const next = body.publish
+          ? publishBuilderPage(incoming as BuilderPageContent)
+          : (incoming as BuilderPageContent);
+        writeBuilderPageContent(page.filename, next);
+      } else {
+        writeRichPageContent(page.filename, incoming as RichPageContent);
+      }
       return NextResponse.json({
         ok: true,
         page: getCmsPage(pageId),

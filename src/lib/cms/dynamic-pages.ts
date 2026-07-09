@@ -1,5 +1,5 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
-import type { CmsContentType, CmsPageDefinition } from "@/lib/cms/registry";
+import type { CmsContentType, CmsEditorLayout, CmsPageDefinition } from "@/lib/cms/registry";
 import { randomUUID } from "crypto";
 
 const REGISTRY_FILE = "cms-custom-registry.json";
@@ -50,6 +50,7 @@ export function createCustomCmsPage(input: {
   description?: string;
   publicPath: string;
   group?: string;
+  editorLayout?: CmsEditorLayout;
 }): CustomCmsPageRecord {
   const registry = readRegistry();
   const label = input.label.trim();
@@ -72,6 +73,7 @@ export function createCustomCmsPage(input: {
     filename: `cms-page-${id}.json`,
     type: "rich",
     publicPath,
+    editorLayout: input.editorLayout ?? "rich",
     createdAt: now,
     updatedAt: now,
   };

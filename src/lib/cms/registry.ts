@@ -2,6 +2,8 @@ import { listCustomCmsPages } from "@/lib/cms/dynamic-pages";
 
 export type CmsContentType = "json" | "markdown" | "rich";
 
+export type CmsEditorLayout = "rich" | "builder";
+
 export interface CmsPageDefinition {
   id: string;
   label: string;
@@ -11,6 +13,8 @@ export interface CmsPageDefinition {
   type: CmsContentType;
   /** Public route this content powers */
   publicPath?: string;
+  /** Visual page builder vs classic rich-text editor */
+  editorLayout?: CmsEditorLayout;
 }
 
 export const CMS_PAGE_GROUPS = [

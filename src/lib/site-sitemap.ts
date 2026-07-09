@@ -4,6 +4,10 @@ import {
   getMentalModels,
   getResourceDownloadSlugs,
 } from "@/lib/content";
+import { listCustomCmsPages } from "@/lib/cms/dynamic-pages";
+import { getLiveBuilderSections, readBuilderPageContent } from "@/lib/cms/page-builder-content";
+import { isBuilderPageContent } from "@/lib/cms/page-builder-types";
+import { readRichPageContent } from "@/lib/cms/rich-content";
 import type { MetadataRoute } from "next";
 import { SITE_ORIGIN } from "@/lib/seo";
 
@@ -430,26 +434,87 @@ function resourceDownloadPages(): SitemapPage[] {
   }));
 }
 
+/** Published design-studio / custom CMS pages for XML + HTML sitemaps */
+function customCmsPublicPages(): SitemapPage[] {
+  return listCustomCmsPages()
+    .filter((page) => Boolean(page.publicPath))
+    .flatMap((page) => {
+      try {
+        if (page.editorLayout === "builder") {
+          const content = readBuilderPageContent(page.filename);
+          if (content.status !== "published" || getLiveBuilderSections(content).length === 0) {
+            return [];
+          }
+          return [
+            {
+              href: page.publicPath!,
+              label: content.title || page.label,
+              title: content.title || page.label,
+              description: content.seoDescription || content.subtitle || page.description,
+              section: "company" as const,
+              priority: 0.55,
+              changeFrequency: "weekly" as const,
+            },
+          ];
+        }
+
+        const stored = readRichPageContent(page.filename);
+        if (isBuilderPageContent(stored)) {
+          if (stored.status !== "published" || getLiveBuilderSections(stored).length === 0) {
+            return [];
+          }
+        }
+
+        return [
+          {
+            href: page.publicPath!,
+            label: page.label,
+            title: ("title" in stored && stored.title) || page.label,
+            description:
+              ("seoDescription" in stored && stored.seoDescription) ||
+              page.description,
+            section: "company" as const,
+            priority: 0.55,
+            changeFrequency: "weekly" as const,
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
+}
+
 let cachedPages: SitemapPage[] | null = null;
 
 export function getAllSitemapPages(): SitemapPage[] {
-  if (cachedPages) return cachedPages;
-
   const pageMap = new Map<string, SitemapPage>();
-  for (const page of STATIC_PAGES) {
-    pageMap.set(page.href, page);
+
+  if (cachedPages) {
+    for (const page of cachedPages) {
+      pageMap.set(page.href, page);
+    }
+  } else {
+    for (const page of STATIC_PAGES) {
+      pageMap.set(page.href, page);
+    }
+    for (const page of courseTrackPages()) {
+      pageMap.set(page.href, page);
+    }
+    for (const page of [...libraryPages(), ...mentalModelPages(), ...resourceDownloadPages()]) {
+      if (!pageMap.has(page.href)) {
+        pageMap.set(page.href, page);
+      }
+    }
+    cachedPages = [...pageMap.values()];
   }
-  for (const page of courseTrackPages()) {
-    pageMap.set(page.href, page);
-  }
-  for (const page of [...libraryPages(), ...mentalModelPages(), ...resourceDownloadPages()]) {
+
+  for (const page of customCmsPublicPages()) {
     if (!pageMap.has(page.href)) {
       pageMap.set(page.href, page);
     }
   }
 
-  cachedPages = [...pageMap.values()];
-  return cachedPages;
+  return [...pageMap.values()];
 }
 
 export function getSitemapPage(href: string): SitemapPage | undefined {

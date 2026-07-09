@@ -1,6 +1,9 @@
+import { PageBuilderRenderer } from "@/components/page-builder/BlockRenderer";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getCustomCmsPageByPath } from "@/lib/cms/dynamic-pages";
+import { getLiveBuilderSections, readBuilderPageContent } from "@/lib/cms/page-builder-content";
+import { isBuilderPageContent } from "@/lib/cms/page-builder-types";
 import { readRichPageContent } from "@/lib/cms/rich-content";
 import { createMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
@@ -17,7 +20,24 @@ export default async function CustomCmsPublicPage({ params }: PageProps) {
     notFound();
   }
 
-  const content = readRichPageContent(page.filename);
+  const stored = readRichPageContent(page.filename);
+  const isBuilder = page.editorLayout === "builder" || isBuilderPageContent(stored);
+
+  if (isBuilder) {
+    const content = isBuilderPageContent(stored)
+      ? stored
+      : readBuilderPageContent(page.filename);
+    const sections = getLiveBuilderSections(content);
+
+    // Draft / unpublished design pages are not public yet
+    if (content.status !== "published" || sections.length === 0) {
+      notFound();
+    }
+
+    return <PageBuilderRenderer sections={sections} />;
+  }
+
+  const content = stored;
 
   return (
     <>
@@ -51,10 +71,15 @@ export async function generateMetadata({ params }: PageProps) {
   const page = getCustomCmsPageByPath(path);
   if (!page) return {};
 
-  const content = readRichPageContent(page.filename);
+  const stored = readRichPageContent(page.filename);
+  const title = isBuilderPageContent(stored) ? stored.title : stored.title;
+  const description = isBuilderPageContent(stored)
+    ? stored.seoDescription || stored.subtitle
+    : stored.seoDescription || page.description;
+
   return createMetadata({
-    title: content.title || page.label,
-    description: content.seoDescription || page.description,
+    title: title || page.label,
+    description: description || page.description,
     path,
   });
 }

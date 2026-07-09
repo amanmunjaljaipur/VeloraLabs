@@ -2,8 +2,10 @@
 
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { BUILDER_TEMPLATES, type BuilderTemplateId } from "@/lib/cms/block-registry";
 import type { CmsPageDefinition } from "@/lib/cms/registry";
-import { FileText, Loader2, Plus, X } from "lucide-react";
+import { PageLoader } from "@/components/ui/PageLoader";
+import { FileText, LayoutGrid, Loader2, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -12,8 +14,15 @@ export function SiteCmsHub() {
   const [pages, setPages] = useState<CmsPageDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showDesignStudio, setShowDesignStudio] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ label: "", description: "", publicPath: "" });
+  const [designForm, setDesignForm] = useState({
+    label: "",
+    description: "",
+    publicPath: "",
+    templateId: "landing" as BuilderTemplateId,
+  });
 
   useEffect(() => {
     fetch("/api/admin/cms")
@@ -26,6 +35,34 @@ export function SiteCmsHub() {
     const set = new Set(pages.map((page) => page.group));
     return [...set];
   }, [pages]);
+
+  async function handleDesignCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await fetch("/api/admin/cms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...designForm,
+          editorLayout: "builder",
+        }),
+      });
+      const data = (await res.json()) as { page?: CmsPageDefinition; error?: string };
+      if (!res.ok) {
+        toast(data.error || "Failed to create page", "error");
+        return;
+      }
+      toast("Design page created — drag components to build", "success");
+      setShowDesignStudio(false);
+      setDesignForm({ label: "", description: "", publicPath: "", templateId: "landing" });
+      if (data.page) {
+        window.location.href = `/admin/site-cms/${data.page.id}`;
+      }
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -53,12 +90,7 @@ export function SiteCmsHub() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-text-secondary">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Loading CMS pages…
-      </div>
-    );
+    return <PageLoader message="Loading Site CMS…" />;
   }
 
   return (
@@ -71,14 +103,24 @@ export function SiteCmsHub() {
             with a visual editor. Pick a page below or create a new one.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-accent-teal px-4 py-2.5 text-sm font-medium text-white hover:bg-teal"
-        >
-          <Plus className="h-4 w-4" />
-          New page
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDesignStudio(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-accent-teal px-4 py-2.5 text-sm font-medium text-white hover:bg-teal"
+          >
+            <LayoutGrid className="h-4 w-4" />
+            Design your own page
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:border-accent-teal/40"
+          >
+            <Plus className="h-4 w-4" />
+            Simple page
+          </button>
+        </div>
       </div>
 
       {groups.map((group) => {
@@ -99,6 +141,9 @@ export function SiteCmsHub() {
                       <div>
                         <h3 className="font-semibold text-foreground">{page.label}</h3>
                         <p className="mt-1 text-sm text-text-secondary">{page.description}</p>
+                        {page.editorLayout === "builder" ? (
+                          <p className="mt-2 text-xs font-medium text-accent-teal">Design studio page</p>
+                        ) : null}
                         {page.publicPath && (
                           <p className="mt-2 font-mono text-xs text-text-muted">{page.publicPath}</p>
                         )}
@@ -111,6 +156,78 @@ export function SiteCmsHub() {
           </section>
         );
       })}
+
+      {showDesignStudio && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/30 p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-lg p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Design your own page</h2>
+              <button type="button" onClick={() => setShowDesignStudio(false)} aria-label="Close">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form onSubmit={(e) => void handleDesignCreate(e)} className="space-y-4">
+              <p className="text-sm text-text-secondary">
+                AEM-style page builder — drag components from the library, edit properties, preview, then publish.
+              </p>
+              <label className="block text-sm">
+                <span className="mb-1 block text-xs font-medium text-text-secondary">Page title</span>
+                <input
+                  required
+                  value={designForm.label}
+                  onChange={(e) => setDesignForm((f) => ({ ...f, label: e.target.value }))}
+                  className="w-full rounded-xl border border-border px-3 py-2.5"
+                  placeholder="AI workshop landing"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-xs font-medium text-text-secondary">Public URL</span>
+                <input
+                  required
+                  value={designForm.publicPath}
+                  onChange={(e) => setDesignForm((f) => ({ ...f, publicPath: e.target.value }))}
+                  className="w-full rounded-xl border border-border px-3 py-2.5 font-mono text-sm"
+                  placeholder="/ai-workshop"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="mb-1 block text-xs font-medium text-text-secondary">Subtitle</span>
+                <input
+                  value={designForm.description}
+                  onChange={(e) => setDesignForm((f) => ({ ...f, description: e.target.value }))}
+                  className="w-full rounded-xl border border-border px-3 py-2.5"
+                />
+              </label>
+              <fieldset className="space-y-2">
+                <legend className="text-xs font-medium text-text-secondary">Start from template</legend>
+                {Object.entries(BUILDER_TEMPLATES).map(([id, template]) => (
+                  <label key={id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3">
+                    <input
+                      type="radio"
+                      name="template"
+                      checked={designForm.templateId === id}
+                      onChange={() => setDesignForm((f) => ({ ...f, templateId: id as BuilderTemplateId }))}
+                      className="mt-1"
+                    />
+                    <span>
+                      <span className="block text-sm font-medium">{template.label}</span>
+                      <span className="block text-xs text-text-secondary">{template.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+              <button
+                type="submit"
+                disabled={creating}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-teal py-2.5 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LayoutGrid className="h-4 w-4" />}
+                Open design studio
+              </button>
+            </form>
+          </Card>
+        </div>
+      )}
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/30 p-4 backdrop-blur-sm">
