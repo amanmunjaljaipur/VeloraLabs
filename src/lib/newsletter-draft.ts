@@ -47,6 +47,21 @@ export async function sendNewsletterDraft(
   draft: NewsletterDraftContent
 ): Promise<SendNewsletterResult> {
   const weekOf = getWeekOfSunday();
+  const local = readJsonFile<EditionsStore>(EDITIONS_FILE, '{"editions":[]}');
+
+  // One edition per IST week — prevents double-posts from cron retries
+  const existing = local.editions.find((e) => e.weekOf === weekOf);
+  if (existing) {
+    const email: NewsletterEmailDeliveryResult = {
+      subscriberCount: 0,
+      sentCount: 0,
+      failedCount: 0,
+      pdfFilename: "",
+      failedEmails: [],
+    };
+    return { edition: existing, email };
+  }
+
   const slug = draftToEditionSlug(draft);
   const publishedAt = new Date().toISOString();
 
@@ -62,7 +77,6 @@ export async function sendNewsletterDraft(
     publishedAt,
   };
 
-  const local = readJsonFile<EditionsStore>(EDITIONS_FILE, '{"editions":[]}');
   writeJsonFile(EDITIONS_FILE, { editions: [edition, ...local.editions] }, '{"editions":[]}');
 
   const email = await deliverNewsletterByEmail(draft, edition);

@@ -47,17 +47,83 @@ export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
     pdfFilename: string;
     configured: boolean;
   } | null>(null);
+  const [publishingWeekly, setPublishingWeekly] = useState(false);
+  const [weekStatus, setWeekStatus] = useState<{
+    weekOf: string;
+    publishedThisWeek: boolean;
+    thisWeekEdition: { title: string; publicUrl: string } | null;
+  } | null>(null);
 
   const loadDraft = useCallback(async () => {
     const res = await fetch("/api/admin/newsletter/draft");
     if (!res.ok) return;
-    const data = (await res.json()) as { draft: DraftPreview | null };
+    const data = (await res.json()) as {
+      draft: DraftPreview | null;
+      weekStatus?: {
+        weekOf: string;
+        publishedThisWeek: boolean;
+        thisWeekEdition: { title: string; publicUrl: string } | null;
+      };
+    };
     setDraft(data.draft);
+    if (data.weekStatus) setWeekStatus(data.weekStatus);
   }, []);
 
   useEffect(() => {
-    loadDraft().finally(() => setLoading(false));
+    let cancelled = false;
+    void (async () => {
+      try {
+        await loadDraft();
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [loadDraft]);
+
+  const handlePublishWeekly = async () => {
+    setPublishingWeekly(true);
+    setSentUrl(null);
+    setEmailSummary(null);
+    try {
+      const res = await fetch("/api/admin/newsletter/publish", { method: "POST" });
+      const data = (await res.json()) as {
+        error?: string;
+        alreadyPublished?: boolean;
+        edition?: { title: string; publicUrl: string };
+        email?: {
+          subscriberCount: number;
+          sentCount: number;
+          failedCount: number;
+          pdfFilename: string;
+          configured: boolean;
+        };
+      };
+      if (!res.ok) {
+        toast(data.error || "Weekly publish failed", "error");
+        return;
+      }
+      if (data.alreadyPublished) {
+        toast("This week's newsletter is already published", "success");
+      } else if (data.email?.configured) {
+        toast(
+          `Published & emailed to ${data.email.sentCount}/${data.email.subscriberCount} subscribers`,
+          data.email.failedCount > 0 ? "error" : "success"
+        );
+      } else {
+        toast("Published online. Configure email to send PDFs to subscribers.", "success");
+      }
+      setSentUrl(data.edition?.publicUrl ?? null);
+      setEmailSummary(data.email ?? null);
+      await loadDraft();
+    } catch {
+      toast("Weekly publish failed", "error");
+    } finally {
+      setPublishingWeekly(false);
+    }
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -211,21 +277,69 @@ export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
       </Card>
 
       <Card className="border-teal/20 bg-teal/5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <Newspaper className="h-5 w-5 text-teal" />
-              <h2 className="text-lg font-semibold text-foreground">Create newsletter</h2>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5 text-teal" />
+                <h2 className="text-lg font-semibold text-foreground">Weekly newsletter</h2>
+              </div>
+              <p className="mt-2 max-w-2xl text-sm text-text-secondary">
+                Auto-runs every Sunday (~09:00 IST) via Vercel Cron: fetch AI news → publish
+                edition → email PDF. You can also run the full pipeline now.
+              </p>
+              {weekStatus ? (
+                <p className="mt-2 text-xs text-text-muted">
+                  Week of {weekStatus.weekOf}:{" "}
+                  {weekStatus.publishedThisWeek ? (
+                    <>
+                      <span className="font-medium text-teal">Published</span>
+                      {weekStatus.thisWeekEdition ? (
+                        <>
+                          {" · "}
+                          <a
+                            href={weekStatus.thisWeekEdition.publicUrl}
+                            className="text-teal hover:underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {weekStatus.thisWeekEdition.title}
+                          </a>
+                        </>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span className="font-medium text-amber-700 dark:text-amber-300">
+                      Not published yet this week
+                    </span>
+                  )}
+                </p>
+              ) : null}
             </div>
-            <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-              Fetches the latest AI news from the internet, adds mental-model clarity lenses and
-              images, then publishes online and emails a PDF to all subscribers when you send.
-            </p>
+            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+              <Button
+                onClick={() => void handlePublishWeekly()}
+                loading={publishingWeekly}
+                disabled={publishingWeekly || weekStatus?.publishedThisWeek}
+              >
+                <Send className="h-4 w-4" />
+                {weekStatus?.publishedThisWeek
+                  ? "Already published this week"
+                  : publishingWeekly
+                    ? "Publishing…"
+                    : "Publish this week now"}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void handleGenerate()}
+                loading={generating}
+                className="shrink-0"
+              >
+                <RefreshCw className="h-4 w-4" />
+                {generating ? "Fetching news…" : "Create draft only"}
+              </Button>
+            </div>
           </div>
-          <Button onClick={handleGenerate} loading={generating} className="shrink-0">
-            <RefreshCw className="h-4 w-4" />
-            {generating ? "Fetching news…" : "Create newsletter"}
-          </Button>
         </div>
       </Card>
 

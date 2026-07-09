@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { loadNewsletterDraft } from "@/lib/newsletter-draft";
+import { getWeeklyNewsletterStatus } from "@/lib/newsletter-publish-weekly";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -10,13 +11,16 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const weekStatus = getWeeklyNewsletterStatus();
   const draft = await loadNewsletterDraft();
+
   if (!draft || draft.status === "sent") {
-    return NextResponse.json({ success: true, draft: null });
+    return NextResponse.json({ success: true, draft: null, weekStatus });
   }
 
   return NextResponse.json({
     success: true,
+    weekStatus,
     draft: {
       id: draft.id,
       title: draft.title,

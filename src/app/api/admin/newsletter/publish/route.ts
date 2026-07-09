@@ -1,9 +1,14 @@
 import { auth } from "@/auth";
-import { publishWeeklyNewsletter } from "@/lib/news-updates";
+import { publishWeeklyNewsletterViaMcp } from "@/lib/newsletter-publish-weekly";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
+/**
+ * Super-admin: generate (if needed) + publish this week's edition + email.
+ * Same pipeline as the Sunday cron job.
+ */
 export async function POST() {
   const session = await auth();
   if (!session?.user || session.user.role !== "super_admin") {
@@ -11,24 +16,18 @@ export async function POST() {
   }
 
   try {
-    const edition = await publishWeeklyNewsletter();
+    const result = await publishWeeklyNewsletterViaMcp();
 
     return NextResponse.json({
       success: true,
-      edition: {
-        editionId: edition.editionId,
-        weekOf: edition.weekOf,
-        slug: edition.slug,
-        title: edition.title,
-        itemCount: edition.itemCount,
-        publishedAt: edition.publishedAt,
-        publicUrl: `/newsletter/weekly?edition=${edition.slug}`,
-      },
+      alreadyPublished: result.alreadyPublished,
+      generated: result.generated,
+      edition: result.edition,
+      email: result.email,
     });
   } catch (error) {
+    console.error("[admin/newsletter/publish] failed:", error);
     const message = error instanceof Error ? error.message : "Publish failed";
-    const status =
-      message.includes("No pending") || message.includes("already published") ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
