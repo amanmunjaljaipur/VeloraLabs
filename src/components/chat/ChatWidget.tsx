@@ -4,7 +4,7 @@ import { ChatMessageContent } from "@/components/chat/ChatMessageContent";
 import { useChatbot } from "@/components/chat/useChatbot";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bot, ChevronRight, Loader2, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, Bot, ChevronRight, Loader2, MessageCircle, Send, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -20,18 +20,22 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
     loading,
     menu,
     menuError,
+    llmEnabled,
     step,
     selectedCategory,
+    draft,
+    setDraft,
     selectCategory,
     selectQuestion,
+    sendMessage,
     backToCategories,
     showMoreQuestions,
     reset,
   } = useChatbot();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
-  if (hidden) return null;
 
   const activeCategory = menu?.categories.find((category) => category.name === selectedCategory);
   const questionLookup = new Map(
@@ -45,6 +49,8 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, open, loading, step]);
+
+  if (hidden) return null;
 
   return (
     <>
@@ -68,7 +74,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
             aria-label="Verlin Labs assistant"
             className={cn(
               "fixed z-[70] flex flex-col overflow-hidden border border-border bg-card shadow-xl dark:bg-card dark:shadow-2xl",
-              "inset-x-3 bottom-20 max-h-[min(32rem,calc(100dvh-6rem))] rounded-2xl sm:inset-x-auto sm:bottom-24 sm:right-6 sm:w-[22rem]"
+              "inset-x-3 bottom-20 max-h-[min(34rem,calc(100dvh-6rem))] rounded-2xl sm:inset-x-auto sm:bottom-24 sm:right-6 sm:w-[22rem]"
             )}
             initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
@@ -82,7 +88,9 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Verlin Assistant</p>
-                  <p className="text-[11px] text-text-secondary">Browse FAQs by topic</p>
+                  <p className="text-[11px] text-text-secondary">
+                    {llmEnabled ? "Powered by GLM-5.2 · ask or browse" : "Browse FAQs or type a question"}
+                  </p>
                 </div>
               </div>
               <button
@@ -128,33 +136,38 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                         ))}
                       </div>
                     )}
-                    {msg.suggestions && msg.suggestions.length > 0 && msg.role === "assistant" && step === "answered" && (
-                      <div className="mt-2.5 flex flex-col gap-1">
-                        {msg.suggestions.map((suggestion) => {
-                          const entryId = questionLookup.get(suggestion);
-                          if (!entryId) return null;
-
-                          return (
-                            <button
-                              key={suggestion}
-                              type="button"
-                              onClick={() => void selectQuestion(entryId, suggestion)}
-                              disabled={loading}
-                              className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
-                            >
-                              {suggestion}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    {msg.suggestions &&
+                      msg.suggestions.length > 0 &&
+                      msg.role === "assistant" &&
+                      step === "answered" && (
+                        <div className="mt-2.5 flex flex-col gap-1">
+                          {msg.suggestions.map((suggestion) => {
+                            const entryId = questionLookup.get(suggestion);
+                            return (
+                              <button
+                                key={suggestion}
+                                type="button"
+                                onClick={() =>
+                                  entryId
+                                    ? void selectQuestion(entryId, suggestion)
+                                    : void sendMessage(suggestion)
+                                }
+                                disabled={loading}
+                                className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs text-foreground/85 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/10 hover:text-accent-teal disabled:opacity-50"
+                              >
+                                {suggestion}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                   </div>
                 </div>
               ))}
               {loading && (
                 <div className="flex items-center gap-2 text-xs text-text-secondary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Loading answer…
+                  {llmEnabled ? "Thinking with GLM-5.2…" : "Loading answer…"}
                 </div>
               )}
             </div>
@@ -170,18 +183,18 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
               )}
 
               {!menu && !menuError && (
-                <div className="flex items-center justify-center gap-2 py-2 text-xs text-text-secondary">
+                <div className="mb-2 flex items-center justify-center gap-2 py-2 text-xs text-text-secondary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   Loading topics…
                 </div>
               )}
 
               {menu && step === "categories" && (
-                <div className="space-y-2">
+                <div className="mb-3 space-y-2">
                   <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
                     Choose a topic
                   </p>
-                  <div className="max-h-40 space-y-1 overflow-y-auto">
+                  <div className="max-h-32 space-y-1 overflow-y-auto">
                     {menu.categories.map((category) => (
                       <button
                         key={category.name}
@@ -199,7 +212,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
               )}
 
               {menu && step === "questions" && activeCategory && (
-                <div className="space-y-2">
+                <div className="mb-3 space-y-2">
                   <button
                     type="button"
                     onClick={backToCategories}
@@ -212,7 +225,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                   <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
                     {activeCategory.name}
                   </p>
-                  <div className="max-h-40 space-y-1 overflow-y-auto">
+                  <div className="max-h-32 space-y-1 overflow-y-auto">
                     {activeCategory.questions.map((question) => (
                       <button
                         key={question.id}
@@ -229,7 +242,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
               )}
 
               {menu && step === "answered" && (
-                <div className="flex flex-wrap gap-2">
+                <div className="mb-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={backToCategories}
@@ -251,6 +264,34 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                   )}
                 </div>
               )}
+
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void sendMessage();
+                }}
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={llmEnabled ? "Ask GLM-5.2 anything…" : "Type a question…"}
+                  disabled={loading}
+                  maxLength={2000}
+                  className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-text-muted focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20 disabled:opacity-50"
+                  aria-label="Message the assistant"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !draft.trim()}
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-teal text-white transition hover:bg-teal disabled:opacity-40"
+                  aria-label="Send message"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                </button>
+              </form>
             </div>
 
             <div className="flex items-center justify-between border-t border-border/60 px-4 py-1.5">
