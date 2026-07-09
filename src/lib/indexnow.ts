@@ -5,6 +5,24 @@ export const INDEXNOW_KEY = "verlinlabs-indexnow-key";
 const INDEXNOW_ENDPOINTS = [
   "https://api.indexnow.org/indexnow",
   "https://www.bing.com/indexnow",
+  "https://yandex.com/indexnow",
+] as const;
+
+/** Priority URLs crawled first — homepage, money pages, fresh SEO content. */
+export const PRIORITY_INDEX_URLS = [
+  `${SITE_ORIGIN}/`,
+  `${SITE_ORIGIN}/free-session`,
+  `${SITE_ORIGIN}/programs`,
+  `${SITE_ORIGIN}/courses`,
+  `${SITE_ORIGIN}/ai-for-students`,
+  `${SITE_ORIGIN}/ai-for-engineers`,
+  `${SITE_ORIGIN}/ai-for-pms`,
+  `${SITE_ORIGIN}/mental-models`,
+  `${SITE_ORIGIN}/library`,
+  `${SITE_ORIGIN}/about`,
+  `${SITE_ORIGIN}/faq`,
+  `${SITE_ORIGIN}/contact`,
+  `${SITE_ORIGIN}/corporate`,
 ] as const;
 
 export function getIndexNowKeyLocation(): string {
@@ -15,11 +33,21 @@ export function getSitemapUrls(): string[] {
   return getXmlSitemapEntries().map((entry) => entry.url);
 }
 
-/** Legacy Google sitemap ping — deprecated but still triggers occasional crawls. */
+/** Legacy Google sitemap ping — deprecated since 2023; kept for logging only. */
 export async function pingGoogleSitemap(): Promise<{ ok: boolean; status: number }> {
   const sitemap = `${SITE_ORIGIN}/sitemap.xml`;
   const response = await fetch(
     `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemap)}`,
+    { method: "GET" }
+  );
+  return { ok: response.ok, status: response.status };
+}
+
+/** Notify Bing Webmaster Tools that the sitemap changed. */
+export async function pingBingSitemap(): Promise<{ ok: boolean; status: number }> {
+  const sitemap = `${SITE_ORIGIN}/sitemap.xml`;
+  const response = await fetch(
+    `https://www.bing.com/webmaster/ping.aspx?siteMap=${encodeURIComponent(sitemap)}`,
     { method: "GET" }
   );
   return { ok: response.ok, status: response.status };

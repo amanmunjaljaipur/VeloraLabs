@@ -6,7 +6,7 @@
     "dev": "next dev",
     "train:chatbot": "tsx scripts/build-chatbot-index.ts",
     "build": "npm run train:chatbot && next build",
-    "indexnow": "tsx scripts/submit-indexnow.ts",
+    "indexnow": "tsx --env-file=.env.local scripts/submit-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
     "seed:blob": "tsx --env-file=.env.local scripts/seed-blob-data.ts",

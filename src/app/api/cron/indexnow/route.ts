@@ -1,4 +1,10 @@
-import { getSitemapUrls, pingGoogleSitemap, submitUrlsToIndexNow } from "@/lib/indexnow";
+import {
+  getSitemapUrls,
+  pingBingSitemap,
+  pingGoogleSitemap,
+  PRIORITY_INDEX_URLS,
+  submitUrlsToIndexNow,
+} from "@/lib/indexnow";
 import { NextResponse } from "next/server";
 
 /**
@@ -18,14 +24,19 @@ export async function GET(request: Request) {
   }
 
   const urls = getSitemapUrls();
-  const [results, googlePing] = await Promise.all([
+  const [priorityResults, results, googlePing, bingPing] = await Promise.all([
+    submitUrlsToIndexNow([...PRIORITY_INDEX_URLS]),
     submitUrlsToIndexNow(urls),
     pingGoogleSitemap(),
+    pingBingSitemap(),
   ]);
 
   return NextResponse.json({
+    prioritySubmitted: PRIORITY_INDEX_URLS.length,
     submitted: urls.length,
+    priorityResults,
     results,
     googlePing,
+    bingPing,
   });
 }
