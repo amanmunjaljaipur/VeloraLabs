@@ -1024,6 +1024,12 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
 }
 
 export const BUILDER_TEMPLATES = {
+  custom: {
+    label: "Custom template",
+    description:
+      "Blank canvas — drag and drop any components from the library in any order",
+    sections: [] as PageBlockType[],
+  },
   landing: {
     label: "Landing page",
     description: "Hero, stats, features, FAQ, and CTA",
@@ -1054,7 +1060,11 @@ export const BUILDER_TEMPLATES = {
 export type BuilderTemplateId = keyof typeof BUILDER_TEMPLATES;
 
 export function createSectionsFromTemplate(templateId: BuilderTemplateId): PageBlock[] {
-  const template = BUILDER_TEMPLATES[templateId] ?? BUILDER_TEMPLATES.landing;
+  const template = BUILDER_TEMPLATES[templateId] ?? BUILDER_TEMPLATES.custom;
+  // Custom / empty templates start with a blank canvas for free-form drag-and-drop
+  if (!template.sections.length) {
+    return [];
+  }
   return template.sections.map((t) => createDefaultBlock(t));
 }
 

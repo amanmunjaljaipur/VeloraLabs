@@ -34,7 +34,7 @@ export function seedBuilderPageContent(input: {
 }): BuilderPageContent {
   const sections = input.templateId
     ? createSectionsFromTemplate(input.templateId)
-    : createSectionsFromTemplate("landing");
+    : createSectionsFromTemplate("custom");
 
   return {
     title: input.title,

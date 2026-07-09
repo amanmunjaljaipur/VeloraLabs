@@ -410,9 +410,12 @@ export function PageBuilderEditor({ pageId, page, initialContent, onMetaChange }
         >
           {content.sections.length === 0 ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 p-8 text-center">
-              <p className="text-sm font-medium text-foreground">Canvas is empty</p>
+              <p className="text-sm font-medium text-foreground">Custom template — blank canvas</p>
               <p className="mt-2 max-w-sm text-sm text-text-secondary">
-                Drag a component from the library or click + to start designing your page.
+                Drag any component from the library onto this canvas (or click +) and arrange them in any order.
+              </p>
+              <p className="mt-3 text-xs text-text-muted">
+                Tip: start with Hero or Page header, then add content, media, and a CTA.
               </p>
             </div>
           ) : (

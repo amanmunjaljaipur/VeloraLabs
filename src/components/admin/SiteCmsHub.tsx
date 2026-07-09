@@ -21,7 +21,7 @@ export function SiteCmsHub() {
     label: "",
     description: "",
     publicPath: "",
-    templateId: "landing" as BuilderTemplateId,
+    templateId: "custom" as BuilderTemplateId,
   });
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function SiteCmsHub() {
       }
       toast("Design page created — drag components to build", "success");
       setShowDesignStudio(false);
-      setDesignForm({ label: "", description: "", publicPath: "", templateId: "landing" });
+      setDesignForm({ label: "", description: "", publicPath: "", templateId: "custom" });
       if (data.page) {
         window.location.href = `/admin/site-cms/${data.page.id}`;
       }
@@ -200,21 +200,39 @@ export function SiteCmsHub() {
               </label>
               <fieldset className="space-y-2">
                 <legend className="text-xs font-medium text-text-secondary">Start from template</legend>
-                {Object.entries(BUILDER_TEMPLATES).map(([id, template]) => (
-                  <label key={id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3">
-                    <input
-                      type="radio"
-                      name="template"
-                      checked={designForm.templateId === id}
-                      onChange={() => setDesignForm((f) => ({ ...f, templateId: id as BuilderTemplateId }))}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="block text-sm font-medium">{template.label}</span>
-                      <span className="block text-xs text-text-secondary">{template.description}</span>
-                    </span>
-                  </label>
-                ))}
+                {Object.entries(BUILDER_TEMPLATES).map(([id, template]) => {
+                  const isCustom = id === "custom";
+                  const selected = designForm.templateId === id;
+                  return (
+                    <label
+                      key={id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                        selected
+                          ? "border-accent-teal bg-accent-teal/5"
+                          : "border-border hover:border-accent-teal/40"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="template"
+                        checked={selected}
+                        onChange={() => setDesignForm((f) => ({ ...f, templateId: id as BuilderTemplateId }))}
+                        className="mt-1"
+                      />
+                      <span>
+                        <span className="flex items-center gap-2 text-sm font-medium">
+                          {template.label}
+                          {isCustom ? (
+                            <span className="rounded-full bg-accent-teal/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-teal">
+                              Blank canvas
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-text-secondary">{template.description}</span>
+                      </span>
+                    </label>
+                  );
+                })}
               </fieldset>
               <button
                 type="submit"
