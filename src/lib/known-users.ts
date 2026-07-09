@@ -1,4 +1,8 @@
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  ensureDataFileHydrated,
+  readJsonFile,
+  writeJsonFileAsync,
+} from "@/lib/data-store";
 import { getAllManualUsers, getManualUserByEmail } from "@/lib/manual-users";
 import { ensureRolesLoaded, hasCustomRoleAssignment } from "@/lib/roles";
 
@@ -33,8 +37,8 @@ function readLocalKnownUsersFile(): KnownUsersFile {
   return readJsonFile<KnownUsersFile>(KNOWN_USERS_FILE, "{}");
 }
 
-function writeLocalKnownUsersFile(data: KnownUsersFile): void {
-  writeJsonFile(KNOWN_USERS_FILE, data, "{}");
+async function writeLocalKnownUsersFile(data: KnownUsersFile): Promise<void> {
+  await writeJsonFileAsync(KNOWN_USERS_FILE, data, "{}");
 }
 
 function getKnownUsersSnapshot(): KnownUsersFile {
@@ -58,6 +62,7 @@ export async function ensureKnownUsersLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
+    await ensureDataFileHydrated(KNOWN_USERS_FILE, "{}");
     cachedKnownUsers = readLocalKnownUsersFile();
     cacheLoadedAt = Date.now();
   })();
@@ -97,7 +102,7 @@ export async function recordKnownUser(
   };
 
   data[normalized] = record;
-  writeLocalKnownUsersFile(data);
+  await writeLocalKnownUsersFile(data);
 
   cachedKnownUsers = data;
   cacheLoadedAt = Date.now();

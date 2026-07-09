@@ -1,5 +1,9 @@
 import { PASSWORD_MAX_LENGTH } from "@/lib/auth-validation";
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  ensureDataFileHydrated,
+  readJsonFile,
+  writeJsonFileAsync,
+} from "@/lib/data-store";
 import bcrypt from "bcryptjs";
 
 export interface ManualUser {
@@ -40,8 +44,8 @@ function readLocalUsers(): ManualUsersFile {
   return readJsonFile<ManualUsersFile>(MANUAL_USERS_FILE, DEFAULT_CONTENT);
 }
 
-function writeLocalUsers(data: ManualUsersFile): void {
-  writeJsonFile(MANUAL_USERS_FILE, data, DEFAULT_CONTENT);
+async function writeLocalUsers(data: ManualUsersFile): Promise<void> {
+  await writeJsonFileAsync(MANUAL_USERS_FILE, data, DEFAULT_CONTENT);
 }
 
 export async function ensureManualUsersLoaded(force = false): Promise<void> {
@@ -55,6 +59,7 @@ export async function ensureManualUsersLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
+    await ensureDataFileHydrated(MANUAL_USERS_FILE, DEFAULT_CONTENT);
     cachedUsers = readLocalUsers().users;
     cacheLoadedAt = Date.now();
   })();
@@ -113,7 +118,7 @@ export async function createManualUser(input: {
   };
 
   data.users.push(user);
-  writeLocalUsers(data);
+  await writeLocalUsers(data);
   cachedUsers = data.users;
   cacheLoadedAt = Date.now();
 
@@ -139,7 +144,7 @@ export async function markManualUserEmailVerified(email: string): Promise<boolea
     emailVerifiedAt: verifiedAt,
   };
 
-  writeLocalUsers(data);
+  await writeLocalUsers(data);
   cachedUsers = data.users;
   cacheLoadedAt = Date.now();
   return true;
@@ -204,7 +209,7 @@ export async function updateManualUserPassword(
     data.users.push({ ...cachedUser, passwordHash });
   }
 
-  writeLocalUsers(data);
+  await writeLocalUsers(data);
   cachedUsers = data.users.map((user) =>
     user.email === normalized ? { ...user, passwordHash } : user
   );

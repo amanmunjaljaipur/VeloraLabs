@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed:blob": "tsx --env-file=.env.local scripts/seed-blob-data.ts",
+    "pull:blob": "tsx --env-file=.env.local scripts/pull-blob-data.ts",
     "mcp:newsletter:build": "npm run build --prefix mcp/newsletter-email",
     "mcp:newsletter:dev": "tsx mcp/newsletter-email/src/server.ts"
   },

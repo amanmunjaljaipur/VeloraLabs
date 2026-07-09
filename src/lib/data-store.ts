@@ -1,10 +1,48 @@
-import { list, put } from "@vercel/blob";
+import { get, list, put } from "@vercel/blob";
 import { after } from "next/server";
 import fs from "fs";
 import path from "path";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const BLOB_PREFIX = "verlin-labs/data/";
+
+/** Runtime data owned by production Blob — never seed from git on Vercel. */
+export const RUNTIME_DATA_FILES = new Set([
+  "video-progress.json",
+  "course-progress.json",
+  "session-documents.json",
+  "session-videos.json",
+  "video-comments.json",
+  "legal-acceptances.json",
+  "legal-documents.json",
+  "newsletter-subscribers.json",
+  "newsletter-editions.json",
+  "news-updates.json",
+  "newsletter-draft.json",
+  "user-roles.json",
+  "known-users.json",
+  "manual-users.json",
+  "password-reset-tokens.json",
+  "email-verification-challenges.json",
+  "user-module-access.json",
+  "crm-data.json",
+  "page-analytics.json",
+  "chatbot-training.json",
+  "chatbot-index.json",
+  "cms-custom-registry.json",
+]);
+
+/** Writes that must complete Blob upload before returning (auth / user data). */
+const AWAIT_BLOB_PERSIST_FILES = new Set([
+  "user-roles.json",
+  "known-users.json",
+  "manual-users.json",
+  "legal-acceptances.json",
+  "newsletter-subscribers.json",
+  "crm-data.json",
+]);
+
+const hydrationPromises = new Map<string, Promise<boolean>>();
 
 function isVercelRuntime(): boolean {
   return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
@@ -24,15 +62,50 @@ function blobKey(filename: string): string {
   return `${BLOB_PREFIX}${filename}`;
 }
 
+async function readBlobContent(pathname: string): Promise<string | null> {
+  const result = await get(pathname, { access: "private", useCache: false });
+  if (!result || result.statusCode !== 200 || !result.stream) return null;
+
+  const reader = result.stream.getReader();
+  const chunks: Uint8Array[] = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) chunks.push(value);
+  }
+
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const merged = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return new TextDecoder().decode(merged);
+}
+
+function shouldSeedFromGit(filename: string): boolean {
+  if (!isVercelRuntime()) return true;
+  return !RUNTIME_DATA_FILES.has(filename);
+}
+
+async function persistToBlob(filename: string, content: string): Promise<void> {
+  if (!isBlobEnabled()) return;
+
+  await put(blobKey(filename), content, {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+}
+
 function scheduleBlobPersist(filename: string, content: string): void {
   if (!isBlobEnabled()) return;
 
   const upload = () =>
-    put(blobKey(filename), content, {
-      access: "private",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-    }).catch((error) => {
+    persistToBlob(filename, content).catch((error) => {
       console.error(`Failed to persist ${filename} to Vercel Blob:`, error);
     });
 
@@ -43,24 +116,75 @@ function scheduleBlobPersist(filename: string, content: string): void {
   }
 }
 
-function ensureRuntimeFile(filename: string, defaultContent: string): string {
+function ensureRuntimeDir(): void {
   const runtimeDir = getRuntimeDir();
-  const runtimePath = path.join(runtimeDir, filename);
-
   if (!fs.existsSync(runtimeDir)) {
     fs.mkdirSync(runtimeDir, { recursive: true });
   }
+}
+
+function getRuntimePath(filename: string): string {
+  return path.join(getRuntimeDir(), filename);
+}
+
+function ensureRuntimeFile(filename: string, defaultContent: string): string {
+  ensureRuntimeDir();
+  const runtimePath = getRuntimePath(filename);
 
   if (!fs.existsSync(runtimePath)) {
-    const seedPath = path.join(CONTENT_DIR, filename);
-    if (fs.existsSync(seedPath)) {
-      fs.copyFileSync(seedPath, runtimePath);
+    if (shouldSeedFromGit(filename)) {
+      const seedPath = path.join(CONTENT_DIR, filename);
+      if (fs.existsSync(seedPath)) {
+        fs.copyFileSync(seedPath, runtimePath);
+      } else {
+        fs.writeFileSync(runtimePath, `${defaultContent}\n`, "utf8");
+      }
     } else {
       fs.writeFileSync(runtimePath, `${defaultContent}\n`, "utf8");
     }
   }
 
   return runtimePath;
+}
+
+export async function hydrateFileFromBlob(filename: string): Promise<boolean> {
+  if (!isBlobEnabled() || !isVercelRuntime()) return false;
+
+  const runtimePath = getRuntimePath(filename);
+  if (fs.existsSync(runtimePath)) return true;
+
+  const existing = hydrationPromises.get(filename);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    try {
+      const content = await readBlobContent(blobKey(filename));
+      if (!content) return false;
+      ensureRuntimeDir();
+      fs.writeFileSync(runtimePath, content, "utf8");
+      return true;
+    } catch (error) {
+      console.error(`Failed to hydrate ${filename} from Vercel Blob:`, error);
+      return false;
+    } finally {
+      hydrationPromises.delete(filename);
+    }
+  })();
+
+  hydrationPromises.set(filename, promise);
+  return promise;
+}
+
+export async function ensureDataFileHydrated(
+  filename: string,
+  defaultContent = "{}"
+): Promise<void> {
+  if (!isVercelRuntime()) return;
+
+  const hydrated = await hydrateFileFromBlob(filename);
+  if (!hydrated) {
+    ensureRuntimeFile(filename, defaultContent);
+  }
 }
 
 export async function hydrateAllFromBlob(): Promise<void> {
@@ -79,11 +203,9 @@ export async function hydrateAllFromBlob(): Promise<void> {
 
         if (!filename || filename.includes("..")) continue;
 
-        const response = await fetch(blob.url);
-        if (!response.ok) continue;
-
-        const content = await response.text();
-        const runtimePath = path.join(getRuntimeDir(), filename);
+        const content = await readBlobContent(blob.pathname);
+        if (!content) continue;
+        const runtimePath = getRuntimePath(filename);
         const dir = path.dirname(runtimePath);
 
         if (!fs.existsSync(dir)) {
@@ -117,6 +239,33 @@ export function writeJsonFile(filename: string, data: unknown, defaultContent = 
 
   if (isVercelRuntime() && isBlobEnabled()) {
     scheduleBlobPersist(filename, content);
+  } else if (isVercelRuntime() && !isBlobEnabled()) {
+    console.warn(
+      `[data-store] BLOB_READ_WRITE_TOKEN is not set — ${filename} will be lost on the next deploy.`
+    );
+  }
+}
+
+export async function writeJsonFileAsync(
+  filename: string,
+  data: unknown,
+  defaultContent = "{}"
+): Promise<void> {
+  const content = `${JSON.stringify(data, null, 2)}\n`;
+  const filePath = ensureRuntimeFile(filename, defaultContent);
+  fs.writeFileSync(filePath, content, "utf8");
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    // chmod is best-effort
+  }
+
+  if (isVercelRuntime() && isBlobEnabled()) {
+    if (AWAIT_BLOB_PERSIST_FILES.has(filename)) {
+      await persistToBlob(filename, content);
+    } else {
+      scheduleBlobPersist(filename, content);
+    }
   } else if (isVercelRuntime() && !isBlobEnabled()) {
     console.warn(
       `[data-store] BLOB_READ_WRITE_TOKEN is not set — ${filename} will be lost on the next deploy.`

@@ -1,4 +1,8 @@
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  ensureDataFileHydrated,
+  readJsonFile,
+  writeJsonFileAsync,
+} from "@/lib/data-store";
 import { UserRole } from "@/types/roles";
 
 export type UserRolesConfig = Record<string, UserRole>;
@@ -14,8 +18,8 @@ function readLocalRolesFile(): UserRolesConfig {
   return readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
 }
 
-function writeLocalRolesFile(roles: UserRolesConfig): void {
-  writeJsonFile(ROLES_FILE, roles, "{}");
+async function writeLocalRolesFile(roles: UserRolesConfig): Promise<void> {
+  await writeJsonFileAsync(ROLES_FILE, roles, "{}");
 }
 
 function getRolesSnapshot(): UserRolesConfig {
@@ -39,6 +43,7 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
+    await ensureDataFileHydrated(ROLES_FILE, "{}");
     cachedRoles = readLocalRolesFile();
     cacheLoadedAt = Date.now();
   })();
@@ -82,7 +87,7 @@ export async function setUserRole(
 
   cachedRoles = roles;
   cacheLoadedAt = Date.now();
-  writeLocalRolesFile(roles);
+  await writeLocalRolesFile(roles);
 }
 
 export async function removeUserRole(email: string, _updatedBy?: string): Promise<boolean> {
@@ -95,7 +100,7 @@ export async function removeUserRole(email: string, _updatedBy?: string): Promis
 
   cachedRoles = roles;
   cacheLoadedAt = Date.now();
-  writeLocalRolesFile(roles);
+  await writeLocalRolesFile(roles);
 
   return true;
 }
