@@ -33,6 +33,8 @@ import { getHomeContentData } from "@/lib/cms/home-content-data";
 import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import Link from "next/link";
+import { SeoRichTextSection } from "@/components/seo/SeoRichTextSection";
+import { HOME_SEO_BLOCK } from "@/lib/seo-content";
 
 export function MarketingHome() {
   const site = getSiteConfig();
@@ -168,6 +170,8 @@ export function MarketingHome() {
         cta={site.newsletter.cta}
         linkToPage
       />
+
+      <SeoRichTextSection block={HOME_SEO_BLOCK} />
     </>
   );
 }

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { SeoRichTextSection } from "@/components/seo/SeoRichTextSection";
+import { PROGRAMS_SEO_BLOCK } from "@/lib/seo-content";
 
 export const metadata = staticPageMetadata("programs", "/programs");
 
@@ -184,6 +186,7 @@ export default function ProgramsPage() {
 
       <SiteExploreLinks section="learn" title="Free resources" subtitle="Library, mental models, and downloads to support your learning." />
       <SiteExploreLinks section="company" excludeHref="/about" title="Questions?" subtitle="FAQ and contact — we're happy to help you choose the right path." limit={3} />
+      <SeoRichTextSection block={PROGRAMS_SEO_BLOCK} />
     </>
   );
 }

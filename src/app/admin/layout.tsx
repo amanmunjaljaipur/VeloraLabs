@@ -1,6 +1,14 @@
 import { auth } from "@/auth";
 import { isAdminRole } from "@/lib/session-access";
+import { noIndexMetadata } from "@/lib/page-metadata";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = noIndexMetadata(
+  "Admin",
+  "Verlin Labs admin dashboard.",
+  "/admin"
+);
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();

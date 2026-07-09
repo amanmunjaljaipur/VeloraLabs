@@ -9,6 +9,9 @@ import { formatContentDateTime, formatContentStamp } from "@/lib/utils";
 import { staticPageMetadata } from "@/lib/page-metadata";
 import { Clock } from "lucide-react";
 import Link from "next/link";
+import { CollectionPageJsonLd } from "@/components/seo/CollectionPageJsonLd";
+import { SeoRichTextSection } from "@/components/seo/SeoRichTextSection";
+import { MENTAL_MODELS_SEO_BLOCK } from "@/lib/seo-content";
 
 export const metadata = staticPageMetadata("mentalModels", "/mental-models");
 
@@ -25,6 +28,16 @@ export default function MentalModelsPage() {
 
   return (
     <>
+      <CollectionPageJsonLd
+        name="Verlin Labs AI Mental Models"
+        description={MENTAL_MODELS_SEO_BLOCK.paragraphs[0]!}
+        path="/mental-models"
+        items={models.map((model) => ({
+          name: model.name,
+          url: `/mental-models/${model.slug}`,
+          description: model.shortDescription,
+        }))}
+      />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath="/mental-models" />
       <PageHeader
         breadcrumbs={breadcrumbs}
@@ -93,6 +106,7 @@ export default function MentalModelsPage() {
       </section>
       <CourseTrackLinks />
       <SiteExploreLinks section="learn" excludeHref="/mental-models" />
+      <SeoRichTextSection block={MENTAL_MODELS_SEO_BLOCK} />
     </>
   );
 }

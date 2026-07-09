@@ -4,6 +4,9 @@ import { ContactExpectations, ContactReassurance } from "@/components/sections/C
 import { ContactHero } from "@/components/sections/ContactHero";
 import { WaysToConnect } from "@/components/sections/WaysToConnect";
 import { staticPageMetadata } from "@/lib/page-metadata";
+import { ContactPageJsonLd } from "@/components/seo/ContactPageJsonLd";
+import { SeoRichTextSection } from "@/components/seo/SeoRichTextSection";
+import { CONTACT_SEO_BLOCK } from "@/lib/seo-content";
 import { ContactForm } from "./ContactForm";
 import { Suspense } from "react";
 
@@ -17,6 +20,7 @@ export default function ContactPage() {
 
   return (
     <>
+      <ContactPageJsonLd />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath="/contact" />
       <ContactHero />
       <WaysToConnect />
@@ -29,6 +33,7 @@ export default function ContactPage() {
       <ContactReassurance />
       <SiteExploreLinks section="programs" title="Explore programs" limit={4} />
       <SiteExploreLinks section="company" excludeHref="/contact" limit={2} />
+      <SeoRichTextSection block={CONTACT_SEO_BLOCK} />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { PrintButton } from "@/components/ui/PrintButton";
 import { getResourceDownload, getResourceDownloadSlugs } from "@/lib/content";
 import { createMetadata } from "@/lib/seo";
+import { LearningResourceJsonLd } from "@/components/seo/LearningResourceJsonLd";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -54,6 +55,7 @@ export default async function ResourceDownloadPage({
 
   return (
     <>
+      <LearningResourceJsonLd name={title} description={subtitle} path={`/resources/${slug}`} />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath={`/resources/${slug}`} />
       <PageHeader
         breadcrumbs={breadcrumbs}

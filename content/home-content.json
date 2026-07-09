@@ -85,6 +85,22 @@
     {
       "question": "Can I reschedule my session?",
       "answer": "Yes. Use the link in your confirmation email to reschedule up to 24 hours before your session."
+    },
+    {
+      "question": "Where is Verlin Labs based?",
+      "answer": "Verlin Labs is based in India and runs live online AI training for learners nationwide. Sessions are scheduled in India Standard Time (IST) by default, with options for compatible regions when you mention your time zone at booking."
+    },
+    {
+      "question": "What topics do your AI programs cover?",
+      "answer": "Programs cover mental models for LLMs and transformers, prompt engineering, responsible AI use, RAG basics, product discovery workflows, portfolio projects, and hands-on tools such as ChatGPT, Claude, Lovable, and Replit — tailored to students, engineers, or product managers."
+    },
+    {
+      "question": "Do you offer corporate AI training?",
+      "answer": "Yes. Verlin Labs runs corporate AI literacy workshops for teams in India — half-day sessions, multi-week enablement, and executive briefings. Visit the Corporate page or contact us for a tailored proposal."
+    },
+    {
+      "question": "How much do paid programs cost?",
+      "answer": "Paid track pricing is shown on each course page in Indian Rupees (INR) and varies by program length and audience. The free 2-hour intro session has no cost and no credit card requirement."
     }
   ],
   "testimonialAvatars": {

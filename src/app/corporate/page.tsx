@@ -13,6 +13,9 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
+import { SeoRichTextSection } from "@/components/seo/SeoRichTextSection";
+import { CORPORATE_SEO_BLOCK } from "@/lib/seo-content";
 
 export const metadata = staticPageMetadata("corporate", "/corporate");
 
@@ -56,6 +59,7 @@ export default function CorporatePage() {
 
   return (
     <>
+      <ServiceJsonLd />
       <BreadcrumbJsonLd items={breadcrumbs} currentPath="/corporate" />
       <PageHeader
         breadcrumbs={breadcrumbs}
@@ -175,6 +179,7 @@ export default function CorporatePage() {
       </section>
       <SiteExploreLinks section="programs" excludeHref="/corporate" />
       <SiteExploreLinks section="company" limit={3} />
+      <SeoRichTextSection block={CORPORATE_SEO_BLOCK} />
     </>
   );
 }
