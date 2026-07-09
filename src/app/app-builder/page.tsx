@@ -361,7 +361,13 @@ export default function AppBuilderPage() {
         </div>
       </section>
 
-      <SiteExploreLinks />
+      <SiteExploreLinks
+        section="programs"
+        excludeHref="/app-builder"
+        title="Explore programs"
+        subtitle="Free session, tracks, and workshops — start learning while App Builder Lab takes shape."
+        limit={5}
+      />
     </>
   );
 }
