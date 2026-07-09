@@ -65,7 +65,7 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
     label: "App Builder",
     href: "/admin/app-builder",
-    description: "Prompt → questions → Grok/custom LLM → deploy ecom-local-shop",
+    description: "Guided shop builder with suggestions, your points, city logos, Grok/own AI",
   },
   {
     label: "Newsletter Studio",

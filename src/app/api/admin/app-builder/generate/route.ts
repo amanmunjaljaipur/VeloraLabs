@@ -35,7 +35,10 @@ export async function POST(request: Request) {
   }
   if (!body.apiKey?.trim()) {
     return NextResponse.json(
-      { error: "apiKey is required (Grok / Groq / custom). It is not saved on the server." },
+      {
+        error:
+          "Please paste your AI helper key (from Grok, Groq, or your own AI). We use it once and never save it.",
+      },
       { status: 400 }
     );
   }
@@ -55,6 +58,7 @@ export async function POST(request: Request) {
       extensionId: project.extensionId,
       prompt: project.prompt,
       answers: project.answers,
+      customPoints: project.customPoints,
       secrets,
     });
 

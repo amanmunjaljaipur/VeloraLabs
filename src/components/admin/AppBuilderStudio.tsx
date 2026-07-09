@@ -6,32 +6,53 @@ import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import type { AppExtensionMeta } from "@/lib/app-builder/extensions";
 import type {
+  AppIdeaExample,
   AppInterviewAnswer,
   AppProject,
+  InterviewQuestion,
   LlmProviderKind,
 } from "@/lib/app-builder/types";
+import { cn } from "@/lib/utils";
 import {
   AppWindow,
   ArrowLeft,
   ArrowRight,
   ExternalLink,
+  HeartHandshake,
   KeyRound,
+  Lightbulb,
   Loader2,
+  MapPin,
+  Plus,
   Rocket,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Step = "prompt" | "questions" | "llm" | "result";
+type Step = "idea" | "guide" | "extras" | "ai" | "result";
 
 interface LlmProviderOption {
   id: LlmProviderKind;
   label: string;
+  plainLabel?: string;
   defaultModel: string;
   baseUrl: string;
   hint: string;
+}
+
+function parseAnswerList(value: string | undefined): string[] {
+  if (!value?.trim()) return [];
+  return value
+    .split(/[,;\n|]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function joinAnswerList(items: string[]): string {
+  return items.join(", ");
 }
 
 export function AppBuilderStudio() {
@@ -40,16 +61,24 @@ export function AppBuilderStudio() {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<AppProject[]>([]);
   const [extensions, setExtensions] = useState<AppExtensionMeta[]>([]);
+  const [ideaExamples, setIdeaExamples] = useState<AppIdeaExample[]>([]);
   const [llmProviders, setLlmProviders] = useState<LlmProviderOption[]>([]);
 
-  const [step, setStep] = useState<Step>("prompt");
+  const [step, setStep] = useState<Step>("idea");
   const [prompt, setPrompt] = useState("");
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
   const [extensionId, setExtensionId] = useState("ecom-local-shop");
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [customDraft, setCustomDraft] = useState("");
+  const [customPoints, setCustomPoints] = useState<string[]>([]);
+  const [extraDraft, setExtraDraft] = useState("");
+
   const [provider, setProvider] = useState<LlmProviderKind>("xai");
   const [model, setModel] = useState("grok-3-mini");
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [showAdvancedAi, setShowAdvancedAi] = useState(false);
   const [busy, setBusy] = useState(false);
   const [activeProject, setActiveProject] = useState<AppProject | null>(null);
 
@@ -58,19 +87,26 @@ export function AppBuilderStudio() {
     [extensions, extensionId]
   );
 
+  const questions = extension?.questions ?? [];
+  const currentQ: InterviewQuestion | null = questions[questionIndex] ?? null;
+  const progressPct =
+    questions.length > 0 ? Math.round(((questionIndex + 1) / questions.length) * 100) : 0;
+
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/app-builder");
     if (!res.ok) {
-      toast("Failed to load App Builder", "error");
+      toast("Could not load App Builder. Try again.", "error");
       return;
     }
     const data = (await res.json()) as {
       projects: AppProject[];
       extensions: AppExtensionMeta[];
+      ideaExamples?: AppIdeaExample[];
       llmProviders: LlmProviderOption[];
     };
     setProjects(data.projects);
     setExtensions(data.extensions);
+    setIdeaExamples(data.ideaExamples || []);
     setLlmProviders(data.llmProviders);
     if (data.extensions[0]) setExtensionId(data.extensions[0].id);
     if (data.llmProviders[0]) {
@@ -110,6 +146,61 @@ export function AppBuilderStudio() {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   }
 
+  function toggleSuggestion(q: InterviewQuestion, suggestion: string) {
+    const mode = q.selectMode || "free";
+    if (mode === "single") {
+      setAnswer(q.id, suggestion);
+      return;
+    }
+    if (mode === "multi") {
+      const list = parseAnswerList(answers[q.id]);
+      const next = list.includes(suggestion)
+        ? list.filter((x) => x !== suggestion)
+        : [...list, suggestion];
+      setAnswer(q.id, joinAnswerList(next));
+      return;
+    }
+    // free: append if not already there
+    const cur = answers[q.id]?.trim() || "";
+    if (cur.includes(suggestion)) return;
+    setAnswer(q.id, cur ? `${cur}\n${suggestion}` : suggestion);
+  }
+
+  function isSuggestionSelected(q: InterviewQuestion, suggestion: string): boolean {
+    const mode = q.selectMode || "free";
+    const val = answers[q.id] || "";
+    if (mode === "single") return val === suggestion;
+    if (mode === "multi") return parseAnswerList(val).includes(suggestion);
+    return val.includes(suggestion);
+  }
+
+  function addCustomToQuestion(q: InterviewQuestion) {
+    const text = customDraft.trim();
+    if (!text) return;
+    const mode = q.selectMode || "free";
+    if (mode === "single") {
+      setAnswer(q.id, text);
+    } else if (mode === "multi") {
+      const list = parseAnswerList(answers[q.id]);
+      if (!list.includes(text)) setAnswer(q.id, joinAnswerList([...list, text]));
+    } else {
+      const cur = answers[q.id]?.trim() || "";
+      setAnswer(q.id, cur ? `${cur}\n${text}` : text);
+    }
+    setCustomDraft("");
+  }
+
+  function addExtraPoint() {
+    const text = extraDraft.trim();
+    if (!text) return;
+    if (customPoints.includes(text)) {
+      setExtraDraft("");
+      return;
+    }
+    setCustomPoints((prev) => [...prev, text].slice(0, 30));
+    setExtraDraft("");
+  }
+
   function buildAnswerList(): AppInterviewAnswer[] {
     if (!extension) return [];
     return extension.questions.map((q) => ({
@@ -119,28 +210,55 @@ export function AppBuilderStudio() {
     }));
   }
 
-  function validateQuestions(): string | null {
-    if (!extension) return "Select an extension";
-    for (const q of extension.questions) {
-      if (q.required && !answers[q.id]?.trim()) return `Please answer: ${q.label}`;
+  function validateCurrentQuestion(): string | null {
+    if (!currentQ) return "No question";
+    if (currentQ.required && !answers[currentQ.id]?.trim()) {
+      return "Please pick a suggestion or write your own answer — we need this to build your shop.";
     }
     return null;
   }
 
+  function goNextQuestion() {
+    const err = validateCurrentQuestion();
+    if (err) {
+      toast(err, "error");
+      return;
+    }
+    setCustomDraft("");
+    if (questionIndex >= questions.length - 1) {
+      setStep("extras");
+      return;
+    }
+    setQuestionIndex((i) => i + 1);
+  }
+
+  function goPrevQuestion() {
+    setCustomDraft("");
+    if (questionIndex <= 0) {
+      setStep("idea");
+      return;
+    }
+    setQuestionIndex((i) => i - 1);
+  }
+
   async function handleBuild() {
     if (!prompt.trim()) {
-      toast("Enter a product prompt first", "error");
+      toast("First tell us your shop idea in simple words.", "error");
+      setStep("idea");
       return;
     }
-    const qErr = validateQuestions();
-    if (qErr) {
-      toast(qErr, "error");
-      setStep("questions");
-      return;
+    if (!extension) return;
+    for (const q of extension.questions) {
+      if (q.required && !answers[q.id]?.trim()) {
+        toast(`Please answer: ${q.label}`, "error");
+        setStep("guide");
+        setQuestionIndex(extension.questions.findIndex((x) => x.id === q.id));
+        return;
+      }
     }
     if (!apiKey.trim()) {
-      toast("Paste your LLM API key (Grok / Groq / custom)", "error");
-      setStep("llm");
+      toast("Paste your AI helper key so we can write the shop pages for you.", "error");
+      setStep("ai");
       return;
     }
 
@@ -153,12 +271,17 @@ export function AppBuilderStudio() {
           prompt: prompt.trim(),
           extensionId,
           answers: buildAnswerList(),
-          llm: { provider, model, baseUrl: provider === "custom" ? baseUrl : undefined },
+          customPoints,
+          llm: {
+            provider,
+            model,
+            baseUrl: provider === "custom" ? baseUrl : undefined,
+          },
         }),
       });
       const createData = (await createRes.json()) as { project?: AppProject; error?: string };
       if (!createRes.ok || !createData.project) {
-        toast(createData.error || "Failed to create project", "error");
+        toast(createData.error || "Could not start your shop project", "error");
         return;
       }
 
@@ -180,43 +303,61 @@ export function AppBuilderStudio() {
         error?: string;
       };
       if (!genRes.ok || !genData.project) {
-        toast(genData.error || "Generate failed", "error");
+        toast(genData.error || "Could not finish building the shop", "error");
         await load();
         return;
       }
 
       setActiveProject(genData.project);
       setStep("result");
-      setApiKey(""); // clear key from memory/UI
-      toast("App generated and published", "success");
+      setApiKey("");
+      toast("Your shop website is ready!", "success");
       await load();
     } catch {
-      toast("Build failed", "error");
+      toast("Something went wrong. Please try again.", "error");
     } finally {
       setBusy(false);
     }
   }
 
   async function removeProject(id: string, name: string) {
-    if (!window.confirm(`Delete app “${name}”?`)) return;
+    if (!window.confirm(`Delete “${name}”? This cannot be undone.`)) return;
     const res = await fetch(`/api/admin/app-builder/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      toast("Delete failed", "error");
+      toast("Could not delete", "error");
       return;
     }
-    toast("App deleted", "success");
+    toast("Shop removed", "success");
     if (activeProject?.id === id) {
       setActiveProject(null);
-      setStep("prompt");
+      setStep("idea");
     }
     await load();
+  }
+
+  function pickIdea(idea: AppIdeaExample) {
+    setSelectedIdeaId(idea.id);
+    if (idea.prompt) setPrompt(idea.prompt);
+    if (idea.id === "custom") setPrompt("");
+  }
+
+  function resetWizard() {
+    setStep("idea");
+    setActiveProject(null);
+    setPrompt("");
+    setAnswers({});
+    setCustomPoints([]);
+    setQuestionIndex(0);
+    setSelectedIdeaId(null);
+    setCustomDraft("");
+    setExtraDraft("");
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-text-secondary">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Loading App Builder…
+        Getting App Builder ready…
       </div>
     );
   }
@@ -231,8 +372,9 @@ export function AppBuilderStudio() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">App Builder</h1>
             <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-              One prompt → interview → connect your LLM (Grok / Groq / custom) → deploy a full
-              extension app (start with <strong>ecom-local-shop</strong>).
+              Build a real shop website even if you know nothing about technology. We ask simple
+              questions, you tap suggestions (or write your own), and we design logo colours from
+              your city.
             </p>
           </div>
         </div>
@@ -262,173 +404,407 @@ export function AppBuilderStudio() {
 
       {tab === "build" ? (
         <>
-          {/* Step indicator */}
           <div className="flex flex-wrap gap-2 text-xs font-medium">
             {(
               [
-                ["prompt", "1. Prompt"],
-                ["questions", "2. Questions"],
-                ["llm", "3. Your LLM"],
-                ["result", "4. Live app"],
+                ["idea", "1. Your idea"],
+                ["guide", "2. Guided questions"],
+                ["extras", "3. Your own points"],
+                ["ai", "4. AI helper"],
+                ["result", "5. Live shop"],
               ] as const
             ).map(([id, label]) => (
               <span
                 key={id}
-                className={`rounded-full px-3 py-1 ${
+                className={cn(
+                  "rounded-full px-3 py-1",
                   step === id ? "bg-accent-teal text-white" : "bg-muted text-text-secondary"
-                }`}
+                )}
               >
                 {label}
               </span>
             ))}
           </div>
 
-          {step === "prompt" && (
-            <Card className="space-y-5 p-5 md:p-6">
-              <h2 className="text-lg font-semibold">What do you want to build?</h2>
+          {/* STEP: IDEA */}
+          {step === "idea" && (
+            <Card className="space-y-6 p-5 md:p-6">
+              <div className="flex items-start gap-3 rounded-xl border border-accent-teal/20 bg-accent-teal/5 p-4">
+                <HeartHandshake className="mt-0.5 h-5 w-5 shrink-0 text-accent-teal" />
+                <div className="text-sm text-text-secondary">
+                  <p className="font-semibold text-foreground">No coding. No design tools.</p>
+                  <p className="mt-1">
+                    Think of this like booking a free session: we guide you step by step. Tap an
+                    idea that feels close, or write anything in your own words — spelling does not
+                    matter.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold">What kind of shop do you want?</h2>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Pick a starting idea (you can change every detail later).
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {ideaExamples.map((idea) => (
+                    <button
+                      key={idea.id}
+                      type="button"
+                      onClick={() => pickIdea(idea)}
+                      className={cn(
+                        "rounded-2xl border p-4 text-left transition hover:border-accent-teal/50",
+                        selectedIdeaId === idea.id
+                          ? "border-accent-teal bg-accent-teal/5 shadow-sm"
+                          : "border-border bg-card"
+                      )}
+                    >
+                      <span className="text-2xl" aria-hidden>
+                        {idea.emoji}
+                      </span>
+                      <span className="mt-2 block text-sm font-semibold text-foreground">
+                        {idea.title}
+                      </span>
+                      <span className="mt-1 block text-xs text-text-secondary">
+                        {idea.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <label className="block text-sm">
-                <span className="mb-1 block text-xs font-medium text-text-secondary">
-                  One product prompt
+                <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  Describe your shop in plain words
                 </span>
                 <textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+                    setSelectedIdeaId((id) => (id === "custom" || !id ? "custom" : id));
+                  }}
                   rows={4}
-                  placeholder="e.g. A local handicraft shop in Jaipur that sells pottery and textiles online with pickup option"
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5"
+                  placeholder="Example: I sell handmade diyas and gift boxes from my home in Jaipur. Parents and tourists buy from me. I take orders on WhatsApp."
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
                 />
               </label>
 
-              <fieldset className="space-y-2">
-                <legend className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Extension (deployed app shape)
-                </legend>
-                {extensions.map((ext) => (
-                  <label
-                    key={ext.id}
-                    className={`flex cursor-pointer gap-3 rounded-xl border p-4 ${
-                      extensionId === ext.id
-                        ? "border-accent-teal bg-accent-teal/5"
-                        : "border-border"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="ext"
-                      checked={extensionId === ext.id}
-                      onChange={() => setExtensionId(ext.id)}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="block text-sm font-semibold">{ext.label}</span>
-                      <span className="mt-1 block font-mono text-[11px] text-accent-teal">
-                        {ext.id}
-                      </span>
-                      <span className="mt-1 block text-xs text-text-secondary">{ext.description}</span>
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
+              {extensions[0] ? (
+                <p className="text-xs text-text-muted">
+                  We will build: <strong className="text-foreground">{extensions[0].plainLabel}</strong>
+                </p>
+              ) : null}
 
               <Button
                 type="button"
                 disabled={!prompt.trim()}
-                onClick={() => setStep("questions")}
+                onClick={() => {
+                  setQuestionIndex(0);
+                  setStep("guide");
+                }}
               >
-                Continue to questions
+                Start guided questions
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
           )}
 
-          {step === "questions" && extension && (
+          {/* STEP: GUIDED QUESTIONS (one at a time) */}
+          {step === "guide" && currentQ && (
             <Card className="space-y-5 p-5 md:p-6">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-lg font-semibold">Required questions</h2>
                 <button
                   type="button"
                   className="text-sm text-text-secondary hover:text-foreground"
-                  onClick={() => setStep("prompt")}
+                  onClick={goPrevQuestion}
+                >
+                  <ArrowLeft className="mr-1 inline h-4 w-4" />
+                  Back
+                </button>
+                <span className="text-xs font-medium text-text-muted">
+                  Question {questionIndex + 1} of {questions.length}
+                </span>
+              </div>
+
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-accent-teal transition-all"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">{currentQ.label}</h2>
+                {currentQ.helpText ? (
+                  <p className="mt-2 text-sm text-text-secondary">{currentQ.helpText}</p>
+                ) : null}
+              </div>
+
+              {currentQ.id === "city" ? (
+                <p className="flex items-center gap-1.5 text-xs text-accent-teal">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Your city picks logo colours and product picture style automatically.
+                </p>
+              ) : null}
+
+              {currentQ.suggestions && currentQ.suggestions.length > 0 ? (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    Tap a suggestion
+                    {currentQ.selectMode === "multi" ? " (pick as many as you like)" : ""}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {currentQ.suggestions.map((s) => {
+                      const selected = isSuggestionSelected(currentQ, s);
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => toggleSuggestion(currentQ, s)}
+                          className={cn(
+                            "rounded-full border px-3 py-1.5 text-left text-sm transition",
+                            selected
+                              ? "border-accent-teal bg-accent-teal text-white"
+                              : "border-border bg-card text-foreground hover:border-accent-teal/40"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {(currentQ.allowCustom !== false ||
+                currentQ.selectMode === "free" ||
+                currentQ.multiline) && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    {currentQ.selectMode === "multi"
+                      ? "Or add your own point"
+                      : "Your answer (edit freely)"}
+                  </p>
+                  {currentQ.selectMode === "multi" ? (
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        value={customDraft}
+                        onChange={(e) => setCustomDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addCustomToQuestion(currentQ);
+                          }
+                        }}
+                        placeholder="Type something that fits you…"
+                        className="min-w-[12rem] flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => addCustomToQuestion(currentQ)}
+                      >
+                        <Plus className="mr-1 h-4 w-4" />
+                        Add
+                      </Button>
+                    </div>
+                  ) : null}
+                  {currentQ.multiline ? (
+                    <textarea
+                      value={answers[currentQ.id] || ""}
+                      onChange={(e) => setAnswer(currentQ.id, e.target.value)}
+                      rows={4}
+                      placeholder={currentQ.placeholder}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                    />
+                  ) : currentQ.selectMode !== "multi" ? (
+                    <input
+                      value={answers[currentQ.id] || ""}
+                      onChange={(e) => setAnswer(currentQ.id, e.target.value)}
+                      placeholder={currentQ.placeholder}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                    />
+                  ) : answers[currentQ.id] ? (
+                    <div className="flex flex-wrap gap-2 rounded-xl border border-dashed border-border bg-muted/30 p-3">
+                      {parseAnswerList(answers[currentQ.id]).map((item) => (
+                        <span
+                          key={item}
+                          className="inline-flex items-center gap-1 rounded-full bg-accent-teal/10 px-2.5 py-1 text-xs font-medium text-accent-teal"
+                        >
+                          {item}
+                          <button
+                            type="button"
+                            aria-label={`Remove ${item}`}
+                            onClick={() => {
+                              const next = parseAnswerList(answers[currentQ.id]).filter(
+                                (x) => x !== item
+                              );
+                              setAnswer(currentQ.id, joinAnswerList(next));
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button type="button" onClick={goNextQuestion}>
+                  {questionIndex >= questions.length - 1 ? "Continue" : "Next question"}
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+                {!currentQ.required ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setCustomDraft("");
+                      if (questionIndex >= questions.length - 1) setStep("extras");
+                      else setQuestionIndex((i) => i + 1);
+                    }}
+                  >
+                    Skip for now
+                  </Button>
+                ) : null}
+              </div>
+            </Card>
+          )}
+
+          {/* STEP: CUSTOM EXTRAS */}
+          {step === "extras" && (
+            <Card className="space-y-5 p-5 md:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold">Add your own points</h2>
+                <button
+                  type="button"
+                  className="text-sm text-text-secondary hover:text-foreground"
+                  onClick={() => {
+                    setQuestionIndex(Math.max(0, questions.length - 1));
+                    setStep("guide");
+                  }}
                 >
                   <ArrowLeft className="mr-1 inline h-4 w-4" />
                   Back
                 </button>
               </div>
               <p className="text-sm text-text-secondary">
-                Answer these so we can generate a complete <code className="text-xs">{extension.id}</code>{" "}
-                app from your prompt.
+                Anything else that matters to you — even if it feels small. These show up on your
+                shop as “Why shop with us”. No tech words needed.
               </p>
-              <div className="space-y-4">
-                {extension.questions.map((q) => (
-                  <label key={q.id} className="block text-sm">
-                    <span className="mb-1 block text-xs font-medium text-text-secondary">
-                      {q.label}
-                      {q.required ? " *" : ""}
-                    </span>
-                    {q.multiline ? (
-                      <textarea
-                        value={answers[q.id] || ""}
-                        onChange={(e) => setAnswer(q.id, e.target.value)}
-                        rows={3}
-                        placeholder={q.placeholder}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5"
-                      />
-                    ) : (
-                      <input
-                        value={answers[q.id] || ""}
-                        onChange={(e) => setAnswer(q.id, e.target.value)}
-                        placeholder={q.placeholder}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5"
-                      />
+
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "We pack gifts carefully",
+                  "Same-day reply on WhatsApp",
+                  "Student-friendly prices",
+                  "Family recipe / traditional method",
+                  "Only local materials",
+                  "I am still learning — please be kind!",
+                ].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      if (!customPoints.includes(s)) {
+                        setCustomPoints((prev) => [...prev, s]);
+                      }
+                    }}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm",
+                      customPoints.includes(s)
+                        ? "border-accent-teal bg-accent-teal text-white"
+                        : "border-border hover:border-accent-teal/40"
                     )}
-                  </label>
+                  >
+                    {s}
+                  </button>
                 ))}
               </div>
-              <Button
-                type="button"
-                onClick={() => {
-                  const err = validateQuestions();
-                  if (err) {
-                    toast(err, "error");
-                    return;
-                  }
-                  setStep("llm");
-                }}
-              >
-                Continue to LLM connection
+
+              <div className="flex flex-wrap gap-2">
+                <input
+                  value={extraDraft}
+                  onChange={(e) => setExtraDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addExtraPoint();
+                    }
+                  }}
+                  placeholder="Write anything in your own words…"
+                  className="min-w-[14rem] flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                />
+                <Button type="button" variant="secondary" onClick={addExtraPoint}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add my point
+                </Button>
+              </div>
+
+              {customPoints.length > 0 ? (
+                <ul className="space-y-2">
+                  {customPoints.map((p) => (
+                    <li
+                      key={p}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                    >
+                      <span>{p}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${p}`}
+                        onClick={() => setCustomPoints((prev) => prev.filter((x) => x !== p))}
+                        className="text-text-muted hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-text-muted">Optional — you can skip if you already said enough.</p>
+              )}
+
+              <Button type="button" onClick={() => setStep("ai")}>
+                Continue to AI helper
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
           )}
 
-          {step === "llm" && (
+          {/* STEP: AI KEY (plain language) */}
+          {step === "ai" && (
             <Card className="space-y-5 p-5 md:p-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <KeyRound className="h-5 w-5 text-accent-teal" />
-                  <h2 className="text-lg font-semibold">Connect your LLM</h2>
+                  <h2 className="text-lg font-semibold">Connect your AI helper</h2>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-text-secondary hover:text-foreground"
-                  onClick={() => setStep("questions")}
+                  onClick={() => setStep("extras")}
                 >
                   <ArrowLeft className="mr-1 inline h-4 w-4" />
                   Back
                 </button>
               </div>
               <p className="text-sm text-text-secondary">
-                Use <strong>your</strong> API key. Keys are used only for this generate request and
-                are <strong>not stored</strong> on Verlin Labs servers.
+                Your AI helper writes product names, page text, and FAQ in simple language. You use{" "}
+                <strong>your own</strong> key from Grok or Groq. We use it <strong>only once</strong>{" "}
+                to build the shop — we <strong>never store</strong> the key.
               </p>
 
               <fieldset className="grid gap-2 sm:grid-cols-3">
                 {llmProviders.map((p) => (
                   <label
                     key={p.id}
-                    className={`cursor-pointer rounded-xl border p-3 text-sm ${
+                    className={cn(
+                      "cursor-pointer rounded-xl border p-3 text-sm",
                       provider === p.id ? "border-accent-teal bg-accent-teal/5" : "border-border"
-                    }`}
+                    )}
                   >
                     <input
                       type="radio"
@@ -436,119 +812,134 @@ export function AppBuilderStudio() {
                       checked={provider === p.id}
                       onChange={() => selectProvider(p.id)}
                     />
-                    <span className="font-semibold">{p.label}</span>
+                    <span className="font-semibold">{p.plainLabel || p.label}</span>
                     <span className="mt-1 block text-xs text-text-secondary">{p.hint}</span>
                   </label>
                 ))}
               </fieldset>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block text-sm sm:col-span-2">
-                  <span className="mb-1 block text-xs font-medium text-text-secondary">API key *</span>
-                  <input
-                    type="password"
-                    autoComplete="off"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={
-                      provider === "xai"
-                        ? "xai-..."
-                        : provider === "groq"
-                          ? "gsk_..."
-                          : "sk-..."
-                    }
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
-                  />
-                </label>
-                <label className="block text-sm">
-                  <span className="mb-1 block text-xs font-medium text-text-secondary">Model</span>
-                  <input
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
-                  />
-                </label>
-                {provider === "custom" ? (
+              <label className="block text-sm">
+                <span className="mb-1 block text-xs font-medium text-text-secondary">
+                  Paste your AI key here *
+                </span>
+                <input
+                  type="password"
+                  autoComplete="off"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder={
+                    provider === "xai" ? "starts with xai-…" : provider === "groq" ? "starts with gsk_…" : "your key…"
+                  }
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
+                />
+              </label>
+
+              <button
+                type="button"
+                className="text-xs font-medium text-text-muted underline"
+                onClick={() => setShowAdvancedAi((v) => !v)}
+              >
+                {showAdvancedAi ? "Hide advanced options" : "Show advanced options (model name)"}
+              </button>
+
+              {showAdvancedAi ? (
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block text-sm">
                     <span className="mb-1 block text-xs font-medium text-text-secondary">
-                      Base URL (OpenAI-compatible)
+                      Model name
                     </span>
                     <input
-                      value={baseUrl}
-                      onChange={(e) => setBaseUrl(e.target.value)}
-                      placeholder="https://api.example.com/v1"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
                       className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
                     />
                   </label>
-                ) : (
-                  <label className="block text-sm">
-                    <span className="mb-1 block text-xs font-medium text-text-secondary">Endpoint</span>
-                    <input
-                      value={baseUrl}
-                      readOnly
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 font-mono text-sm"
-                    />
-                  </label>
-                )}
+                  {provider === "custom" ? (
+                    <label className="block text-sm">
+                      <span className="mb-1 block text-xs font-medium text-text-secondary">
+                        AI service link
+                      </span>
+                      <input
+                        value={baseUrl}
+                        onChange={(e) => setBaseUrl(e.target.value)}
+                        placeholder="https://…"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
+                      />
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="rounded-xl border border-border bg-muted/30 p-4 text-xs text-text-secondary">
+                <p className="font-semibold text-foreground">What happens next</p>
+                <ul className="mt-2 list-inside list-disc space-y-1">
+                  <li>We design a logo mark and colours from your city</li>
+                  <li>We create product cards with friendly pictures (icons)</li>
+                  <li>We publish a live shop link you can open on your phone</li>
+                </ul>
               </div>
 
               <Button type="button" onClick={() => void handleBuild()} loading={busy} disabled={busy}>
                 <Rocket className="mr-1.5 h-4 w-4" />
-                {busy ? "Generating & deploying…" : "Generate & deploy app"}
+                {busy ? "Building your shop…" : "Build my shop website"}
               </Button>
             </Card>
           )}
 
+          {/* STEP: RESULT */}
           {step === "result" && activeProject && (
             <Card className="space-y-4 border-accent-teal/30 p-5 md:p-6">
               <div className="flex items-center gap-2 text-teal">
                 <Sparkles className="h-5 w-5" />
-                <h2 className="text-lg font-semibold text-foreground">App is live</h2>
+                <h2 className="text-lg font-semibold text-foreground">Your shop is live!</h2>
               </div>
               <p className="text-sm text-text-secondary">
-                <strong>{activeProject.name}</strong> · extension{" "}
-                <code className="text-xs">{activeProject.extensionId}</code>
-                {activeProject.generatedBy ? (
-                  <> · generated via {activeProject.generatedBy}</>
-                ) : null}
+                <strong>{activeProject.name}</strong> is ready to share with customers.
+                {activeProject.content?.city
+                  ? ` Colours and logo style match ${activeProject.content.city}.`
+                  : null}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Link href={activeProject.publicPath} target="_blank">
                   <Button>
                     <ExternalLink className="mr-1.5 h-4 w-4" />
-                    Open {activeProject.publicPath}
+                    Open my shop
                   </Button>
                 </Link>
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => {
-                    setStep("prompt");
-                    setActiveProject(null);
-                    setPrompt("");
-                    setAnswers({});
-                  }}
-                >
-                  Build another
+                <Button variant="secondary" type="button" onClick={resetWizard}>
+                  Build another shop
                 </Button>
               </div>
             </Card>
           )}
 
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Your apps</h2>
+            <h2 className="text-lg font-semibold">Your shops</h2>
             {projects.length === 0 ? (
               <Card className="p-6 text-center text-sm text-text-secondary">
-                No apps yet. Start with a prompt above.
+                No shops yet. Start with an idea above — we will hold your hand through each step.
               </Card>
             ) : (
               projects.map((p) => (
                 <Card key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div>
-                    <p className="font-semibold text-foreground">{p.name}</p>
-                    <p className="text-xs text-text-muted">
-                      {p.extensionId} · {p.status} · {p.publicPath}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {p.content?.logo ? (
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold text-white"
+                        style={{
+                          background: `linear-gradient(145deg, ${p.content.logo.bgFrom}, ${p.content.logo.bgTo})`,
+                        }}
+                      >
+                        {p.content.logo.initials}
+                      </div>
+                    ) : null}
+                    <div>
+                      <p className="font-semibold text-foreground">{p.name}</p>
+                      <p className="text-xs text-text-muted">
+                        {p.status === "live" ? "Live" : p.status} · {p.publicPath}
+                        {p.content?.city ? ` · ${p.content.city}` : ""}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     {p.status === "live" ? (

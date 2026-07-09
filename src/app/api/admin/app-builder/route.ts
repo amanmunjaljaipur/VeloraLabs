@@ -1,5 +1,10 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
-import { APP_EXTENSIONS, getExtension, slugifyAppName } from "@/lib/app-builder/extensions";
+import {
+  APP_EXTENSIONS,
+  APP_IDEA_EXAMPLES,
+  getExtension,
+  slugifyAppName,
+} from "@/lib/app-builder/extensions";
 import { defaultModelForProvider } from "@/lib/app-builder/llm";
 import {
   listAppProjects,
@@ -18,27 +23,31 @@ export async function GET() {
   return NextResponse.json({
     projects: listAppProjects(),
     extensions: APP_EXTENSIONS,
+    ideaExamples: APP_IDEA_EXAMPLES,
     llmProviders: [
       {
         id: "xai" as const,
-        label: "xAI Grok",
+        label: "Grok (xAI)",
+        plainLabel: "Grok — smart AI helper from xAI",
         defaultModel: defaultModelForProvider("xai"),
         baseUrl: "https://api.x.ai/v1",
-        hint: "Get a key at console.x.ai — use Grok to generate app content",
+        hint: "Paste the key you get from console.x.ai. We never save it.",
       },
       {
         id: "groq" as const,
-        label: "Groq (free tier)",
+        label: "Groq (often free)",
+        plainLabel: "Groq — fast free-tier AI helper",
         defaultModel: defaultModelForProvider("groq"),
         baseUrl: "https://api.groq.com/openai/v1",
-        hint: "console.groq.com — fast free Llama models",
+        hint: "Paste the key from console.groq.com. We never save it.",
       },
       {
         id: "custom" as const,
-        label: "Custom OpenAI-compatible",
+        label: "Your own AI",
+        plainLabel: "Any other AI that uses an OpenAI-style link",
         defaultModel: "gpt-4o-mini",
         baseUrl: "",
-        hint: "Any OpenAI-compatible API (OpenRouter, Together, Azure, self-hosted…)",
+        hint: "For advanced users: your own AI service URL + key.",
       },
     ],
   });
@@ -52,6 +61,7 @@ export async function POST(request: Request) {
     prompt?: string;
     extensionId?: string;
     answers?: AppInterviewAnswer[];
+    customPoints?: string[];
     llm?: {
       provider: LlmProviderKind;
       model: string;
@@ -68,21 +78,30 @@ export async function POST(request: Request) {
   const prompt = body.prompt?.trim();
   const extensionId = body.extensionId || "ecom-local-shop";
   const ext = getExtension(extensionId);
-  if (!prompt) return NextResponse.json({ error: "prompt is required" }, { status: 400 });
-  if (!ext) return NextResponse.json({ error: "Unknown extension" }, { status: 400 });
+  if (!prompt) {
+    return NextResponse.json(
+      { error: "Please describe your shop idea in simple words first." },
+      { status: 400 }
+    );
+  }
+  if (!ext) return NextResponse.json({ error: "Unknown shop type" }, { status: 400 });
 
   const answers = Array.isArray(body.answers) ? body.answers : [];
   for (const q of ext.questions.filter((x) => x.required)) {
     const a = answers.find((x) => x.id === q.id)?.answer?.trim();
     if (!a) {
-      return NextResponse.json({ error: `Missing answer: ${q.label}` }, { status: 400 });
+      return NextResponse.json({ error: `Please answer: ${q.label}` }, { status: 400 });
     }
   }
+
+  const customPoints = Array.isArray(body.customPoints)
+    ? body.customPoints.map((p) => String(p).trim()).filter(Boolean).slice(0, 30)
+    : [];
 
   const brand =
     answers.find((a) => a.id === "brandName")?.answer?.trim() ||
     slugifyAppName(prompt).replace(/-/g, " ") ||
-    "My App";
+    "My Shop";
   const slug = uniqueAppSlug(brand);
   const now = new Date().toISOString();
   const provider = body.llm?.provider || "xai";
@@ -95,6 +114,7 @@ export async function POST(request: Request) {
     extensionId: ext.id,
     status: "draft",
     answers,
+    customPoints,
     llm: {
       provider,
       model: body.llm?.model || defaultModelForProvider(provider),

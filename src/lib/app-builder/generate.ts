@@ -1,3 +1,4 @@
+import { buildShopLogo, getLocationBrand, productEmoji } from "@/lib/app-builder/branding";
 import { getExtension } from "@/lib/app-builder/extensions";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import type {
@@ -5,82 +6,172 @@ import type {
   AppLlmSecrets,
   EcomLocalShopContent,
   EcomProduct,
+  ShopLogo,
 } from "@/lib/app-builder/types";
 
 function answerMap(answers: AppInterviewAnswer[]): Record<string, string> {
   return Object.fromEntries(answers.map((a) => [a.id, a.answer.trim()]));
 }
 
-function fallbackEcom(answers: AppInterviewAnswer[]): EcomLocalShopContent {
+function splitList(value?: string): string[] {
+  if (!value?.trim()) return [];
+  return value
+    .split(/[,;\n|]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function extractPhone(contact: string): string {
+  return contact.match(/\+?[\d][\d\s-]{8,}/)?.[0]?.trim() || "";
+}
+
+function extractEmail(contact: string): string {
+  return contact.match(/[\w.+-]+@[\w.-]+\.\w+/)?.[0] || "";
+}
+
+function enrichProducts(
+  products: EcomProduct[],
+  city: string
+): EcomProduct[] {
+  const loc = getLocationBrand(city);
+  return products.map((p, i) => ({
+    ...p,
+    id: p.id || `p${i + 1}`,
+    emoji: p.emoji || productEmoji(p.name, p.category, loc, i),
+  }));
+}
+
+function makeLogo(brandName: string, city: string): ShopLogo {
+  const b = buildShopLogo(brandName, city);
+  return {
+    initials: b.initials,
+    emoji: b.emoji,
+    motif: b.motif,
+    bgFrom: b.bgFrom,
+    bgTo: b.bgTo,
+    badge: b.badge,
+  };
+}
+
+function fallbackEcom(
+  answers: AppInterviewAnswer[],
+  customPoints: string[] = []
+): EcomLocalShopContent {
   const a = answerMap(answers);
   const brand = a.brandName || "Local Shop";
   const city = a.city || "Your city";
-  const products: EcomProduct[] = [
-    {
-      id: "p1",
-      name: "Signature product",
-      description: a.whatYouSell?.slice(0, 160) || "Handpicked local favourite.",
-      price: "₹499",
-      category: "Bestsellers",
-      featured: true,
-    },
-    {
-      id: "p2",
-      name: "Everyday essential",
-      description: "Reliable quality for daily use.",
-      price: "₹299",
-      category: "Essentials",
-    },
-    {
-      id: "p3",
-      name: "Gift set",
-      description: "Perfect for friends and family.",
-      price: "₹899",
-      category: "Gifts",
-      featured: true,
-    },
-  ];
+  const locBrand = buildShopLogo(brand, city);
+  const orderMethods = splitList(a.howToOrder);
+  const shopTypes = splitList(a.shopType);
+  const vibe = splitList(a.vibe);
+  const mustHave = splitList(a.mustHave);
+  const ownerHighlights = [
+    ...mustHave,
+    ...customPoints.map((p) => p.trim()).filter(Boolean),
+  ].slice(0, 12);
+
+  const sellLines = (a.whatYouSell || "")
+    .split(/[\n·•]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const products: EcomProduct[] = (sellLines.length > 0 ? sellLines : ["Signature product", "Everyday pick", "Gift set"])
+    .slice(0, 8)
+    .map((line, i) => {
+      const priceMatch = line.match(/₹\s*[\d,]+|Rs\.?\s*[\d,]+|INR\s*[\d,]+/i);
+      const name = line.replace(/[-–—:]?\s*(₹|Rs\.?|INR).*$/i, "").trim() || `Product ${i + 1}`;
+      return {
+        id: `p${i + 1}`,
+        name: name.slice(0, 80),
+        description: line,
+        price: priceMatch?.[0]?.replace(/\s+/g, "") || (i === 0 ? "₹499" : i === 1 ? "₹299" : "₹799"),
+        category: shopTypes[0] || "Bestsellers",
+        featured: i < 2,
+      };
+    });
+
+  const phone = extractPhone(a.contact || "");
+  const email = extractEmail(a.contact || "") || "hello@example.com";
 
   return {
     extensionId: "ecom-local-shop",
     brandName: brand,
     tagline: `Local picks from ${city}`,
-    description: a.whatYouSell || `${brand} serves ${city} with carefully chosen products.`,
-    primaryColor: "#0d9488",
+    description:
+      a.whatYouSell ||
+      `${brand} is a friendly local shop in ${city}${shopTypes.length ? ` for ${shopTypes.join(", ")}` : ""}.`,
+    primaryColor: locBrand.primaryColor,
+    secondaryColor: locBrand.secondaryColor,
     city,
-    currency: a.currency || "INR",
-    contactEmail: a.contact?.match(/[\w.+-]+@[\w.-]+\.\w+/)?.[0] || "hello@example.com",
-    contactPhone: a.contact?.match(/\+?[\d\s-]{8,}/)?.[0]?.trim() || "",
+    currency: "INR",
+    contactEmail: email,
+    contactPhone: phone,
+    whatsappNumber: phone,
     address: a.contact || city,
-    heroHeadline: `Shop local at ${brand}`,
+    heroHeadline: `Welcome to ${brand}`,
     heroSubheadline: a.audience
-      ? `Made for ${a.audience}. ${a.tone || "Warm and trustworthy."}`
-      : "Quality products from your neighbourhood.",
-    aboutHtml: `<p>${brand} is a local shop serving ${city}. ${a.whatYouSell || ""}</p><p>${a.extra || "We focus on quality, fair prices, and friendly service."}</p>`,
-    products,
+      ? `Made for ${splitList(a.audience).slice(0, 2).join(" & ") || a.audience}. ${vibe[0] || "Warm and trustworthy."}`
+      : `Quality from ${locBrand.landmarkHint}.`,
+    aboutHtml: `<p>${brand} is a local shop serving ${city}. ${a.whatYouSell || ""}</p><p>${ownerHighlights.join(" · ") || "We focus on quality, fair prices, and friendly service."}</p>`,
+    products: enrichProducts(products, city),
     categories: [...new Set(products.map((p) => p.category))],
     faqs: [
       {
-        question: "Do you deliver?",
-        answer: a.extra || "Contact us for delivery or pickup options in your area.",
+        question: "How do I place an order?",
+        answer: orderMethods.length
+          ? `You can order via: ${orderMethods.join(", ")}. We will confirm everything with you personally.`
+          : "Message us on WhatsApp or call — we will help you step by step.",
       },
       {
-        question: "How do I place an order?",
-        answer: "Browse products on the shop page and reach us via phone, email, or WhatsApp to confirm.",
+        question: "Do you deliver?",
+        answer:
+          orderMethods.some((m) => /deliver/i.test(m))
+            ? "Yes — we deliver in our local area. Ask us for details."
+            : "Pickup at the shop is available. Message us if you need delivery nearby.",
+      },
+      {
+        question: "How do I pay?",
+        answer: orderMethods.some((m) => /upi|cash|pay/i.test(m))
+          ? `Payment options include: ${orderMethods.filter((m) => /upi|cash|pay|cod/i.test(m)).join(", ") || "UPI or cash"}.`
+          : "UPI and cash are usually fine — we will confirm when you order.",
       },
     ],
-    ctaLabel: "Browse shop",
+    ctaLabel: "See products",
     footerNote: `© ${new Date().getFullYear()} ${brand} · ${city}`,
+    logo: makeLogo(brand, city),
+    heroTheme: locBrand.heroTheme,
+    openingHours: a.hours || "",
+    orderMethods: orderMethods.length ? orderMethods : ["WhatsApp message", "Phone call"],
+    paymentMethods: orderMethods.filter((m) => /upi|cash|card|pay/i.test(m)).length
+      ? orderMethods.filter((m) => /upi|cash|card|pay/i.test(m))
+      : ["UPI", "Cash"],
+    deliveryNote: orderMethods.find((m) => /deliver|pickup/i.test(m)) || "Ask us about pickup or delivery",
+    trustBadges: [
+      "Local shop",
+      vibe.includes("Trustworthy family business") ? "Family-run" : "Friendly service",
+      "Simple ordering",
+    ].filter(Boolean),
+    ownerHighlights,
+    languageNote: vibe.some((v) => /hindi/i.test(v))
+      ? "We are happy to chat in simple Hindi or English."
+      : undefined,
   };
 }
 
+type LlmShopShape = Omit<EcomLocalShopContent, "extensionId" | "logo" | "heroTheme" | "secondaryColor"> & {
+  secondaryColor?: string;
+  logoEmoji?: string;
+};
+
 /**
  * Generate extension content with the user's LLM, falling back to a solid template.
+ * Always applies location-based logo + product emojis.
  */
 export async function generateExtensionContent(input: {
   extensionId: string;
   prompt: string;
   answers: AppInterviewAnswer[];
+  customPoints?: string[];
   secrets: AppLlmSecrets;
 }): Promise<{ content: EcomLocalShopContent; generatedBy: string }> {
   const ext = getExtension(input.extensionId);
@@ -88,82 +179,124 @@ export async function generateExtensionContent(input: {
     throw new Error("Unsupported extension");
   }
 
+  const customPoints = (input.customPoints || []).map((p) => p.trim()).filter(Boolean);
   const qa = input.answers.map((a) => `Q: ${a.question}\nA: ${a.answer}`).join("\n\n");
+  const customBlock =
+    customPoints.length > 0
+      ? `\n\nOwner's own points (must include on the site):\n- ${customPoints.join("\n- ")}`
+      : "";
 
   try {
     const raw = await callUserLlm({
       secrets: input.secrets,
-      maxTokens: 4500,
-      temperature: 0.5,
+      maxTokens: 5000,
+      temperature: 0.45,
       messages: [
         {
           role: "system",
-          content: `You are an expert product + copy system that builds a local e-commerce shop content pack.
-Return ONLY valid JSON matching this TypeScript shape:
+          content: `You build complete content for a LOCAL SHOP website for people who are NOT technical (like school students' parents, small shop owners).
+Use simple, warm language. Avoid jargon.
+Return ONLY valid JSON:
 {
   "brandName": string,
   "tagline": string,
   "description": string,
-  "primaryColor": string (hex like #0d9488),
+  "primaryColor": string (hex — pick colours that feel local to the city),
+  "secondaryColor": string (hex),
   "city": string,
   "currency": string,
   "contactEmail": string,
   "contactPhone": string,
+  "whatsappNumber": string,
   "address": string,
   "heroHeadline": string,
   "heroSubheadline": string,
   "aboutHtml": string (simple HTML paragraphs),
-  "products": Array<{ "id": string, "name": string, "description": string, "price": string, "category": string, "featured"?: boolean }>,
+  "products": Array<{ "id": string, "name": string, "description": string, "price": string, "category": string, "emoji"?: string, "featured"?: boolean }>,
   "categories": string[],
   "faqs": Array<{ "question": string, "answer": string }>,
   "ctaLabel": string,
-  "footerNote": string
+  "footerNote": string,
+  "openingHours": string,
+  "orderMethods": string[],
+  "paymentMethods": string[],
+  "deliveryNote": string,
+  "trustBadges": string[],
+  "ownerHighlights": string[],
+  "languageNote": string
 }
-Rules: 5-10 products, realistic INR prices if India, no fake claims, match brand tone from answers.`,
+Rules:
+- 5-10 products with realistic INR prices if India
+- FAQs in simple words (how to order, pay, deliver)
+- Reflect every interview answer and owner points
+- No fake claims`,
         },
         {
           role: "user",
-          content: `Original prompt:\n${input.prompt}\n\nInterview answers:\n${qa}\n\nBuild the complete ecom-local-shop content pack.`,
+          content: `Original idea:\n${input.prompt}\n\nInterview answers:\n${qa}${customBlock}\n\nBuild the complete local shop content pack.`,
         },
       ],
     });
 
-    const parsed = parseJsonObject<Omit<EcomLocalShopContent, "extensionId">>(raw);
+    const parsed = parseJsonObject<LlmShopShape>(raw);
     if (!parsed.brandName || !parsed.products?.length) {
       throw new Error("Incomplete shop content from LLM");
     }
 
+    const city = parsed.city || answerMap(input.answers).city || "Local";
+    const brandName = parsed.brandName;
+    const logo = makeLogo(brandName, city);
+    const loc = buildShopLogo(brandName, city);
+
     const content: EcomLocalShopContent = {
       extensionId: "ecom-local-shop",
-      brandName: parsed.brandName,
+      brandName,
       tagline: parsed.tagline || "Local shop",
       description: parsed.description || "",
-      primaryColor: parsed.primaryColor || "#0d9488",
-      city: parsed.city || "Local",
+      primaryColor: parsed.primaryColor || loc.primaryColor,
+      secondaryColor: parsed.secondaryColor || loc.secondaryColor,
+      city,
       currency: parsed.currency || "INR",
       contactEmail: parsed.contactEmail || "hello@example.com",
       contactPhone: parsed.contactPhone || "",
+      whatsappNumber: parsed.whatsappNumber || parsed.contactPhone || "",
       address: parsed.address || "",
-      heroHeadline: parsed.heroHeadline || parsed.brandName,
+      heroHeadline: parsed.heroHeadline || brandName,
       heroSubheadline: parsed.heroSubheadline || parsed.tagline || "",
       aboutHtml: parsed.aboutHtml || `<p>${parsed.description}</p>`,
-      products: parsed.products.map((p, i) => ({
-        id: p.id || `p${i + 1}`,
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        category: p.category || "General",
-        featured: p.featured,
-      })),
+      products: enrichProducts(
+        parsed.products.map((p, i) => ({
+          id: p.id || `p${i + 1}`,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          category: p.category || "General",
+          emoji: p.emoji,
+          featured: p.featured,
+        })),
+        city
+      ),
       categories:
         parsed.categories?.length > 0
           ? parsed.categories
           : [...new Set(parsed.products.map((p) => p.category || "General"))],
       faqs: parsed.faqs?.length
         ? parsed.faqs
-        : [{ question: "How do I order?", answer: "Contact us to place an order." }],
-      ctaLabel: parsed.ctaLabel || "Shop now",
-      footerNote: parsed.footerNote || `© ${parsed.brandName}`,
+        : [{ question: "How do I order?", answer: "Message us on WhatsApp — we will help you." }],
+      ctaLabel: parsed.ctaLabel || "See products",
+      footerNote: parsed.footerNote || `© ${brandName}`,
+      logo,
+      heroTheme: loc.heroTheme,
+      openingHours: parsed.openingHours || "",
+      orderMethods: parsed.orderMethods?.length ? parsed.orderMethods : ["WhatsApp message"],
+      paymentMethods: parsed.paymentMethods?.length ? parsed.paymentMethods : ["UPI", "Cash"],
+      deliveryNote: parsed.deliveryNote || "",
+      trustBadges: parsed.trustBadges?.length ? parsed.trustBadges : ["Local shop", "Friendly service"],
+      ownerHighlights: [
+        ...(parsed.ownerHighlights || []),
+        ...customPoints,
+      ].filter((v, i, arr) => v && arr.indexOf(v) === i),
+      languageNote: parsed.languageNote,
     };
 
     return {
@@ -173,7 +306,7 @@ Rules: 5-10 products, realistic INR prices if India, no fake claims, match brand
   } catch (error) {
     console.error("[app-builder] LLM generate failed, using template:", error);
     return {
-      content: fallbackEcom(input.answers),
+      content: fallbackEcom(input.answers, customPoints),
       generatedBy: "template-fallback",
     };
   }
