@@ -1,5 +1,5 @@
-import { isGlmConfigured } from "@/lib/chat/glm-client";
-import { answerWithGlm } from "@/lib/chat/llm-answer";
+import { getLlmPublicInfo, isLlmConfigured } from "@/lib/chat/llm-client";
+import { answerWithLlm } from "@/lib/chat/llm-answer";
 import { loadChatbotIndex } from "@/lib/chat/load-index";
 import { buildChatMenu, getEntryAnswer } from "@/lib/chat/menu";
 import { getActiveKnowledgeEntries } from "@/lib/chat/training-store";
@@ -32,10 +32,13 @@ function getKnowledgeEntries() {
 export async function GET() {
   const entries = getKnowledgeEntries();
   const menu = buildChatMenu(entries);
+  const llm = getLlmPublicInfo();
   return NextResponse.json({
     ...menu,
-    llmEnabled: isGlmConfigured(),
-    model: isGlmConfigured() ? process.env.GLM_MODEL?.trim() || "glm-5.2" : null,
+    llmEnabled: llm.enabled,
+    model: llm.model,
+    provider: llm.provider,
+    modelLabel: llm.label,
   });
 }
 
@@ -58,7 +61,6 @@ export async function POST(request: Request) {
 
   const entries = getKnowledgeEntries();
 
-  // FAQ menu path — exact trained answers
   const entryId = body.entryId?.trim();
   if (entryId) {
     const response = getEntryAnswer(entryId, entries);
@@ -68,7 +70,6 @@ export async function POST(request: Request) {
     return NextResponse.json(response);
   }
 
-  // Free-form chat — GLM-5.2 with knowledge retrieval
   const message = body.message?.trim();
   if (!message) {
     return NextResponse.json({ error: "message or entryId is required." }, { status: 400 });
@@ -89,6 +90,9 @@ export async function POST(request: Request) {
         .slice(-8)
     : [];
 
-  const response = await answerWithGlm({ message, entries, history });
-  return NextResponse.json(response);
+  const response = await answerWithLlm({ message, entries, history });
+  return NextResponse.json({
+    ...response,
+    llmEnabled: isLlmConfigured(),
+  });
 }

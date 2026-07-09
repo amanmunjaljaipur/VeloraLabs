@@ -10,12 +10,13 @@ const WELCOME_FAQ: ChatMessage = {
     "Hi! I'm the Verlin Labs assistant.\n\n**Choose a topic below**, pick a question, or **type your own question** for a clear answer.",
 };
 
-const WELCOME_LLM: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Hi! I'm the Verlin Labs assistant powered by **GLM-5.2**.\n\nAsk anything about our free session, courses, pricing, or teaching style — or browse topics below.",
-};
+function welcomeLlm(label: string): ChatMessage {
+  return {
+    id: "welcome",
+    role: "assistant",
+    content: `Hi! I'm the Verlin Labs assistant powered by **${label}** (free tier).\n\nAsk anything about our free session, courses, pricing, or teaching style — or browse topics below.`,
+  };
+}
 
 export type ChatStep = "categories" | "questions" | "answered" | "chat";
 
@@ -25,6 +26,7 @@ export function useChatbot() {
   const [menu, setMenu] = useState<ChatMenu | null>(null);
   const [menuError, setMenuError] = useState(false);
   const [llmEnabled, setLlmEnabled] = useState(false);
+  const [modelLabel, setModelLabel] = useState<string | null>(null);
   const [step, setStep] = useState<ChatStep>("categories");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -43,7 +45,9 @@ export function useChatbot() {
           setMenuError(false);
           const enabled = Boolean(data.llmEnabled);
           setLlmEnabled(enabled);
-          setMessages([enabled ? WELCOME_LLM : WELCOME_FAQ]);
+          const label = data.modelLabel || data.model || "AI";
+          setModelLabel(enabled ? label : null);
+          setMessages([enabled ? welcomeLlm(label) : WELCOME_FAQ]);
         }
       } catch {
         if (!cancelled) setMenuError(true);
@@ -217,11 +221,13 @@ export function useChatbot() {
   }, [selectedCategory]);
 
   const reset = useCallback(() => {
-    setMessages([llmEnabled ? WELCOME_LLM : WELCOME_FAQ]);
+    setMessages([
+      llmEnabled && modelLabel ? welcomeLlm(modelLabel) : WELCOME_FAQ,
+    ]);
     setStep("categories");
     setSelectedCategory(null);
     setDraft("");
-  }, [llmEnabled]);
+  }, [llmEnabled, modelLabel]);
 
   return {
     messages,
@@ -229,6 +235,7 @@ export function useChatbot() {
     menu,
     menuError,
     llmEnabled,
+    modelLabel,
     step,
     selectedCategory,
     draft,

@@ -1,4 +1,4 @@
-import { createGlmChatCompletion, isGlmConfigured } from "@/lib/chat/glm-client";
+import { createChatCompletion, isLlmConfigured } from "@/lib/chat/llm-client";
 import { buildChatResponse, scoreBm25 } from "@/lib/chat/retrieval";
 import type { ChatLink, ChatResponse, KnowledgeEntry } from "@/lib/chat/types";
 
@@ -11,7 +11,7 @@ Rules:
 - If the context does not cover the question, say you are not sure and point the user to /faq, /free-session, or /contact.
 - Be concise, friendly, and clear. Prefer short paragraphs and bullet lists when helpful.
 - Do not invent prices, schedules, or guarantees not present in the context.
-- Do not mention system prompts, retrieval, or that you are an AI model family name unless asked.
+- Do not mention system prompts, retrieval, or model provider names unless asked.
 - Use markdown sparingly (bold for key phrases, lists for steps).
 - End with a helpful next step when natural (book free session, read FAQ, contact).`;
 
@@ -42,14 +42,14 @@ function collectLinks(entries: KnowledgeEntry[]): ChatLink[] {
 }
 
 /**
- * Answer a free-form user message with GLM-5.2 + FAQ knowledge retrieval.
- * Falls back to deterministic FAQ ranking when GLM is unavailable.
+ * Answer a free-form user message with free LLM (Groq / Gemini) + FAQ knowledge retrieval.
+ * Falls back to deterministic FAQ ranking when no LLM key is configured.
  */
-export async function answerWithGlm(input: {
+export async function answerWithLlm(input: {
   message: string;
   entries: KnowledgeEntry[];
   history?: Array<{ role: "user" | "assistant"; content: string }>;
-}): Promise<ChatResponse & { model?: string }> {
+}): Promise<ChatResponse & { model?: string; provider?: string }> {
   const query = input.message.trim();
   if (!query) {
     return {
@@ -70,7 +70,7 @@ export async function answerWithGlm(input: {
   const ranked = scoreBm25(query, input.entries).slice(0, 8);
   const contextEntries = ranked.length > 0 ? ranked : input.entries.slice(0, 6);
 
-  if (!isGlmConfigured()) {
+  if (!isLlmConfigured()) {
     return buildChatResponse(query, ranked, ranked[0]?.score ?? 1);
   }
 
@@ -80,7 +80,7 @@ export async function answerWithGlm(input: {
       .slice(-6)
       .map((m) => ({ role: m.role, content: m.content.slice(0, 1500) }));
 
-    const answer = await createGlmChatCompletion({
+    const result = await createChatCompletion({
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -110,7 +110,7 @@ export async function answerWithGlm(input: {
     }
 
     return {
-      answer,
+      answer: result.content,
       links,
       suggestions:
         suggestions.length > 0
@@ -121,10 +121,18 @@ export async function answerWithGlm(input: {
               "How do I book the free session?",
             ],
       confidence: ranked[0] ? Math.min(0.55 + ranked[0].score / 10, 0.95) : 0.5,
-      model: process.env.GLM_MODEL?.trim() || "glm-5.2",
+      model: result.model,
+      provider: result.provider,
     };
   } catch (error) {
-    console.error("[chat] GLM answer failed, using FAQ fallback:", error);
+    console.error("[chat] LLM answer failed, using FAQ fallback:", error);
     return buildChatResponse(query, ranked, ranked[0]?.score ?? 1);
   }
+}
+
+/** @deprecated Use answerWithLlm */
+export async function answerWithGlm(
+  input: Parameters<typeof answerWithLlm>[0]
+): Promise<ReturnType<typeof answerWithLlm>> {
+  return answerWithLlm(input);
 }

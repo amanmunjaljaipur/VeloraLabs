@@ -21,6 +21,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
     menu,
     menuError,
     llmEnabled,
+    modelLabel,
     step,
     selectedCategory,
     draft,
@@ -89,7 +90,9 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Verlin Assistant</p>
                   <p className="text-[11px] text-text-secondary">
-                    {llmEnabled ? "Powered by GLM-5.2 · ask or browse" : "Browse FAQs or type a question"}
+                    {llmEnabled
+                      ? `Powered by ${modelLabel ?? "free AI"} · ask or browse`
+                      : "Browse FAQs or type a question"}
                   </p>
                 </div>
               </div>
@@ -167,7 +170,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
               {loading && (
                 <div className="flex items-center gap-2 text-xs text-text-secondary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  {llmEnabled ? "Thinking with GLM-5.2…" : "Loading answer…"}
+                  {llmEnabled ? "Thinking…" : "Loading answer…"}
                 </div>
               )}
             </div>
@@ -277,7 +280,7 @@ export function ChatWidget({ autoOpen = false }: { autoOpen?: boolean }) {
                   type="text"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder={llmEnabled ? "Ask GLM-5.2 anything…" : "Type a question…"}
+                  placeholder={llmEnabled ? "Ask anything…" : "Type a question…"}
                   disabled={loading}
                   maxLength={2000}
                   className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-text-muted focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20 disabled:opacity-50"

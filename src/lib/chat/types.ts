@@ -39,6 +39,7 @@ export interface ChatResponse {
   suggestions?: string[];
   confidence: number;
   model?: string;
+  provider?: string;
 }
 
 export interface ChatMenuQuestion {
@@ -55,4 +56,6 @@ export interface ChatMenu {
   categories: ChatMenuCategory[];
   llmEnabled?: boolean;
   model?: string | null;
+  provider?: string | null;
+  modelLabel?: string | null;
 }
