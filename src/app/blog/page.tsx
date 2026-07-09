@@ -1,65 +1,41 @@
 import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getLearnContentLastUpdated, getLibraryItems } from "@/lib/content";
-import { formatContentDateTime } from "@/lib/utils";
+import { BlogClient } from "@/app/blog/BlogClient";
 import { BlogCollectionJsonLd } from "@/components/seo/BlogCollectionJsonLd";
+import {
+  blogPostToLibraryItem,
+  getPublishedBlogPosts,
+} from "@/lib/blog/store";
+import { BLOG_SEQUENCES } from "@/lib/blog/sequences";
+import { getLibraryItems } from "@/lib/content";
 import { staticPageMetadata } from "@/lib/page-metadata";
+import { formatContentDateTime } from "@/lib/utils";
 import Link from "next/link";
-import { BlogClient } from "./BlogClient";
 
-const SEMANTIC_HUBS = [
-  {
-    title: "LLMs for product discovery",
-    href: "/learn/llms-for-product-discovery",
-    keywords: ["PM discovery", "LLM synthesis", "PRD drafting"],
-  },
-  {
-    title: "AI roadmap for non-technical PMs",
-    href: "/learn/ai-roadmap-for-non-technical-pms",
-    keywords: ["PM AI literacy", "vendor evaluation", "MVP"],
-  },
-  {
-    title: "AI for school students",
-    href: "/learn/ai-for-school-students",
-    keywords: ["Classes 6–12", "safe AI use", "mental models"],
-  },
-] as const;
-
-const TOPIC_CLUSTERS = [
-  {
-    title: "AI fundamentals",
-    href: "/library/how-llms-work",
-    keywords: ["LLMs", "tokens", "transformers"],
-  },
-  {
-    title: "Product management & AI",
-    href: "/library/how-to-learn-ai-for-product-management",
-    keywords: ["PM training", "AI discovery", "MVP"],
-  },
-  {
-    title: "Students & beginners",
-    href: "/library/chatgpt-for-students",
-    keywords: ["school students", "safe AI use"],
-  },
-  {
-    title: "Engineering & builders",
-    href: "/library/vector-search-rag-in-practice",
-    keywords: ["RAG", "embeddings", "portfolio"],
-  },
-  {
-    title: "Mental models",
-    href: "/mental-models",
-    keywords: ["frameworks", "clarity-first"],
-  },
-] as const;
+export const dynamic = "force-dynamic";
 
 export const metadata = staticPageMetadata("blog", "/blog");
 
 export default function BlogPage() {
-  const posts = getLibraryItems().filter((item) =>
+  const libraryPosts = getLibraryItems().filter((item) =>
     ["Article", "Guide", "Workshop"].includes(item.type)
   );
-  const lastUpdated = getLearnContentLastUpdated();
+  const scheduledPublished = getPublishedBlogPosts().map(blogPostToLibraryItem);
+
+  // Prefer scheduled blog posts when slug collides; show newest first
+  const bySlug = new Map<string, (typeof libraryPosts)[0] & { href?: string }>();
+  for (const post of libraryPosts) {
+    bySlug.set(post.slug, { ...post, href: `/blog/${post.slug}` });
+  }
+  for (const post of scheduledPublished) {
+    bySlug.set(post.slug, { ...post, href: `/blog/${post.slug}` });
+  }
+
+  const posts = Array.from(bySlug.values()).sort((a, b) =>
+    (b.updatedAt ?? b.publishedAt).localeCompare(a.updatedAt ?? a.publishedAt)
+  );
+
+  const lastUpdated = posts[0]?.updatedAt ?? posts[0]?.publishedAt ?? null;
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -74,64 +50,46 @@ export default function BlogPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="Blog"
         title="Ideas worth understanding"
-        subtitle="Clarity-first articles on AI fundamentals, product thinking, and the mental models that make complex technology stick."
+        subtitle="Clarity-first articles on AI fundamentals, product thinking, and mental models — published with full date and time."
         align="center"
         compact
       />
+
       <section className="border-b border-border/80 bg-muted/20 py-10">
         <div className="container-verlin">
-          <h2 className="text-lg font-semibold text-foreground">Answer hubs (long-tail)</h2>
+          <h2 className="text-lg font-semibold text-foreground">Daily sequences</h2>
           <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-            Question-based guides that link directly to Verlin Labs course tracks.
+            Posts are generated and scheduled by topic sequence so the blog stays consistent over
+            time.
           </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            {SEMANTIC_HUBS.map((hub) => (
-              <Link
-                key={hub.href}
-                href={hub.href}
-                className="rounded-2xl border border-accent-teal/25 bg-card p-5 transition-colors hover:border-accent-teal/50"
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {BLOG_SEQUENCES.map((seq) => (
+              <div
+                key={seq.id}
+                className="rounded-2xl border border-border bg-card p-4"
               >
-                <p className="font-semibold text-foreground">{hub.title}</p>
-                <p className="mt-2 text-xs text-text-secondary">{hub.keywords.join(" · ")}</p>
-              </Link>
+                <p className="text-sm font-semibold text-foreground">{seq.label}</p>
+                <p className="mt-1 text-xs text-text-secondary">{seq.description}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
-      <section className="border-b border-border/80 bg-muted/10 py-10">
-        <div className="container-verlin">
-          <h2 className="text-lg font-semibold text-foreground">Explore by topic</h2>
-          <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-            Keyword-focused clusters — long-form guides and articles from the Verlin Labs content hub.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {TOPIC_CLUSTERS.map((cluster) => (
-              <Link
-                key={cluster.href}
-                href={cluster.href}
-                className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-accent-teal/40"
-              >
-                <p className="font-semibold text-foreground">{cluster.title}</p>
-                <p className="mt-2 text-xs text-text-secondary">
-                  {cluster.keywords.join(" · ")}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-      <div className="container-verlin -mt-6 mb-2 flex justify-center">
-        <p className="text-sm text-text-secondary">
-          {posts.length} articles and guides
-          {lastUpdated && (
-            <> · Last updated {formatContentDateTime(lastUpdated)}</>
-          )}
-          {" · "}
-          <a href="/library" className="font-medium text-teal hover:underline">
-            Explore full library
-          </a>
-        </p>
+
+      <div className="container-verlin -mt-2 mb-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 py-4 text-sm text-text-secondary">
+        <span>{posts.length} articles</span>
+        {lastUpdated ? (
+          <>
+            <span aria-hidden>·</span>
+            <span>Latest {formatContentDateTime(lastUpdated)}</span>
+          </>
+        ) : null}
+        <span aria-hidden>·</span>
+        <Link href="/library" className="font-medium text-teal hover:underline">
+          Full library
+        </Link>
       </div>
+
       <BlogClient posts={posts} />
     </>
   );

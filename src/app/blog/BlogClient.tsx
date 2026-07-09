@@ -98,7 +98,7 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
             >
               {featured && (
                 <Link
-                  href={`/library/${featured.slug}`}
+                  href={`/blog/${featured.slug}`}
                   className="group mb-12 block overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg md:mb-16"
                 >
                   <div className="grid md:grid-cols-2">
@@ -164,6 +164,7 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                           image={post.image}
                           publishedAt={post.publishedAt}
                           updatedAt={post.updatedAt}
+                          hrefBase="/blog"
                         />
                       </MotionStaggerItem>
                     ))}

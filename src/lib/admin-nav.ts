@@ -58,6 +58,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     superAdminOnly: true,
   },
   {
+    label: "Blog Studio",
+    href: "/admin/blog",
+    description: "AI blog posts, daily sequence, schedule publish",
+  },
+  {
     label: "Newsletter Studio",
     href: "/admin/newsletter",
     description: "Create, preview, and send AI digest",

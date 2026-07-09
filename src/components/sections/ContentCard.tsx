@@ -17,6 +17,8 @@ interface ContentCardProps {
   image: string;
   publishedAt?: string;
   updatedAt?: string;
+  /** Default library; use /blog for blog index cards */
+  hrefBase?: "/library" | "/blog";
 }
 
 export function ContentCard({
@@ -29,12 +31,13 @@ export function ContentCard({
   image,
   publishedAt,
   updatedAt,
+  hrefBase = "/library",
 }: ContentCardProps) {
   const isIllustration = image.includes("thumb-") || image.includes("-illustration");
   const stamp = updatedAt ?? publishedAt;
 
   return (
-    <Link href={`/library/${slug}`} className="group block h-full">
+    <Link href={`${hrefBase}/${slug}`} className="group block h-full">
       <Card hover className="flex h-full flex-col overflow-hidden p-0">
         <div
           className={`relative h-44 overflow-hidden ${
