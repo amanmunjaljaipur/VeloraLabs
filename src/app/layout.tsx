@@ -85,10 +85,6 @@ export const metadata: Metadata = {
       "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
     images: ["/images/hero-side.jpg"],
   },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-  },
   ...(siteVerification ? { verification: siteVerification } : {}),
 };
 
