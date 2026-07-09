@@ -3,6 +3,7 @@ import { getAdminMenuLinks } from "@/lib/admin-nav";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
 import {
+  AppWindow,
   BarChart3,
   Bot,
   Contact,
@@ -10,6 +11,7 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Newspaper,
+  PenLine,
   ScrollText,
   Shield,
   Users,
@@ -29,9 +31,12 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/site-cms": LayoutGrid,
   "/admin/crm": Contact,
   "/admin/role-assignment": Users,
+  "/admin/module-access": Shield,
   "/admin/legal": FileText,
   "/admin/sessions": Video,
   "/admin/chatbot-training": Bot,
+  "/admin/blog": PenLine,
+  "/admin/app-builder": AppWindow,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
 };

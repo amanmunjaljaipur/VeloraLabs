@@ -63,9 +63,9 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI blog posts, daily sequence, schedule publish",
   },
   {
-    label: "App Builder Lab",
+    label: "App Builder",
     href: "/admin/app-builder",
-    description: "Internal product vision — prompt to bounded product",
+    description: "Prompt → questions → Grok/custom LLM → deploy ecom-local-shop",
   },
   {
     label: "Newsletter Studio",

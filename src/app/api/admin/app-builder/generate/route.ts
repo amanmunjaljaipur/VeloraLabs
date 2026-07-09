@@ -1,0 +1,88 @@
+import { requireCmsEditor } from "@/lib/cms/admin-auth";
+import { generateExtensionContent } from "@/lib/app-builder/generate";
+import { getAppProject, saveAppProject } from "@/lib/app-builder/store";
+import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 120;
+
+/**
+ * Generate + publish app content using the caller's LLM API key.
+ * Secrets are request-only and never stored.
+ */
+export async function POST(request: Request) {
+  const session = await requireCmsEditor();
+  if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  let body: {
+    projectId?: string;
+    apiKey?: string;
+    provider?: LlmProviderKind;
+    model?: string;
+    baseUrl?: string;
+    publish?: boolean;
+  };
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+
+  if (!body.projectId) {
+    return NextResponse.json({ error: "projectId is required" }, { status: 400 });
+  }
+  if (!body.apiKey?.trim()) {
+    return NextResponse.json(
+      { error: "apiKey is required (Grok / Groq / custom). It is not saved on the server." },
+      { status: 400 }
+    );
+  }
+
+  const project = getAppProject(body.projectId);
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+
+  const secrets: AppLlmSecrets = {
+    provider: body.provider || project.llm.provider || "xai",
+    apiKey: body.apiKey.trim(),
+    model: body.model || project.llm.model,
+    baseUrl: body.baseUrl || project.llm.baseUrl,
+  };
+
+  try {
+    const { content, generatedBy } = await generateExtensionContent({
+      extensionId: project.extensionId,
+      prompt: project.prompt,
+      answers: project.answers,
+      secrets,
+    });
+
+    const now = new Date().toISOString();
+    const next = {
+      ...project,
+      content,
+      generatedBy,
+      name: content.brandName || project.name,
+      status: (body.publish === false ? "draft" : "live") as "draft" | "live",
+      llm: {
+        provider: secrets.provider,
+        model: secrets.model,
+        baseUrl: secrets.baseUrl,
+      },
+      updatedAt: now,
+    };
+
+    saveAppProject(next);
+
+    return NextResponse.json({
+      project: next,
+      publicUrl: next.publicPath,
+      note: "API key was used for this request only and was not stored.",
+    });
+  } catch (error) {
+    console.error("[app-builder/generate]", error);
+    const message = error instanceof Error ? error.message : "Generate failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
