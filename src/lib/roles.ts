@@ -1,11 +1,7 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
-import {
-  isRolesPersistenceConfigured,
-  loadRolesFromPersistentStore,
-  saveRolesToPersistentStore,
-  type UserRolesConfig,
-} from "@/lib/roles-sheets";
 import { UserRole } from "@/types/roles";
+
+export type UserRolesConfig = Record<string, UserRole>;
 
 const ROLES_FILE = "user-roles.json";
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -33,11 +29,7 @@ export function invalidateRolesCache(): void {
 }
 
 export async function ensureRolesLoaded(force = false): Promise<void> {
-  if (
-    !force &&
-    cachedRoles &&
-    Date.now() - cacheLoadedAt < CACHE_TTL_MS
-  ) {
+  if (!force && cachedRoles && Date.now() - cacheLoadedAt < CACHE_TTL_MS) {
     return;
   }
 
@@ -47,21 +39,7 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
-    const local = readLocalRolesFile();
-
-    if (isRolesPersistenceConfigured()) {
-      const fromSheets = await loadRolesFromPersistentStore();
-      if (fromSheets) {
-        cachedRoles = { ...fromSheets, ...local };
-        cacheLoadedAt = Date.now();
-        return;
-      }
-      console.warn(
-        "Google Sheets role load failed — falling back to local file (roles may not persist on Vercel)"
-      );
-    }
-
-    cachedRoles = local;
+    cachedRoles = readLocalRolesFile();
     cacheLoadedAt = Date.now();
   })();
 
@@ -94,7 +72,7 @@ export function getAllUserRoles(): { email: string; role: UserRole }[] {
 export async function setUserRole(
   email: string,
   role: UserRole,
-  updatedBy?: string
+  _updatedBy?: string
 ): Promise<void> {
   const normalized = email.toLowerCase().trim();
   await ensureRolesLoaded(true);
@@ -105,18 +83,9 @@ export async function setUserRole(
   cachedRoles = roles;
   cacheLoadedAt = Date.now();
   writeLocalRolesFile(roles);
-
-  if (isRolesPersistenceConfigured()) {
-    const saved = await saveRolesToPersistentStore(roles, { updatedBy });
-    if (!saved) {
-      console.warn(
-        `Role assigned locally for ${normalized} but Google Sheets sync failed — will retry on next load`
-      );
-    }
-  }
 }
 
-export async function removeUserRole(email: string, updatedBy?: string): Promise<boolean> {
+export async function removeUserRole(email: string, _updatedBy?: string): Promise<boolean> {
   const normalized = email.toLowerCase().trim();
   await ensureRolesLoaded(true);
 
@@ -127,15 +96,6 @@ export async function removeUserRole(email: string, updatedBy?: string): Promise
   cachedRoles = roles;
   cacheLoadedAt = Date.now();
   writeLocalRolesFile(roles);
-
-  if (isRolesPersistenceConfigured()) {
-    const saved = await saveRolesToPersistentStore(roles, { updatedBy });
-    if (!saved) {
-      console.warn(
-        `Role removed locally for ${normalized} but Google Sheets sync failed — will retry on next load`
-      );
-    }
-  }
 
   return true;
 }

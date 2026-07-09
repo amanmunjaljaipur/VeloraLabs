@@ -1,17 +1,18 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
-import {
-  isKnownUsersPersistenceConfigured,
-  loadKnownUsersFromPersistentStore,
-  mergeKnownUsersFiles,
-  saveKnownUsersToPersistentStore,
-  type AuthProvider,
-  type KnownUserRecord,
-  type KnownUsersFile,
-} from "@/lib/known-users-sheets";
 import { getAllManualUsers, getManualUserByEmail } from "@/lib/manual-users";
 import { ensureRolesLoaded, hasCustomRoleAssignment } from "@/lib/roles";
 
-export type { AuthProvider, KnownUserRecord };
+export type AuthProvider = "google" | "credentials";
+
+export interface KnownUserRecord {
+  email: string;
+  name: string | null;
+  provider: AuthProvider;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export type KnownUsersFile = Record<string, KnownUserRecord>;
 
 export interface UnassignedUser {
   email: string;
@@ -57,21 +58,7 @@ export async function ensureKnownUsersLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
-    const local = readLocalKnownUsersFile();
-
-    if (isKnownUsersPersistenceConfigured()) {
-      const fromSheets = await loadKnownUsersFromPersistentStore();
-      if (fromSheets) {
-        cachedKnownUsers = mergeKnownUsersFiles(fromSheets, local);
-        cacheLoadedAt = Date.now();
-        return;
-      }
-      console.warn(
-        "Google Sheets known-user load failed — falling back to local file (Google sign-ins may not appear for role assignment on Vercel)"
-      );
-    }
-
-    cachedKnownUsers = local;
+    cachedKnownUsers = readLocalKnownUsersFile();
     cacheLoadedAt = Date.now();
   })();
 
@@ -85,19 +72,6 @@ export async function ensureKnownUsersLoaded(force = false): Promise<void> {
 function inferProvider(email: string, explicit?: AuthProvider): AuthProvider {
   if (explicit) return explicit;
   return getManualUserByEmail(email) ? "credentials" : "google";
-}
-
-async function persistKnownUsersSnapshot(users: KnownUsersFile): Promise<void> {
-  writeLocalKnownUsersFile(users);
-
-  if (isKnownUsersPersistenceConfigured()) {
-    const saved = await saveKnownUsersToPersistentStore(users);
-    if (!saved) {
-      console.warn(
-        "Failed to persist known users to Google Sheets — continuing with local cache"
-      );
-    }
-  }
 }
 
 export async function recordKnownUser(
@@ -123,7 +97,7 @@ export async function recordKnownUser(
   };
 
   data[normalized] = record;
-  await persistKnownUsersSnapshot(data);
+  writeLocalKnownUsersFile(data);
 
   cachedKnownUsers = data;
   cacheLoadedAt = Date.now();

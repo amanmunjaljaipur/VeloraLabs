@@ -1,16 +1,6 @@
 import crypto from "crypto";
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 import {
-  appendNewsUpdateToSheet,
-  appendNewsletterEditionToSheet,
-  isServiceAccountConfigured,
-  persistNewsUpdatesToSheet,
-  readNewsletterEditionsFromSheet,
-  readNewsUpdatesFromSheet,
-  type NewsletterEditionSheetRow,
-  type NewsUpdateSheetRow,
-} from "@/lib/google-sheets-service";
-import {
   compileNewsletterEdition,
   type CompiledNewsletter,
   type NewsUpdateItem,
@@ -58,106 +48,28 @@ function writeLocalEditions(store: NewsletterEditionsStore): void {
   writeJsonFile(NEWSLETTER_EDITIONS_FILE, store, '{"editions":[]}');
 }
 
-function sheetRowToStored(row: NewsUpdateSheetRow): StoredNewsUpdate {
-  return {
-    id: row.id,
-    title: row.title,
-    summary: row.summary,
-    url: row.url,
-    source: row.source,
-    category: row.category,
-    submittedAt: row.submittedAt,
-    weekOf: row.weekOf,
-    status: row.status === "published" ? "published" : "pending",
-  };
-}
-
-function storedToSheetRow(item: StoredNewsUpdate): NewsUpdateSheetRow {
-  return {
-    id: item.id,
-    submittedAt: item.submittedAt,
-    title: item.title,
-    summary: item.summary,
-    url: item.url,
-    source: item.source,
-    category: item.category,
-    weekOf: item.weekOf,
-    status: item.status,
-  };
-}
-
-async function loadAllUpdates(): Promise<StoredNewsUpdate[]> {
-  if (isServiceAccountConfigured()) {
-    try {
-      const rows = await readNewsUpdatesFromSheet();
-      if (rows.length > 0) return rows.map(sheetRowToStored);
-    } catch (error) {
-      console.error("Failed to load news updates from Sheets:", error);
-    }
-  }
+function loadAllUpdates(): StoredNewsUpdate[] {
   return readLocalUpdates().items;
 }
 
-async function saveAllUpdates(items: StoredNewsUpdate[]): Promise<void> {
+function saveAllUpdates(items: StoredNewsUpdate[]): void {
   writeLocalUpdates({ items });
-
-  if (isServiceAccountConfigured()) {
-    await persistNewsUpdatesToSheet(items.map(storedToSheetRow));
-  }
 }
 
-async function loadAllEditions(): Promise<CompiledNewsletter[]> {
-  if (isServiceAccountConfigured()) {
-    try {
-      const rows = await readNewsletterEditionsFromSheet();
-      if (rows.length > 0) {
-        return rows.map(sheetEditionToCompiled);
-      }
-    } catch (error) {
-      console.error("Failed to load newsletter editions from Sheets:", error);
-    }
-  }
+function loadAllEditions(): CompiledNewsletter[] {
   return readLocalEditions().editions;
 }
 
-function sheetEditionToCompiled(row: NewsletterEditionSheetRow): CompiledNewsletter {
-  return {
-    editionId: row.editionId,
-    weekOf: row.weekOf,
-    slug: row.slug,
-    title: row.title,
-    intro: row.intro,
-    markdown: row.markdown,
-    html: row.html,
-    itemCount: row.itemCount,
-    publishedAt: row.publishedAt,
-  };
-}
-
-async function saveEdition(edition: CompiledNewsletter): Promise<void> {
+function saveEdition(edition: CompiledNewsletter): void {
   const local = readLocalEditions();
   const withoutDuplicate = local.editions.filter((e) => e.weekOf !== edition.weekOf);
   writeLocalEditions({ editions: [edition, ...withoutDuplicate] });
-
-  if (isServiceAccountConfigured()) {
-    await appendNewsletterEditionToSheet({
-      editionId: edition.editionId,
-      weekOf: edition.weekOf,
-      title: edition.title,
-      publishedAt: edition.publishedAt,
-      itemCount: edition.itemCount,
-      intro: edition.intro,
-      slug: edition.slug,
-      markdown: edition.markdown,
-      html: edition.html,
-    });
-  }
 }
 
 export async function ingestNewsUpdates(
   inputs: NewsUpdateInput[]
 ): Promise<StoredNewsUpdate[]> {
-  const existing = await loadAllUpdates();
+  const existing = loadAllUpdates();
   const created: StoredNewsUpdate[] = [];
 
   for (const input of inputs) {
@@ -174,16 +86,9 @@ export async function ingestNewsUpdates(
     };
     created.push(item);
     existing.push(item);
-
-    if (isServiceAccountConfigured()) {
-      await appendNewsUpdateToSheet(storedToSheetRow(item));
-    }
   }
 
-  if (!isServiceAccountConfigured()) {
-    await saveAllUpdates(existing);
-  }
-
+  saveAllUpdates(existing);
   return created;
 }
 
@@ -191,7 +96,7 @@ export async function listNewsUpdates(filters?: {
   weekOf?: string;
   status?: "pending" | "published";
 }): Promise<StoredNewsUpdate[]> {
-  let items = await loadAllUpdates();
+  let items = loadAllUpdates();
   if (filters?.weekOf) {
     items = items.filter((item) => item.weekOf === filters.weekOf);
   }
@@ -206,12 +111,12 @@ export async function publishWeeklyNewsletter(options?: {
   intro?: string;
 }): Promise<CompiledNewsletter> {
   const weekOf = options?.weekOf ?? getWeekOfSunday();
-  const existingEditions = await loadAllEditions();
+  const existingEditions = loadAllEditions();
   if (existingEditions.some((edition) => edition.weekOf === weekOf)) {
     throw new Error(`Newsletter already published for week of ${weekOf}`);
   }
 
-  const all = await loadAllUpdates();
+  const all = loadAllUpdates();
   const pending = all.filter((item) => item.weekOf === weekOf && item.status === "pending");
 
   if (pending.length === 0) {
@@ -227,8 +132,8 @@ export async function publishWeeklyNewsletter(options?: {
       ? { ...item, status: "published" as const }
       : item
   );
-  await saveAllUpdates(updated);
-  await saveEdition(edition);
+  saveAllUpdates(updated);
+  saveEdition(edition);
 
   return edition;
 }
@@ -241,7 +146,7 @@ function sortEditionsNewestFirst(editions: CompiledNewsletter[]): CompiledNewsle
   });
 }
 
-/** Fast path for public pages — reads local cache only (no Google Sheets round-trip). */
+/** Fast path for public pages — reads local cache only. */
 export function listPublishedNewsletterEditionsCached(): CompiledNewsletter[] {
   return sortEditionsNewestFirst(readLocalEditions().editions);
 }
@@ -257,7 +162,7 @@ export function getNewsletterEditionBySlugCached(slug: string): CompiledNewslett
 }
 
 export async function listPublishedNewsletterEditions(): Promise<CompiledNewsletter[]> {
-  return sortEditionsNewestFirst(await loadAllEditions());
+  return sortEditionsNewestFirst(loadAllEditions());
 }
 
 export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter | null> {
@@ -268,6 +173,6 @@ export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter |
 export async function getNewsletterEditionBySlug(
   slug: string
 ): Promise<CompiledNewsletter | null> {
-  const editions = await loadAllEditions();
+  const editions = loadAllEditions();
   return editions.find((edition) => edition.slug === slug) ?? null;
 }

@@ -9,12 +9,7 @@
     "indexnow": "tsx scripts/submit-indexnow.ts",
     "start": "next start",
     "lint": "eslint",
-    "sync:session-sheet": "node scripts/sync-free-session-sheet.mjs",
-    "sync:roles": "tsx scripts/sync-user-roles-sheet.ts",
-    "sync:known-users": "tsx scripts/sync-known-users-sheet.ts",
-    "sync:sheet-tabs": "tsx scripts/init-sheet-tabs.ts",
     "seed:blob": "tsx --env-file=.env.local scripts/seed-blob-data.ts",
-    "test:sheets": "tsx scripts/test-google-sheets.ts",
     "mcp:newsletter:build": "npm run build --prefix mcp/newsletter-email",
     "mcp:newsletter:dev": "tsx mcp/newsletter-email/src/server.ts"
   },

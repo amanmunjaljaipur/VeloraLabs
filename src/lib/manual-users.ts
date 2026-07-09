@@ -1,11 +1,5 @@
 import { PASSWORD_MAX_LENGTH } from "@/lib/auth-validation";
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
-import {
-  appendManualUserToSheet,
-  isServiceAccountConfigured,
-  readManualUserRowsFromSheet,
-  updateManualUserPasswordHashInSheet,
-} from "@/lib/google-sheets-service";
 import bcrypt from "bcryptjs";
 
 export interface ManualUser {
@@ -43,29 +37,6 @@ function writeLocalUsers(data: ManualUsersFile): void {
   writeJsonFile(MANUAL_USERS_FILE, data, DEFAULT_CONTENT);
 }
 
-function mergeUsers(local: ManualUser[], remote: ManualUser[]): ManualUser[] {
-  const byEmail = new Map<string, ManualUser>();
-  for (const user of remote) {
-    byEmail.set(user.email, user);
-  }
-  for (const user of local) {
-    byEmail.set(user.email, user);
-  }
-  return Array.from(byEmail.values());
-}
-
-function sheetRowsToUsers(rows: Awaited<ReturnType<typeof readManualUserRowsFromSheet>>): ManualUser[] {
-  return rows.map((row) => ({
-    id: row.id,
-    email: row.email,
-    passwordHash: row.passwordHash,
-    firstName: row.firstName,
-    lastName: row.lastName,
-    name: row.name,
-    createdAt: row.createdAt,
-  }));
-}
-
 export async function ensureManualUsersLoaded(force = false): Promise<void> {
   if (!force && cachedUsers && Date.now() - cacheLoadedAt < CACHE_TTL_MS) {
     return;
@@ -77,18 +48,7 @@ export async function ensureManualUsersLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
-    const local = readLocalUsers().users;
-    let remote: ManualUser[] = [];
-
-    if (isServiceAccountConfigured()) {
-      try {
-        remote = sheetRowsToUsers(await readManualUserRowsFromSheet());
-      } catch (error) {
-        console.error("Failed to load manual users from Sheets:", error);
-      }
-    }
-
-    cachedUsers = mergeUsers(local, remote);
+    cachedUsers = readLocalUsers().users;
     cacheLoadedAt = Date.now();
   })();
 
@@ -146,16 +106,8 @@ export async function createManualUser(input: {
 
   data.users.push(user);
   writeLocalUsers(data);
-  cachedUsers = mergeUsers(data.users, getCachedUsers());
+  cachedUsers = data.users;
   cacheLoadedAt = Date.now();
-
-  if (isServiceAccountConfigured()) {
-    try {
-      await appendManualUserToSheet(user);
-    } catch (error) {
-      console.error("Failed to persist manual user to Sheets:", error);
-    }
-  }
 
   return user;
 }
@@ -208,18 +160,10 @@ export async function updateManualUserPassword(
   }
 
   writeLocalUsers(data);
-  cachedUsers = mergeUsers(data.users, getCachedUsers()).map((user) =>
+  cachedUsers = data.users.map((user) =>
     user.email === normalized ? { ...user, passwordHash } : user
   );
   cacheLoadedAt = Date.now();
-
-  if (isServiceAccountConfigured()) {
-    try {
-      await updateManualUserPasswordHashInSheet(normalized, passwordHash);
-    } catch (error) {
-      console.error("Failed to persist password update to Sheets:", error);
-    }
-  }
 
   return true;
 }

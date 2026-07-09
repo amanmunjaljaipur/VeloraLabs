@@ -22,7 +22,7 @@ const RUNTIME_FILES = [
   "manual-users.json",
   "password-reset-tokens.json",
   "user-module-access.json",
-  "sheets-config.json",
+
   "crm-data.json",
   "page-analytics.json",
   "chatbot-training.json",

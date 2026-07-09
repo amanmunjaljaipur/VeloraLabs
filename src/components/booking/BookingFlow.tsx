@@ -105,9 +105,9 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       source: "Free Session Calendar",
     });
 
-    if (!sheetResult.synced) {
+    if (!sheetResult.ok) {
       toast(
-        "Booking confirmed, but Google Sheets sync is not configured yet. Contact support if you need a copy of your booking.",
+        "Booking confirmed, but we could not save your details. Contact support if you need a copy of your booking.",
         "warning"
       );
     }

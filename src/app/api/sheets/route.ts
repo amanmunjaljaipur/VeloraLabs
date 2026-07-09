@@ -5,7 +5,6 @@ import {
 } from "@/lib/crm/ingest";
 import { ensureNewsletterSubscriber } from "@/lib/newsletter-subscribers";
 import { enrichBookingPayload } from "@/lib/sheets-booking";
-import { submitToGoogleSheet } from "@/lib/google-sheets";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -55,13 +54,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const payload =
-      parsed.data.type === "booking"
-        ? enrichBookingPayload(parsed.data)
-        : parsed.data;
-
-    const synced = await submitToGoogleSheet(payload);
-
     try {
       if (parsed.data.type === "booking") {
         const booking = enrichBookingPayload(parsed.data);
@@ -91,11 +83,15 @@ export async function POST(req: NextRequest) {
       }
     } catch (error) {
       console.error("CRM ingest failed:", error);
+      return NextResponse.json(
+        { success: false, error: "Failed to save submission" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      synced,
+      synced: true,
     });
   } catch {
     return NextResponse.json(

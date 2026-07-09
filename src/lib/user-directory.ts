@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { readJsonFile } from "@/lib/data-store";
 import { getAllManualUsers } from "@/lib/manual-users";
-import type { UserRolesConfig } from "@/lib/roles-sheets";
+import type { UserRolesConfig } from "@/lib/roles";
 import { ROLE_LABELS, type UserRole } from "@/types/roles";
 
 const ROLES_FILE = "user-roles.json";
