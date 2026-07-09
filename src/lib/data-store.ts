@@ -40,6 +40,9 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "legal-acceptances.json",
   "newsletter-subscribers.json",
   "crm-data.json",
+  // Chatbot training must land on Blob before response returns (survives deploys)
+  "chatbot-training.json",
+  "chatbot-index.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

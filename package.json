@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "train:chatbot": "tsx scripts/build-chatbot-index.ts",
-    "build": "npm run train:chatbot && next build",
+    "train:chatbot:expand": "tsx scripts/expand-chatbot-training.ts",
+    "train:chatbot:publish": "tsx --env-file=.env.local scripts/expand-chatbot-training.ts",
+    "build": "next build",
     "indexnow": "tsx --env-file=.env.local scripts/submit-indexnow.ts",
     "start": "next start",
     "lint": "eslint",

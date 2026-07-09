@@ -1,6 +1,10 @@
 import { readJsonFile, writeJsonFile } from "@/lib/data-store";
 import { collectLegacyKnowledgeEntries } from "@/lib/chat/knowledge-sources";
 import { getDeployedChatbotIndexMeta } from "@/lib/chat/index-meta";
+import {
+  buildAlternateQuestions,
+  expandEntryKeywords,
+} from "@/lib/chat/question-variations";
 import type { KnowledgeEntry } from "./types";
 import type { TrainingDataset, TrainingEntry, TrainingEntryInput, TrainingSource } from "./training-types";
 
@@ -58,50 +62,81 @@ function newId(question: string, existing: Set<string>): string {
   return id;
 }
 
-/** Curated alternate phrasings for high-traffic intents */
-const ENHANCED_ALTS: Record<string, string[]> = {
-  "what-is-a-mental-model": [
-    "mental model",
-    "define mental model",
-    "explain mental models",
-    "what are mental models",
-  ],
-  "what-is-the-introductory-pricing-offer": [
-    "introductory offer",
-    "intro pricing",
-    "70% off",
-    "discount offer",
-    "sale price",
-    "pricing model",
-    "help with pricing",
-  ],
-  "what-are-the-course-prices": [
-    "course price",
-    "how much do courses cost",
-    "program cost",
-    "fees",
-    "rupees",
-    "pricing",
-  ],
-  "do-i-get-a-certificate": [
-    "certificate",
-    "certification",
-    "completion certificate",
-    "do you give certificates",
-  ],
-};
-
 function legacyToTraining(legacy: KnowledgeEntry): TrainingEntryInput {
   const id = slugify(legacy.question);
+  const alternateQuestions = buildAlternateQuestions({
+    id,
+    question: legacy.question,
+    category: legacy.category,
+    alternateQuestions: legacy.alternateQuestions,
+  });
   return {
     category: legacy.category,
     question: legacy.question,
-    alternateQuestions: ENHANCED_ALTS[id] ?? [],
+    alternateQuestions,
     answer: legacy.answer,
     bullets: legacy.bullets ?? [],
-    keywords: legacy.keywords,
+    keywords:
+      legacy.keywords?.length
+        ? expandEntryKeywords(
+            legacy.question,
+            legacy.answer,
+            legacy.category,
+            alternateQuestions,
+            legacy.keywords
+          )
+        : expandEntryKeywords(
+            legacy.question,
+            legacy.answer,
+            legacy.category,
+            alternateQuestions
+          ),
     links: legacy.links ?? [],
     enabled: true,
+  };
+}
+
+/**
+ * Enrich existing dataset rows that have few/no alternate questions.
+ * Safe to run repeatedly — does not wipe admin edits to answers.
+ */
+export function enrichTrainingDatasetAlternates(dataset: TrainingDataset): {
+  dataset: TrainingDataset;
+  changed: number;
+} {
+  let changed = 0;
+  const now = new Date().toISOString();
+  const entries = dataset.entries.map((entry) => {
+    const alternateQuestions = buildAlternateQuestions({
+      id: entry.id,
+      question: entry.question,
+      category: entry.category,
+      alternateQuestions: entry.alternateQuestions,
+    });
+    const prevCount = entry.alternateQuestions?.length ?? 0;
+    if (alternateQuestions.length <= prevCount && prevCount >= 8) {
+      return entry;
+    }
+    changed += 1;
+    const keywords = expandEntryKeywords(
+      entry.question,
+      entry.answer,
+      entry.category,
+      alternateQuestions,
+      entry.keywords
+    );
+    return {
+      ...entry,
+      alternateQuestions,
+      keywords,
+      updatedAt: now,
+    };
+  });
+
+  if (changed === 0) return { dataset, changed: 0 };
+  return {
+    dataset: { ...dataset, entries, updatedAt: now },
+    changed,
   };
 }
 
@@ -158,11 +193,19 @@ export function readTrainingDataset(): TrainingDataset {
     return seeded;
   }
 
-  const synced = syncLastTrainedFromDeployedIndex(data);
-  if (synced.lastTrainedAt !== data.lastTrainedAt) {
-    writeJsonFile(TRAINING_FILE, synced);
+  // Auto-enrich sparse alternate questions once (survives on Blob after write)
+  const { dataset: enriched, changed } = enrichTrainingDatasetAlternates(data);
+  let next = enriched;
+  if (changed > 0) {
+    writeJsonFile(TRAINING_FILE, next);
   }
-  return synced;
+
+  const synced = syncLastTrainedFromDeployedIndex(next);
+  if (synced.lastTrainedAt !== next.lastTrainedAt) {
+    writeJsonFile(TRAINING_FILE, synced);
+    next = synced;
+  }
+  return next;
 }
 
 export function writeTrainingDataset(dataset: TrainingDataset): void {
@@ -195,11 +238,17 @@ export function createTrainingEntry(
 ): TrainingEntry {
   const dataset = readTrainingDataset();
   const ids = new Set(dataset.entries.map((e) => e.id));
-  const alternateQuestions = input.alternateQuestions ?? [];
+  const id = newId(input.question, ids);
+  const alternateQuestions = buildAlternateQuestions({
+    id,
+    question: input.question.trim(),
+    category: input.category.trim(),
+    alternateQuestions: input.alternateQuestions,
+  });
   const now = new Date().toISOString();
 
   const entry: TrainingEntry = {
-    id: newId(input.question, ids),
+    id,
     category: input.category.trim(),
     question: input.question.trim(),
     alternateQuestions,
@@ -207,7 +256,12 @@ export function createTrainingEntry(
     bullets: input.bullets ?? [],
     keywords:
       input.keywords ??
-      buildKeywords(input.question, input.answer, input.category, alternateQuestions),
+      expandEntryKeywords(
+        input.question,
+        input.answer,
+        input.category,
+        alternateQuestions
+      ),
     links: input.links ?? [],
     enabled: input.enabled ?? true,
     source,
