@@ -48,7 +48,7 @@ function buildKeywords(
 }
 
 function newId(question: string, existing: Set<string>): string {
-  let base = slugify(question) || "entry";
+  const base = slugify(question) || "entry";
   let id = base;
   let n = 1;
   while (existing.has(id)) {

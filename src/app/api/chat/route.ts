@@ -3,6 +3,7 @@ import { answerWithLlm } from "@/lib/chat/llm-answer";
 import { loadChatbotIndex } from "@/lib/chat/load-index";
 import { buildChatMenu, getEntryAnswer } from "@/lib/chat/menu";
 import { getActiveKnowledgeEntries } from "@/lib/chat/training-store";
+import type { KnowledgeEntry } from "@/lib/chat/types";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -24,21 +25,31 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-function getKnowledgeEntries() {
+/** Prefer trained index (with embeddings); fall back to live training entries */
+function getKnowledgeEntries(): Array<KnowledgeEntry & { embedding?: number[] }> {
   const index = loadChatbotIndex();
-  return index?.entries ?? getActiveKnowledgeEntries();
+  if (index?.entries?.length) return index.entries;
+  return getActiveKnowledgeEntries();
 }
 
 export async function GET() {
   const entries = getKnowledgeEntries();
   const menu = buildChatMenu(entries);
   const llm = getLlmPublicInfo();
+  const index = loadChatbotIndex();
+
   return NextResponse.json({
     ...menu,
     llmEnabled: llm.enabled,
     model: llm.model,
     provider: llm.provider,
     modelLabel: llm.label,
+    training: {
+      entries: entries.length,
+      trained: Boolean(index?.entries?.length),
+      embeddingModel: index?.model ?? null,
+      builtAt: index?.builtAt ?? null,
+    },
   });
 }
 
