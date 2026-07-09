@@ -49,11 +49,22 @@ export function ManualSignInForm({ callbackUrl, onBack }: ManualSignInFormProps)
     setSubmitting(false);
 
     if (result?.error) {
-      setAuthError(
-        result.error === "rate_limited"
-          ? "Too many sign-in attempts. Please wait a few minutes and try again."
-          : "Invalid email or password. Please try again."
-      );
+      if (result.error === "rate_limited") {
+        setAuthError("Too many sign-in attempts. Please wait a few minutes and try again.");
+        return;
+      }
+
+      if (result.error === "email_not_verified") {
+        setAuthError(
+          "Verify your email before signing in. Check your inbox or enter your verification code."
+        );
+        router.push(
+          `/signup/verify-email?email=${encodeURIComponent(data.email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`
+        );
+        return;
+      }
+
+      setAuthError("Invalid email or password. Please try again.");
       return;
     }
 

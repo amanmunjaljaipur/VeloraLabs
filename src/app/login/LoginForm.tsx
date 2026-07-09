@@ -31,6 +31,8 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const authError = resolveAuthError(searchParams.get("error"));
+  const verified = searchParams.get("verified") === "1";
+  const verifiedEmail = searchParams.get("email");
   const [method, setMethod] = useState<AuthMethod>("choose");
 
   if (method === "manual") {
@@ -45,7 +47,12 @@ export function LoginForm() {
       manualLabel="Sign in with email"
       callbackUrl={callbackUrl}
       onManual={() => setMethod("manual")}
-      authError={authError}
+      authSuccess={
+        verified
+          ? `Email verified${verifiedEmail ? ` for ${verifiedEmail}` : ""}. You can sign in now.`
+          : null
+      }
+      authError={verified ? null : authError}
       footer={
         <p>
           Don&apos;t have an account?{" "}

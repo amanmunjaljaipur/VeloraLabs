@@ -13,6 +13,7 @@ interface AuthMethodChooserProps {
   callbackUrl: string;
   onManual: () => void;
   authError?: string | null;
+  authSuccess?: string | null;
   footer?: React.ReactNode;
 }
 
@@ -24,12 +25,19 @@ export function AuthMethodChooser({
   callbackUrl,
   onManual,
   authError,
+  authSuccess,
   footer,
 }: AuthMethodChooserProps) {
   return (
     <Card className="w-full max-w-md">
       <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
       <p className="mt-2 text-sm leading-relaxed text-text-secondary">{subtitle}</p>
+
+      {authSuccess && (
+        <p className="mt-4 rounded-xl border border-teal/20 bg-teal/10 px-4 py-3 text-sm text-teal">
+          {authSuccess}
+        </p>
+      )}
 
       {authError && (
         <p

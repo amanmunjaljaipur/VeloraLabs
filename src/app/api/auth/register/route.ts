@@ -1,9 +1,12 @@
 import { signUpSchema } from "@/lib/auth-validation";
+import { createEmailVerificationChallenge } from "@/lib/email-verification";
+import {
+  isEmailVerificationConfigured,
+  sendEmailVerificationEmail,
+} from "@/lib/email-verification-email";
 import { recordLegalAcceptance } from "@/lib/legal/acceptances";
 import { setLegalAcceptanceCookie } from "@/lib/legal/acceptance-cookie";
 import { getCurrentVersions } from "@/lib/legal/store";
-import { recordKnownUser } from "@/lib/known-users";
-
 import { createManualUser } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-security";
@@ -23,6 +26,16 @@ export async function POST(req: NextRequest) {
         status: 429,
         headers: { "Retry-After": String(rateLimit.retryAfterSec ?? 60) },
       }
+    );
+  }
+
+  if (!isEmailVerificationConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Email verification is not available right now. Please try again later or sign in with Google.",
+      },
+      { status: 503 }
     );
   }
 
@@ -47,12 +60,6 @@ export async function POST(req: NextRequest) {
     try {
       const user = await createManualUser({ firstName, lastName, email, password });
 
-      try {
-        await recordKnownUser(user.email, user.name, "credentials");
-      } catch (error) {
-        console.error("Failed to record known user after registration:", error);
-      }
-
       const currentVersions = getCurrentVersions();
       try {
         recordLegalAcceptance(user.email);
@@ -60,9 +67,29 @@ export async function POST(req: NextRequest) {
         console.error("Failed to record legal acceptance after registration:", error);
       }
 
+      const challenge = createEmailVerificationChallenge(user.email);
+      const sent = await sendEmailVerificationEmail(
+        user.email,
+        challenge.plainToken,
+        challenge.plainCode
+      );
+
+      if (!sent) {
+        console.error(`Verification email failed for ${user.email}`);
+        return NextResponse.json(
+          {
+            error:
+              "Your account was created but we could not send the verification email. Use resend on the verification page.",
+          },
+          { status: 503 }
+        );
+      }
+
       const response = NextResponse.json({
         success: true,
-        user: { id: user.id, email: user.email, name: user.name },
+        requiresVerification: true,
+        email: user.email,
+        message: "Check your email for a verification link or 6-digit code to finish sign-up.",
       });
       setLegalAcceptanceCookie(response, user.email, currentVersions);
       return response;

@@ -11,7 +11,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -74,7 +73,11 @@ export function ManualSignUpForm({ callbackUrl, onBack }: ManualSignUpFormProps)
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const payload = (await res.json()) as { error?: string };
+    const payload = (await res.json()) as {
+      error?: string;
+      requiresVerification?: boolean;
+      email?: string;
+    };
 
     if (!res.ok) {
       setFormError(payload.error || "Could not create account. Please try again.");
@@ -82,22 +85,12 @@ export function ManualSignUpForm({ callbackUrl, onBack }: ManualSignUpFormProps)
       return;
     }
 
-    const signInResult = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      remember: "true",
-      redirect: false,
-    });
-
     setSubmitting(false);
 
-    if (signInResult?.error) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-      return;
-    }
-
-    router.push(callbackUrl || "/");
-    router.refresh();
+    const verifyEmail = payload.email ?? data.email;
+    router.push(
+      `/signup/verify-email?email=${encodeURIComponent(verifyEmail)}&callbackUrl=${encodeURIComponent(callbackUrl)}`
+    );
   });
 
   return (
@@ -114,8 +107,8 @@ export function ManualSignUpForm({ callbackUrl, onBack }: ManualSignUpFormProps)
 
         <h1 className="text-2xl font-semibold text-foreground">Create your account</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          Fill in your details to get started. After sign-up, an admin will assign your learner track
-          — you&apos;ll see &quot;Role assignment pending&quot; until then.
+          Fill in your details to get started. We&apos;ll email you a verification link and code to
+          finish sign-up. After that, an admin will assign your learner track.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-5">

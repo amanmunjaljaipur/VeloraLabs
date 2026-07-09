@@ -10,7 +10,7 @@ import {
   type AuthProvider,
 } from "@/lib/known-users";
 import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
-import { verifyManualUserPassword } from "@/lib/manual-users";
+import { verifyManualUserPasswordDetailed } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveAuthSecret } from "@/lib/auth-secret";
 import { getClientIp } from "@/lib/request-security";
@@ -36,6 +36,10 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 class RateLimitedSignIn extends CredentialsSignin {
   code = "rate_limited";
+}
+
+class EmailNotVerifiedSignIn extends CredentialsSignin {
+  code = "email_not_verified";
 }
 
 const authSecret = resolveAuthSecret();
@@ -104,15 +108,23 @@ export const authOptions: NextAuthConfig = {
           return null;
         }
 
-        const user = await verifyManualUserPassword(parsed.data.email, parsed.data.password);
-        if (!user) {
+        const result = await verifyManualUserPasswordDetailed(
+          parsed.data.email,
+          parsed.data.password
+        );
+
+        if (result.status === "email_not_verified") {
+          throw new EmailNotVerifiedSignIn();
+        }
+
+        if (result.status !== "ok") {
           return null;
         }
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
+          id: result.user.id,
+          email: result.user.email,
+          name: result.user.name,
           remember: parsed.data.remember ?? false,
         };
       },

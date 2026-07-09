@@ -54,3 +54,23 @@ export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const verifyEmailSchema = z.union([
+  z.object({
+    email: z.string().email("Enter a valid email address").max(254),
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, "Enter the 6-digit verification code"),
+  }),
+  z.object({
+    token: z.string().min(1, "Verification link is invalid or expired"),
+  }),
+]);
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email("Enter a valid email address").max(254),
+});
+
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;

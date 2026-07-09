@@ -21,6 +21,7 @@ const RUNTIME_FILES = [
   "known-users.json",
   "manual-users.json",
   "password-reset-tokens.json",
+  "email-verification-challenges.json",
   "user-module-access.json",
 
   "crm-data.json",

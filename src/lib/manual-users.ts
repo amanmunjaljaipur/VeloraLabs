@@ -10,7 +10,14 @@ export interface ManualUser {
   lastName: string;
   name: string;
   createdAt: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: string;
 }
+
+export type ManualPasswordCheckResult =
+  | { status: "ok"; user: ManualUser }
+  | { status: "invalid" }
+  | { status: "email_not_verified"; user: ManualUser };
 
 interface ManualUsersFile {
   users: ManualUser[];
@@ -102,6 +109,7 @@ export async function createManualUser(input: {
     lastName: input.lastName.trim(),
     name: `${input.firstName.trim()} ${input.lastName.trim()}`,
     createdAt: new Date().toISOString(),
+    emailVerified: false,
   };
 
   data.users.push(user);
@@ -112,12 +120,45 @@ export async function createManualUser(input: {
   return user;
 }
 
+export function isManualUserEmailVerified(user: ManualUser): boolean {
+  return user.emailVerified !== false;
+}
+
+export async function markManualUserEmailVerified(email: string): Promise<boolean> {
+  await ensureManualUsersLoaded(true);
+
+  const normalized = email.toLowerCase().trim();
+  const data = readLocalUsers();
+  const index = data.users.findIndex((user) => user.email === normalized);
+  if (index < 0) return false;
+
+  const verifiedAt = new Date().toISOString();
+  data.users[index] = {
+    ...data.users[index]!,
+    emailVerified: true,
+    emailVerifiedAt: verifiedAt,
+  };
+
+  writeLocalUsers(data);
+  cachedUsers = data.users;
+  cacheLoadedAt = Date.now();
+  return true;
+}
+
 export async function verifyManualUserPassword(
   email: string,
   password: string
 ): Promise<ManualUser | null> {
+  const result = await verifyManualUserPasswordDetailed(email, password);
+  return result.status === "ok" ? result.user : null;
+}
+
+export async function verifyManualUserPasswordDetailed(
+  email: string,
+  password: string
+): Promise<ManualPasswordCheckResult> {
   if (password.length > PASSWORD_MAX_LENGTH) {
-    return null;
+    return { status: "invalid" };
   }
 
   await ensureManualUsersLoaded();
@@ -127,10 +168,14 @@ export async function verifyManualUserPassword(
   const valid = await bcrypt.compare(password, hashToCompare);
 
   if (!user || !valid) {
-    return null;
+    return { status: "invalid" };
   }
 
-  return user;
+  if (!isManualUserEmailVerified(user)) {
+    return { status: "email_not_verified", user };
+  }
+
+  return { status: "ok", user };
 }
 
 export async function updateManualUserPassword(
