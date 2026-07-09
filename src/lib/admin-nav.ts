@@ -63,6 +63,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI blog posts, daily sequence, schedule publish",
   },
   {
+    label: "App Builder Lab",
+    href: "/admin/app-builder",
+    description: "Internal product vision — prompt to bounded product",
+  },
+  {
     label: "Newsletter Studio",
     href: "/admin/newsletter",
     description: "Create, preview, and send AI digest",
