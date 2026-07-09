@@ -182,7 +182,7 @@ export function BlogStudio() {
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Blog Studio</h1>
         <p className="mt-2 max-w-2xl text-sm text-text-secondary">
           Pick a daily sequence, generate a post with Gen AI, set date &amp; time, and publish on a
-          schedule. Cron publishes due posts every hour.
+          schedule. A daily cron publishes due posts (and you can always Publish now).
         </p>
         <p className="mt-2 text-xs text-text-muted">
           AI:{" "}
