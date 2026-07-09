@@ -161,6 +161,17 @@ const STATIC_PAGES: SitemapPage[] = [
     changeFrequency: "monthly",
   },
   {
+    href: "/app-builder",
+    label: "App Builder Lab",
+    title: "App Builder Lab",
+    description:
+      "Student-first lab: one idea → guided questions → product brief, fixed stack, and deploy path. Built on Verlin Labs production patterns.",
+    section: "programs",
+    inFooter: true,
+    priority: 0.78,
+    changeFrequency: "weekly",
+  },
+  {
     href: "/library",
     label: "Library",
     title: "Library",
@@ -542,6 +553,7 @@ export function buildFooterLinkGroups(): FooterLinkGroup[] {
     "/courses/engineers",
     "/courses/professionals",
     "/corporate",
+    "/app-builder",
   ];
   const learnOrder = [
     "/library",
@@ -583,7 +595,7 @@ export function buildSitemapSections(): SitemapSection[] {
 
     const order =
       id === "programs"
-        ? ["/free-session", "/programs", "/courses", "/ai-for-students", "/ai-for-engineers", "/ai-for-pms", "/courses/students", "/courses/engineers", "/courses/professionals", "/corporate"]
+        ? ["/free-session", "/programs", "/courses", "/ai-for-students", "/ai-for-engineers", "/ai-for-pms", "/courses/students", "/courses/engineers", "/courses/professionals", "/corporate", "/app-builder"]
         : id === "learn"
           ? ["/library", "/blog", "/mental-models", "/resources", "/newsletter", "/newsletter/archive"]
           : id === "company"

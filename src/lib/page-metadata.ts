@@ -116,6 +116,19 @@ export const PAGE_SEO = {
       "Verlin Labs corporate",
     ],
   },
+  appBuilder: {
+    title: "App Builder Lab — Prompt to Production for Students & PMs",
+    description:
+      "Verlin Labs App Builder Lab: turn one product idea into a brief, opinionated stack, and deploy checklist. Student training first — not magic codegen.",
+    keywords: [
+      "AI app builder for students",
+      "product management AI training",
+      "prompt to product brief",
+      "learn to ship software India",
+      "PM app builder lab",
+      "Verlin Labs App Builder",
+    ],
+  },
   mentalModels: {
     title: "AI Mental Models — Frameworks That Stick",
     description:
