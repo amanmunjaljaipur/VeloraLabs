@@ -189,6 +189,76 @@ export async function logoutAppUser(slug: string): Promise<void> {
   await clearAppSessionCookie(slug);
 }
 
+/**
+ * After Verlin Labs Google OAuth (same GOOGLE_CLIENT_ID settings),
+ * link the Google email into this app's tenant and set the app session cookie.
+ */
+export async function loginAppWithGoogle(
+  slug: string,
+  input: { email: string; name?: string | null }
+): Promise<{ ok: true; redirectTo: string } | { ok: false; error: string }> {
+  let tenant = await getTenant(slug);
+  if (!tenant) {
+    const project = await getAppProjectBySlug(slug);
+    if (project?.status === "live") {
+      tenant = await ensureTenantForProject(project);
+    }
+  }
+  if (!tenant) return { ok: false, error: "Shop not found" };
+
+  const email = input.email.toLowerCase().trim();
+  if (!email.includes("@")) return { ok: false, error: "Google account has no email" };
+
+  const isOwner = Boolean(tenant.ownerEmail && email === tenant.ownerEmail);
+  const existing = await findMember(slug, email);
+
+  let roleId =
+    existing?.member.roleId ||
+    (isOwner ? "super_admin" : tenant.defaultRoleId || "customer");
+  if (isOwner) roleId = "super_admin";
+
+  const member = await upsertMember(slug, {
+    email,
+    name: input.name?.trim() || existing?.member.name || email.split("@")[0],
+    // no password — Google-only member
+    roleId,
+    source: existing?.member.source === "creator" ? "creator" : "google",
+  });
+
+  if (roleId === "customer" || roleId === (tenant.defaultRoleId || "customer")) {
+    try {
+      const { upsertCrmContact } = await import("@/lib/app-builder/tenant-store");
+      await upsertCrmContact(slug, {
+        email: member.email,
+        name: member.name,
+        source: "signup",
+        stage: "new",
+      });
+    } catch {
+      // non-fatal
+    }
+  }
+
+  await setAppSessionCookie(slug, {
+    slug,
+    email: member.email,
+    name: member.name,
+    roleId: member.roleId === "super_admin" || isOwner ? "super_admin" : member.roleId,
+    memberId: member.id,
+  });
+
+  const staff =
+    member.roleId === "super_admin" ||
+    member.roleId === "admin" ||
+    member.roleId === "staff" ||
+    isOwner;
+
+  return {
+    ok: true,
+    redirectTo: staff ? `/apps/${slug}/admin` : `/apps/${slug}`,
+  };
+}
+
 export function publicSessionView(ctx: AppAuthContext | null) {
   if (!ctx) return null;
   return {

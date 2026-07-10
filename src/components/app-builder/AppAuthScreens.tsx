@@ -1,8 +1,10 @@
 "use client";
 
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import type { ShopLogo } from "@/lib/app-builder/types";
 import { Store } from "lucide-react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 export function AppAuthScreens({
   slug,
@@ -29,11 +31,21 @@ export function AppAuthScreens({
   onSwitch: (mode: "login" | "signup") => void;
   onBrowseShop?: () => void;
 }) {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const googleError = useMemo(() => {
+    const e = searchParams?.get("error");
+    if (!e) return "";
+    if (e === "google") return "Google sign-in was cancelled or failed. Try again.";
+    return decodeURIComponent(e);
+  }, [searchParams]);
+
+  const googleCallbackUrl = `/api/apps/${slug}/auth/google`;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -119,7 +131,36 @@ export function AppAuthScreens({
             . It is not your Verlin Labs account.
           </p>
 
-          <form onSubmit={(e) => void submit(e)} className="mt-6 space-y-4">
+          {(error || googleError) ? (
+            <p className="mt-3 text-center text-sm text-red-600">{error || googleError}</p>
+          ) : null}
+
+          <div className="mt-5">
+            <GoogleAuthButton
+              label={
+                mode === "login"
+                  ? "Continue with Google"
+                  : "Sign up with Google"
+              }
+              callbackUrl={googleCallbackUrl}
+              className="w-full"
+            />
+            <p className="mt-2 text-center text-[11px] text-text-muted">
+              Uses the same Google login settings as Verlin Labs. Your Google email becomes your
+              account for <strong>{brandName}</strong> only.
+            </p>
+          </div>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-text-muted">or use email</span>
+            </div>
+          </div>
+
+          <form onSubmit={(e) => void submit(e)} className="space-y-4">
             {mode === "signup" ? (
               <label className="block text-sm">
                 <span className="mb-1 block text-xs font-medium text-text-secondary">Your name</span>
@@ -160,15 +201,13 @@ export function AppAuthScreens({
               ) : null}
             </label>
 
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
             <button
               type="submit"
               disabled={busy}
               className="w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               style={{ background: accent }}
             >
-              {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+              {busy ? "Please wait…" : mode === "login" ? "Sign in with email" : "Create account with email"}
             </button>
           </form>
 

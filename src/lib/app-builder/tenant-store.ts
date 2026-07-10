@@ -175,13 +175,16 @@ export async function upsertMember(
     return existing;
   }
 
-  if (!input.password) throw new Error("Password required for new member");
+  // Google (and similar) can create accounts without a password
+  const passwordHash = input.password
+    ? await bcrypt.hash(input.password, SALT)
+    : await bcrypt.hash(`google-oauth:${email}:${Date.now()}`, SALT);
 
   const member: AppTenantMember = {
     id: `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     email,
     name: input.name.trim() || email.split("@")[0],
-    passwordHash: await bcrypt.hash(input.password, SALT),
+    passwordHash,
     roleId: input.roleId,
     createdAt: new Date().toISOString(),
     source: input.source || "signup",
