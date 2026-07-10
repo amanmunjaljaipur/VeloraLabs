@@ -98,8 +98,9 @@ export function GenericAppRuntime({
             <button
               type="button"
               onClick={() => go("home")}
-              className="flex items-center gap-2 text-left"
+              className="group flex items-center gap-2 text-left transition-opacity hover:opacity-90"
               aria-label={`${content.brandName} home`}
+              title="Go to home"
             >
               {logo.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -373,11 +374,8 @@ export function GenericAppRuntime({
           ownerHighlights: [],
         }}
         theme={theme}
-        onNavigate={(p) => {
-          if (p === "home") go("home");
-          else if (p === "about" || p === "faq" || p === "contact") go(p);
-          else if (p === "shop") go(content.pages.find((x) => x.path === "products")?.path || "features");
-        }}
+        exploreLinks={nav.map((n) => ({ key: n.path, label: n.label }))}
+        onNavigate={(p) => go(p)}
       />
     </div>
   );

@@ -1611,11 +1611,14 @@ export function AppAdminPanel({
                 />
               </label>
 
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <div
+                className="rounded-2xl border border-border bg-card p-4 space-y-3"
+                data-tour="admin-website"
+              >
                 <p className="text-sm font-semibold">0. Your existing website (optional)</p>
                 <p className="text-xs text-text-secondary">
                   Paste your live site (https://…). We sample brand colours and try to find a logo
-                  image for you.
+                  image for you — same multi-colour theme as logo upload.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <input
@@ -1625,6 +1628,8 @@ export function AppAdminPanel({
                       setSettingsForm((f) => ({ ...f, websiteUrl: e.target.value }))
                     }
                     placeholder="https://www.yourbrand.com"
+                    inputMode="url"
+                    autoComplete="url"
                   />
                   <button
                     type="button"

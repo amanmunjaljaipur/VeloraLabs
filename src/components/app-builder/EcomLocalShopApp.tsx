@@ -192,7 +192,13 @@ export function EcomLocalShopApp({
       {!embedded ? (
         <header className="border-b border-border bg-card/90 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <button type="button" onClick={() => go("home")} className="flex items-center gap-2.5 text-left">
+            <button
+              type="button"
+              onClick={() => go("home")}
+              className="group flex items-center gap-2.5 text-left transition-opacity hover:opacity-90"
+              aria-label={`${content.brandName} home`}
+              title="Go to home"
+            >
               <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
               <span>
                 <span
@@ -618,7 +624,14 @@ export function EcomLocalShopApp({
 
       {!PAGE_KEYS.includes(page) ? null : null}
 
-      <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => go(p)} />
+      <AppBuilderFooter
+        content={content}
+        theme={theme}
+        onNavigate={(p) => {
+          if (PAGE_KEYS.includes(p as PageKey)) go(p as PageKey);
+          else if (p === "home") go("home");
+        }}
+      />
     </div>
   );
 }

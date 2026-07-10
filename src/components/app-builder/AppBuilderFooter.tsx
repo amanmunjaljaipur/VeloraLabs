@@ -8,19 +8,22 @@ import {
 import type { EcomLocalShopContent } from "@/lib/app-builder/types";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-type FooterNavKey = "home" | "shop" | "about" | "faq" | "contact";
+type FooterNavKey = "home" | "shop" | "about" | "faq" | "contact" | string;
 
 export function AppBuilderFooter({
   content,
   accent,
   theme: themeProp,
   onNavigate,
+  /** Optional Explore links (generic multi-page apps). Defaults to ecom Home/Products/… */
+  exploreLinks,
 }: {
   content: EcomLocalShopContent;
   /** @deprecated use theme — kept for callers that only pass primary */
   accent?: string;
   theme?: ShopThemeTokens;
   onNavigate?: (page: FooterNavKey) => void;
+  exploreLinks?: Array<{ key: string; label: string }>;
 }) {
   const theme =
     themeProp ||
@@ -32,13 +35,15 @@ export function AppBuilderFooter({
   const logo = content.logo;
   const phone = content.whatsappNumber || content.contactPhone;
 
-  const links: Array<{ key: FooterNavKey; label: string }> = [
-    { key: "home", label: "Home" },
-    { key: "shop", label: "Products" },
-    { key: "about", label: "About" },
-    { key: "faq", label: "Help" },
-    { key: "contact", label: "Contact" },
-  ];
+  const links: Array<{ key: FooterNavKey; label: string }> = exploreLinks?.length
+    ? exploreLinks
+    : [
+        { key: "home", label: "Home" },
+        { key: "shop", label: "Products" },
+        { key: "about", label: "About" },
+        { key: "faq", label: "Help" },
+        { key: "contact", label: "Contact" },
+      ];
 
   return (
     <footer
@@ -60,8 +65,9 @@ export function AppBuilderFooter({
           <button
             type="button"
             onClick={() => onNavigate?.("home")}
-            className="flex items-center gap-2 text-left"
+            className="group flex items-center gap-2 text-left transition-opacity hover:opacity-90"
             aria-label={`${content.brandName} home`}
+            title="Go to home"
           >
             {logo?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element

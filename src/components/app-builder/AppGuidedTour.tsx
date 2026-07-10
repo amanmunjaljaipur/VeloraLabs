@@ -154,13 +154,13 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='brand']",
           title: "Your brand",
-          body: "Logo and shop name. Visitors always know whose store they’re in.",
+          body: "Logo and shop name — click anytime to return to Home (same idea as the Verlin Labs logo).",
           side: "bottom",
         },
         {
           target: "[data-tour='nav']",
           title: "Page links",
-          body: "Home, Products, About, and Contact stay here on every page — including admin.",
+          body: "Main pages stay here on every screen — Home, Products/About, and more. Works from the public site and while you’re in admin.",
           side: "bottom",
         },
         {
@@ -323,13 +323,13 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='admin-settings']",
           title: "Multi-colour brand",
-          body: "Upload your logo, then Build theme from image. Your shop uses several colours: buttons, prices, gradients, chips — not one colour only.",
+          body: "Paste your website link and/or upload your logo to pull multi-colour theme colours. Buttons, nav, and accents use the full palette — not one colour only.",
           side: "bottom",
         },
         {
           target: "[data-tour='admin-theme']",
-          title: "Theme from image",
-          body: "Logo or mood photo → Build theme → tweak primary, secondary, accent, palette → Save brand & theme.",
+          title: "Website, logo & theme",
+          body: "Website URL → Pull theme · or logo/photo → Build theme → tweak palette → Save brand & theme. Your logo on the live app always opens Home.",
           side: "top",
         },
       ],

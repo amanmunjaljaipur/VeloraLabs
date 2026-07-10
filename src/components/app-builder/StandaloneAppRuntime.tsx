@@ -280,11 +280,11 @@ export function StandaloneAppRuntime({
         data-tour="header"
       >
         <div className="mx-auto flex w-full max-w-[100vw] flex-wrap items-center justify-between gap-3 px-4 py-3">
-          {/* Logo + brand name → always home (same idea as Verlin Labs logo → /) */}
+          {/* Logo + brand name → always home (same idea as Verlin Labs VerlinLogo → /) */}
           <button
             type="button"
             onClick={() => goPage("home")}
-            className="flex items-center gap-2 text-left"
+            className="group flex items-center gap-2 text-left transition-opacity hover:opacity-90"
             data-tour="brand"
             aria-label={`${brandName} home`}
             title="Go to home"
@@ -384,7 +384,7 @@ export function StandaloneAppRuntime({
             {isAdminRoute ? (
               <button
                 type="button"
-                onClick={() => go("home")}
+                onClick={() => goPage("home")}
                 data-tour="back-to-shop"
                 className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shadow"
                 style={{
@@ -393,7 +393,7 @@ export function StandaloneAppRuntime({
                 }}
               >
                 <Store className="h-3.5 w-3.5" />
-                Back to shop
+                {isEcomContent(content) ? "Back to shop" : "Back to site"}
               </button>
             ) : null}
             {user?.isAdmin || user?.isStaff ? (
@@ -633,7 +633,7 @@ export function StandaloneAppRuntime({
 
       {/* Footer on account / auth pages (shop pages include their own footer) */}
       {(isAuthRoute || route === "account") && !isAdminRoute && isEcomContent(content) ? (
-        <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => go(p)} />
+        <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => goPage(p)} />
       ) : null}
     </div>
   );
