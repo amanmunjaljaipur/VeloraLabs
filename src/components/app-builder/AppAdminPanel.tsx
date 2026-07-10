@@ -360,10 +360,10 @@ export function AppAdminPanel({
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] w-full bg-background">
-      {/* Sidebar — same placement & feel as Verlin Labs admin */}
+      {/* Sidebar under global top bar (top bar stays visible to exit admin) */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-card transition-[width] duration-300 lg:flex",
+          "sticky top-[3.75rem] hidden h-[calc(100vh-3.75rem)] shrink-0 flex-col border-r border-border bg-card transition-[width] duration-300 lg:flex",
           collapsed ? "w-16" : "w-72"
         )}
       >

@@ -11,10 +11,13 @@ import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
 import type { EcomLocalShopContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
+  ExternalLink,
+  Home,
   LayoutDashboard,
   LogIn,
   LogOut,
   ShoppingBag,
+  Store,
   User,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -198,16 +201,13 @@ export function StandaloneAppRuntime({
   const isAuthRoute = route === "login" || route === "signup";
 
   return (
-    <div className="min-h-screen bg-background text-foreground" data-app-standalone="true">
-      {/* Brand bar only — Verlin Labs menus never show here */}
+    <div className="flex min-h-screen flex-col bg-background text-foreground" data-app-standalone="true">
+      {/* Always-visible top bar — works in shop AND admin so you can leave admin */}
       <header
-        className={cn(
-          "sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur",
-          isAdminRoute && "lg:pl-0"
-        )}
+        className="sticky top-0 z-[60] border-b border-border bg-card shadow-sm"
         data-tour="header"
       >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex w-full max-w-[100vw] flex-wrap items-center justify-between gap-3 px-4 py-3">
           <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
             {content.logo?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -218,7 +218,7 @@ export function StandaloneAppRuntime({
               />
             ) : (
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white shadow"
                 style={{
                   background: `linear-gradient(145deg, ${content.logo?.bgFrom || accent}, ${content.logo?.bgTo || "#0a1628"})`,
                 }}
@@ -230,46 +230,63 @@ export function StandaloneAppRuntime({
               <span className="block text-sm font-semibold" style={{ color: accent }}>
                 {content.brandName}
               </span>
-              <span className="block text-[10px] text-text-muted">{content.city}</span>
+              <span className="block text-[10px] text-text-muted">
+                {isAdminRoute ? "Admin · " : ""}
+                {content.city}
+              </span>
             </span>
           </button>
 
-          {!isAdminRoute ? (
-            <nav className="flex flex-wrap items-center gap-1 text-sm font-medium">
-              {(
-                [
-                  ["home", "Home"],
-                  ["shop", "Products"],
-                  ["about", "About"],
-                  ["contact", "Contact"],
-                ] as const
-              ).map(([r, label]) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => go(r)}
-                  className={cn(
-                    "rounded-lg px-2.5 py-1.5 hover:bg-muted",
-                    route === r && "bg-muted"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
-          ) : (
-            <p className="text-xs font-medium text-text-muted">Admin panel</p>
-          )}
+          {/* Public pages always reachable from top menu */}
+          <nav
+            className="flex flex-wrap items-center gap-1 text-sm font-medium"
+            aria-label="Shop pages"
+          >
+            {(
+              [
+                ["home", "Home", Home],
+                ["shop", "Products", ShoppingBag],
+                ["about", "About", Store],
+                ["contact", "Contact", ExternalLink],
+              ] as const
+            ).map(([r, label, Icon]) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => go(r)}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 hover:bg-muted",
+                  route === r && !isAdminRoute && "bg-muted"
+                )}
+              >
+                <Icon className="hidden h-3.5 w-3.5 sm:inline" />
+                {label}
+              </button>
+            ))}
+          </nav>
 
           <div className="flex flex-wrap items-center gap-2 text-sm" data-tour="auth-actions">
-            {!isAdminRoute ? (
+            {isAdminRoute ? (
+              <button
+                type="button"
+                onClick={() => go("home")}
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-white shadow"
+                style={{ background: accent }}
+              >
+                <Store className="h-3.5 w-3.5" />
+                Back to shop
+              </button>
+            ) : (
               <AppTourReplayButton accent={accent} onClick={() => setForceTour(true)} />
-            ) : null}
+            )}
             {user?.isAdmin || user?.isStaff ? (
               <button
                 type="button"
                 onClick={() => go("admin")}
-                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-medium hover:bg-muted"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-medium hover:bg-muted",
+                  isAdminRoute && "bg-muted"
+                )}
                 style={{ color: accent }}
               >
                 <LayoutDashboard className="h-4 w-4" />
@@ -292,7 +309,7 @@ export function StandaloneAppRuntime({
                   type="button"
                   onClick={() => void handleLogout()}
                   className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-text-muted hover:bg-muted"
-                  title="Sign out of this shop"
+                  title="Sign out of this shop only"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -342,12 +359,26 @@ export function StandaloneAppRuntime({
         <AppAuthScreens
           slug={slug}
           brandName={content.brandName}
+          city={content.city}
+          tagline={content.tagline}
+          logo={content.logo}
           accent={accent}
           mode={route === "signup" ? "signup" : "login"}
+          publicPath={basePath}
           onSuccess={() => {
-            void loadMe().then(() => go("account"));
+            void loadMe().then(() => {
+              // After login: staff/admin → dashboard, customers → shop home
+              void fetch(`/api/apps/${slug}/auth/me`)
+                .then((r) => r.json())
+                .then((data: { user?: AppUserView | null }) => {
+                  if (data.user?.isAdmin || data.user?.isStaff) go("admin");
+                  else go("home");
+                })
+                .catch(() => go("home"));
+            });
           }}
           onSwitch={(mode) => go(mode === "signup" ? "signup" : "login")}
+          onBrowseShop={() => go("home")}
         />
       ) : null}
 
