@@ -8,7 +8,8 @@ import { UserRole } from "@/types/roles";
 export type UserRolesConfig = Record<string, UserRole>;
 
 const ROLES_FILE = "user-roles.json";
-const CACHE_TTL_MS = 5 * 60 * 1000;
+/** Short TTL so role promotions (e.g. → super_admin) show up across instances quickly */
+const CACHE_TTL_MS = 15 * 1000;
 
 let cachedRoles: UserRolesConfig | null = null;
 let cacheLoadedAt = 0;
@@ -43,7 +44,8 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
-    await ensureDataFileHydrated(ROLES_FILE, "{}");
+    // Always re-pull from Blob on Vercel so role changes are visible on all instances
+    await ensureDataFileHydrated(ROLES_FILE, "{}", { force: true });
     cachedRoles = readLocalRolesFile();
     cacheLoadedAt = Date.now();
   })();
@@ -58,7 +60,18 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
 export function getRoleForEmail(email: string | null | undefined): UserRole | null {
   if (!email) return null;
   const roles = getRolesSnapshot();
-  return roles[email.toLowerCase()] ?? null;
+  return roles[email.toLowerCase().trim()] ?? null;
+}
+
+/**
+ * Fresh role from disk/Blob — use for session/JWT so super_admin promotions apply immediately.
+ */
+export async function getRoleForEmailFresh(
+  email: string | null | undefined
+): Promise<UserRole | null> {
+  if (!email) return null;
+  await ensureRolesLoaded(true);
+  return getRoleForEmail(email);
 }
 
 export function hasCustomRoleAssignment(email: string | null | undefined): boolean {

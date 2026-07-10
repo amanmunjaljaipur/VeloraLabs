@@ -128,6 +128,10 @@ export async function POST(req: NextRequest) {
         role: parsed.data.role,
         label: ROLE_LABELS[parsed.data.role],
       },
+      note:
+        parsed.data.role === "super_admin" || parsed.data.role === "admin"
+          ? "Role saved. They should refresh the admin page or sign out and sign back in to load full powers."
+          : undefined,
     });
   } catch (error) {
     console.error("Role assignment failed:", error);

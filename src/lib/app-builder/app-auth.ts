@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { roleHasCapability } from "@/lib/app-builder/default-roles";
+import { DEFAULT_ECOM_ROLES, roleHasCapability } from "@/lib/app-builder/default-roles";
 import { clearAppSessionCookie, readAppSession, setAppSessionCookie } from "@/lib/app-builder/app-session";
 import {
   ensureTenantForProject,
@@ -12,6 +12,34 @@ import type { AppCapability, AppRoleDefinition, AppSessionPayload, AppTenant } f
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
 import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
+
+/** Owner / super_admin always has full powers even if role row was corrupted */
+function resolveTenantRole(
+  tenant: AppTenant,
+  roleId: string,
+  isOwnerEmail: boolean
+): AppRoleDefinition | null {
+  const wantOwner = isOwnerEmail || roleId === "super_admin";
+  if (wantOwner) {
+    const fromTenant = tenant.roles.find((r) => r.id === "super_admin");
+    if (fromTenant) {
+      return {
+        ...fromTenant,
+        capabilities: ["*"],
+        system: true,
+        isDefault: false,
+      };
+    }
+    const fallback =
+      DEFAULT_ECOM_ROLES.find((r) => r.id === "super_admin") || DEFAULT_ECOM_ROLES[0];
+    return { ...fallback, capabilities: ["*"] };
+  }
+  return (
+    tenant.roles.find((r) => r.id === roleId) ||
+    tenant.roles.find((r) => r.id === "customer") ||
+    null
+  );
+}
 
 export interface AppAuthContext {
   slug: string;
@@ -47,14 +75,16 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
       // only allow if they match owner and a creator seed is missing (handled on signup).
       return null;
     }
-    // Owner email always super_admin even if role was tampered in DB
+    // Owner email always super_admin; re-bind role from live member row (not cookie)
     let roleId = member.roleId;
-    if (tenant.ownerEmail && appSession.email.toLowerCase() === tenant.ownerEmail) {
+    const isOwnerEmail = Boolean(
+      tenant.ownerEmail && appSession.email.toLowerCase() === tenant.ownerEmail
+    );
+    if (isOwnerEmail) {
       roleId = "super_admin";
     }
-    const role = tenant.roles.find((r) => r.id === roleId) || tenant.roles.find((r) => r.id === "customer");
+    const role = resolveTenantRole(tenant, roleId, isOwnerEmail);
     if (!role) return null;
-    // Never trust elevated caps on non-owner from stale cookie — re-bind session role from tenant
     return {
       slug,
       session: {
@@ -71,14 +101,12 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
 
   // Bridge: logged into Verlin Labs as platform super_admin
   try {
-    await ensureRolesLoaded();
+    await ensureRolesLoaded(true);
     const vl = await auth();
     const email = vl?.user?.email?.toLowerCase();
     const platformRole = email ? getRoleForEmail(email) ?? vl?.user?.role : null;
     if (email && isSuperAdminRole(platformRole)) {
-      const role =
-        tenant.roles.find((r) => r.id === "super_admin") ||
-        tenant.roles.find((r) => r.capabilities.includes("*"));
+      const role = resolveTenantRole(tenant, "super_admin", true);
       if (!role) return null;
       return {
         slug,
@@ -86,7 +114,7 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
           slug,
           email,
           name: vl?.user?.name || "Platform Super Admin",
-          roleId: role.id,
+          roleId: "super_admin",
           memberId: "platform-super-admin",
           exp: Math.floor(Date.now() / 1000) + 3600,
         },
@@ -284,18 +312,26 @@ export async function loginAppWithGoogle(
 
 export function publicSessionView(ctx: AppAuthContext | null) {
   if (!ctx) return null;
+  const fullOwner =
+    ctx.role.id === "super_admin" ||
+    roleHasCapability(ctx.role, "*") ||
+    ctx.viaPlatformSuperAdmin === true;
   return {
     email: ctx.session.email,
     name: ctx.session.name,
-    roleId: ctx.role.id,
-    roleLabel: ctx.role.label,
-    capabilities: ctx.role.capabilities,
+    roleId: fullOwner ? "super_admin" : ctx.role.id,
+    roleLabel: fullOwner ? ctx.role.label || "Owner" : ctx.role.label,
+    capabilities: fullOwner ? (["*"] as string[]) : ctx.role.capabilities,
     viaPlatformSuperAdmin: ctx.viaPlatformSuperAdmin === true,
-    isStaff: roleHasCapability(ctx.role, "orders.manage") || roleHasCapability(ctx.role, "*"),
+    isStaff:
+      fullOwner ||
+      roleHasCapability(ctx.role, "orders.manage") ||
+      roleHasCapability(ctx.role, "*"),
     isAdmin:
+      fullOwner ||
       roleHasCapability(ctx.role, "*") ||
       roleHasCapability(ctx.role, "products.edit") ||
       roleHasCapability(ctx.role, "settings.edit"),
-    isOwner: roleHasCapability(ctx.role, "*"),
+    isOwner: fullOwner || roleHasCapability(ctx.role, "*"),
   };
 }

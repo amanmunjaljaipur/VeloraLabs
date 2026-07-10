@@ -146,7 +146,31 @@ export async function PATCH(request: Request, context: Ctx) {
     member.roleId = targetRole.id;
   }
 
+  // Promoting to Owner: ensure super_admin role definition exists with full powers
+  if (member.roleId === "super_admin") {
+    const sa = tenant.roles.find((r) => r.id === "super_admin");
+    if (!sa) {
+      tenant.roles.unshift({
+        id: "super_admin",
+        label: "Owner",
+        description: "Full control of this shop",
+        capabilities: ["*"],
+        system: true,
+      });
+    } else {
+      sa.capabilities = ["*"];
+      sa.system = true;
+    }
+  }
+
   const { saveTenant } = await import("@/lib/app-builder/tenant-store");
   await saveTenant(tenant);
-  return NextResponse.json({ ok: true, roleId: member.roleId });
+  return NextResponse.json({
+    ok: true,
+    roleId: member.roleId,
+    note:
+      member.roleId === "super_admin"
+        ? "Owner powers applied. Ask them to refresh the page (or sign out and back in) to see the full admin menu."
+        : undefined,
+  });
 }

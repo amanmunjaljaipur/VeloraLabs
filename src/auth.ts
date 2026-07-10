@@ -9,7 +9,7 @@ import {
   recordKnownUser,
   type AuthProvider,
 } from "@/lib/known-users";
-import { ensureRolesLoaded, getRoleForEmail } from "@/lib/roles";
+import { ensureRolesLoaded, getRoleForEmail, getRoleForEmailFresh } from "@/lib/roles";
 import { verifyManualUserPasswordDetailed } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveAuthSecret } from "@/lib/auth-secret";
@@ -156,7 +156,8 @@ export const authOptions: NextAuthConfig = {
         const isAuthSignIn =
           trigger === "signIn" || trigger === "signUp" || Boolean(account);
 
-        await ensureRolesLoaded(isAuthSignIn);
+        // Always refresh roles from Blob so super_admin / admin promotions apply without waiting for cache
+        await ensureRolesLoaded(true);
 
         if (trigger === "update" && session) {
           const patch = session as {
@@ -258,7 +259,6 @@ export const authOptions: NextAuthConfig = {
     },
     async session({ session, token }) {
       try {
-        await ensureRolesLoaded();
         await ensureKnownUsersLoaded();
 
         if (session.user && token.sub) {
@@ -270,7 +270,8 @@ export const authOptions: NextAuthConfig = {
             session.user.name,
             token.authProvider as AuthProvider | undefined
           );
-          const role = getRoleForEmail(session.user.email);
+          // Fresh role every session build — super_admin menu/powers must not lag behind assignment
+          const role = await getRoleForEmailFresh(session.user.email);
           session.user.role = role;
           session.user.rolePending = role === null;
           session.user.enrolledLearner =

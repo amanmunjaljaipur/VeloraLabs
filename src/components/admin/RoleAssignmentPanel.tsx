@@ -112,10 +112,15 @@ export function RoleAssignmentPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: targetEmail, role: targetRole }),
     });
-    const data = (await res.json()) as { error?: string };
+    const data = (await res.json()) as { error?: string; note?: string };
     if (!res.ok) {
       throw new Error(data.error || "Failed to assign role");
     }
+    return data.note;
+  };
+
+  const successToast = (msg: string, note?: string) => {
+    toast(note ? `${msg} ${note}` : msg, "success");
   };
 
   const handleAssign = async (e: React.FormEvent) => {
@@ -123,8 +128,8 @@ export function RoleAssignmentPanel({
     setSubmitting(true);
 
     try {
-      await assignRole(email, role);
-      toast(`Role updated for ${email}`, "success");
+      const note = await assignRole(email, role);
+      successToast(`Role updated for ${email}.`, note);
       setEmail("");
       setRole("student");
       await fetchAssignments();
@@ -140,8 +145,8 @@ export function RoleAssignmentPanel({
     setAssigningEmail(targetEmail);
 
     try {
-      await assignRole(targetEmail, targetRole);
-      toast(`Assigned ${ROLE_LABELS[targetRole]} to ${targetEmail}`, "success");
+      const note = await assignRole(targetEmail, targetRole);
+      successToast(`Assigned ${ROLE_LABELS[targetRole]} to ${targetEmail}.`, note);
       await fetchAssignments();
     } catch (error) {
       toast(error instanceof Error ? error.message : "Failed to assign role", "error");
@@ -189,8 +194,8 @@ export function RoleAssignmentPanel({
     setUpdatingEmail(assignmentEmail);
 
     try {
-      await assignRole(assignmentEmail, targetRole);
-      toast(`Updated ${assignmentEmail} to ${ROLE_LABELS[targetRole]}`, "success");
+      const note = await assignRole(assignmentEmail, targetRole);
+      successToast(`Updated ${assignmentEmail} to ${ROLE_LABELS[targetRole]}.`, note);
       await fetchAssignments();
     } catch (error) {
       toast(error instanceof Error ? error.message : "Failed to update role", "error");
