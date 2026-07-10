@@ -32,7 +32,10 @@ function isStandaloneAppPath(pathname: string): boolean {
     pathname === "/apps" ||
     pathname.startsWith("/apps/") ||
     pathname.startsWith("/api/apps/") ||
-    /^\/demo-apps\/[^/]+\/?$/.test(pathname)
+    /^\/demo-apps\/[^/]+\/?$/.test(pathname) ||
+    // Permanent published stores: /s/ecom-food_1 , /s/ecom_1/shop , …
+    pathname === "/s" ||
+    pathname.startsWith("/s/")
   );
 }
 

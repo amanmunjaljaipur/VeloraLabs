@@ -7,6 +7,7 @@
  */
 
 import { StudioWorkingApp } from "@/components/app-studio/StudioWorkingApp";
+import { StoreStudio } from "@/components/demo-stores/StoreStudio";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -18,6 +19,7 @@ import {
   type DemoAppSession,
 } from "@/lib/demo-apps/demo-auth";
 import type { StudioAppSpec } from "@/lib/app-studio/types";
+import type { StoreCategoryId } from "@/lib/demo-stores/types";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -25,6 +27,7 @@ import {
   Lock,
   LogOut,
   Shield,
+  Store,
   UserRound,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -49,6 +52,7 @@ export function DemoAuthShell({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(false);
 
   const refresh = useCallback(() => {
     setSession(getDemoSession(slug));
@@ -100,6 +104,27 @@ export function DemoAuthShell({
 
   // ── Authenticated: full product + session chrome ──────────────────────
   if (session) {
+    if (studioOpen && session.access === "app_admin") {
+      const catMap: Record<string, StoreCategoryId> = {
+        "mass-marketplace": "mass-marketplace",
+        "food-delivery": "food-delivery",
+        "grocery-qcommerce": "grocery-qcommerce",
+        "brand-shopping": "brand-shopping",
+        "secondhand-marketplace": "secondhand-marketplace",
+        "loyalty-cashback": "loyalty-cashback",
+        "digital-banking": "digital-banking",
+      };
+      return (
+        <StoreStudio
+          session={session}
+          sourceDemoSlug={slug}
+          defaultCategory={catMap[slug] || "mass-marketplace"}
+          defaultBrand={spec.brandName}
+          onClose={() => setStudioOpen(false)}
+        />
+      );
+    }
+
     return (
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         {/* Thin session bar — product stays primary */}
@@ -118,9 +143,18 @@ export function DemoAuthShell({
           </div>
           <div className="flex items-center gap-2">
             {session.access === "app_admin" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent-teal/15 px-2 py-0.5 font-medium text-accent-teal">
-                <Shield className="h-3 w-3" /> App admin · all roles
-              </span>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setStudioOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full bg-navy px-2.5 py-1 font-medium text-white hover:bg-navy-muted"
+                >
+                  <Store className="h-3 w-3" /> Store Super Admin
+                </button>
+                <span className="hidden items-center gap-1 rounded-full bg-accent-teal/15 px-2 py-0.5 font-medium text-accent-teal sm:inline-flex">
+                  <Shield className="h-3 w-3" /> All roles
+                </span>
+              </>
             )}
             <button
               type="button"
@@ -140,14 +174,28 @@ export function DemoAuthShell({
             <p className="mt-2 text-xs text-muted-foreground">
               Access:{" "}
               <strong className="text-foreground">
-                {session.access === "app_admin" ? "App admin" : "Member"}
+                {session.access === "app_admin" ? "App admin / store owner" : "Member"}
               </strong>
             </p>
             {session.access === "app_admin" && (
-              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                Use the in-app role selector to test every workflow (shopper, seller, ops,
-                support, etc.). Session stays on this device until you log out.
-              </p>
+              <>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Switch product roles in-app to test workflows. Open Store Super Admin to brand,
+                  CMS, CRM, chatbot, and publish permanent /s/… stores.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="cta"
+                  className="mt-2 w-full"
+                  onClick={() => {
+                    setShowAccount(false);
+                    setStudioOpen(true);
+                  }}
+                >
+                  <Store className="h-3.5 w-3.5" /> Open Store Super Admin
+                </Button>
+              </>
             )}
             <p className="mt-2 text-[10px] text-muted-foreground">
               Session for <strong>{slug}</strong> only — other demo apps need their own login.
