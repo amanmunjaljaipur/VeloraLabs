@@ -61,10 +61,24 @@ export async function PUT(request: Request, context: Ctx) {
 
   if (!roles.some((r) => r.id === "super_admin")) {
     const existing = authz.tenant.roles.find((r) => r.id === "super_admin");
-    if (existing) roles = [existing, ...roles];
+    if (existing) {
+      roles = [
+        {
+          id: existing.id,
+          label: existing.label,
+          description: existing.description,
+          capabilities: existing.capabilities,
+          system: true,
+          isDefault: false,
+        },
+        ...roles,
+      ];
+    }
   }
   roles = roles.map((r) =>
-    r.id === "super_admin" ? { ...r, capabilities: ["*"] as AppCapability[], system: true } : r
+    r.id === "super_admin"
+      ? { ...r, capabilities: ["*"] as AppCapability[], system: true, isDefault: false }
+      : r
   );
 
   // Exactly one default
