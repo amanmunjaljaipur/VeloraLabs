@@ -683,7 +683,7 @@ export function BankingProductApp({
                 {spec.brandName}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
-                Mock APIs · happy & fail paths · {visibleModules.length} modules
+                {spec.tagline || "Digital banking"} · {visibleModules.length} modules
               </p>
             </div>
           </div>
@@ -775,25 +775,7 @@ export function BankingProductApp({
         )}
         {tab === "home" && (
           <div className="space-y-5">
-            {spec.learning && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
-                  Learning track · {role?.label}
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight">{spec.learning.heroHeadline}</h1>
-                <p className="max-w-3xl text-sm text-muted-foreground">{spec.learning.heroSub}</p>
-                {spec.learning.outcomes.length > 0 && (
-                  <ul className="grid gap-1.5 sm:grid-cols-2">
-                    {spec.learning.outcomes.slice(0, 4).map((o) => (
-                      <li key={o} className="flex gap-2 text-sm text-foreground">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-teal" />
-                        {o}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+            {/* Bank home leads with money UI — not a course “learning track” banner */}
             <Card
               className="overflow-hidden p-0 text-white"
               style={{
@@ -808,8 +790,8 @@ export function BankingProductApp({
                       {hideBalance ? "••••••" : inr(totalBalance)}
                     </p>
                     <p className="mt-2 text-sm text-white/70">
-                      {role?.label} · {accounts.filter((a) => a.status === "Active").length} active
-                      accounts · demo only
+                      {role?.label} ·{" "}
+                      {accounts.filter((a) => a.status === "Active").length} active accounts
                     </p>
                   </div>
                   <Button
@@ -848,45 +830,62 @@ export function BankingProductApp({
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {accounts.map((a) => (
-                <Card key={a.id} className="p-4">
-                  <div className="flex justify-between gap-2">
-                    <p className="font-semibold text-sm">{String(a.title)}</p>
-                    <Badge className="bg-muted text-[10px]">{String(a.status)}</Badge>
-                  </div>
-                  <p className="mt-2 text-xl font-bold">
-                    {hideBalance ? "••••" : inr(a.amount)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{String(a.level)}</p>
-                </Card>
+                <button
+                  key={a.id}
+                  type="button"
+                  className="text-left"
+                  onClick={() => setTab("accounts")}
+                >
+                  <Card className="h-full p-4 transition hover:border-accent-teal/40">
+                    <div className="flex justify-between gap-2">
+                      <p className="text-sm font-semibold">{String(a.title)}</p>
+                      <Badge className="bg-muted text-[10px]">{String(a.status)}</Badge>
+                    </div>
+                    <p className="mt-2 text-xl font-bold">
+                      {hideBalance ? "••••" : inr(a.amount)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{String(a.level)}</p>
+                  </Card>
+                </button>
               ))}
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <Card className="p-4">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Modules</p>
-                <p className="mt-1 text-2xl font-bold text-accent-teal">{visibleModules.length}</p>
-                <p className="text-xs text-muted-foreground">Full retail banking surface</p>
-              </Card>
-              <Card className="p-4">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Pending</p>
-                <p className="mt-1 text-2xl font-bold">
-                  {transfers.filter((t) => /pending|2fa/i.test(String(t.status))).length}
-                </p>
-                <p className="text-xs text-muted-foreground">Transfers need action</p>
-              </Card>
-              <Card className="p-4">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Unread alerts</p>
-                <p className="mt-1 text-2xl font-bold">
-                  {notifications.filter((n) => n.status === "Unread").length}
-                </p>
-                <button
-                  type="button"
-                  className="text-xs text-accent-teal underline"
-                  onClick={() => setTab("notifications")}
-                >
-                  View alerts
-                </button>
-              </Card>
+              <button type="button" className="text-left" onClick={() => setTab("transactions")}>
+                <Card className="h-full p-4 transition hover:border-accent-teal/40">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    Recent activity
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-accent-teal">
+                    {transfers.length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Open transactions →</p>
+                </Card>
+              </button>
+              <button type="button" className="text-left" onClick={() => setTab("send")}>
+                <Card className="h-full p-4 transition hover:border-accent-teal/40">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Pending</p>
+                  <p className="mt-1 text-2xl font-bold">
+                    {transfers.filter((t) => /pending|2fa/i.test(String(t.status))).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Transfers need action →</p>
+                </Card>
+              </button>
+              <button
+                type="button"
+                className="text-left"
+                onClick={() => setTab("notifications")}
+              >
+                <Card className="h-full p-4 transition hover:border-accent-teal/40">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    Unread alerts
+                  </p>
+                  <p className="mt-1 text-2xl font-bold">
+                    {notifications.filter((n) => n.status === "Unread").length}
+                  </p>
+                  <p className="text-xs text-accent-teal">View alerts →</p>
+                </Card>
+              </button>
             </div>
           </div>
         )}
@@ -1790,49 +1789,99 @@ export function BankingProductApp({
             )}
           </Module>
         )}
-      </main>
-
-      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-5">
-        {spec.shell?.footer ? (
-          <div className="mx-auto max-w-7xl space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {spec.shell.footer.columns.map((col) => (
-                <div key={col.title}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide">{col.title}</p>
-                  <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-                    {col.links.map((l) => (
-                      <li key={l.label}>{l.label}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {spec.shell.footer.trustBadges.map((b) => (
-                <span
-                  key={b}
-                  className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground"
-                >
-                  {b}
-                </span>
-              ))}
-            </div>
-            {spec.shell.footer.disclaimers.map((d) => (
-              <p key={d} className="text-[11px] text-muted-foreground">
-                {d}
-              </p>
+        {/* Footer scrolls with content — never pinned/shrink-0 or it crushes the bank UI */}
+        <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-border pt-6 pb-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {(
+              [
+                {
+                  title: "Banking",
+                  links: [
+                    { label: "Accounts", tab: "accounts" },
+                    { label: "Send money", tab: "send" },
+                    { label: "UPI", tab: "upi" },
+                    { label: "Cards", tab: "cards" },
+                    { label: "Bills", tab: "bills" },
+                  ],
+                },
+                {
+                  title: "Services",
+                  links: [
+                    { label: "Deposits", tab: "deposits" },
+                    { label: "Loans", tab: "loans" },
+                    { label: "Statements", tab: "statements" },
+                    { label: "Insights", tab: "insights" },
+                    { label: "Scheduled", tab: "scheduled" },
+                  ],
+                },
+                {
+                  title: "Support",
+                  links: [
+                    { label: "Help & support", tab: "support" },
+                    { label: "Notifications", tab: "notifications" },
+                    { label: "Security", tab: "security" },
+                    { label: "Limits", tab: "limits" },
+                    { label: "KYC", tab: "kyc" },
+                  ],
+                },
+                {
+                  title: "Account",
+                  links: [
+                    { label: "Payees", tab: "beneficiaries" },
+                    { label: "Transactions", tab: "transactions" },
+                    { label: "Disputes", tab: "disputes" },
+                    { label: "Home", tab: "home" },
+                  ],
+                },
+              ] satisfies Array<{ title: string; links: Array<{ label: string; tab: ModuleId }> }>
+            ).map((col) => (
+              <div key={col.title}>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                  {col.title}
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <button
+                        type="button"
+                        className="text-left text-sm text-muted-foreground hover:text-accent-teal"
+                        onClick={() => {
+                          setTab(l.tab);
+                          flash(`Opened ${l.label}`, "info");
+                        }}
+                      >
+                        {l.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-            <p className="text-[11px] font-medium text-foreground/80">
-              {spec.shell.footer.copyright}
-            </p>
           </div>
-        ) : (
-          <p className="text-center text-[10px] text-muted-foreground">
-            {spec.brandName} · Fictional demo bank · Not a real financial product ·{" "}
-            {visibleModules.length} modules
+          <div className="mt-5 flex flex-wrap gap-2">
+            {(
+              spec.shell?.footer.trustBadges || [
+                "Demo bank only",
+                "No real funds",
+                "Mock APIs",
+              ]
+            ).map((b) => (
+              <span
+                key={b}
+                className="rounded-full border border-border px-2.5 py-0.5 text-[10px] text-muted-foreground"
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-muted-foreground">
+            Not a licensed bank. No real money moves. Sample data for product demos only.
           </p>
-        )}
-      </footer>
+          <p className="mt-1 text-[11px] font-medium text-foreground/80">
+            © {new Date().getFullYear()} {spec.brandName}. All rights reserved.
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }
