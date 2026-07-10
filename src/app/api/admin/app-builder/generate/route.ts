@@ -1,5 +1,6 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
+import { packageAppProject } from "@/lib/app-builder/packager";
 import { getAppProject, saveAppProject } from "@/lib/app-builder/store";
 import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
 import { NextResponse } from "next/server";
@@ -10,6 +11,7 @@ export const maxDuration = 120;
 /**
  * Generate + publish app content using the caller's LLM API key.
  * Secrets are request-only and never stored.
+ * Awaits Blob persist so the public /apps/{slug} page works on any server instance.
  */
 export async function POST(request: Request) {
   const session = await requireCmsEditor();
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const project = getAppProject(body.projectId);
+  const project = await getAppProject(body.projectId);
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   const secrets: AppLlmSecrets = {
@@ -77,12 +79,25 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    saveAppProject(next);
+    await saveAppProject(next);
+
+    let packageInfo: { folderPath: string; files: string[] } | null = null;
+    if (next.status === "live" && next.content) {
+      try {
+        packageInfo = await packageAppProject(next);
+      } catch (packErr) {
+        console.error("[app-builder] package failed (app still live):", packErr);
+      }
+    }
 
     return NextResponse.json({
       project: next,
       publicUrl: next.publicPath,
-      note: "API key was used for this request only and was not stored.",
+      packageFolder: packageInfo
+        ? `generated-apps/${next.slug}`
+        : undefined,
+      packageFiles: packageInfo?.files,
+      note: "API key was used for this request only and was not stored. Shop data is saved permanently.",
     });
   } catch (error) {
     console.error("[app-builder/generate]", error);

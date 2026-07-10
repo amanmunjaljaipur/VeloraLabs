@@ -4,6 +4,7 @@ import { createMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{ slug: string; path?: string[] }>;
@@ -11,7 +12,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const project = getAppProjectBySlug(slug);
+  const project = await getAppProjectBySlug(slug);
   if (!project || project.status !== "live" || !project.content) {
     return { title: "App not found" };
   }
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function GeneratedAppPage({ params }: PageProps) {
   const { slug, path } = await params;
-  const project = getAppProjectBySlug(slug);
+  // Force Blob re-hydrate so navigation never hits an empty serverless seed
+  const project = await getAppProjectBySlug(slug);
 
   if (!project || project.status !== "live" || !project.content) {
     notFound();

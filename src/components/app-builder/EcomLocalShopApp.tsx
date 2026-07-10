@@ -13,9 +13,16 @@ import {
   Truck,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type PageKey = "home" | "shop" | "about" | "contact" | "faq";
+
+const PAGE_KEYS: PageKey[] = ["home", "shop", "about", "contact", "faq"];
+
+function parsePage(seg?: string): PageKey {
+  if (seg === "shop" || seg === "about" || seg === "contact" || seg === "faq") return seg;
+  return "home";
+}
 
 function ShopLogoMark({
   logo,
@@ -63,13 +70,34 @@ export function EcomLocalShopApp({
   basePath: string;
   pathSegments?: string[];
 }) {
-  const page: PageKey = useMemo(() => {
-    const seg = pathSegments[0] || "home";
-    if (seg === "shop" || seg === "about" || seg === "contact" || seg === "faq") return seg;
-    return "home";
-  }, [pathSegments]);
-
+  // Client-side page state — avoids full RSC re-fetch (which was 404ing when Blob lag/empty seed)
+  const [page, setPage] = useState<PageKey>(() => parsePage(pathSegments[0]));
   const [category, setCategory] = useState("");
+
+  const go = useCallback(
+    (next: PageKey) => {
+      setPage(next);
+      const url = next === "home" ? basePath : `${basePath}/${next}`;
+      if (typeof window !== "undefined") {
+        window.history.pushState({ appPage: next }, "", url);
+      }
+    },
+    [basePath]
+  );
+
+  useEffect(() => {
+    const onPop = () => {
+      if (typeof window === "undefined") return;
+      const path = window.location.pathname.replace(/\/$/, "");
+      const base = basePath.replace(/\/$/, "");
+      const rest = path.startsWith(base) ? path.slice(base.length).replace(/^\//, "") : "";
+      const seg = rest.split("/").filter(Boolean)[0];
+      setPage(parsePage(seg));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [basePath]);
+
   const products = useMemo(() => {
     if (!category) return content.products;
     return content.products.filter((p) => p.category === category);
@@ -86,11 +114,19 @@ export function EcomLocalShopApp({
   };
   const wa = whatsappHref(content.whatsappNumber || content.contactPhone, content.brandName);
 
+  const navItems: Array<[PageKey, string]> = [
+    ["home", "Home"],
+    ["shop", "Products"],
+    ["about", "About"],
+    ["faq", "Help"],
+    ["contact", "Contact"],
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <Link href={basePath} className="flex items-center gap-2.5">
+          <button type="button" onClick={() => go("home")} className="flex items-center gap-2.5 text-left">
             <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
             <span>
               <span className="block text-base font-semibold tracking-tight" style={{ color: accent }}>
@@ -98,27 +134,20 @@ export function EcomLocalShopApp({
               </span>
               <span className="block text-[11px] text-text-muted">{content.city}</span>
             </span>
-          </Link>
+          </button>
           <nav className="flex flex-wrap gap-1 text-sm font-medium">
-            {(
-              [
-                ["home", "Home"],
-                ["shop", "Products"],
-                ["about", "About"],
-                ["faq", "Help"],
-                ["contact", "Contact"],
-              ] as const
-            ).map(([key, label]) => (
-              <Link
+            {navItems.map(([key, label]) => (
+              <button
                 key={key}
-                href={key === "home" ? basePath : `${basePath}/${key}`}
+                type="button"
+                onClick={() => go(key)}
                 className={cn(
                   "rounded-lg px-3 py-1.5 transition hover:bg-muted",
                   page === key && "bg-muted"
                 )}
               >
                 {label}
-              </Link>
+              </button>
             ))}
           </nav>
         </div>
@@ -132,7 +161,6 @@ export function EcomLocalShopApp({
               background: `linear-gradient(135deg, ${logo.bgFrom}, ${logo.bgTo})`,
             }}
           >
-            {/* Location motif pattern */}
             <div
               className="pointer-events-none absolute inset-0 opacity-[0.12]"
               style={{
@@ -153,13 +181,14 @@ export function EcomLocalShopApp({
                 </h1>
                 <p className="mt-4 text-base text-white/90 md:text-lg">{content.heroSubheadline}</p>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <Link
-                    href={`${basePath}/shop`}
+                  <button
+                    type="button"
+                    onClick={() => go("shop")}
                     className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow"
                   >
                     <ShoppingBag className="h-4 w-4" />
                     {content.ctaLabel}
-                  </Link>
+                  </button>
                   {wa ? (
                     <a
                       href={wa}
@@ -317,9 +346,7 @@ export function EcomLocalShopApp({
       {page === "faq" && (
         <section className="mx-auto max-w-3xl px-4 py-12">
           <h1 className="text-2xl font-semibold">Help & FAQ</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Simple answers — no tech talk.
-          </p>
+          <p className="mt-1 text-sm text-text-secondary">Simple answers — no tech talk.</p>
           <div className="mt-6 space-y-4">
             {content.faqs.map((f, i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-4">
@@ -407,6 +434,8 @@ export function EcomLocalShopApp({
           </ul>
         </section>
       )}
+
+      {!PAGE_KEYS.includes(page) ? null : null}
 
       <footer className="border-t border-border bg-muted/20 py-8 text-center text-xs text-text-muted">
         <div className="mb-3 flex justify-center">

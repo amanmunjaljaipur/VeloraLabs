@@ -20,8 +20,10 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const projects = await listAppProjects();
+
   return NextResponse.json({
-    projects: listAppProjects(),
+    projects,
     extensions: APP_EXTENSIONS,
     ideaExamples: APP_IDEA_EXAMPLES,
     llmProviders: [
@@ -102,7 +104,7 @@ export async function POST(request: Request) {
     answers.find((a) => a.id === "brandName")?.answer?.trim() ||
     slugifyAppName(prompt).replace(/-/g, " ") ||
     "My Shop";
-  const slug = uniqueAppSlug(brand);
+  const slug = await uniqueAppSlug(brand);
   const now = new Date().toISOString();
   const provider = body.llm?.provider || "xai";
 
@@ -127,6 +129,6 @@ export async function POST(request: Request) {
     createdBy: session.user?.email ?? undefined,
   };
 
-  saveAppProject(project);
+  await saveAppProject(project);
   return NextResponse.json({ project }, { status: 201 });
 }

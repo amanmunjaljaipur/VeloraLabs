@@ -17,7 +17,9 @@ import {
   AppWindow,
   ArrowLeft,
   ArrowRight,
+  Download,
   ExternalLink,
+  FolderOpen,
   HeartHandshake,
   KeyRound,
   Lightbulb,
@@ -333,6 +335,48 @@ export function AppBuilderStudio() {
       setStep("idea");
     }
     await load();
+  }
+
+  async function downloadHostingFolder(id: string, slug: string) {
+    try {
+      const res = await fetch(`/api/admin/app-builder/${id}/export`);
+      const data = (await res.json()) as {
+        files?: Record<string, string>;
+        folder?: string;
+        error?: string;
+        howToHost?: string;
+      };
+      if (!res.ok || !data.files) {
+        toast(data.error || "Could not prepare hosting folder", "error");
+        return;
+      }
+      // Download each file (site/index.html is the main one for any host)
+      for (const [rel, body] of Object.entries(data.files)) {
+        const blob = new Blob([body], {
+          type: rel.endsWith(".html")
+            ? "text/html"
+            : rel.endsWith(".json")
+              ? "application/json"
+              : "text/plain",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${slug}-${rel.replace(/\//g, "-")}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+      toast(
+        data.folder
+          ? `Hosting files ready (also on disk: ${data.folder}). Upload site HTML to any host.`
+          : "Hosting files downloaded",
+        "success"
+      );
+    } catch {
+      toast("Download failed", "error");
+    }
   }
 
   function pickIdea(idea: AppIdeaExample) {
@@ -899,6 +943,20 @@ export function AppBuilderStudio() {
                   ? ` Colours and logo style match ${activeProject.content.city}.`
                   : null}
               </p>
+              <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-text-secondary">
+                <FolderOpen className="mt-0.5 h-4 w-4 shrink-0 text-accent-teal" />
+                <div>
+                  <p className="font-semibold text-foreground">Hosting folder</p>
+                  <p className="mt-0.5 font-mono text-[11px]">
+                    generated-apps/{activeProject.slug}/
+                  </p>
+                  <p className="mt-1">
+                    Contains <code className="text-[11px]">project.json</code>,{" "}
+                    <code className="text-[11px]">site/index.html</code>, and a README — upload the
+                    site folder to Netlify, Hostinger, or any host.
+                  </p>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={activeProject.publicPath} target="_blank">
                   <Button>
@@ -906,6 +964,16 @@ export function AppBuilderStudio() {
                     Open my shop
                   </Button>
                 </Link>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() =>
+                    void downloadHostingFolder(activeProject.id, activeProject.slug)
+                  }
+                >
+                  <Download className="mr-1.5 h-4 w-4" />
+                  Download for hosting
+                </Button>
                 <Button variant="secondary" type="button" onClick={resetWizard}>
                   Build another shop
                 </Button>
@@ -941,14 +1009,24 @@ export function AppBuilderStudio() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {p.status === "live" ? (
-                      <Link href={p.publicPath} target="_blank">
-                        <Button variant="secondary" size="sm">
-                          <ExternalLink className="mr-1 h-3.5 w-3.5" />
-                          Open
+                      <>
+                        <Link href={p.publicPath} target="_blank">
+                          <Button variant="secondary" size="sm">
+                            <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                            Open
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => void downloadHostingFolder(p.id, p.slug)}
+                        >
+                          <Download className="mr-1 h-3.5 w-3.5" />
+                          Host folder
                         </Button>
-                      </Link>
+                      </>
                     ) : null}
                     <Button
                       variant="secondary"

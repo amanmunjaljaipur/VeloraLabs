@@ -154,13 +154,22 @@ function ensureRuntimeFile(filename: string, defaultContent: string): string {
   return runtimePath;
 }
 
-export async function hydrateFileFromBlob(filename: string): Promise<boolean> {
+/**
+ * Load a runtime data file from Vercel Blob into /tmp.
+ * @param force When true, always re-fetch Blob even if a local /tmp file exists.
+ *              Required for multi-instance serverless (empty seed must not block Blob).
+ */
+export async function hydrateFileFromBlob(
+  filename: string,
+  force = false
+): Promise<boolean> {
   if (!isBlobEnabled() || !isVercelRuntime()) return false;
 
   const runtimePath = getRuntimePath(filename);
-  if (fs.existsSync(runtimePath)) return true;
+  if (!force && fs.existsSync(runtimePath)) return true;
 
-  const existing = hydrationPromises.get(filename);
+  const cacheKey = force ? `${filename}:force` : filename;
+  const existing = hydrationPromises.get(cacheKey);
   if (existing) return existing;
 
   const promise = (async () => {
@@ -174,21 +183,27 @@ export async function hydrateFileFromBlob(filename: string): Promise<boolean> {
       console.error(`Failed to hydrate ${filename} from Vercel Blob:`, error);
       return false;
     } finally {
-      hydrationPromises.delete(filename);
+      hydrationPromises.delete(cacheKey);
     }
   })();
 
-  hydrationPromises.set(filename, promise);
+  hydrationPromises.set(cacheKey, promise);
   return promise;
 }
 
 export async function ensureDataFileHydrated(
   filename: string,
-  defaultContent = "{}"
+  defaultContent = "{}",
+  options?: { force?: boolean }
 ): Promise<void> {
   if (!isVercelRuntime()) return;
 
-  const hydrated = await hydrateFileFromBlob(filename);
+  // Critical runtime files must always re-pull Blob so a cold instance
+  // does not keep an empty seed written by ensureRuntimeFile.
+  const force =
+    options?.force ?? AWAIT_BLOB_PERSIST_FILES.has(filename);
+
+  const hydrated = await hydrateFileFromBlob(filename, force);
   if (!hydrated) {
     ensureRuntimeFile(filename, defaultContent);
   }

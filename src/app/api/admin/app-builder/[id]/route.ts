@@ -1,4 +1,5 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
+import { packageAppProject, removePackagedApp } from "@/lib/app-builder/packager";
 import { deleteAppProject, getAppProject, saveAppProject } from "@/lib/app-builder/store";
 import type { AppProjectStatus } from "@/lib/app-builder/types";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,7 +12,7 @@ export async function GET(_req: NextRequest, context: Ctx) {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
-  const project = getAppProject(id);
+  const project = await getAppProject(id);
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ project });
 }
@@ -20,10 +21,10 @@ export async function PATCH(req: NextRequest, context: Ctx) {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
-  const existing = getAppProject(id);
+  const existing = await getAppProject(id);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  let body: { status?: AppProjectStatus; name?: string };
+  let body: { status?: AppProjectStatus; name?: string; repackage?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -41,7 +42,16 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     return NextResponse.json({ error: "Generate content before going live" }, { status: 400 });
   }
 
-  saveAppProject(next);
+  await saveAppProject(next);
+
+  if ((body.repackage || body.status === "live") && next.content && next.status === "live") {
+    try {
+      await packageAppProject(next);
+    } catch (e) {
+      console.error("[app-builder] repackage failed", e);
+    }
+  }
+
   return NextResponse.json({ project: next });
 }
 
@@ -49,8 +59,17 @@ export async function DELETE(_req: NextRequest, context: Ctx) {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
-  if (!deleteAppProject(id)) {
+  const existing = await getAppProject(id);
+  if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (!(await deleteAppProject(id))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  try {
+    await removePackagedApp(existing.slug);
+  } catch {
+    // ignore
   }
   return NextResponse.json({ ok: true });
 }
