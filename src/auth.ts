@@ -9,7 +9,12 @@ import {
   recordKnownUser,
   type AuthProvider,
 } from "@/lib/known-users";
-import { ensureRolesLoaded, getRoleForEmail, getRoleForEmailFresh } from "@/lib/roles";
+import {
+  ensureRolesLoaded,
+  getRoleForEmail,
+  getRoleForEmailFresh,
+  isHardcodedSuperAdmin,
+} from "@/lib/roles";
 import { verifyManualUserPasswordDetailed } from "@/lib/manual-users";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveAuthSecret } from "@/lib/auth-secret";
@@ -239,7 +244,10 @@ export const authOptions: NextAuthConfig = {
         }
 
         if (email) {
-          const role = getRoleForEmail(email);
+          // Hardcoded owners never wait on Blob — assign immediately
+          const role = isHardcodedSuperAdmin(email)
+            ? ("super_admin" as const)
+            : getRoleForEmail(email);
           token.role = role;
           token.rolePending = role === null;
           token.enrolledLearner = isEnrolledLearner(email, role ?? undefined);
@@ -254,33 +262,61 @@ export const authOptions: NextAuthConfig = {
         }
       } catch (error) {
         console.error("JWT callback error:", error);
+        // Last resort: never leave platform owner without super_admin in the JWT
+        const fallbackEmail =
+          (typeof token.email === "string" && token.email) ||
+          (user && typeof user.email === "string" ? user.email : null);
+        if (fallbackEmail && isHardcodedSuperAdmin(fallbackEmail)) {
+          token.role = "super_admin";
+          token.rolePending = false;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       try {
-        await ensureKnownUsersLoaded();
+        try {
+          await ensureKnownUsersLoaded();
+        } catch (e) {
+          console.warn("[auth] ensureKnownUsersLoaded failed", e);
+        }
 
         if (session.user && token.sub) {
           session.user.id = token.sub;
         }
         if (session.user?.email) {
-          await ensureKnownUser(
-            session.user.email,
-            session.user.name,
-            token.authProvider as AuthProvider | undefined
-          );
-          // Fresh role every session build — super_admin menu/powers must not lag behind assignment
-          const role = await getRoleForEmailFresh(session.user.email);
+          try {
+            await ensureKnownUser(
+              session.user.email,
+              session.user.name,
+              token.authProvider as AuthProvider | undefined
+            );
+          } catch (e) {
+            console.warn("[auth] ensureKnownUser failed", e);
+          }
+
+          // Fresh role — hardcoded super_admin is sync-safe even if Blob is down
+          let role = await getRoleForEmailFresh(session.user.email);
+          if (!role && isHardcodedSuperAdmin(session.user.email)) {
+            role = "super_admin";
+          }
+          // Prefer token if session I/O failed but JWT already has super_admin
+          if (!role && token.role === "super_admin") {
+            role = "super_admin";
+          }
           session.user.role = role;
           session.user.rolePending = role === null;
           session.user.enrolledLearner =
             token.enrolledLearner === true ||
             isEnrolledLearner(session.user.email, role ?? undefined);
 
-          const currentLegal = getCurrentVersions();
-          session.user.requiredLegalTermsVersion = currentLegal.termsVersion;
-          session.user.requiredLegalPrivacyVersion = currentLegal.privacyVersion;
+          try {
+            const currentLegal = getCurrentVersions();
+            session.user.requiredLegalTermsVersion = currentLegal.termsVersion;
+            session.user.requiredLegalPrivacyVersion = currentLegal.privacyVersion;
+          } catch {
+            /* legal store optional for admin access */
+          }
 
           if (typeof token.legalTermsVersion === "number") {
             session.user.legalTermsVersion = token.legalTermsVersion;
@@ -291,6 +327,14 @@ export const authOptions: NextAuthConfig = {
         }
       } catch (error) {
         console.error("Session callback error:", error);
+        // Platform owner must never lose admin after a partial session failure
+        if (session.user?.email && isHardcodedSuperAdmin(session.user.email)) {
+          session.user.role = "super_admin";
+          session.user.rolePending = false;
+        } else if (token.role === "super_admin" && session.user) {
+          session.user.role = "super_admin";
+          session.user.rolePending = false;
+        }
       }
       return session;
     },

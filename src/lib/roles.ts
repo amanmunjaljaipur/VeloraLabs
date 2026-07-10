@@ -13,7 +13,7 @@ const CACHE_TTL_MS = 15 * 1000;
 
 /**
  * Permanent platform owners — always super_admin regardless of Blob / user-roles.json drift.
- * (Both spellings kept so login never loses owner access.)
+ * Checked BEFORE any file I/O so admin access never depends on Blob.
  */
 export const HARDCODED_SUPER_ADMIN_EMAILS: readonly string[] = [
   "amanmunjal.jaipur@gmail.com",
@@ -34,12 +34,15 @@ export function isHardcodedSuperAdmin(email: string | null | undefined): boolean
 let cachedRoles: UserRolesConfig | null = null;
 let cacheLoadedAt = 0;
 let loadPromise: Promise<void> | null = null;
-/** Avoid writing Blob on every request when seed already applied */
 let superAdminSeededAt = 0;
 const SEED_COOLDOWN_MS = 60_000;
 
 function readLocalRolesFile(): UserRolesConfig {
-  return readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
+  try {
+    return readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
+  } catch {
+    return {};
+  }
 }
 
 async function writeLocalRolesFile(roles: UserRolesConfig): Promise<void> {
@@ -67,27 +70,28 @@ export function invalidateRolesCache(): void {
 
 /**
  * Ensure hardcoded owners exist in user-roles.json / Blob so admin lists show them.
+ * Best-effort — never throws.
  */
 async function ensureHardcodedSuperAdminsPersisted(): Promise<void> {
   if (Date.now() - superAdminSeededAt < SEED_COOLDOWN_MS) return;
 
-  const roles = { ...getRolesSnapshot() };
-  let dirty = false;
-  for (const email of HARDCODED_SUPER_ADMIN_EMAILS) {
-    if (roles[email] !== "super_admin") {
-      roles[email] = "super_admin";
-      dirty = true;
-    }
-  }
-  if (!dirty) {
-    superAdminSeededAt = Date.now();
-    return;
-  }
-
-  cachedRoles = roles;
-  cacheLoadedAt = Date.now();
-  superAdminSeededAt = Date.now();
   try {
+    const roles = { ...getRolesSnapshot() };
+    let dirty = false;
+    for (const email of HARDCODED_SUPER_ADMIN_EMAILS) {
+      if (roles[email] !== "super_admin") {
+        roles[email] = "super_admin";
+        dirty = true;
+      }
+    }
+    if (!dirty) {
+      superAdminSeededAt = Date.now();
+      return;
+    }
+
+    cachedRoles = roles;
+    cacheLoadedAt = Date.now();
+    superAdminSeededAt = Date.now();
     await writeLocalRolesFile(roles);
   } catch (e) {
     console.warn("[roles] failed to persist hardcoded super_admin seed", e);
@@ -105,12 +109,22 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 
   loadPromise = (async () => {
-    // Always re-pull from Blob on Vercel so role changes are visible on all instances
-    await ensureDataFileHydrated(ROLES_FILE, "{}", { force: true });
-    cachedRoles = withHardcodedSuperAdmins(readLocalRolesFile());
-    cacheLoadedAt = Date.now();
-    // Re-seed Blob if owner role was wiped
-    await ensureHardcodedSuperAdminsPersisted();
+    try {
+      // Always re-pull from Blob on Vercel so role changes are visible on all instances
+      await ensureDataFileHydrated(ROLES_FILE, "{}", { force: true });
+    } catch (e) {
+      // Blob/network must never block login or super_admin resolution
+      console.warn("[roles] hydrate failed — using local/hardcoded roles", e);
+    }
+    try {
+      cachedRoles = withHardcodedSuperAdmins(readLocalRolesFile());
+      cacheLoadedAt = Date.now();
+      await ensureHardcodedSuperAdminsPersisted();
+    } catch (e) {
+      console.warn("[roles] read/seed failed — keeping hardcoded-only map", e);
+      cachedRoles = withHardcodedSuperAdmins(cachedRoles || {});
+      cacheLoadedAt = Date.now();
+    }
   })();
 
   try {
@@ -123,29 +137,49 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
 export function getRoleForEmail(email: string | null | undefined): UserRole | null {
   if (!email) return null;
   const normalized = normalizeEmail(email);
-  // Hardcoded owners always win (even if Blob says student / missing)
+  // Hardcoded owners always win — no file/Blob required
   if (isHardcodedSuperAdmin(normalized)) {
     return "super_admin";
   }
-  const roles = getRolesSnapshot();
-  return roles[normalized] ?? null;
+  try {
+    const roles = getRolesSnapshot();
+    return roles[normalized] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Fresh role from disk/Blob — use for session/JWT so super_admin promotions apply immediately.
+ * Hardcoded super_admin is returned even if hydrate fails.
  */
 export async function getRoleForEmailFresh(
   email: string | null | undefined
 ): Promise<UserRole | null> {
   if (!email) return null;
-  await ensureRolesLoaded(true);
+  // Critical: resolve owner BEFORE any async I/O that might throw
+  if (isHardcodedSuperAdmin(email)) {
+    // Fire-and-forget seed; do not await failures
+    void ensureRolesLoaded(true).catch(() => undefined);
+    return "super_admin";
+  }
+  try {
+    await ensureRolesLoaded(true);
+  } catch (e) {
+    console.warn("[roles] getRoleForEmailFresh load failed", e);
+  }
   return getRoleForEmail(email);
 }
 
 export function hasCustomRoleAssignment(email: string | null | undefined): boolean {
   if (!email) return false;
-  const roles = getRolesSnapshot();
-  return email.toLowerCase() in roles;
+  if (isHardcodedSuperAdmin(email)) return true;
+  try {
+    const roles = getRolesSnapshot();
+    return normalizeEmail(email) in roles;
+  } catch {
+    return false;
+  }
 }
 
 export function getAllUserRoles(): { email: string; role: UserRole }[] {
@@ -170,7 +204,6 @@ export async function setUserRole(
 
   const roles = { ...getRolesSnapshot() };
   roles[normalized] = role;
-  // Keep all hardcoded owners present
   for (const e of HARDCODED_SUPER_ADMIN_EMAILS) {
     roles[e] = "super_admin";
   }
@@ -184,7 +217,6 @@ export async function removeUserRole(email: string, _updatedBy?: string): Promis
   const normalized = normalizeEmail(email);
   await ensureRolesLoaded(true);
 
-  // Hardcoded super admins cannot be removed
   if (isHardcodedSuperAdmin(normalized)) {
     return false;
   }

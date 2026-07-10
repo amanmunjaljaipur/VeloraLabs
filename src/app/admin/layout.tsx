@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isAdminRole } from "@/lib/session-access";
 import { noIndexMetadata } from "@/lib/page-metadata";
 import { redirect } from "next/navigation";
@@ -17,7 +18,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login?callbackUrl=/admin");
   }
 
-  if (!isAdminRole(session.user.role)) {
+  const email = session.user.email;
+  const role =
+    session.user.role ||
+    (isHardcodedSuperAdmin(email) ? ("super_admin" as const) : null);
+
+  if (!isAdminRole(role) && !isHardcodedSuperAdmin(email)) {
     redirect("/");
   }
 
