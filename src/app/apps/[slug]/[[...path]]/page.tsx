@@ -1,4 +1,6 @@
 import { StandaloneAppRuntime } from "@/components/app-builder/StandaloneAppRuntime";
+import { VerlinAppRuntime } from "@/components/app-builder/VerlinAppRuntime";
+import { isGenericContent } from "@/lib/app-builder/types";
 import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
 import { createMetadata } from "@/lib/seo";
@@ -41,6 +43,16 @@ export default async function GeneratedAppPage({ params }: PageProps) {
   }
 
   if (project.content) {
+    if (project.runtimeStyle === "verlin-native" && isGenericContent(project.content)) {
+      return (
+        <VerlinAppRuntime
+          content={project.content}
+          slug={project.slug}
+          dataModels={project.dataModels}
+          pathSegments={path ?? []}
+        />
+      );
+    }
     return (
       <StandaloneAppRuntime
         content={project.content}

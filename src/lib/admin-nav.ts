@@ -74,6 +74,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI product builder — discovery, editable plan, then build",
   },
   {
+    label: "App Builder V2",
+    href: "/admin/app-builder-v2",
+    description: "One prompt, deep research + competitor scan, real working build — Verlin Labs UI",
+  },
+  {
     label: "App Builder",
     href: "/admin/app-builder",
     description: "Classic studio — prompt, interview, plan, deploy",
@@ -96,4 +101,3 @@ export function getAdminMenuLinks(role: UserRole | undefined): AdminNavLink[] {
   if (!role || (role !== "admin" && role !== "super_admin")) return [];
   return ADMIN_MENU_LINKS.filter((link) => !link.superAdminOnly || role === "super_admin");
 }
-

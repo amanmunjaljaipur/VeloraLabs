@@ -121,6 +121,13 @@ export type ForgeAssumption = {
   fromDefault: boolean;
 };
 
+/** Competitor scan from the model's own knowledge (not live browsing). App Builder V2 only. */
+export type ForgeCompetitor = {
+  name: string;
+  whatTheyDoWell: string;
+  gap: string;
+};
+
 /** Full editable build plan shown on the Plan Canvas */
 export type ForgeBuildPlan = {
   version: 1;
@@ -139,6 +146,8 @@ export type ForgeBuildPlan = {
   integrations: ForgeIntegration[];
   assumptions: ForgeAssumption[];
   outOfScope: string[];
+  /** Competitor scan — App Builder V2 only, absent on classic Forge plans */
+  competitors?: ForgeCompetitor[];
   /** Legacy ProductPlan fields kept for generate pipeline */
   businessModel: string;
   businessModelDetail: string;
