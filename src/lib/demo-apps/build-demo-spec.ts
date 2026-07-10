@@ -14,7 +14,7 @@ import {
   DEMO_CATEGORIES,
   getDemoCategory,
   type DemoCategoryDef,
-} from "@/lib/demo-apps/categories";
+} from "@/lib/demo-apps";
 
 export function buildDemoAppSpec(def: DemoCategoryDef): StudioAppSpec {
   const roles: StudioRole[] = def.roles.map((r, i) => ({

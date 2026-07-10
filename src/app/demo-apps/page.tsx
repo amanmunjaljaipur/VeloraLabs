@@ -1,4 +1,4 @@
-import { DEMO_CATEGORIES, DEMO_GROUP_ORDER } from "@/lib/demo-apps/categories";
+import { DEMO_CATEGORIES, DEMO_GROUP_ORDER } from "@/lib/demo-apps";
 import { createMetadata } from "@/lib/seo";
 import { Card } from "@/components/ui/Card";
 import Link from "next/link";

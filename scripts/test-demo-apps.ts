@@ -3,7 +3,7 @@
  *   npx tsx scripts/test-demo-apps.ts
  */
 
-import { assertFiftyCategories, DEMO_CATEGORIES } from "../src/lib/demo-apps/categories";
+import { assertFiftyCategories, DEMO_CATEGORIES } from "../src/lib/demo-apps";
 import { getAllDemoSpecs } from "../src/lib/demo-apps/build-demo-spec";
 
 function main() {
