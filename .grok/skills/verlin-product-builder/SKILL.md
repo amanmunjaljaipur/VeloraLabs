@@ -194,21 +194,34 @@ Verlin public pages use real photography. Generated apps must not look empty:
 
 ## Question design rules (thought process)
 
-Ask like a **friendly coach**, not a form:
+Ask like a **friendly coach sitting at their shop**, not a form.  
+**Offline workflow first — app second.**
 
-1. **Start concrete** — name, city (unlocks branding).  
-2. **Offer** — what they sell/do, with example chips.  
-3. **Audience** — who buys (multi-select).  
-4. **Channel** — WhatsApp/call/visit (India-first defaults).  
-5. **Tone** — how the site should *feel*.  
-6. **Must-haves** — their own points become “Why us”.  
-7. **Skip optional** — never block on perfect data.
+### Order of discovery
+
+1. **Identity light** — brand name, city (enough to orient).  
+2. **Offline day** — open → customers → close (free text + chips).  
+3. **Customer steps today** — walk-in, WhatsApp, notebook, pay later…  
+4. **Busy times** — evenings, festivals, exam season…  
+5. **Who does the work** — only me / family / staff.  
+6. **Pain offline** — missed messages, no photos, same questions…  
+7. **What 2–3 jobs the website must do** — priority outcomes.  
+8. **Offer** — concrete products/services (for photos + catalogue).  
+9. **Audience, contact, order channel**  
+10. **Logo** — design for me vs paste link  
+
+Never jump to “pages” or “features” before understanding how money and trust flow offline.
 
 **Bad:** “Select your CRM integration surface.”  
-**Good:** “How should people reach you? Tap all that fit.”
+**Good:** “When a customer wants to buy today, what steps happen?”
 
 **Bad:** empty text box only.  
 **Good:** chips + “Add my own.”
+
+**Bad:** only brand/logo/SEO questions.  
+**Good:** day-in-the-life → pains → hoped outcomes → then brand visuals.
+
+Generate path must **shape the app** from workflow answers (WhatsApp-first, pickup, family-run, etc.).
 
 ---
 

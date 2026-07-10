@@ -25,7 +25,118 @@ export interface DesignInterviewResult {
   rationale?: string;
 }
 
+/** Always present — identity + logo */
 const CORE_IDS = ["brandName", "city", "contact", "logoPreference"] as const;
+
+/**
+ * Workflow discovery — understand offline business before designing the app.
+ * Injected if the PM model omits them.
+ */
+const WORKFLOW_DEFAULTS: InterviewQuestion[] = [
+  {
+    id: "offlineDay",
+    label: "Walk us through a normal day in your business (offline)",
+    helpText:
+      "From opening to closing — what do you and your customers actually do? No perfect English needed.",
+    required: true,
+    multiline: true,
+    selectMode: "free",
+    suggestions: [
+      "Open shop → customers walk in → bill → close",
+      "Take orders on phone/WhatsApp → prepare → hand over",
+      "Morning prep → peak evening rush → night packing",
+      "I work from home; people message when they need something",
+    ],
+    allowCustom: true,
+    placeholder: "e.g. Morning I set the stall… customers ask price… I write in a notebook…",
+    hint: "Offline daily workflow for UX and feature design",
+  },
+  {
+    id: "customerSteps",
+    label: "When a customer wants to buy or book, what steps happen today?",
+    helpText: "Think of the last real customer — what did they do, what did you do?",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "They visit the shop",
+      "They call or WhatsApp first",
+      "They ask price / stock",
+      "They choose and pay later or on spot",
+      "I note order in diary / WhatsApp chat",
+      "Family member helps pack or deliver",
+      "They come back another day to collect",
+    ],
+    allowCustom: true,
+    hint: "Current customer journey offline",
+  },
+  {
+    id: "busyTimes",
+    label: "When are you busiest?",
+    helpText: "Helps us show the right hours, rush offers, and simple wording.",
+    required: false,
+    selectMode: "multi",
+    suggestions: [
+      "Morning",
+      "Lunch time",
+      "Evening",
+      "Weekends",
+      "Festivals / exam season",
+      "Month start (salary days)",
+      "Always steady",
+    ],
+    allowCustom: true,
+  },
+  {
+    id: "whoDoesWhat",
+    label: "Who helps run the business day to day?",
+    helpText: "So we know if the website needs a simple owner-only flow or space for helpers later.",
+    required: false,
+    selectMode: "multi",
+    suggestions: [
+      "Only me",
+      "Family member",
+      "1–2 staff",
+      "Delivery person",
+      "I handle WhatsApp myself",
+    ],
+    allowCustom: true,
+  },
+  {
+    id: "offlinePain",
+    label: "What is the hardest part of running this offline today?",
+    helpText: "We design the app to ease that pain — not to add tech for its own sake.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "People don’t know my prices / menu",
+      "Same questions again and again on phone",
+      "Missed WhatsApp messages when busy",
+      "Hard to show products without photos",
+      "Customers forget my location / hours",
+      "Keeping track of orders in chat",
+      "Looking more trustable / professional",
+    ],
+    allowCustom: true,
+    hint: "Jobs-to-be-done for the generated app",
+  },
+  {
+    id: "appHelpHope",
+    label: "If this website could do only 2–3 things well, what should those be?",
+    helpText: "Pick what would actually save time or bring customers — we won’t build everything at once.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "Show products with prices and photos",
+      "Let people message / order on WhatsApp easily",
+      "Share my link on Instagram or status",
+      "Show address, hours, and how to reach me",
+      "Look clean so new customers trust me",
+      "Take simple orders I can see in one place",
+    ],
+    allowCustom: true,
+    hint: "Priority outcomes for first version of the app",
+  },
+];
 
 function normalizeId(raw: string, index: number): string {
   const cleaned = raw
@@ -227,26 +338,39 @@ export function fallbackInterviewQuestions(
 }
 
 const PM_SYSTEM = `You are a senior product manager for Verlin Labs App Builder.
-You design SHORT guided interviews for people who are NOT technical
-(school students' parents, local shop owners, first-time founders in India).
+You interview people who are NOT technical (parents, local shop owners, home bakers, tuition teachers in India).
 
-Rules for every question:
-- Use simple everyday words (Class 8 English is fine). No jargon: no API, LLM, stack, OAuth, CRM, SKU, deploy.
-- Prefer tap-to-answer suggestions (chips) so users can answer fast.
-- Always allow custom answers (allowCustom: true).
-- 7 to 10 questions total. Not more than 12.
-- Mix selectMode: "single" | "multi" | "free".
-- required: true only for name, place, contact, and the main offer.
-- MUST include questions with ids: brandName, city, contact, logoPreference (use exactly those ids).
-- logoPreference: ask if they want US to design a logo OR they will share a logo link. Suggestions must include "Please design a logo for me" and a paste-link option.
-- Tailor EVERY question and suggestion chip to the user's product idea (prompt). Do not use a generic fixed list.
-- Suggestions must feel local and practical (WhatsApp, UPI, neighbourhood, festivals when relevant).
-- Ask about products/services in a way that helps us create matching photos later (concrete names).
-- helpText is a friendly coach line (1 sentence).
+## Your job (in this order)
+1. Understand their OFFLINE business first — a real day, real customer steps, who helps, when busy, what is hard.
+2. Only then ask about name, place, products, contact, logo.
+3. Design questions so WE can build an app that matches how they already work — not a fancy website they will not use.
+
+## Discovery themes (cover most of these with simple words)
+- A normal offline day / week (open → customers → close)
+- What a customer does step-by-step today (walk-in, call, WhatsApp, notebook)
+- Busy times (festivals, evenings, exam season…)
+- Who runs the work (only me / family / staff)
+- What is painful offline (repeat questions, no photos, missed chats, trust)
+- What 2–3 jobs the website must do first
+- What they sell / offer (concrete names for photos later)
+- Who buys, how they pay or order today
+- Name, city, contact, logo choice
+
+## Rules for every question
+- Class-8 English. No jargon: no API, LLM, stack, OAuth, CRM, SKU, deploy, workflow engine.
+- Prefer chips (suggestions). Always allowCustom: true.
+- 9 to 12 questions total. Not more than 14.
+- Mix selectMode: "single" | "multi" | "free". Use multiline free text for "describe your day".
+- required: true for brandName, city, contact, logoPreference, and at least the offline day + customer steps + main pain + hoped app help.
+- MUST include exact ids: brandName, city, contact, logoPreference.
+- MUST include workflow-style questions (you may use ids offlineDay, customerSteps, busyTimes, whoDoesWhat, offlinePain, appHelpHope OR invent better ids that fit the idea — but keep the same intent).
+- logoPreference: include "Please design a logo for me" and option to paste a logo link.
+- Tailor chips to THIS product idea (prompt). A pottery shop and a tuition class get different day-in-the-life chips.
+- helpText = friendly coach line (1 sentence), like you are sitting with them at their shop.
 
 Return ONLY valid JSON:
 {
-  "rationale": "one short sentence why these questions fit the idea",
+  "rationale": "one short sentence: what offline workflow you are trying to learn",
   "questions": [
     {
       "id": "camelOr_snake",
@@ -304,7 +428,14 @@ export async function designInterviewQuestions(
         { role: "system", content: PM_SYSTEM },
         {
           role: "user",
-          content: `User's product idea (one prompt):\n"""${prompt}"""\n\n${extensionHint}\n\nDesign the guided interview now. Every chip and question must fit THIS idea.`,
+          content: `User's product idea (one prompt):
+"""${prompt}"""
+
+${extensionHint}
+
+Design the guided interview NOW.
+Priority: first understand how this business works OFFLINE (day, customer steps, busy times, who helps, pains, what success looks like), THEN name/city/products/contact/logo.
+Every chip and question must fit THIS idea. Speak like a product manager sitting with a non-tech owner.`,
         },
       ],
     });

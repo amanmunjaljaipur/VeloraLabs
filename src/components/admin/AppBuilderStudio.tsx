@@ -613,8 +613,10 @@ export function AppBuilderStudio() {
               ) : null}
 
               <p className="text-xs text-text-secondary">
-                Next we ask a product manager (AI) to invent questions that fit{" "}
-                <strong>your</strong> idea — not the same list every time. Simple words only.
+                Next a product manager (AI) will ask how your business works{" "}
+                <strong>offline today</strong> — your day, customer steps, busy times, what is hard —
+                then name, products, and logo. Questions are made for <strong>your</strong> idea, in
+                simple words.
               </p>
 
               <Button
@@ -623,7 +625,9 @@ export function AppBuilderStudio() {
                 loading={designingQuestions}
                 onClick={() => void startGuidedFromIdea()}
               >
-                {designingQuestions ? "Designing your questions…" : "Design questions for my idea"}
+                {designingQuestions
+                  ? "Learning your offline business…"
+                  : "Understand my business & ask questions"}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
@@ -655,8 +659,13 @@ export function AppBuilderStudio() {
 
               {(interviewRationale || interviewDesignedBy) && questionIndex === 0 ? (
                 <div className="rounded-xl border border-accent-teal/20 bg-accent-teal/5 px-3 py-2 text-xs text-text-secondary">
-                  <p className="font-semibold text-foreground">Questions made for your idea</p>
+                  <p className="font-semibold text-foreground">
+                    First we learn your offline work — then we design the app
+                  </p>
                   {interviewRationale ? <p className="mt-1">{interviewRationale}</p> : null}
+                  <p className="mt-1">
+                    Answer like you are explaining to a friend how your shop / service runs today.
+                  </p>
                   {interviewDesignedBy ? (
                     <p className="mt-1 text-text-muted">Source: {interviewDesignedBy}</p>
                   ) : null}

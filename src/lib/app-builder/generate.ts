@@ -268,6 +268,8 @@ export async function generateExtensionContent(input: {
           content: `You build complete content for a LOCAL SHOP website for people who are NOT technical (like school students' parents, small shop owners).
 Use simple, warm language. Avoid jargon.
 Interview answers were designed by a product manager from the owner's idea — treat every Q&A as source of truth.
+Pay special attention to OFFLINE workflow answers (normal day, customer steps, busy times, who helps, pains, what they want the website to do first).
+Shape the shop so it matches how they already work (e.g. WhatsApp-first, pickup, evening rush, family-run) — do not invent complex features they did not describe.
 Return ONLY valid JSON:
 {
   "brandName": string,
