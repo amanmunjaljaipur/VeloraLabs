@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Contact,
   FileText,
+  Landmark,
   LayoutDashboard,
   LayoutGrid,
   Newspaper,
@@ -39,6 +40,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/agents": Shield,
   "/admin/blog": PenLine,
   "/admin/forge": Flame,
+  "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
 };

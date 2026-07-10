@@ -16,6 +16,7 @@ import {
   Shield,
   Users,
   Video,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +38,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/chatbot-training": Bot,
   "/admin/blog": PenLine,
   "/admin/forge": Flame,
+  "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
 };
