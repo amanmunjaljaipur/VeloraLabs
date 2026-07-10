@@ -1,6 +1,7 @@
 /**
  * App Studio AI generation — research workflows then emit/patch a Vite React app.
- * Uses request-scoped keys or server env (XAI / Anthropic / Groq). Keys never persisted.
+ * Uses request-scoped keys or server env (Groq / Anthropic / XAI / Gemini / OpenAI).
+ * Keys never written to git; prefer GEMINI_API_KEY when XAI fails (no credits).
  */
 
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
@@ -35,13 +36,13 @@ function friendlyLlmError(err: unknown): StudioLlmError {
   ) {
     return new StudioLlmError(
       "credits",
-      "AI provider has no credits/license on this team (xAI 403). Add billing at console.x.ai, or paste a Groq/Anthropic/OpenAI-compatible key in App Studio → AI key."
+      "AI provider has no credits/license (often xAI 403). We will try Gemini/Groq next if configured. Or paste a key in App Studio → AI key."
     );
   }
-  if (lower.includes("401") || lower.includes("invalid api") || lower.includes("unauthorized")) {
+  if (lower.includes("401") || lower.includes("invalid api") || lower.includes("unauthorized") || lower.includes("api key not valid")) {
     return new StudioLlmError(
       "auth",
-      "API key rejected. Check the key in App Studio → AI key, or update XAI_API_KEY / GROQ_API_KEY / ANTHROPIC_API_KEY on the server."
+      "API key rejected. Check AI key settings or GEMINI_API_KEY / GROQ_API_KEY / XAI_API_KEY on the server."
     );
   }
   return new StudioLlmError("upstream", msg.slice(0, 280));
@@ -79,6 +80,18 @@ function listEnvSecrets(): AppLlmSecrets[] {
     });
   }
 
+  // Prefer Gemini right after xAI so credit-less xAI teams fall through cleanly
+  const gemini = process.env.GEMINI_API_KEY?.trim() || process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
+  if (gemini) {
+    list.push({
+      provider: "custom",
+      apiKey: gemini,
+      model: process.env.GEMINI_MODEL?.trim() || "gemini-2.0-flash",
+      // Marker for callAnyLlm → native Gemini generateContent
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    });
+  }
+
   const openai = process.env.OPENAI_API_KEY?.trim();
   if (openai) {
     list.push({
@@ -99,6 +112,15 @@ function resolveStudioSecrets(override?: AppLlmSecrets | null): AppLlmSecrets[] 
   return listEnvSecrets();
 }
 
+function isGeminiSecrets(secrets: AppLlmSecrets): boolean {
+  const base = (secrets.baseUrl || "").toLowerCase();
+  return (
+    base.includes("generativelanguage.googleapis.com") ||
+    base.includes("gemini") ||
+    (secrets.model || "").toLowerCase().includes("gemini")
+  );
+}
+
 async function callAnyLlm(
   secrets: AppLlmSecrets,
   input: {
@@ -111,6 +133,9 @@ async function callAnyLlm(
 ): Promise<string> {
   if (secrets.provider === "custom" && secrets.baseUrl?.includes("anthropic.com")) {
     return generateWithAnthropic(secrets, input.system, input.user, input.maxTokens ?? 8000);
+  }
+  if (secrets.provider === "custom" && isGeminiSecrets(secrets)) {
+    return generateWithGemini(secrets, input.system, input.user, input.maxTokens ?? 8000);
   }
   return callUserLlm({
     secrets,
@@ -139,7 +164,7 @@ async function callWithFallback(
   if (!secretsList.length) {
     throw new StudioLlmError(
       "no_key",
-      "No AI key configured. Paste a Groq / Anthropic / xAI key in App Studio → AI key, or set GROQ_API_KEY / ANTHROPIC_API_KEY / XAI_API_KEY on the server."
+      "No AI key configured. Paste a Gemini/Groq key in App Studio → AI key, or set GEMINI_API_KEY / GROQ_API_KEY on the server."
     );
   }
 
@@ -389,7 +414,11 @@ export async function generateStudioApp(input: {
       files: merged,
       summary,
       research: input.research || null,
-      designedBy: used.provider === "custom" ? used.model || "custom" : used.provider,
+      designedBy: isGeminiSecrets(used)
+        ? `gemini:${used.model || "gemini-2.0-flash"}`
+        : used.provider === "custom"
+          ? used.model || "custom"
+          : used.provider,
     };
   } catch (e) {
     console.error("[app-studio/generate]", e);
@@ -434,6 +463,84 @@ async function generateWithAnthropic(
     content?: Array<{ type: string; text?: string }>;
   };
   return data.content?.find((c) => c.type === "text")?.text || "";
+}
+
+/** Google Gemini generateContent (AI Studio / Generative Language API). */
+async function generateWithGemini(
+  secrets: AppLlmSecrets,
+  system: string,
+  user: string,
+  maxTokens = 8000
+): Promise<string> {
+  const key = secrets.apiKey.trim();
+  const preferred = (secrets.model || "gemini-2.0-flash").replace(/^models\//, "");
+  const models = [
+    preferred,
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-2.5-flash",
+  ].filter((m, i, a) => a.indexOf(m) === i);
+
+  let lastErr = "Gemini failed";
+  for (const model of models) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": key,
+          },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: system }] },
+            contents: [{ role: "user", parts: [{ text: user }] }],
+            generationConfig: {
+              temperature: 0.35,
+              maxOutputTokens: maxTokens,
+            },
+          }),
+          signal: AbortSignal.timeout(120_000),
+        });
+
+        if (res.status === 429) {
+          lastErr = `Gemini ${model}: rate limited (429)`;
+          await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+          continue;
+        }
+        if (res.status === 404) {
+          lastErr = `Gemini model not found: ${model}`;
+          break; // try next model
+        }
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          lastErr = `Gemini ${res.status}: ${t.slice(0, 240)}`;
+          // 403/401 — don't thrash models
+          if (res.status === 401 || res.status === 403) throw new Error(lastErr);
+          break;
+        }
+
+        const data = (await res.json()) as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ text?: string }> };
+          }>;
+          error?: { message?: string };
+        };
+        if (data.error?.message) throw new Error(`Gemini: ${data.error.message}`);
+        const text = data.candidates?.[0]?.content?.parts
+          ?.map((p) => p.text || "")
+          .join("")
+          .trim();
+        if (!text) throw new Error("Gemini returned an empty response");
+        return text;
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
+        if (lastErr.includes("401") || lastErr.includes("403")) throw e;
+      }
+    }
+  }
+  throw new Error(lastErr);
 }
 
 function offlineAppFromPrompt(prompt: string, base: StudioFileMap): StudioFileMap {

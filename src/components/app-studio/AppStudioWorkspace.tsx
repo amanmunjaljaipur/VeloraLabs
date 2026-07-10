@@ -81,7 +81,9 @@ export function AppStudioWorkspace() {
   const dragRef = useRef<{ startX: number; startPct: number } | null>(null);
   /** Session-only — never sent to disk; used when platform xAI has no credits */
   const [showKeyPanel, setShowKeyPanel] = useState(false);
-  const [aiProvider, setAiProvider] = useState<"groq" | "xai" | "anthropic" | "openai">("groq");
+  const [aiProvider, setAiProvider] = useState<"gemini" | "groq" | "xai" | "anthropic" | "openai">(
+    "gemini"
+  );
   const [aiKey, setAiKey] = useState("");
   const [aiModel, setAiModel] = useState("");
 
@@ -358,11 +360,14 @@ export function AppStudioWorkspace() {
               <select
                 value={aiProvider}
                 onChange={(e) =>
-                  setAiProvider(e.target.value as "groq" | "xai" | "anthropic" | "openai")
+                  setAiProvider(
+                    e.target.value as "gemini" | "groq" | "xai" | "anthropic" | "openai"
+                  )
                 }
                 className="rounded-lg border border-border bg-background px-2 py-1.5"
               >
-                <option value="groq">Groq (recommended free)</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="groq">Groq</option>
                 <option value="anthropic">Anthropic Claude</option>
                 <option value="openai">OpenAI</option>
                 <option value="xai">xAI Grok</option>
@@ -385,11 +390,13 @@ export function AppStudioWorkspace() {
                 value={aiModel}
                 onChange={(e) => setAiModel(e.target.value)}
                 placeholder={
-                  aiProvider === "groq"
-                    ? "llama-3.3-70b-versatile"
-                    : aiProvider === "xai"
-                      ? "grok-3-mini"
-                      : "default"
+                  aiProvider === "gemini"
+                    ? "gemini-2.0-flash"
+                    : aiProvider === "groq"
+                      ? "llama-3.3-70b-versatile"
+                      : aiProvider === "xai"
+                        ? "grok-3-mini"
+                        : "default"
                 }
                 className="rounded-lg border border-border bg-background px-2 py-1.5 w-44"
               />

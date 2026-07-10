@@ -13,7 +13,7 @@ export const maxDuration = 120;
 
 function secretsFromBody(body: {
   apiKey?: string;
-  provider?: LlmProviderKind | "anthropic" | "openai";
+  provider?: LlmProviderKind | "anthropic" | "openai" | "gemini";
   model?: string;
 }) {
   if (!body.apiKey?.trim()) return null;
@@ -32,6 +32,14 @@ function secretsFromBody(body: {
       apiKey: key,
       model: body.model || "gpt-4o-mini",
       baseUrl: "https://api.openai.com/v1",
+    };
+  }
+  if (body.provider === "gemini") {
+    return {
+      provider: "custom" as const,
+      apiKey: key,
+      model: body.model || "gemini-2.0-flash",
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     };
   }
   return {
@@ -55,7 +63,7 @@ export async function POST(request: Request) {
     runResearch?: boolean;
     imageDataUrl?: string;
     apiKey?: string;
-    provider?: LlmProviderKind | "anthropic" | "openai";
+    provider?: LlmProviderKind | "anthropic" | "openai" | "gemini";
     model?: string;
     /** Prefer real AI; only fall back to template if explicitly allowed */
     allowTemplateFallback?: boolean;
@@ -147,7 +155,7 @@ export async function POST(request: Request) {
         research,
         hint:
           fe.code === "credits"
-            ? "Platform xAI team has no credits. Paste a free Groq key (console.groq.com) in App Studio → AI key, or set GROQ_API_KEY / ANTHROPIC_API_KEY on Vercel."
+            ? "Platform xAI team has no credits. Set GEMINI_API_KEY (or GROQ_API_KEY) on the server, or paste a Gemini/Groq key in App Studio → AI key."
             : undefined,
       },
       { status: fe.code === "credits" || fe.code === "auth" || fe.code === "no_key" ? 402 : 502 }
