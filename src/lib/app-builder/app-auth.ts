@@ -41,16 +41,29 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
     const member = tenant.members.find(
       (m) => m.email === appSession.email.toLowerCase() || m.id === appSession.memberId
     );
-    // Owner email always super_admin even if role was tampered
-    let roleId = member?.roleId || appSession.roleId;
+    // Security: revoked/deleted members must not keep access via old cookie roleId
+    if (!member) {
+      // Owner email still listed as ownerEmail may claim without member row edge-case:
+      // only allow if they match owner and a creator seed is missing (handled on signup).
+      return null;
+    }
+    // Owner email always super_admin even if role was tampered in DB
+    let roleId = member.roleId;
     if (tenant.ownerEmail && appSession.email.toLowerCase() === tenant.ownerEmail) {
       roleId = "super_admin";
     }
     const role = tenant.roles.find((r) => r.id === roleId) || tenant.roles.find((r) => r.id === "customer");
     if (!role) return null;
+    // Never trust elevated caps on non-owner from stale cookie — re-bind session role from tenant
     return {
       slug,
-      session: { ...appSession, roleId: role.id },
+      session: {
+        ...appSession,
+        email: member.email,
+        name: member.name || appSession.name,
+        roleId: role.id,
+        memberId: member.id,
+      },
       tenant,
       role,
     };
@@ -144,19 +157,29 @@ export async function signupAppUser(
   const existing = await findMember(slug, email);
   const isOwner = Boolean(tenant.ownerEmail && email === tenant.ownerEmail);
 
-  // Creator is pre-seeded as Owner without a real password — first "sign up" claims it
-  if (existing && !(isOwner && existing.member.source === "creator")) {
+  // Security: public signup must never reset an existing account password.
+  // Owner first-claim is ONE-TIME only while member.source === "creator"
+  // (seeded with a pending hash). After claim, source becomes "claimed" forever.
+  const canClaimOwner =
+    isOwner && Boolean(existing) && existing!.member.source === "creator";
+
+  if (existing && !canClaimOwner) {
     return { ok: false, error: "An account with this email already exists. Please sign in." };
   }
 
-  const roleId = isOwner ? "super_admin" : tenant.defaultRoleId || "customer";
+  if (isOwner && existing && existing.member.source !== "creator") {
+    return { ok: false, error: "Owner already claimed this shop. Please sign in." };
+  }
+
+  const roleId = canClaimOwner || (isOwner && !existing) ? "super_admin" : tenant.defaultRoleId || "customer";
 
   const member = await upsertMember(slug, {
     email,
     name: input.name || existing?.member.name || email.split("@")[0],
     password: input.password,
     roleId,
-    source: isOwner ? "creator" : "signup",
+    // "claimed" closes the one-time owner claim hole permanently
+    source: canClaimOwner || (isOwner && !existing) ? "claimed" : "signup",
   });
 
   // Always mirror customers into app CRM (not staff/owner)

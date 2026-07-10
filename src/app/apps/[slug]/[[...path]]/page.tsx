@@ -17,9 +17,10 @@ export async function generateMetadata({ params }: PageProps) {
   if (!project || project.status !== "live" || !project.content) {
     return { title: "App not found" };
   }
+  const c = project.content;
   return createMetadata({
-    title: project.content.brandName,
-    description: project.content.description || project.content.tagline,
+    title: c.seoTitle || `${c.brandName} · ${c.city}`,
+    description: c.seoDescription || c.description || c.tagline,
     path: project.publicPath,
   });
 }

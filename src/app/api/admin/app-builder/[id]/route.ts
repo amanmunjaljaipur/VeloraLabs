@@ -1,3 +1,4 @@
+import { canAccessAppProject } from "@/lib/app-builder/project-access";
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { packageAppProject, removePackagedApp } from "@/lib/app-builder/packager";
 import { deleteAppProject, getAppProject, saveAppProject } from "@/lib/app-builder/store";
@@ -14,7 +15,9 @@ export async function GET(_req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
   const project = await getAppProject(id);
-  if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!project || !canAccessAppProject(project, session)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   return NextResponse.json({ project });
 }
 
@@ -23,7 +26,9 @@ export async function PATCH(req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
   const existing = await getAppProject(id);
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!existing || !canAccessAppProject(existing, session)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   let body: { status?: AppProjectStatus; name?: string; repackage?: boolean };
   try {
@@ -61,7 +66,7 @@ export async function DELETE(_req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
   const existing = await getAppProject(id);
-  if (!existing) {
+  if (!existing || !canAccessAppProject(existing, session)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   if (!(await deleteAppProject(id))) {

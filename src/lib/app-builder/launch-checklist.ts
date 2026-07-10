@@ -38,7 +38,7 @@ export function buildLaunchChecklist(input: {
     {
       id: "tour",
       title: "Take the guided tour once",
-      detail: "Use “Take a tour” on the shop header so you know every page.",
+      detail: "Use “Take a tour” in the top bar (shop or admin) — overlay arrows point at each feature.",
     },
     {
       id: "products",
@@ -46,12 +46,13 @@ export function buildLaunchChecklist(input: {
         ? "Review product names, prices, and photos"
         : "Add your first products with photos",
       detail:
-        "In Dashboard → Products, use “Find photos” so each item looks real (like Shopify product images).",
+        "Dashboard → Products: upload your own photo, paste a link, or Find photos (web + AI).",
     },
     {
       id: "logo",
-      title: input.hasLogo ? "Confirm your logo looks good" : "Set a logo (or let us design one)",
-      detail: "Dashboard → Settings or Site CMS — customers trust a clear logo.",
+      title: input.hasLogo ? "Confirm your logo looks good" : "Upload logo & build theme colours",
+      detail:
+        "Dashboard → Brand & theme — upload logo, multi-colour theme from image. Overview → Improve shop wording for SEO-ready copy.",
     },
     {
       id: "whatsapp",

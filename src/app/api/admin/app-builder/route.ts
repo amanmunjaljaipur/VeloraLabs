@@ -7,6 +7,7 @@ import {
 } from "@/lib/app-builder/extensions";
 import { defaultModelForProvider } from "@/lib/app-builder/llm";
 import { hasPlatformAppBuilderLlm } from "@/lib/app-builder/platform-llm";
+import { filterAccessibleProjects } from "@/lib/app-builder/project-access";
 import {
   listAppProjects,
   saveAppProject,
@@ -22,7 +23,8 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const projects = await listAppProjects();
+  const all = await listAppProjects();
+  const projects = filterAccessibleProjects(all, session);
   const platformGrokReady = hasPlatformAppBuilderLlm();
   const isSuperAdmin = isSuperAdminRole(session.user?.role);
 

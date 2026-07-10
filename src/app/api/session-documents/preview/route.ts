@@ -26,6 +26,22 @@ export async function POST(req: NextRequest) {
   try {
     const body = previewSchema.parse(await req.json());
     const adminUrl = body.url.trim();
+    // SSRF guard: only Google Drive / Docs hosts for server-side fetch
+    try {
+      const host = new URL(adminUrl).hostname.toLowerCase();
+      const allowed =
+        host === "drive.google.com" ||
+        host === "docs.google.com" ||
+        host.endsWith(".googleusercontent.com");
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Only Google Drive / Docs links can be previewed" },
+          { status: 400 }
+        );
+      }
+    } catch {
+      return NextResponse.json({ error: "Valid document URL is required" }, { status: 400 });
+    }
     const fetchedTitle = await fetchGoogleDriveTitle(adminUrl);
     const title = body.title?.trim() || fetchedTitle || "Training document";
     const learnerUrl = isGoogleDriveUrl(adminUrl)

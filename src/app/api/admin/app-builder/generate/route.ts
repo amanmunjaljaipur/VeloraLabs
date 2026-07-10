@@ -1,6 +1,7 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
 import { packageAppProject } from "@/lib/app-builder/packager";
+import { canAccessAppProject } from "@/lib/app-builder/project-access";
 import { resolveAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import { getAppProject, saveAppProject } from "@/lib/app-builder/store";
 import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
@@ -42,22 +43,34 @@ export async function POST(request: Request) {
   }
 
   const project = await getAppProject(body.projectId);
-  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  if (!project || !canAccessAppProject(project, session)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
 
   const isSuper = isSuperAdminRole(session.user?.role);
-  const secrets = resolveAppBuilderSecrets({
-    apiKey: body.apiKey,
-    provider: body.provider || project.llm.provider || "xai",
-    model: body.model || project.llm.model,
-    baseUrl: body.baseUrl || project.llm.baseUrl,
-  });
+  // Non–super-admin must supply their own key (do not burn platform quota / cost DoS)
+  const secrets = isSuper
+    ? resolveAppBuilderSecrets({
+        apiKey: body.apiKey,
+        provider: body.provider || project.llm.provider || "xai",
+        model: body.model || project.llm.model,
+        baseUrl: body.baseUrl || project.llm.baseUrl,
+      })
+    : body.apiKey?.trim()
+      ? resolveAppBuilderSecrets({
+          apiKey: body.apiKey,
+          provider: body.provider || project.llm.provider || "xai",
+          model: body.model || project.llm.model,
+          baseUrl: body.baseUrl || project.llm.baseUrl,
+        })
+      : null;
 
   if (!secrets) {
     return NextResponse.json(
       {
         error: isSuper
           ? "Platform Grok key is not configured. Set XAI_API_KEY on the server."
-          : "Please paste your AI helper key (Grok / Groq / custom), or ask an admin to set XAI_API_KEY.",
+          : "Please paste your AI helper key (Grok / Groq / custom). Platform key is only for Super Admin.",
       },
       { status: 400 }
     );

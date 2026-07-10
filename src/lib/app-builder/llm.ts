@@ -29,9 +29,10 @@ function resolveEndpoint(secrets: AppLlmSecrets): { url: string; headers: Record
     };
   }
 
-  // Custom OpenAI-compatible
+  // Custom OpenAI-compatible — block SSRF to private/metadata hosts
   const base = (secrets.baseUrl || "").replace(/\/$/, "");
   if (!base) throw new Error("Custom provider requires a base URL (OpenAI-compatible)");
+  assertSafeLlmBaseUrl(base);
   return {
     url: `${base}/chat/completions`,
     headers: {
@@ -39,6 +40,37 @@ function resolveEndpoint(secrets: AppLlmSecrets): { url: string; headers: Record
       "Content-Type": "application/json",
     },
   };
+}
+
+/** Reject custom LLM endpoints that target private / cloud-metadata networks */
+export function assertSafeLlmBaseUrl(baseUrl: string): void {
+  let u: URL;
+  try {
+    u = new URL(baseUrl);
+  } catch {
+    throw new Error("Custom AI URL is invalid");
+  }
+  if (u.protocol !== "https:") {
+    throw new Error("Custom AI URL must use https://");
+  }
+  const host = u.hostname.toLowerCase();
+  if (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "0.0.0.0" ||
+    host === "::1" ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal") ||
+    host === "metadata.google.internal" ||
+    /^10\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host) ||
+    /^169\.254\./.test(host) ||
+    host === "metadata" ||
+    host.startsWith("100.64.")
+  ) {
+    throw new Error("Custom AI URL cannot target private or metadata hosts");
+  }
 }
 
 export function defaultModelForProvider(provider: LlmProviderKind): string {

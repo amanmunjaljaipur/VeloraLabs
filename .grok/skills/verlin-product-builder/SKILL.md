@@ -35,6 +35,11 @@ Read companion refs as needed:
 8. **Per-app tenancy** — separate login, roles, owner = creator + platform super_admin, default role = customer (or mass-relevant role).
 9. **Honest automation** — auto what we can; checklist what humans must still do (Maps, custom domain).
 10. **Persist for serverless** — `ensureDataFileHydrated(..., { force: true })` + `writeJsonFileAsync` for tenant/project data.
+11. **Guided tour stays current (default)** — whenever you change App Builder UX, admin menus, product editing, theme/logo, auth, or public pages, **update `AppGuidedTour.tsx` in the same change**. Add/adjust `data-tour` hotspots, multi-arrow annotations, and plain-language tips. Never ship a feature the tour still describes the old way.
+12. **Multi-colour themes** — shops use `primary` + `secondary` + `accent` + `surface` + `themePalette` via `resolveShopTheme` — never primary-only UI.  
+13. **Content agent** — storefront copy/SEO improvements go through `/app-content-agent` skill + `content-agent.ts` / `generate-content` API (SEO readiness, premium local tone).  
+14. **Specialized agents** — use `/app-builder-orchestrator` to route work; research missing verticals via `/app-vertical-research` into deploy-safe ops memory.  
+15. **Ops memory survives deploys** — research + experiences live in Blob `app-builder-ops-memory.json`, not chat and not product-only memory. Log with `/app-experience-agent`.
 
 ---
 
@@ -168,6 +173,8 @@ When implementing in this repo:
 9. Static packager if exportable  
 10. Standalone shell (no VL chrome) via middleware `x-vl-app-shell`  
 11. Await Blob on all tenant/project writes  
+12. **`AppGuidedTour.tsx`** — new/changed surfaces get overlay steps + `data-tour` targets (mandatory default)  
+13. Owner media: product photo **upload** + logo upload + theme-from-image (not link-only) when visuals matter
 
 ### G. Quality gates before “live”
 
@@ -189,6 +196,16 @@ Verlin public pages use real photography. Generated apps must not look empty:
 3. Else generate logo + hero + product images from brand/city/product names (`src/lib/app-builder/images.ts`).  
 4. UI: hero photo, product cards with images, about photo, gallery strip.  
 5. Fallback to monogram/emoji only if image URL fails to load.  
+6. **Admin must allow owner uploads**: product photos (file upload), logo file upload, and **theme from logo/image** (palette sample + optional AI refine) under Brand & theme.  
+7. Tour must teach: Upload your photo / Find photos / Brand & theme → Build theme from image.  
+
+### I. Admin left menu
+
+Keep labels and order aligned with real capabilities (not stale copy):
+
+`Overview → Products → Orders → CRM → Site CMS → Brand & theme → Team → Roles`
+
+Active item uses the **shop accent colour**, not a hard-coded platform teal.
 
 ---
 

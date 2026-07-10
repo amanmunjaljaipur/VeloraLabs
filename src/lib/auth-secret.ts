@@ -16,5 +16,12 @@ export function resolveAuthSecret(): string {
     );
   }
 
+  // Any production runtime (not only Vercel) must have a real secret
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET or NEXTAUTH_SECRET is required when NODE_ENV=production."
+    );
+  }
+
   return LOCAL_BUILD_PLACEHOLDER;
 }

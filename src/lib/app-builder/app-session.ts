@@ -13,7 +13,14 @@ function cookieName(slug: string): string {
 }
 
 function secret(): string {
-  return resolveAuthSecret() || "dev-app-session-secret";
+  // resolveAuthSecret throws on Vercel without AUTH_SECRET; never use a weak hard-coded fallback in prod
+  const s = resolveAuthSecret();
+  if (!s || s === "verlin-labs-local-build-only") {
+    if (process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET is required to sign app sessions in production");
+    }
+  }
+  return s || "dev-app-session-secret-local-only";
 }
 
 export function signAppSession(payload: Omit<AppSessionPayload, "exp">, maxAgeSec = MAX_AGE_SEC): string {

@@ -1,6 +1,10 @@
 "use client";
 
 import type { AppRoute, AppUserView } from "@/components/app-builder/StandaloneAppRuntime";
+import {
+  extractPaletteFromImageSource,
+  uploadAppImage,
+} from "@/lib/app-builder/extract-palette-client";
 import { buildLaunchChecklist } from "@/lib/app-builder/launch-checklist";
 import type { EcomLocalShopContent, EcomProduct } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
@@ -10,15 +14,18 @@ import {
   ChevronRight,
   Contact,
   FileText,
+  ImagePlus,
   LayoutDashboard,
   LayoutGrid,
   Package,
-  Settings,
+  Palette,
   Shield,
   ShoppingBag,
+  Sparkles,
+  Upload,
   Users,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Order = {
   id: string;
@@ -68,15 +75,59 @@ type NavItem = {
   group?: string;
 };
 
+/** Order matches real owner workflow: stock → orders → people → pages → brand → team */
 const NAV: NavItem[] = [
-  { id: "admin", label: "Overview", description: "Home and quick links", icon: LayoutDashboard, staffOk: true },
-  { id: "admin-cms", label: "Site CMS", description: "Edit pages, copy, images", icon: LayoutGrid },
-  { id: "admin-crm", label: "CRM", description: "Customers and contacts", icon: Contact, staffOk: true },
-  { id: "admin-orders", label: "Orders", description: "Orders and fulfilment", icon: ShoppingBag, staffOk: true },
-  { id: "admin-products", label: "Products", description: "Catalogue cards", icon: Package },
-  { id: "admin-roles", label: "Role Assignment", description: "Roles and default role", icon: Shield },
-  { id: "admin-customers", label: "Team", description: "Staff accounts", icon: Users },
-  { id: "admin-settings", label: "Settings", description: "Brand and contact", icon: Settings },
+  {
+    id: "admin",
+    label: "Overview",
+    description: "Home & launch checklist",
+    icon: LayoutDashboard,
+    staffOk: true,
+  },
+  {
+    id: "admin-products",
+    label: "Products",
+    description: "Catalogue · upload or find photos",
+    icon: Package,
+  },
+  {
+    id: "admin-orders",
+    label: "Orders",
+    description: "Orders & fulfilment",
+    icon: ShoppingBag,
+    staffOk: true,
+  },
+  {
+    id: "admin-crm",
+    label: "CRM",
+    description: "Customers & contacts",
+    icon: Contact,
+    staffOk: true,
+  },
+  {
+    id: "admin-cms",
+    label: "Site CMS",
+    description: "Edit Home, About, Contact, FAQ",
+    icon: LayoutGrid,
+  },
+  {
+    id: "admin-settings",
+    label: "Brand & theme",
+    description: "Logo upload · colours from logo",
+    icon: Palette,
+  },
+  {
+    id: "admin-customers",
+    label: "Team",
+    description: "Staff accounts",
+    icon: Users,
+  },
+  {
+    id: "admin-roles",
+    label: "Roles",
+    description: "Who can do what",
+    icon: Shield,
+  },
 ];
 
 function emptyProduct(): EcomProduct {
@@ -145,9 +196,26 @@ export function AppAdminPanel({
   const [faqs, setFaqs] = useState(content.faqs || []);
   const [settingsForm, setSettingsForm] = useState({
     brandName: content.brandName,
-    primaryColor: content.primaryColor,
+    primaryColor: content.primaryColor || "#0d9488",
+    secondaryColor: content.secondaryColor || "#0a1628",
+    accentColor: content.accentColor || content.primaryColor || "#0d9488",
+    surfaceColor: content.surfaceColor || "#f0fdfa",
+    themePalette: (content.themePalette || []).join(", "),
     logoImageUrl: content.logo?.imageUrl || "",
+    logoBgFrom: content.logo?.bgFrom || content.primaryColor || "#0d9488",
+    logoBgTo: content.logo?.bgTo || "#0a1628",
+    logoBadge: content.logo?.badge || content.city || "",
+    seoTitle: content.seoTitle || "",
+    seoDescription: content.seoDescription || "",
   });
+  const [themeBusy, setThemeBusy] = useState(false);
+  const [contentBusy, setContentBusy] = useState(false);
+  const [uploadBusyKey, setUploadBusyKey] = useState<string | null>(null);
+  const [themePalette, setThemePalette] = useState<string[]>([]);
+  const [themeNotes, setThemeNotes] = useState("");
+  const productFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const logoFileRef = useRef<HTMLInputElement | null>(null);
+  const themeFileRef = useRef<HTMLInputElement | null>(null);
 
   const nav = NAV.filter((n) => !staffOnly || n.staffOk);
 
@@ -288,6 +356,184 @@ export function AppAdminPanel({
     setMsg("Photo selected — click Save products to keep it.");
   }
 
+  async function uploadProductPhoto(index: number, file: File) {
+    setUploadBusyKey(`product-${index}`);
+    setMsg("");
+    try {
+      const url = await uploadAppImage(slug, file, "product");
+      const next = [...products];
+      next[index] = { ...next[index], image: url };
+      setProducts(next);
+      setMsg("Your photo was uploaded — click Save products to keep it.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Could not upload photo");
+    } finally {
+      setUploadBusyKey(null);
+    }
+  }
+
+  async function uploadLogoFile(file: File) {
+    setUploadBusyKey("logo");
+    setMsg("");
+    try {
+      const url = await uploadAppImage(slug, file, "logo");
+      setSettingsForm((f) => ({ ...f, logoImageUrl: url }));
+      const palette = await extractPaletteFromImageSource(file);
+      setThemePalette(palette);
+      setMsg("Logo uploaded. You can pull theme colours from it below.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Could not upload logo");
+    } finally {
+      setUploadBusyKey(null);
+    }
+  }
+
+  async function uploadThemeReference(file: File) {
+    setUploadBusyKey("theme-ref");
+    setMsg("");
+    try {
+      await uploadAppImage(slug, file, "theme");
+      const palette = await extractPaletteFromImageSource(file);
+      setThemePalette(palette);
+      setMsg("Theme image loaded. Tap “Build theme from image” to apply colours.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Could not read theme image");
+    } finally {
+      setUploadBusyKey(null);
+    }
+  }
+
+  async function buildThemeFromImage() {
+    setThemeBusy(true);
+    setMsg("");
+    try {
+      let palette = themePalette;
+      if (palette.length === 0 && settingsForm.logoImageUrl) {
+        palette = await extractPaletteFromImageSource(settingsForm.logoImageUrl);
+        setThemePalette(palette);
+      }
+      if (palette.length === 0) {
+        setMsg("Upload your logo or a theme photo first, then try again.");
+        return;
+      }
+      const res = await fetch(`/api/apps/${slug}/admin/theme-from-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          palette,
+          brandName: settingsForm.brandName,
+          city: content.city,
+        }),
+      });
+      const data = (await res.json()) as {
+        theme?: {
+          primaryColor: string;
+          secondaryColor: string;
+          accentColor?: string;
+          surfaceColor?: string;
+          themePalette?: string[];
+          logoBgFrom: string;
+          logoBgTo: string;
+          badge?: string;
+          motif?: string;
+          notes?: string;
+        };
+        error?: string;
+      };
+      if (!res.ok || !data.theme) {
+        setMsg(data.error || "Could not build theme");
+        return;
+      }
+      const t = data.theme;
+      setSettingsForm((f) => ({
+        ...f,
+        primaryColor: t.primaryColor,
+        secondaryColor: t.secondaryColor,
+        accentColor: t.accentColor || t.primaryColor,
+        surfaceColor: t.surfaceColor || f.surfaceColor,
+        themePalette: (t.themePalette || [t.primaryColor, t.secondaryColor]).join(", "),
+        logoBgFrom: t.logoBgFrom,
+        logoBgTo: t.logoBgTo,
+        logoBadge: t.badge || f.logoBadge,
+      }));
+      setThemeNotes(t.notes || "Multi-colour theme ready — Save to apply on the shop.");
+      setMsg("Multi-colour theme filled in — review, then Save brand & theme.");
+    } catch {
+      setMsg("Theme builder failed. Try another image.");
+    } finally {
+      setThemeBusy(false);
+    }
+  }
+
+  async function saveBrandTheme() {
+    const palette = settingsForm.themePalette
+      .split(/[\s,]+/)
+      .map((c) => c.trim())
+      .filter((c) => /^#?[0-9a-fA-F]{3,8}$/.test(c))
+      .map((c) => (c.startsWith("#") ? c : `#${c}`));
+    await patchContent(
+      {
+        brandName: settingsForm.brandName,
+        primaryColor: settingsForm.primaryColor,
+        secondaryColor: settingsForm.secondaryColor,
+        accentColor: settingsForm.accentColor,
+        surfaceColor: settingsForm.surfaceColor,
+        themePalette: palette.length ? palette : undefined,
+        logoImageUrl: settingsForm.logoImageUrl,
+        logoBgFrom: settingsForm.logoBgFrom,
+        logoBgTo: settingsForm.logoBgTo,
+        logoBadge: settingsForm.logoBadge,
+        seoTitle: settingsForm.seoTitle,
+        seoDescription: settingsForm.seoDescription,
+      },
+      "Brand & multi-colour theme saved — check your shop"
+    );
+  }
+
+  async function runContentAgent(scope: "all" | "home" | "about" | "faq" | "seo" = "all") {
+    setContentBusy(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/apps/${slug}/admin/generate-content`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope, apply: true }),
+      });
+      const data = (await res.json()) as {
+        content?: EcomLocalShopContent;
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        setMsg(data.error || "Could not improve wording");
+        return;
+      }
+      if (data.content) {
+        onContentUpdated(data.content);
+        setHomeForm({
+          heroHeadline: data.content.heroHeadline,
+          heroSubheadline: data.content.heroSubheadline,
+          ctaLabel: data.content.ctaLabel,
+          tagline: data.content.tagline,
+          description: data.content.description,
+          heroImageUrl: data.content.heroImageUrl || "",
+        });
+        setAboutForm({ aboutHtml: data.content.aboutHtml });
+        setFaqs(data.content.faqs || []);
+        setSettingsForm((f) => ({
+          ...f,
+          seoTitle: data.content?.seoTitle || f.seoTitle,
+          seoDescription: data.content?.seoDescription || f.seoDescription,
+        }));
+      }
+      setMsg(data.message || "Shop wording improved");
+    } catch {
+      setMsg("Content agent failed. Try again.");
+    } finally {
+      setContentBusy(false);
+    }
+  }
+
   async function inviteMember() {
     setMsg("");
     const res = await fetch(`/api/apps/${slug}/admin/members`, {
@@ -361,9 +607,10 @@ export function AppAdminPanel({
   const label = "mb-1 block text-xs font-medium text-text-secondary";
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] w-full bg-background">
+    <div className="flex min-h-[calc(100vh-4rem)] w-full bg-background" data-tour="admin-panel">
       {/* Sidebar under global top bar (top bar stays visible to exit admin) */}
       <aside
+        data-tour="admin-sidebar"
         className={cn(
           "sticky top-[3.75rem] hidden h-[calc(100vh-3.75rem)] shrink-0 flex-col border-r border-border bg-card transition-[width] duration-300 lg:flex",
           collapsed ? "w-16" : "w-72"
@@ -373,7 +620,7 @@ export function AppAdminPanel({
           {!collapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">{content.brandName}</p>
-              <p className="text-[11px] text-text-muted">Admin · same layout as Verlin Labs</p>
+              <p className="text-[11px] text-text-muted">Shop admin</p>
             </div>
           ) : null}
           <button
@@ -385,7 +632,7 @@ export function AppAdminPanel({
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-2" aria-label="App admin">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2" aria-label="App admin" data-tour="admin-nav">
           {nav.map((n) => {
             const Icon = n.icon;
             const active =
@@ -399,12 +646,20 @@ export function AppAdminPanel({
                 key={n.id}
                 type="button"
                 onClick={() => onSection(n.id === "admin-cms" ? "admin-cms" : n.id)}
+                data-tour={`admin-nav-${n.id}`}
                 className={cn(
                   "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
-                  active
-                    ? "bg-accent-teal/10 text-accent-teal"
-                    : "text-foreground hover:bg-muted"
+                  active ? "shadow-sm" : "text-foreground hover:bg-muted"
                 )}
+                style={
+                  active
+                    ? {
+                        background: `${accent}18`,
+                        color: accent,
+                        borderLeft: `3px solid ${accent}`,
+                      }
+                    : { borderLeft: "3px solid transparent" }
+                }
                 title={n.label}
               >
                 <Icon className="h-4 w-4 shrink-0" style={active ? { color: accent } : undefined} />
@@ -434,7 +689,10 @@ export function AppAdminPanel({
 
       {/* Mobile top nav — same pattern as Verlin mobile admin */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="sticky top-0 z-30 border-b border-border bg-background/95 px-3 py-2 backdrop-blur lg:hidden">
+        <div
+          className="sticky top-0 z-30 border-b border-border bg-background/95 px-3 py-2 backdrop-blur lg:hidden"
+          data-tour="admin-nav-mobile"
+        >
           <div className="flex gap-2 overflow-x-auto pb-1">
             {nav.map((n) => {
               const Icon = n.icon;
@@ -446,10 +704,17 @@ export function AppAdminPanel({
                   onClick={() => onSection(n.id)}
                   className={cn(
                     "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
-                    active
-                      ? "border-accent-teal/30 bg-accent-teal/10 text-accent-teal"
-                      : "border-border bg-card"
+                    !active && "border-border bg-card"
                   )}
+                  style={
+                    active
+                      ? {
+                          borderColor: `${accent}55`,
+                          background: `${accent}14`,
+                          color: accent,
+                        }
+                      : undefined
+                  }
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {n.label}
@@ -467,13 +732,30 @@ export function AppAdminPanel({
           {/* OVERVIEW */}
           {section === "admin" && (
             <div className="space-y-6">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Overview</h1>
-                <p className="mt-1 text-sm text-text-secondary">
-                  Admin home for {content.brandName} — same menu style as Verlin Labs. Launch steps
-                  follow Shopify / Dukaan style checklists.
-                </p>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Overview</h1>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    Admin home for {content.brandName}. Launch steps follow simple Shopify / Dukaan
+                    style checklists.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={contentBusy}
+                  data-tour="content-agent"
+                  onClick={() => void runContentAgent("all")}
+                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white shadow"
+                  style={{ background: accent }}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {contentBusy ? "Improving…" : "Improve shop wording"}
+                </button>
               </div>
+              <p className="text-xs text-text-muted">
+                <strong>Improve shop wording</strong> rewrites Home, About, FAQs and Google title /
+                description from your products and city — clear, local, and SEO-ready.
+              </p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Stat label="Products" value={String(content.products.length)} />
                 <Stat label="Orders" value={String(orders.length || crmStats.orders)} />
@@ -544,11 +826,27 @@ export function AppAdminPanel({
             section === "admin-cms-faq") &&
             !staffOnly && (
               <div className="space-y-6">
-                <div>
-                  <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Site CMS</h1>
-                  <p className="mt-1 text-sm text-text-secondary">
-                    Edit pages, copy, and images — forms only, same idea as Verlin Labs Site CMS.
-                  </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Site CMS</h1>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      Edit pages, copy, and images — forms only. Or let the content agent improve
+                      wording for you.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={contentBusy}
+                    onClick={() =>
+                      void runContentAgent(
+                        cmsPage === "about" ? "about" : cmsPage === "faq" ? "faq" : "home"
+                      )
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" style={{ color: accent }} />
+                    {contentBusy ? "Working…" : "Improve this page wording"}
+                  </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {(
@@ -877,15 +1175,17 @@ export function AppAdminPanel({
             </div>
           )}
 
-          {/* PRODUCTS — form cards + search/custom images */}
+          {/* PRODUCTS — upload own photos, search web, or AI images */}
           {section === "admin-products" && !staffOnly && (
-            <div className="space-y-4">
+            <div className="space-y-4" data-tour="admin-products">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h1 className="text-2xl font-semibold">Products</h1>
-                  <p className="text-sm text-text-secondary">
-                    Add products, then <strong>Find photos</strong> — we search the web and build
-                    custom images. Tap one to use it. Saving also auto-adds photos if missing.
+                  <p className="mt-1 max-w-2xl text-sm text-text-secondary">
+                    Add each product, then add a photo in any of three ways:{" "}
+                    <strong>upload your own</strong>, <strong>paste a link</strong>, or{" "}
+                    <strong>Find photos</strong> (web search + custom AI). Saving also auto-adds
+                    photos for any product still missing one.
                   </p>
                 </div>
                 <button
@@ -948,7 +1248,7 @@ export function AppAdminPanel({
                           />
                         </label>
                         <label className="block text-sm">
-                          <span className={label}>Or paste your own photo link</span>
+                          <span className={label}>Photo link (optional)</span>
                           <input
                             className={field}
                             value={p.image || ""}
@@ -957,7 +1257,7 @@ export function AppAdminPanel({
                               next[i] = { ...p, image: e.target.value };
                               setProducts(next);
                             }}
-                            placeholder="https://…"
+                            placeholder="https://… or upload below"
                           />
                         </label>
                       </div>
@@ -976,6 +1276,54 @@ export function AppAdminPanel({
                       }}
                     />
                   </label>
+                  <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-3 py-2">
+                    <ImagePlus className="h-4 w-4 shrink-0 text-text-muted" />
+                    <span className="text-xs font-medium text-text-secondary">Photo:</span>
+                    <input
+                      ref={(el) => {
+                        productFileRefs.current[i] = el;
+                      }}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadProductPhoto(i, file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold"
+                      disabled={uploadBusyKey === `product-${i}`}
+                      onClick={() => productFileRefs.current[i]?.click()}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      {uploadBusyKey === `product-${i}` ? "Uploading…" : "Upload your photo"}
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white"
+                      style={{ background: accent }}
+                      onClick={() => void findImagesForProduct(i)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Find photos
+                    </button>
+                    {p.image ? (
+                      <button
+                        type="button"
+                        className="text-xs text-text-muted underline"
+                        onClick={() => {
+                          const next = [...products];
+                          next[i] = { ...p, image: undefined };
+                          setProducts(next);
+                        }}
+                      >
+                        Clear photo
+                      </button>
+                    ) : null}
+                  </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <label className="inline-flex items-center gap-2 text-sm">
                       <input
@@ -989,14 +1337,6 @@ export function AppAdminPanel({
                       />
                       Featured on home
                     </label>
-                    <button
-                      type="button"
-                      className="rounded-xl px-3 py-1.5 text-xs font-semibold text-white"
-                      style={{ background: accent }}
-                      onClick={() => void findImagesForProduct(i)}
-                    >
-                      Find photos for this product
-                    </button>
                     <button
                       type="button"
                       className="text-xs text-red-600"
@@ -1181,10 +1521,18 @@ export function AppAdminPanel({
             </div>
           )}
 
-          {/* SETTINGS */}
+          {/* BRAND & THEME */}
           {section === "admin-settings" && !staffOnly && (
-            <div className="space-y-4">
-              <h1 className="text-2xl font-semibold">Settings</h1>
+            <div className="space-y-6" data-tour="admin-settings">
+              <div>
+                <h1 className="text-2xl font-semibold">Brand & theme</h1>
+                <p className="mt-1 max-w-2xl text-sm text-text-secondary">
+                  Upload your logo, then let us pull brand colours from it. Or upload any photo that
+                  matches the look you want (shop front, packaging, fabric) and build a theme from
+                  that. Colours show on buttons, header accents, and logo backgrounds.
+                </p>
+              </div>
+
               <label className="block text-sm">
                 <span className={label}>Shop name</span>
                 <input
@@ -1195,44 +1543,356 @@ export function AppAdminPanel({
                   }
                 />
               </label>
+
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+                <p className="text-sm font-semibold">1. Your logo</p>
+                <p className="text-xs text-text-secondary">
+                  Upload a square logo if you have one (PNG or JPG). You can also paste a link.
+                </p>
+                <div className="flex flex-wrap items-start gap-4">
+                  <div
+                    className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-border shadow"
+                    style={{
+                      background: `linear-gradient(145deg, ${settingsForm.logoBgFrom}, ${settingsForm.logoBgTo})`,
+                    }}
+                  >
+                    {settingsForm.logoImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={settingsForm.logoImageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-white">
+                        {(settingsForm.brandName || "SH").slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <input
+                      ref={logoFileRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadLogoFile(file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-sm font-medium"
+                      disabled={uploadBusyKey === "logo"}
+                      onClick={() => logoFileRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploadBusyKey === "logo" ? "Uploading…" : "Upload logo"}
+                    </button>
+                    <label className="block text-sm">
+                      <span className={label}>Or logo image link</span>
+                      <input
+                        className={field}
+                        value={settingsForm.logoImageUrl}
+                        onChange={(e) =>
+                          setSettingsForm((f) => ({ ...f, logoImageUrl: e.target.value }))
+                        }
+                        placeholder="https://…"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-3" data-tour="admin-theme">
+                <p className="text-sm font-semibold">2. Theme from your logo or a mood photo</p>
+                <ol className="list-decimal space-y-1 pl-4 text-xs text-text-secondary">
+                  <li>Upload your logo (above) — or upload a separate photo that matches your brand look.</li>
+                  <li>Tap <strong>Build theme from image</strong> — we sample colours and refine them.</li>
+                  <li>Tweak colours if you like, then <strong>Save brand & theme</strong>.</li>
+                </ol>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={themeFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void uploadThemeReference(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-sm font-medium"
+                    disabled={uploadBusyKey === "theme-ref"}
+                    onClick={() => themeFileRef.current?.click()}
+                  >
+                    <ImagePlus className="h-4 w-4" />
+                    {uploadBusyKey === "theme-ref" ? "Reading…" : "Upload theme photo"}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-white"
+                    style={{ background: accent }}
+                    disabled={themeBusy}
+                    onClick={() => void buildThemeFromImage()}
+                  >
+                    <Palette className="h-4 w-4" />
+                    {themeBusy ? "Building…" : "Build theme from image"}
+                  </button>
+                </div>
+                {themePalette.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-text-muted">Sampled:</span>
+                    {themePalette.map((c) => (
+                      <span
+                        key={c}
+                        className="h-7 w-7 rounded-lg border border-border shadow-sm"
+                        style={{ background: c }}
+                        title={c}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+                {themeNotes ? (
+                  <p className="text-xs text-text-secondary">{themeNotes}</p>
+                ) : null}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className={label}>Main colour (buttons)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.primaryColor || "#0d9488"}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, primaryColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.primaryColor}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, primaryColor: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm">
+                  <span className={label}>Secondary colour (depth / headers)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.secondaryColor || "#0a1628"}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, secondaryColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.secondaryColor}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, secondaryColor: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm">
+                  <span className={label}>Accent colour (prices, badges)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.accentColor || "#0d9488"}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, accentColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.accentColor}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, accentColor: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm">
+                  <span className={label}>Surface wash (soft backgrounds)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.surfaceColor || "#f0fdfa"}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, surfaceColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.surfaceColor}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, surfaceColor: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm">
+                  <span className={label}>Logo background (from)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.logoBgFrom}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, logoBgFrom: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.logoBgFrom}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, logoBgFrom: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm">
+                  <span className={label}>Logo background (to)</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      className="h-10 w-14 cursor-pointer rounded border border-border"
+                      value={settingsForm.logoBgTo}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, logoBgTo: e.target.value }))
+                      }
+                    />
+                    <input
+                      className={field}
+                      value={settingsForm.logoBgTo}
+                      onChange={(e) =>
+                        setSettingsForm((f) => ({ ...f, logoBgTo: e.target.value }))
+                      }
+                    />
+                  </div>
+                </label>
+              </div>
+
               <label className="block text-sm">
-                <span className={label}>Brand colour</span>
-                <input
-                  type="color"
-                  className="h-10 w-20 cursor-pointer rounded border border-border"
-                  value={settingsForm.primaryColor || "#0d9488"}
-                  onChange={(e) =>
-                    setSettingsForm((f) => ({ ...f, primaryColor: e.target.value }))
-                  }
-                />
-              </label>
-              <label className="block text-sm">
-                <span className={label}>Logo image link</span>
+                <span className={label}>Full colour palette (comma-separated hex)</span>
                 <input
                   className={field}
-                  value={settingsForm.logoImageUrl}
+                  value={settingsForm.themePalette}
                   onChange={(e) =>
-                    setSettingsForm((f) => ({ ...f, logoImageUrl: e.target.value }))
+                    setSettingsForm((f) => ({ ...f, themePalette: e.target.value }))
                   }
-                  placeholder="https://…"
+                  placeholder="#c2410c, #9a3412, #ea580c, #7c2d12"
+                />
+                <span className="mt-1 block text-[11px] text-text-muted">
+                  Used across chips, product cards, hero ribbon, and footer — not one colour only.
+                </span>
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className={label}>Google / share title (SEO)</span>
+                  <input
+                    className={field}
+                    value={settingsForm.seoTitle}
+                    onChange={(e) =>
+                      setSettingsForm((f) => ({ ...f, seoTitle: e.target.value }))
+                    }
+                    placeholder="Brand · City | Offer"
+                  />
+                </label>
+                <label className="block text-sm sm:col-span-2">
+                  <span className={label}>Google / share description (SEO)</span>
+                  <textarea
+                    className={field}
+                    rows={2}
+                    value={settingsForm.seoDescription}
+                    onChange={(e) =>
+                      setSettingsForm((f) => ({ ...f, seoDescription: e.target.value }))
+                    }
+                    placeholder="What you sell, city, how to order…"
+                  />
+                </label>
+              </div>
+
+              <label className="block text-sm">
+                <span className={label}>Short badge under logo (e.g. city · craft)</span>
+                <input
+                  className={field}
+                  value={settingsForm.logoBadge}
+                  onChange={(e) =>
+                    setSettingsForm((f) => ({ ...f, logoBadge: e.target.value }))
+                  }
+                  placeholder={`${content.city} · Shop`}
                 />
               </label>
+
+              <div
+                className="rounded-xl border border-border p-4 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${settingsForm.primaryColor}, ${settingsForm.secondaryColor})`,
+                }}
+              >
+                <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                  Multi-colour preview
+                </p>
+                <p className="mt-1 text-lg font-semibold">{settingsForm.brandName || "Your shop"}</p>
+                <p className="text-sm text-white/90">{settingsForm.logoBadge || content.city}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {[
+                    settingsForm.primaryColor,
+                    settingsForm.secondaryColor,
+                    settingsForm.accentColor,
+                    settingsForm.logoBgFrom,
+                    settingsForm.logoBgTo,
+                    ...settingsForm.themePalette.split(/[\s,]+/).filter(Boolean),
+                  ]
+                    .filter((c, i, a) => a.indexOf(c) === i)
+                    .slice(0, 8)
+                    .map((c) => (
+                      <span
+                        key={c}
+                        className="h-6 w-6 rounded-md border border-white/40 shadow"
+                        style={{ background: c }}
+                        title={c}
+                      />
+                    ))}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{ background: settingsForm.primaryColor, color: "#fff" }}
+                  >
+                    Primary CTA
+                  </button>
+                  <span
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{ color: settingsForm.accentColor, background: "#fff" }}
+                  >
+                    ₹999 accent price
+                  </span>
+                </div>
+              </div>
+
               <button
                 type="button"
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
-                style={{ background: accent }}
-                onClick={() =>
-                  void patchContent(
-                    {
-                      brandName: settingsForm.brandName,
-                      primaryColor: settingsForm.primaryColor,
-                      logoImageUrl: settingsForm.logoImageUrl,
-                    },
-                    "Settings saved"
-                  )
-                }
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white"
+                style={{ background: settingsForm.primaryColor || accent }}
+                onClick={() => void saveBrandTheme()}
               >
-                Save settings
+                Save brand & theme
               </button>
             </div>
           )}

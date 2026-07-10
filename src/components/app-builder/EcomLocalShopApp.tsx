@@ -1,6 +1,13 @@
 "use client";
 
 import { AppBuilderFooter } from "@/components/app-builder/AppBuilderFooter";
+import {
+  logoWithTheme,
+  resolveShopTheme,
+  shopThemeCssVars,
+  withAlpha,
+  type ShopThemeTokens,
+} from "@/lib/app-builder/shop-theme";
 import type { EcomLocalShopContent, EcomProduct, ShopLogo } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
@@ -13,7 +20,7 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 
 type PageKey = "home" | "shop" | "about" | "contact" | "faq";
 
@@ -162,15 +169,11 @@ export function EcomLocalShopApp({
     return content.products.filter((p) => p.category === category);
   }, [content.products, category]);
 
-  const accent = content.primaryColor || "#0d9488";
-  const logo: ShopLogo = content.logo || {
-    initials: content.brandName.slice(0, 2).toUpperCase(),
-    emoji: "🏪",
-    motif: "local",
-    bgFrom: accent,
-    bgTo: "#0a1628",
-    badge: content.city,
-  };
+  const theme = useMemo(() => resolveShopTheme(content), [content]);
+  const logo: ShopLogo = useMemo(
+    () => logoWithTheme(content.logo, content.brandName, content.city, theme),
+    [content.logo, content.brandName, content.city, theme]
+  );
   const wa = whatsappHref(content.whatsappNumber || content.contactPhone, content.brandName);
 
   const navItems: Array<[PageKey, string]> = [
@@ -182,14 +185,20 @@ export function EcomLocalShopApp({
   ];
 
   return (
-    <div className={cn(!embedded && "min-h-screen", "bg-background text-foreground")}>
+    <div
+      className={cn(!embedded && "min-h-screen", "bg-background text-foreground")}
+      style={shopThemeCssVars(theme) as CSSProperties}
+    >
       {!embedded ? (
         <header className="border-b border-border bg-card/90 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <button type="button" onClick={() => go("home")} className="flex items-center gap-2.5 text-left">
               <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
               <span>
-                <span className="block text-base font-semibold tracking-tight" style={{ color: accent }}>
+                <span
+                  className="block text-base font-semibold tracking-tight"
+                  style={{ color: theme.primary }}
+                >
                   {content.brandName}
                 </span>
                 <span className="block text-[11px] text-text-muted">{content.city}</span>
@@ -201,10 +210,12 @@ export function EcomLocalShopApp({
                   key={key}
                   type="button"
                   onClick={() => go(key)}
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 transition hover:bg-muted",
-                    page === key && "bg-muted"
-                  )}
+                  className={cn("rounded-lg px-3 py-1.5 transition")}
+                  style={
+                    page === key
+                      ? { background: withAlpha(theme.primary, 0.12), color: theme.primary }
+                      : undefined
+                  }
                 >
                   {label}
                 </button>
@@ -222,7 +233,10 @@ export function EcomLocalShopApp({
 
       {page === "home" && (
         <>
-          <section className="relative overflow-hidden border-b border-border text-white">
+          <section
+            className="relative overflow-hidden border-b border-border text-white"
+            data-tour="hero"
+          >
             {content.heroImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -235,8 +249,15 @@ export function EcomLocalShopApp({
               className="absolute inset-0"
               style={{
                 background: content.heroImageUrl
-                  ? `linear-gradient(120deg, ${logo.bgFrom}ee 0%, ${logo.bgTo}99 55%, transparent 100%)`
-                  : `linear-gradient(135deg, ${logo.bgFrom}, ${logo.bgTo})`,
+                  ? `linear-gradient(120deg, ${theme.heroFrom}ee 0%, ${theme.secondary}99 40%, ${theme.heroTo}66 70%, transparent 100%)`
+                  : `linear-gradient(135deg, ${theme.heroFrom} 0%, ${theme.primary} 45%, ${theme.heroTo} 100%)`,
+              }}
+            />
+            {/* Multi-colour accent ribbon */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1.5"
+              style={{
+                background: `linear-gradient(90deg, ${theme.palette.map((c, i) => `${c} ${(i / Math.max(1, theme.palette.length - 1)) * 100}%`).join(", ")})`,
               }}
             />
             <div className="relative mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14 md:flex-row md:items-center md:justify-between md:py-20">
@@ -253,7 +274,8 @@ export function EcomLocalShopApp({
                   <button
                     type="button"
                     onClick={() => go("shop")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow"
+                    className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold shadow"
+                    style={{ background: theme.onPrimary === "#ffffff" ? "#fff" : theme.primary, color: theme.onPrimary === "#ffffff" ? theme.secondary : theme.onPrimary }}
                   >
                     <ShoppingBag className="h-4 w-4" />
                     {content.ctaLabel}
@@ -264,6 +286,7 @@ export function EcomLocalShopApp({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur"
+                      style={{ borderColor: withAlpha(theme.accent, 0.5) }}
                     >
                       <MessageCircle className="h-4 w-4" />
                       Order on WhatsApp
@@ -302,26 +325,41 @@ export function EcomLocalShopApp({
           ) : null}
 
           {(content.trustBadges?.length || content.orderMethods?.length) && (
-            <section className="border-b border-border bg-muted/30">
+            <section
+              className="border-b border-border"
+              style={{ background: withAlpha(theme.surface, 0.85) }}
+            >
               <div className="mx-auto flex max-w-6xl flex-wrap gap-3 px-4 py-4 text-xs font-medium text-text-secondary">
-                {content.trustBadges?.map((b) => (
+                {content.trustBadges?.map((b, bi) => (
                   <span
                     key={b}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1"
+                    className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"
+                    style={{
+                      borderColor: withAlpha(theme.palette[bi % theme.palette.length], 0.35),
+                    }}
                   >
-                    <Sparkles className="h-3 w-3" style={{ color: accent }} />
+                    <Sparkles
+                      className="h-3 w-3"
+                      style={{ color: theme.palette[bi % theme.palette.length] }}
+                    />
                     {b}
                   </span>
                 ))}
                 {content.openingHours ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1">
-                    <Clock className="h-3 w-3" style={{ color: accent }} />
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"
+                    style={{ borderColor: withAlpha(theme.secondary, 0.35) }}
+                  >
+                    <Clock className="h-3 w-3" style={{ color: theme.secondary }} />
                     {content.openingHours}
                   </span>
                 ) : null}
                 {content.deliveryNote ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1">
-                    <Truck className="h-3 w-3" style={{ color: accent }} />
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border bg-card px-3 py-1"
+                    style={{ borderColor: withAlpha(theme.accent, 0.35) }}
+                  >
+                    <Truck className="h-3 w-3" style={{ color: theme.accent }} />
                     {content.deliveryNote}
                   </span>
                 ) : null}
@@ -331,14 +369,21 @@ export function EcomLocalShopApp({
 
           {content.ownerHighlights?.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 pt-10">
-              <h2 className="text-lg font-semibold">Why shop with us</h2>
+              <h2 className="text-lg font-semibold" style={{ color: theme.secondary }}>
+                Why shop with us
+              </h2>
               <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                {content.ownerHighlights.map((h) => (
+                {content.ownerHighlights.map((h, hi) => (
                   <li
                     key={h}
-                    className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-text-secondary"
+                    className="rounded-xl border bg-card px-4 py-3 text-sm text-text-secondary"
+                    style={{
+                      borderColor: withAlpha(theme.palette[hi % theme.palette.length], 0.4),
+                      borderLeftWidth: 3,
+                      borderLeftColor: theme.palette[hi % theme.palette.length],
+                    }}
                   >
-                    <span className="mr-2" style={{ color: accent }}>
+                    <span className="mr-2" style={{ color: theme.accent }}>
                       ✓
                     </span>
                     {h}
@@ -348,20 +393,23 @@ export function EcomLocalShopApp({
             </section>
           )}
 
-          <section className="mx-auto max-w-6xl px-4 py-12">
-            <h2 className="text-xl font-semibold">Popular picks</h2>
+          <section className="mx-auto max-w-6xl px-4 py-12" data-tour="featured">
+            <h2 className="text-xl font-semibold" style={{ color: theme.secondary }}>
+              Popular picks
+            </h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {content.products
                 .filter((p) => p.featured)
                 .concat(content.products)
                 .filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i)
                 .slice(0, 3)
-                .map((p) => (
+                .map((p, pi) => (
                   <ProductCard
                     key={p.id}
                     product={p}
-                    accent={accent}
+                    theme={theme}
                     logo={logo}
+                    colorIndex={pi}
                     onOrder={slug ? () => void placeOrder(p) : undefined}
                   />
                 ))}
@@ -371,8 +419,10 @@ export function EcomLocalShopApp({
       )}
 
       {page === "shop" && (
-        <section className="mx-auto max-w-6xl px-4 py-10">
-          <h1 className="text-2xl font-semibold">Products</h1>
+        <section className="mx-auto max-w-6xl px-4 py-10" data-tour="products">
+          <h1 className="text-2xl font-semibold" style={{ color: theme.secondary }}>
+            Products
+          </h1>
           <p className="mt-1 text-sm text-text-secondary">{content.description}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             <button
@@ -382,11 +432,11 @@ export function EcomLocalShopApp({
                 "rounded-full border px-3 py-1 text-xs font-medium",
                 !category ? "border-transparent text-white" : "border-border"
               )}
-              style={!category ? { background: accent } : undefined}
+              style={!category ? { background: theme.primary, color: theme.onPrimary } : undefined}
             >
               All
             </button>
-            {content.categories.map((c) => (
+            {content.categories.map((c, ci) => (
               <button
                 key={c}
                 type="button"
@@ -395,19 +445,27 @@ export function EcomLocalShopApp({
                   "rounded-full border px-3 py-1 text-xs font-medium",
                   category === c ? "border-transparent text-white" : "border-border"
                 )}
-                style={category === c ? { background: accent } : undefined}
+                style={
+                  category === c
+                    ? {
+                        background: theme.palette[ci % theme.palette.length],
+                        color: theme.onPrimary,
+                      }
+                    : { borderColor: withAlpha(theme.palette[ci % theme.palette.length], 0.45) }
+                }
               >
                 {c}
               </button>
             ))}
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
+            {products.map((p, pi) => (
               <ProductCard
                 key={p.id}
                 product={p}
-                accent={accent}
+                theme={theme}
                 logo={logo}
+                colorIndex={pi}
                 onOrder={slug ? () => void placeOrder(p) : undefined}
               />
             ))}
@@ -415,7 +473,11 @@ export function EcomLocalShopApp({
           {wa ? (
             <p className="mt-10 text-center text-sm text-text-secondary">
               Like something?{" "}
-              <a href={wa} className="font-semibold underline" style={{ color: accent }}>
+              <a
+                href={wa}
+                className="font-semibold underline"
+                style={{ color: theme.primary }}
+              >
                 Message us on WhatsApp
               </a>{" "}
               — we will guide you step by step.
@@ -425,7 +487,7 @@ export function EcomLocalShopApp({
       )}
 
       {page === "about" && (
-        <section className="mx-auto max-w-3xl px-4 py-12">
+        <section className="mx-auto max-w-3xl px-4 py-12" data-tour="about">
           <div className="mb-6 flex items-center gap-3">
             <ShopLogoMark logo={logo} brandName={content.brandName} />
             <div>
@@ -444,7 +506,12 @@ export function EcomLocalShopApp({
           ) : null}
           <div
             className="prose prose-sm max-w-none text-text-secondary dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: content.aboutHtml }}
+            dangerouslySetInnerHTML={{
+              // Server also sanitizes on save; strip residual script handlers client-side
+              __html: (content.aboutHtml || "")
+                .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+                .replace(/\son\w+\s*=/gi, " data-x="),
+            }}
           />
           {content.languageNote ? (
             <p className="mt-6 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
@@ -455,7 +522,7 @@ export function EcomLocalShopApp({
       )}
 
       {page === "faq" && (
-        <section className="mx-auto max-w-3xl px-4 py-12">
+        <section className="mx-auto max-w-3xl px-4 py-12" data-tour="faq">
           <h1 className="text-2xl font-semibold">Help & FAQ</h1>
           <p className="mt-1 text-sm text-text-secondary">Simple answers — no tech talk.</p>
           <div className="mt-6 space-y-4">
@@ -494,7 +561,7 @@ export function EcomLocalShopApp({
       )}
 
       {page === "contact" && (
-        <section className="mx-auto max-w-3xl px-4 py-12">
+        <section className="mx-auto max-w-3xl px-4 py-12" data-tour="contact">
           <h1 className="text-2xl font-semibold">Contact</h1>
           <p className="mt-2 text-sm text-text-secondary">
             Reach {content.brandName} in {content.city}. We reply personally.
@@ -502,7 +569,7 @@ export function EcomLocalShopApp({
           <ul className="mt-8 space-y-4 text-sm">
             {content.contactEmail ? (
               <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4" style={{ color: accent }} />
+                <Mail className="h-4 w-4" style={{ color: theme.primary }} />
                 <a href={`mailto:${content.contactEmail}`} className="hover:underline">
                   {content.contactEmail}
                 </a>
@@ -510,7 +577,7 @@ export function EcomLocalShopApp({
             ) : null}
             {content.contactPhone ? (
               <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4" style={{ color: accent }} />
+                <Phone className="h-4 w-4" style={{ color: theme.secondary }} />
                 <a href={`tel:${content.contactPhone}`} className="hover:underline">
                   {content.contactPhone}
                 </a>
@@ -523,7 +590,10 @@ export function EcomLocalShopApp({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white"
-                  style={{ background: accent }}
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                    color: theme.onPrimary,
+                  }}
                 >
                   <MessageCircle className="h-4 w-4" />
                   Chat on WhatsApp
@@ -532,13 +602,13 @@ export function EcomLocalShopApp({
             ) : null}
             {content.address ? (
               <li className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: theme.accent }} />
                 <span>{content.address}</span>
               </li>
             ) : null}
             {content.openingHours ? (
               <li className="flex items-center gap-2">
-                <Clock className="h-4 w-4" style={{ color: accent }} />
+                <Clock className="h-4 w-4" style={{ color: theme.secondary }} />
                 <span>{content.openingHours}</span>
               </li>
             ) : null}
@@ -548,37 +618,41 @@ export function EcomLocalShopApp({
 
       {!PAGE_KEYS.includes(page) ? null : null}
 
-      <AppBuilderFooter
-        content={content}
-        accent={accent}
-        onNavigate={(p) => go(p)}
-      />
+      <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => go(p)} />
     </div>
   );
 }
 
 function ProductCard({
   product,
-  accent,
+  theme,
   logo,
+  colorIndex = 0,
   onOrder,
 }: {
   product: EcomProduct;
-  accent: string;
+  theme: ShopThemeTokens;
   logo: ShopLogo;
+  colorIndex?: number;
   onOrder?: () => void;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
   const showImg = Boolean(product.image) && !imgFailed;
+  const edge = theme.palette[colorIndex % theme.palette.length];
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <article
+      className="overflow-hidden rounded-2xl border bg-card shadow-sm"
+      style={{ borderColor: withAlpha(edge, 0.35) }}
+    >
       <div
         className="relative flex h-44 flex-col items-center justify-center gap-1 overflow-hidden text-white"
         style={
           showImg
             ? undefined
-            : { background: `linear-gradient(145deg, ${logo.bgFrom}dd, ${logo.bgTo})` }
+            : {
+                background: `linear-gradient(145deg, ${theme.gradientFrom}, ${edge}, ${theme.gradientTo})`,
+              }
         }
       >
         {showImg ? (
@@ -595,22 +669,30 @@ function ProductCard({
             {product.emoji || "🛍️"}
           </span>
         )}
-        <span className="absolute bottom-2 left-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide backdrop-blur">
+        <span
+          className="absolute bottom-2 left-2 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur"
+          style={{ background: withAlpha(theme.secondary, 0.75) }}
+        >
           {product.category}
         </span>
+        <span
+          className="absolute left-0 top-0 h-full w-1"
+          style={{ background: edge }}
+          aria-hidden
+        />
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-foreground">{product.name}</h3>
         <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{product.description}</p>
-        <p className="mt-3 text-base font-semibold" style={{ color: accent }}>
+        <p className="mt-3 text-base font-semibold" style={{ color: theme.accent }}>
           {product.price}
         </p>
         {onOrder ? (
           <button
             type="button"
             onClick={onOrder}
-            className="mt-3 w-full rounded-xl py-2 text-xs font-semibold text-white"
-            style={{ background: accent }}
+            className="mt-3 w-full rounded-xl py-2 text-xs font-semibold"
+            style={{ background: theme.primary, color: theme.onPrimary }}
           >
             Order this
           </button>

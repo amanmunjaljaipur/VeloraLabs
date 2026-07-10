@@ -8,6 +8,7 @@ import {
   AppTourReplayButton,
 } from "@/components/app-builder/AppGuidedTour";
 import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
+import { resolveShopTheme, withAlpha } from "@/lib/app-builder/shop-theme";
 import type { EcomLocalShopContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
@@ -118,7 +119,8 @@ export function StandaloneAppRuntime({
   const [authLoading, setAuthLoading] = useState(true);
   const [forceTour, setForceTour] = useState(false);
 
-  const accent = content.primaryColor || "#0d9488";
+  const theme = resolveShopTheme(content);
+  const accent = theme.primary;
 
   const loadMe = useCallback(async () => {
     try {
@@ -208,7 +210,12 @@ export function StandaloneAppRuntime({
         data-tour="header"
       >
         <div className="mx-auto flex w-full max-w-[100vw] flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
+          <button
+            type="button"
+            onClick={() => go("home")}
+            className="flex items-center gap-2 text-left"
+            data-tour="brand"
+          >
             {content.logo?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -220,14 +227,14 @@ export function StandaloneAppRuntime({
               <span
                 className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white shadow"
                 style={{
-                  background: `linear-gradient(145deg, ${content.logo?.bgFrom || accent}, ${content.logo?.bgTo || "#0a1628"})`,
+                  background: `linear-gradient(145deg, ${theme.gradientFrom}, ${theme.gradientTo})`,
                 }}
               >
                 {content.logo?.initials || content.brandName.slice(0, 2).toUpperCase()}
               </span>
             )}
             <span>
-              <span className="block text-sm font-semibold" style={{ color: accent }}>
+              <span className="block text-sm font-semibold" style={{ color: theme.primary }}>
                 {content.brandName}
               </span>
               <span className="block text-[10px] text-text-muted">
@@ -241,6 +248,7 @@ export function StandaloneAppRuntime({
           <nav
             className="flex flex-wrap items-center gap-1 text-sm font-medium"
             aria-label="Shop pages"
+            data-tour="nav"
           >
             {(
               [
@@ -254,10 +262,13 @@ export function StandaloneAppRuntime({
                 key={r}
                 type="button"
                 onClick={() => go(r)}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 hover:bg-muted",
-                  route === r && !isAdminRoute && "bg-muted"
-                )}
+                data-tour={`nav-${r}`}
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5"
+                style={
+                  route === r && !isAdminRoute
+                    ? { background: withAlpha(theme.primary, 0.12), color: theme.primary }
+                    : undefined
+                }
               >
                 <Icon className="hidden h-3.5 w-3.5 sm:inline" />
                 {label}
@@ -266,28 +277,33 @@ export function StandaloneAppRuntime({
           </nav>
 
           <div className="flex flex-wrap items-center gap-2 text-sm" data-tour="auth-actions">
+            {/* Always available — shop and admin can replay overlay tour */}
+            <AppTourReplayButton accent={accent} onClick={() => setForceTour(true)} />
             {isAdminRoute ? (
               <button
                 type="button"
                 onClick={() => go("home")}
-                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-white shadow"
-                style={{ background: accent }}
+                data-tour="back-to-shop"
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shadow"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                  color: theme.onPrimary,
+                }}
               >
                 <Store className="h-3.5 w-3.5" />
                 Back to shop
               </button>
-            ) : (
-              <AppTourReplayButton accent={accent} onClick={() => setForceTour(true)} />
-            )}
+            ) : null}
             {user?.isAdmin || user?.isStaff ? (
               <button
                 type="button"
                 onClick={() => go("admin")}
+                data-tour="dashboard"
                 className={cn(
                   "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-medium hover:bg-muted",
                   isAdminRoute && "bg-muted"
                 )}
-                style={{ color: accent }}
+                style={{ color: theme.secondary }}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
@@ -327,8 +343,8 @@ export function StandaloneAppRuntime({
                 <button
                   type="button"
                   onClick={() => go("signup")}
-                  className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-semibold text-white"
-                  style={{ background: accent }}
+                  className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-semibold"
+                  style={{ background: theme.primary, color: theme.onPrimary }}
                 >
                   Join
                 </button>
@@ -487,11 +503,7 @@ export function StandaloneAppRuntime({
 
       {/* Footer on account / auth pages (shop pages include their own footer) */}
       {(isAuthRoute || route === "account") && !isAdminRoute ? (
-        <AppBuilderFooter
-          content={content}
-          accent={accent}
-          onNavigate={(p) => go(p)}
-        />
+        <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => go(p)} />
       ) : null}
     </div>
   );

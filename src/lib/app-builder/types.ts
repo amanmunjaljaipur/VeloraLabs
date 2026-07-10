@@ -49,8 +49,16 @@ export interface EcomLocalShopContent {
   brandName: string;
   tagline: string;
   description: string;
+  /** Main CTA / active colour */
   primaryColor: string;
+  /** Depth / secondary brand colour (gradients, headers) */
   secondaryColor: string;
+  /** Highlight colour for prices, badges, chips (multi-colour theme) */
+  accentColor?: string;
+  /** Soft surface wash behind sections */
+  surfaceColor?: string;
+  /** Full multi-colour palette (3–8) applied across the shop UI */
+  themePalette?: string[];
   city: string;
   region?: string;
   currency: string;
@@ -84,6 +92,10 @@ export interface EcomLocalShopContent {
   /** Extra highlights the owner added in their own words */
   ownerHighlights: string[];
   languageNote?: string;
+  /** SEO title for share / Google (~50–60 chars) */
+  seoTitle?: string;
+  /** SEO meta description (~140–160 chars) */
+  seoDescription?: string;
 }
 
 export type AppExtensionContent = EcomLocalShopContent;

@@ -44,16 +44,47 @@ export async function POST(request: Request, context: Ctx) {
     return NextResponse.json({ error: "Email and password (8+ chars) required" }, { status: 400 });
   }
 
+  // Do not silently overwrite an existing member's password (account takeover)
+  const already = authz.tenant.members.find((m) => m.email === email);
+  if (already) {
+    return NextResponse.json(
+      {
+        error:
+          "This email is already on the team. Change their role separately — invite cannot reset passwords.",
+      },
+      { status: 409 }
+    );
+  }
+
   const roleId = body.roleId || authz.tenant.defaultRoleId;
-  if (roleId === "super_admin" && !authz.role.capabilities.includes("*")) {
+  const targetRole = authz.tenant.roles.find((r) => r.id === roleId);
+  if (!targetRole) {
+    return NextResponse.json({ error: "Unknown role" }, { status: 400 });
+  }
+  // Block assigning Owner or any * role unless caller is Owner
+  if (
+    (roleId === "super_admin" || targetRole.capabilities.includes("*")) &&
+    !authz.role.capabilities.includes("*")
+  ) {
     return NextResponse.json({ error: "Only Owner can assign Owner role" }, { status: 403 });
+  }
+  // Managers cannot grant roles.manage / team.manage above their own without being owner
+  if (
+    !authz.role.capabilities.includes("*") &&
+    (targetRole.capabilities.includes("roles.manage") ||
+      targetRole.capabilities.includes("team.manage"))
+  ) {
+    return NextResponse.json(
+      { error: "You cannot assign a role with higher team/roles powers" },
+      { status: 403 }
+    );
   }
 
   const member = await upsertMember(slug, {
     email,
     name: body.name || email.split("@")[0],
     password: body.password,
-    roleId,
+    roleId: targetRole.id,
     source: "invited",
   });
 
@@ -92,10 +123,27 @@ export async function PATCH(request: Request, context: Ctx) {
   }
 
   if (body.roleId) {
-    if (body.roleId === "super_admin" && !authz.role.capabilities.includes("*")) {
+    const targetRole = tenant.roles.find((r) => r.id === body.roleId);
+    if (!targetRole) {
+      return NextResponse.json({ error: "Unknown role" }, { status: 400 });
+    }
+    if (
+      (body.roleId === "super_admin" || targetRole.capabilities.includes("*")) &&
+      !authz.role.capabilities.includes("*")
+    ) {
       return NextResponse.json({ error: "Only Owner can assign Owner" }, { status: 403 });
     }
-    member.roleId = body.roleId;
+    if (
+      !authz.role.capabilities.includes("*") &&
+      (targetRole.capabilities.includes("roles.manage") ||
+        targetRole.capabilities.includes("team.manage"))
+    ) {
+      return NextResponse.json(
+        { error: "You cannot assign a role with higher team/roles powers" },
+        { status: 403 }
+      );
+    }
+    member.roleId = targetRole.id;
   }
 
   const { saveTenant } = await import("@/lib/app-builder/tenant-store");

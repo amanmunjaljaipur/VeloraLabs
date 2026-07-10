@@ -171,6 +171,18 @@ function fallbackEcom(
       }.${unique.length ? ` Known for: ${unique.slice(0, 3).join(", ")}.` : ""}`,
     primaryColor: locBrand.primaryColor,
     secondaryColor: locBrand.secondaryColor,
+    accentColor: locBrand.bgFrom,
+    surfaceColor: locBrand.primaryColor,
+    themePalette: [
+      locBrand.primaryColor,
+      locBrand.secondaryColor,
+      locBrand.bgFrom,
+      locBrand.bgTo,
+    ],
+    seoTitle: `${brand} · ${city} | Local shop`,
+    seoDescription: `${brand} in ${city}. ${
+      a.whatYouSell?.slice(0, 80) || "Local products"
+    }. Order via WhatsApp or visit us.`.slice(0, 160),
     city,
     currency: "INR",
     contactEmail: email,
@@ -356,6 +368,19 @@ Rules:
         description: parsed.description || "",
         primaryColor: parsed.primaryColor || loc.primaryColor,
         secondaryColor: parsed.secondaryColor || loc.secondaryColor,
+        accentColor: loc.bgFrom,
+        surfaceColor: parsed.primaryColor || loc.primaryColor,
+        themePalette: [
+          parsed.primaryColor || loc.primaryColor,
+          parsed.secondaryColor || loc.secondaryColor,
+          loc.bgFrom,
+          loc.bgTo,
+        ],
+        seoTitle: `${brandName} · ${city} | Local shop`,
+        seoDescription: (parsed.description || parsed.tagline || `${brandName} in ${city}`).slice(
+          0,
+          160
+        ),
         city,
         currency: parsed.currency || "INR",
         contactEmail: parsed.contactEmail || "hello@example.com",

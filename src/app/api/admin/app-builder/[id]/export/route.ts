@@ -1,3 +1,4 @@
+import { canAccessAppProject } from "@/lib/app-builder/project-access";
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { packageAppProject, readPackagedFiles } from "@/lib/app-builder/packager";
 import { getAppProject } from "@/lib/app-builder/store";
@@ -17,7 +18,9 @@ export async function GET(_req: NextRequest, context: Ctx) {
 
   const { id } = await context.params;
   const project = await getAppProject(id);
-  if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!project || !canAccessAppProject(project, session)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   if (!project.content || project.status !== "live") {
     return NextResponse.json(
       { error: "Publish the shop first, then download the folder." },

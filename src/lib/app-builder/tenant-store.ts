@@ -171,6 +171,10 @@ export async function upsertMember(
     if (input.password) {
       existing.passwordHash = await bcrypt.hash(input.password, SALT);
     }
+    // Persist source transitions (e.g. creator → claimed) so claim cannot be reused
+    if (input.source) {
+      existing.source = input.source;
+    }
     await saveTenant(tenant);
     return existing;
   }
@@ -204,6 +208,10 @@ export async function verifyMemberPassword(
   const ok = await bcrypt.compare(password, found.member.passwordHash);
   if (!ok) return null;
   found.member.lastLoginAt = new Date().toISOString();
+  // Migrate legacy owner rows that still say "creator" after a real password was set
+  if (found.member.source === "creator") {
+    found.member.source = "claimed";
+  }
   await saveTenant(found.tenant);
   return found.member;
 }
