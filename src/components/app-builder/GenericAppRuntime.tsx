@@ -10,10 +10,10 @@ import {
 import type { GenericAppContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import { Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 function pageFromPath(path: string | undefined, content: GenericAppContent) {
-  const key = path || "home";
+  const key = (path || "home").toLowerCase();
   return (
     content.pages.find((p) => p.path === key || p.id === key) ||
     content.pages.find((p) => p.path === "home") ||
@@ -25,13 +25,25 @@ export function GenericAppRuntime({
   content,
   pathSegments = [],
   embedded,
+  activePage,
+  onNavigate,
 }: {
   content: GenericAppContent;
   pathSegments?: string[];
   embedded?: boolean;
+  /** Controlled page from parent shell (StandaloneAppRuntime) */
+  activePage?: string;
+  onNavigate?: (page: string) => void;
 }) {
-  const initial = pathSegments[0] || "home";
+  const initial = activePage || pathSegments[0] || "home";
   const [pageKey, setPageKey] = useState(initial);
+
+  // Stay in sync with parent URL / logo clicks (Verlin-style shell navigation)
+  useEffect(() => {
+    const next = activePage || pathSegments[0] || "home";
+    setPageKey(next);
+  }, [activePage, pathSegments]);
+
   const theme = useMemo(
     () =>
       resolveShopTheme({
@@ -60,25 +72,42 @@ export function GenericAppRuntime({
     : null;
 
   function go(path: string) {
-    setPageKey(path);
-    if (typeof window !== "undefined" && !embedded) {
-      // standalone path handled by parent history when embedded
+    const p = path.replace(/[^a-z0-9-]/gi, "").toLowerCase() || "home";
+    if (onNavigate) {
+      onNavigate(p);
+      return;
+    }
+    setPageKey(p);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
+  const isHome = pageKey === "home" || !page || page.path === "home";
+
   return (
     <div
-      className={cn(!embedded && "min-h-screen", "bg-background text-foreground")}
+      className={cn(!embedded && "min-h-screen", "flex flex-1 flex-col bg-background text-foreground")}
       style={shopThemeCssVars(theme) as CSSProperties}
       data-app-kind={content.appKind}
     >
+      {/* Own header only when not embedded in StandaloneAppRuntime shell */}
       {!embedded ? (
-        <header className="border-b border-border bg-card/90 backdrop-blur">
+        <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
+            <button
+              type="button"
+              onClick={() => go("home")}
+              className="flex items-center gap-2 text-left"
+              aria-label={`${content.brandName} home`}
+            >
               {logo.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={logo.imageUrl} alt="" className="h-9 w-9 rounded-xl object-cover" />
+                <img
+                  src={logo.imageUrl}
+                  alt={`${content.brandName} logo`}
+                  className="h-9 w-9 rounded-xl object-cover"
+                />
               ) : (
                 <span
                   className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white"
@@ -96,7 +125,7 @@ export function GenericAppRuntime({
                 <span className="block text-[10px] text-text-muted">{content.tagline}</span>
               </span>
             </button>
-            <nav className="flex flex-wrap gap-1 text-sm font-medium">
+            <nav className="flex flex-wrap gap-1 text-sm font-medium" aria-label="App pages">
               {nav.map((n) => (
                 <button
                   key={n.path}
@@ -117,7 +146,7 @@ export function GenericAppRuntime({
         </header>
       ) : null}
 
-      {(pageKey === "home" || !page || page.path === "home") && (
+      {isHome && (
         <section className="relative overflow-hidden border-b border-border text-white">
           {content.heroImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -149,7 +178,7 @@ export function GenericAppRuntime({
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => go(content.pages[1]?.path || "features")}
+                onClick={() => go(content.pages.find((p) => p.path !== "home")?.path || "features")}
                 className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow"
               >
                 {content.ctaLabel}
@@ -157,7 +186,13 @@ export function GenericAppRuntime({
               {content.secondaryCtaLabel ? (
                 <button
                   type="button"
-                  onClick={() => go("about")}
+                  onClick={() =>
+                    go(
+                      content.pages.find((p) => p.path === "dashboard")?.path ||
+                        content.pages.find((p) => p.path === "about")?.path ||
+                        "about"
+                    )
+                  }
                   className="rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur"
                 >
                   {content.secondaryCtaLabel}
@@ -168,13 +203,13 @@ export function GenericAppRuntime({
         </section>
       )}
 
-      {pageKey === "home" ? (
+      {isHome ? (
         <section className="mx-auto max-w-6xl px-4 py-12">
           <h2 className="text-xl font-semibold" style={{ color: theme.secondary }}>
             Highlights
           </h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {content.features.map((f, i) => (
+            {(content.features || []).map((f, i) => (
               <article
                 key={f.id}
                 className="rounded-2xl border bg-card p-4 shadow-sm"
@@ -205,11 +240,44 @@ export function GenericAppRuntime({
               ))}
             </div>
           ) : null}
+
+          {/* Quick links to all app pages — keep navigation obvious */}
+          <div className="mt-10">
+            <h2 className="text-lg font-semibold" style={{ color: theme.secondary }}>
+              Explore
+            </h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {nav
+                .filter((n) => n.path !== "home")
+                .map((n, i) => (
+                  <button
+                    key={n.path}
+                    type="button"
+                    onClick={() => go(n.path)}
+                    className="rounded-full border px-3 py-1.5 text-xs font-medium"
+                    style={{
+                      borderColor: withAlpha(theme.palette[i % theme.palette.length], 0.45),
+                      color: theme.primary,
+                    }}
+                  >
+                    {n.label}
+                  </button>
+                ))}
+            </div>
+          </div>
         </section>
       ) : null}
 
-      {page && page.path !== "home" ? (
-        <section className="mx-auto max-w-3xl px-4 py-12">
+      {!isHome && page ? (
+        <section className="mx-auto max-w-3xl flex-1 px-4 py-12">
+          <button
+            type="button"
+            onClick={() => go("home")}
+            className="mb-4 text-xs font-medium underline"
+            style={{ color: theme.primary }}
+          >
+            ← Back to home
+          </button>
           <h1 className="text-2xl font-semibold" style={{ color: theme.secondary }}>
             {page.headline || page.title}
           </h1>
@@ -306,8 +374,9 @@ export function GenericAppRuntime({
         }}
         theme={theme}
         onNavigate={(p) => {
-          if (p === "home" || p === "about" || p === "faq" || p === "contact") go(p);
-          else if (p === "shop") go("features");
+          if (p === "home") go("home");
+          else if (p === "about" || p === "faq" || p === "contact") go(p);
+          else if (p === "shop") go(content.pages.find((x) => x.path === "products")?.path || "features");
         }}
       />
     </div>

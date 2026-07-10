@@ -57,12 +57,17 @@ export function AppBuilderFooter({
       />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onNavigate?.("home")}
+            className="flex items-center gap-2 text-left"
+            aria-label={`${content.brandName} home`}
+          >
             {logo?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logo.imageUrl}
-                alt=""
+                alt={`${content.brandName} logo`}
                 className="h-10 w-10 rounded-xl object-cover shadow"
               />
             ) : (
@@ -81,7 +86,7 @@ export function AppBuilderFooter({
               </p>
               <p className="text-[11px] text-text-muted">{content.city}</p>
             </div>
-          </div>
+          </button>
           <p className="text-sm text-text-secondary">
             {content.tagline || content.description?.slice(0, 120)}
           </p>

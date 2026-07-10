@@ -47,6 +47,18 @@ export type AppRoute =
   | "admin-roles"
   | "admin-settings";
 
+const SYSTEM_SEGMENTS = new Set([
+  "login",
+  "signup",
+  "account",
+  "admin",
+  "shop",
+  "about",
+  "faq",
+  "contact",
+  "home",
+]);
+
 function parseRoute(segments: string[]): AppRoute {
   const a = segments[0] || "home";
   if (a === "login") return "login";
@@ -64,7 +76,19 @@ function parseRoute(segments: string[]): AppRoute {
     return "admin";
   }
   if (a === "shop" || a === "about" || a === "faq" || a === "contact") return a;
+  // Generic app pages (dashboard, products, apply, …) still use home shell for admin chrome
   return "home";
+}
+
+/** Public page slug from URL (supports multi-page generic apps, Verlin-style paths) */
+function parsePublicPage(segments: string[]): string {
+  const a = segments[0];
+  if (!a || a === "home") return "home";
+  if (SYSTEM_SEGMENTS.has(a) && a !== "shop" && a !== "about" && a !== "faq" && a !== "contact") {
+    return "home";
+  }
+  if (a === "admin" || a === "login" || a === "signup" || a === "account") return "home";
+  return a.replace(/[^a-z0-9-]/gi, "").toLowerCase() || "home";
 }
 
 function routeToPath(basePath: string, route: AppRoute): string {
@@ -93,6 +117,12 @@ function routeToPath(basePath: string, route: AppRoute): string {
   return map[route];
 }
 
+function publicPageToPath(basePath: string, page: string): string {
+  const p = page.replace(/[^a-z0-9-]/gi, "").toLowerCase() || "home";
+  if (p === "home") return basePath;
+  return `${basePath}/${p}`;
+}
+
 export interface AppUserView {
   email: string;
   name: string;
@@ -116,6 +146,7 @@ export function StandaloneAppRuntime({
   pathSegments?: string[];
 }) {
   const [route, setRoute] = useState<AppRoute>(() => parseRoute(pathSegments));
+  const [publicPage, setPublicPage] = useState(() => parsePublicPage(pathSegments));
   const [content, setContent] = useState<AppExtensionContent>(initialContent);
   const [user, setUser] = useState<AppUserView | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -175,9 +206,36 @@ export function StandaloneAppRuntime({
   const go = useCallback(
     (next: AppRoute) => {
       setRoute(next);
+      if (next === "home") setPublicPage("home");
+      if (next === "shop" || next === "about" || next === "faq" || next === "contact") {
+        setPublicPage(next);
+      }
       const url = routeToPath(basePath, next);
       if (typeof window !== "undefined") {
-        window.history.pushState({ appRoute: next }, "", url);
+        window.history.pushState({ appRoute: next, publicPage: next }, "", url);
+      }
+    },
+    [basePath]
+  );
+
+  /** Navigate to any public page path (generic apps + Verlin-style logo → home) */
+  const goPage = useCallback(
+    (page: string) => {
+      const p = page.replace(/[^a-z0-9-]/gi, "").toLowerCase() || "home";
+      setPublicPage(p);
+      // Map known ecom routes so AppRoute stays in sync
+      if (p === "home" || p === "shop" || p === "about" || p === "faq" || p === "contact") {
+        setRoute(p);
+      } else {
+        setRoute("home");
+      }
+      const url = publicPageToPath(basePath, p);
+      if (typeof window !== "undefined") {
+        window.history.pushState({ appRoute: "home", publicPage: p }, "", url);
+      }
+      // Scroll to top like a real nav click (Verlin Labs pattern)
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
     [basePath]
@@ -191,6 +249,7 @@ export function StandaloneAppRuntime({
       const rest = path.startsWith(base) ? path.slice(base.length).replace(/^\//, "") : "";
       const segs = rest.split("/").filter(Boolean);
       setRoute(parseRoute(segs));
+      setPublicPage(parsePublicPage(segs));
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -221,17 +280,20 @@ export function StandaloneAppRuntime({
         data-tour="header"
       >
         <div className="mx-auto flex w-full max-w-[100vw] flex-wrap items-center justify-between gap-3 px-4 py-3">
+          {/* Logo + brand name → always home (same idea as Verlin Labs logo → /) */}
           <button
             type="button"
-            onClick={() => go("home")}
+            onClick={() => goPage("home")}
             className="flex items-center gap-2 text-left"
             data-tour="brand"
+            aria-label={`${brandName} home`}
+            title="Go to home"
           >
             {content.logo?.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={content.logo.imageUrl}
-                alt=""
+                alt={`${brandName} logo`}
                 className="h-9 w-9 rounded-xl object-cover shadow"
               />
             ) : (
@@ -255,44 +317,65 @@ export function StandaloneAppRuntime({
             </span>
           </button>
 
-          {/* Public pages — products only for ecom */}
+          {/* Public pages — full IA for generic apps; ecom keeps shop links */}
           <nav
-            className="flex flex-wrap items-center gap-1 text-sm font-medium"
+            className="flex max-w-full flex-wrap items-center gap-1 text-sm font-medium"
             aria-label="App pages"
             data-tour="nav"
           >
-            {(
-              (
-                isEcomContent(content)
-                  ? ([
-                      ["home", "Home", Home],
-                      ["shop", "Products", ShoppingBag],
-                      ["about", "About", Store],
-                      ["contact", "Contact", ExternalLink],
-                    ] as const)
-                  : ([
-                      ["home", "Home", Home],
-                      ["about", "About", Store],
-                      ["contact", "Contact", ExternalLink],
-                    ] as const)
-              )
-            ).map(([r, label, Icon]) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => go(r)}
-                data-tour={`nav-${r}`}
-                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5"
-                style={
-                  route === r && !isAdminRoute
-                    ? { background: withAlpha(theme.primary, 0.12), color: theme.primary }
-                    : undefined
-                }
-              >
-                <Icon className="hidden h-3.5 w-3.5 sm:inline" />
-                {label}
-              </button>
-            ))}
+            {isEcomContent(content)
+              ? (
+                  [
+                    ["home", "Home", Home],
+                    ["shop", "Products", ShoppingBag],
+                    ["about", "About", Store],
+                    ["contact", "Contact", ExternalLink],
+                  ] as const
+                ).map(([r, label, Icon]) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => goPage(r)}
+                    data-tour={`nav-${r}`}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5"
+                    style={
+                      publicPage === r && !isAdminRoute
+                        ? { background: withAlpha(theme.primary, 0.12), color: theme.primary }
+                        : undefined
+                    }
+                  >
+                    <Icon className="hidden h-3.5 w-3.5 sm:inline" />
+                    {label}
+                  </button>
+                ))
+              : isGenericContent(content)
+                ? (
+                    content.nav?.length
+                      ? content.nav
+                      : content.pages.map((p) => ({ path: p.path, label: p.title }))
+                  )
+                    .filter((n, i, arr) => arr.findIndex((x) => x.path === n.path) === i)
+                    .slice(0, 12)
+                    .map((n) => (
+                      <button
+                        key={n.path}
+                        type="button"
+                        onClick={() => goPage(n.path)}
+                        data-tour={`nav-${n.path}`}
+                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5"
+                        style={
+                          publicPage === n.path && !isAdminRoute
+                            ? {
+                                background: withAlpha(theme.primary, 0.12),
+                                color: theme.primary,
+                              }
+                            : undefined
+                        }
+                      >
+                        {n.label}
+                      </button>
+                    ))
+                : null}
           </nav>
 
           <div className="flex flex-wrap items-center gap-2 text-sm" data-tour="auth-actions">
@@ -539,7 +622,13 @@ export function StandaloneAppRuntime({
       ) : null}
 
       {!isAuthRoute && !isAdminRoute && route !== "account" && isGenericContent(content) ? (
-        <GenericAppRuntime content={content} pathSegments={pathSegments} embedded />
+        <GenericAppRuntime
+          content={content}
+          pathSegments={[publicPage === "home" ? "" : publicPage].filter(Boolean)}
+          embedded
+          activePage={publicPage}
+          onNavigate={(page) => goPage(page)}
+        />
       ) : null}
 
       {/* Footer on account / auth pages (shop pages include their own footer) */}

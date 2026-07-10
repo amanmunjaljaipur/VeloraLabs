@@ -207,8 +207,10 @@ export function AppAdminPanel({
     logoBadge: content.logo?.badge || content.city || "",
     seoTitle: content.seoTitle || "",
     seoDescription: content.seoDescription || "",
+    websiteUrl: "",
   });
   const [themeBusy, setThemeBusy] = useState(false);
+  const [websiteBusy, setWebsiteBusy] = useState(false);
   const [contentBusy, setContentBusy] = useState(false);
   const [uploadBusyKey, setUploadBusyKey] = useState<string | null>(null);
   const [themePalette, setThemePalette] = useState<string[]>([]);
@@ -462,6 +464,71 @@ export function AppAdminPanel({
       setMsg("Theme builder failed. Try another image.");
     } finally {
       setThemeBusy(false);
+    }
+  }
+
+  async function buildThemeFromWebsite() {
+    const websiteUrl = settingsForm.websiteUrl.trim();
+    if (!websiteUrl) {
+      setMsg("Paste your website link (https://…) first.");
+      return;
+    }
+    setWebsiteBusy(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/apps/${slug}/admin/theme-from-website`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteUrl }),
+      });
+      const data = (await res.json()) as {
+        theme?: {
+          primaryColor: string;
+          secondaryColor: string;
+          accentColor?: string;
+          surfaceColor?: string;
+          themePalette?: string[];
+          logoBgFrom: string;
+          logoBgTo: string;
+          badge?: string;
+          notes?: string;
+        };
+        logoCandidateUrl?: string;
+        sampledFrom?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.theme) {
+        setMsg(data.error || "Could not read theme from that website");
+        return;
+      }
+      const t = data.theme;
+      setSettingsForm((f) => ({
+        ...f,
+        primaryColor: t.primaryColor,
+        secondaryColor: t.secondaryColor,
+        accentColor: t.accentColor || t.primaryColor,
+        surfaceColor: t.surfaceColor || f.surfaceColor,
+        themePalette: (t.themePalette || [t.primaryColor, t.secondaryColor]).join(", "),
+        logoBgFrom: t.logoBgFrom,
+        logoBgTo: t.logoBgTo,
+        logoBadge: t.badge || f.logoBadge,
+        logoImageUrl: data.logoCandidateUrl || f.logoImageUrl,
+      }));
+      if (data.theme.themePalette) setThemePalette(data.theme.themePalette);
+      setThemeNotes(
+        [t.notes, data.sampledFrom ? `Source: ${data.sampledFrom}` : ""]
+          .filter(Boolean)
+          .join(" · ") || "Theme from website ready — Save brand & theme."
+      );
+      setMsg(
+        data.logoCandidateUrl
+          ? "Theme + logo candidate filled from your website — review and Save."
+          : "Theme colours filled from your website — review and Save brand & theme."
+      );
+    } catch {
+      setMsg("Website theme failed. Check the link or upload a logo instead.");
+    } finally {
+      setWebsiteBusy(false);
     }
   }
 
@@ -1527,14 +1594,14 @@ export function AppAdminPanel({
               <div>
                 <h1 className="text-2xl font-semibold">Brand & theme</h1>
                 <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-                  Upload your logo, then let us pull brand colours from it. Or upload any photo that
-                  matches the look you want (shop front, packaging, fabric) and build a theme from
-                  that. Colours show on buttons, header accents, and logo backgrounds.
+                  Upload your logo <strong>and/or paste your website link</strong> to pull multi-colour
+                  theme colours. Colours apply to buttons, nav, and logo backgrounds. Clicking your
+                  logo on the live app always returns to Home.
                 </p>
               </div>
 
               <label className="block text-sm">
-                <span className={label}>Shop name</span>
+                <span className={label}>Shop / brand name</span>
                 <input
                   className={field}
                   value={settingsForm.brandName}
@@ -1545,9 +1612,37 @@ export function AppAdminPanel({
               </label>
 
               <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+                <p className="text-sm font-semibold">0. Your existing website (optional)</p>
+                <p className="text-xs text-text-secondary">
+                  Paste your live site (https://…). We sample brand colours and try to find a logo
+                  image for you.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    className={cn(field, "min-w-[16rem] flex-1")}
+                    value={settingsForm.websiteUrl}
+                    onChange={(e) =>
+                      setSettingsForm((f) => ({ ...f, websiteUrl: e.target.value }))
+                    }
+                    placeholder="https://www.yourbrand.com"
+                  />
+                  <button
+                    type="button"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-white"
+                    style={{ background: accent }}
+                    disabled={websiteBusy}
+                    onClick={() => void buildThemeFromWebsite()}
+                  >
+                    {websiteBusy ? "Reading site…" : "Pull theme from website"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
                 <p className="text-sm font-semibold">1. Your logo</p>
                 <p className="text-xs text-text-secondary">
-                  Upload a square logo if you have one (PNG or JPG). You can also paste a link.
+                  Upload a square logo (PNG or JPG), or paste a logo image link. Website pull may
+                  fill this automatically.
                 </p>
                 <div className="flex flex-wrap items-start gap-4">
                   <div
