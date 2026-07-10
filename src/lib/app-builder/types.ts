@@ -211,9 +211,10 @@ export interface AppProject {
   content: AppExtensionContent | null;
   /** Forge build-plan data models — drives the generic CRUD admin for non-ecommerce apps */
   dataModels?: AppDataModelSpec[];
-  /** "verlin-native" = App Builder V2 — renders with Verlin Labs' real UI components
-   *  instead of a per-app generated theme. Absent/"generated" = classic Forge/App Builder. */
+  /** "verlin-native" = Verlin Labs UI components (Button/Card/etc). Absent/"generated" = themed runtime. */
   runtimeStyle?: "generated" | "verlin-native";
+  /** Optional Vite/React source snapshot from App Studio (for export / code view) */
+  studioFiles?: Record<string, string>;
   publicPath: string;
   createdAt: string;
   updatedAt: string;

@@ -1,9 +1,12 @@
 "use client";
 
+import { StudioVerlinPreview } from "@/components/app-studio/StudioVerlinPreview";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import type { GenericAppContent } from "@/lib/app-builder/types";
 import { createBaseScaffold, listFilePaths } from "@/lib/app-studio/scaffold";
 import { toSandpackReactTsFiles } from "@/lib/app-studio/parse-files";
+import { researchToVerlinContent } from "@/lib/app-studio/to-verlin-content";
 import type {
   StudioChatMessage,
   StudioFileMap,
@@ -16,7 +19,9 @@ import Editor from "@monaco-editor/react";
 import JSZip from "jszip";
 import {
   Code2,
+  Copy,
   Download,
+  ExternalLink,
   History,
   ImagePlus,
   Loader2,
@@ -27,10 +32,11 @@ import {
   Undo2,
   Redo2,
   FileCode2,
-  GitBranch,
+  LayoutTemplate,
   UploadCloud,
 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const EXAMPLE_PROMPTS = [
   "A task board like Trello with drag-free columns and add-card form",
@@ -39,7 +45,7 @@ const EXAMPLE_PROMPTS = [
   "A SaaS landing page + pricing + waitlist form for an AI writing tool",
 ];
 
-type CanvasTab = "preview" | "code";
+type CanvasTab = "verlin" | "sandbox" | "code";
 
 function uid() {
   return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -55,26 +61,70 @@ export function AppStudioWorkspace() {
   const [messages, setMessages] = useState<StudioChatMessage[]>([]);
   const [files, setFiles] = useState<StudioFileMap>(() => createBaseScaffold());
   const [activeFile, setActiveFile] = useState("/src/App.tsx");
-  const [canvasTab, setCanvasTab] = useState<CanvasTab>("preview");
+  const [canvasTab, setCanvasTab] = useState<CanvasTab>("verlin");
   const [versions, setVersions] = useState<StudioVersion[]>([]);
   const [versionIndex, setVersionIndex] = useState(-1);
   const [research, setResearch] = useState<StudioResearchPack | null>(null);
+  const [verlinContent, setVerlinContent] = useState<GenericAppContent | null>(null);
+  const [published, setPublished] = useState<{
+    slug: string;
+    publicPath: string;
+    absoluteUrl: string;
+    name: string;
+  } | null>(null);
+  const [myApps, setMyApps] = useState<
+    Array<{ id: string; slug: string; name: string; publicPath: string; status: string }>
+  >([]);
   const [busy, setBusy] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [phase, setPhase] = useState<string | null>(null);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [splitPct, setSplitPct] = useState(38);
   const dragRef = useRef<{ startX: number; startPct: number } | null>(null);
-  /** Session-only — never sent to disk; used when platform xAI has no credits */
+  /** Session-only — never sent to disk */
   const [showKeyPanel, setShowKeyPanel] = useState(false);
   const [aiProvider, setAiProvider] = useState<"gemini" | "groq" | "xai" | "anthropic" | "openai">(
-    "gemini"
+    "groq"
   );
   const [aiKey, setAiKey] = useState("");
   const [aiModel, setAiModel] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
+  const lastPromptRef = useRef("");
 
   const paths = useMemo(() => listFilePaths(files), [files]);
   const spFiles = useMemo(() => toSandpackReactTsFiles(files), [files]);
+
+  const aiAuth = useCallback(
+    () => ({
+      apiKey: aiKey.trim() || undefined,
+      provider: aiKey.trim() ? aiProvider : undefined,
+      model: aiKey.trim() && aiModel.trim() ? aiModel.trim() : undefined,
+    }),
+    [aiKey, aiProvider, aiModel]
+  );
+
+  const loadMyApps = useCallback(async () => {
+    try {
+      const res = await fetch("/api/app-studio/projects");
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        projects?: Array<{
+          id: string;
+          slug: string;
+          name: string;
+          publicPath: string;
+          status: string;
+        }>;
+      };
+      setMyApps(data.projects || []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMyApps();
+  }, [loadMyApps]);
 
   const pushVersion = useCallback(
     (label: string, nextFiles: StudioFileMap, userPrompt: string) => {
@@ -119,6 +169,7 @@ export function AppStudioWorkspace() {
       return;
     }
     setBusy(true);
+    lastPromptRef.current = userText.trim();
     const userMsg: StudioChatMessage = {
       id: uid(),
       role: "user",
@@ -128,33 +179,49 @@ export function AppStudioWorkspace() {
     };
     setMessages((m) => [...m, userMsg]);
     setPrompt("");
+    setPublished(null);
 
     try {
-      setPhase("Researching workflows & market…");
-      const isFirst = versions.length === 0;
+      // 1) Research first (always for first build / new idea)
+      setPhase("Researching product, workflows & competitors…");
+      const isFirst = !research || versions.length === 0;
+      let nextResearch = research;
 
+      if (isFirst || /research|workflow|competitor|rebuild/i.test(userText)) {
+        const rRes = await fetch("/api/app-studio/research", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: userText.trim(), ...aiAuth() }),
+        });
+        const rData = (await rRes.json()) as {
+          research?: StudioResearchPack;
+          error?: string;
+        };
+        if (rData.research) {
+          nextResearch = rData.research;
+          setResearch(rData.research);
+        }
+      }
+
+      // 2) Generate code files (sandbox / export)
+      setPhase("Building application with research insights…");
       const res = await fetch("/api/app-studio/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: userText.trim(),
           currentFiles: isFirst ? undefined : files,
-          runResearch: isFirst || /research|workflow|competitor/i.test(userText),
-          research: isFirst ? null : research,
+          runResearch: false,
+          research: nextResearch,
           history: messages
             .filter((x) => x.role === "user" || x.role === "assistant")
-            .slice(-8)
+            .slice(-6)
             .map((x) => ({ role: x.role as "user" | "assistant", content: x.content })),
           imageDataUrl: imageDataUrl || undefined,
-          // Prefer your pasted key when platform xAI has no credits
-          apiKey: aiKey.trim() || undefined,
-          provider: aiKey.trim() ? aiProvider : undefined,
-          model: aiKey.trim() && aiModel.trim() ? aiModel.trim() : undefined,
-          allowTemplateFallback: false,
+          ...aiAuth(),
         }),
       });
 
-      setPhase("Generating application code…");
       const data = (await res.json()) as {
         files?: StudioFileMap;
         summary?: string;
@@ -164,13 +231,43 @@ export function AppStudioWorkspace() {
         code?: string;
         hint?: string;
         warning?: string;
+        content?: GenericAppContent;
       };
 
-      if (!res.ok || !data.files) {
-        const msg =
-          data.error ||
-          data.hint ||
-          "Generation failed. Your platform xAI team may have no credits — open AI key and paste a Groq key.";
+      if (data.research) {
+        nextResearch = data.research;
+        setResearch(data.research);
+      }
+
+      // 3) Map research → Verlin UI content (same components as live /apps)
+      setPhase("Composing Verlin Labs pages…");
+      if (nextResearch) {
+        const content = researchToVerlinContent({
+          prompt: userText.trim(),
+          research: nextResearch,
+        });
+        setVerlinContent(content);
+      }
+
+      if (data.files && Object.keys(data.files).length) {
+        setFiles(data.files);
+        setPreviewKey((k) => k + 1);
+        pushVersion(
+          isFirst ? "Initial build" : userText.trim().slice(0, 60),
+          data.files,
+          userText.trim()
+        );
+        setActiveFile(
+          data.files["/src/App.tsx"]
+            ? "/src/App.tsx"
+            : data.files["/App.tsx"]
+              ? "/App.tsx"
+              : Object.keys(data.files)[0]
+        );
+      }
+
+      if (!res.ok && !nextResearch) {
+        const msg = data.error || "Build failed";
         toast(msg.slice(0, 160), "error");
         if (data.code === "credits" || data.code === "no_key" || data.code === "auth") {
           setShowKeyPanel(true);
@@ -180,53 +277,109 @@ export function AppStudioWorkspace() {
           {
             id: uid(),
             role: "assistant",
-            content: `${msg}${data.hint ? `\n\n${data.hint}` : ""}\n\n**Fix:** Open **AI key** (top bar), choose **Groq** (free tier at console.groq.com), paste the key, then Build again. Do not use a team xAI key with zero credits.`,
+            content: `${msg}\n\nFix AI key if needed, then Build again.`,
             createdAt: new Date().toISOString(),
           },
         ]);
-        // Still attach research if present
-        if (data.research) setResearch(data.research);
+        setCanvasTab("verlin");
         return;
       }
 
-      setFiles(data.files);
-      setPreviewKey((k) => k + 1);
-      if (data.research) setResearch(data.research);
-      pushVersion(
-        isFirst ? "Initial build" : userText.trim().slice(0, 60),
-        data.files,
-        userText.trim()
-      );
-      setActiveFile(
-        data.files["/src/App.tsx"]
-          ? "/src/App.tsx"
-          : data.files["/App.tsx"]
-            ? "/App.tsx"
-            : Object.keys(data.files)[0]
-      );
-      setCanvasTab("preview");
+      setCanvasTab("verlin");
       setImageDataUrl(null);
 
-      const researchNote = data.research
-        ? `\n\n**Research**\n${data.research.summary}\nWorkflows: ${data.research.coreWorkflows.map((w) => w.name).join(", ")}`
+      const brand = verlinContent?.brandName;
+      const researchNote = nextResearch
+        ? `\n\n**Research**\n${nextResearch.summary}\n**Workflows:** ${(nextResearch.coreWorkflows || []).map((w) => w.name).join(", ")}\n**Screens:** ${(nextResearch.screens || []).join(", ")}`
         : "";
+
+      const builtName =
+        nextResearch
+          ? researchToVerlinContent({ prompt: userText.trim(), research: nextResearch }).brandName
+          : brand || "your app";
 
       setMessages((m) => [
         ...m,
         {
           id: uid(),
           role: "assistant",
-          content: `${data.summary || "Updated your app."}${researchNote}\n\n_Designed by: ${data.designedBy || "llm"}_`,
+          content: `Built **${builtName}** with Verlin UI pages (Button, Card, Badge).${researchNote}\n\n1. Review the **Verlin UI** tab\n2. Click **Publish** for a live share link at \`/apps/…\`\n\n_AI code: ${data.designedBy || "studio"}_`,
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast("App updated — preview refreshed", "success");
+      toast("App ready — review Verlin UI, then Publish for a share link", "success");
     } catch {
       toast("Network error during generation", "error");
     } finally {
       setBusy(false);
       setPhase(null);
     }
+  }
+
+  async function publishLive() {
+    const p = lastPromptRef.current || prompt.trim();
+    if (!p && !research) {
+      toast("Build an app first, then publish", "error");
+      return;
+    }
+    setPublishing(true);
+    try {
+      const res = await fetch("/api/app-studio/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: p || research?.summary || "Studio app",
+          research,
+          studioFiles: files,
+          status: "live",
+          slug: published?.slug,
+          projectId: undefined,
+          ...aiAuth(),
+        }),
+      });
+      const data = (await res.json()) as {
+        project?: { id: string; slug: string; name: string; publicPath: string };
+        absoluteUrl?: string;
+        publicUrl?: string;
+        content?: GenericAppContent;
+        error?: string;
+      };
+      if (!res.ok || !data.project) {
+        toast(data.error || "Publish failed", "error");
+        return;
+      }
+      if (data.content) setVerlinContent(data.content);
+      const absolute =
+        data.absoluteUrl ||
+        `${window.location.origin}${data.publicUrl || data.project.publicPath}`;
+      setPublished({
+        slug: data.project.slug,
+        publicPath: data.project.publicPath,
+        absoluteUrl: absolute,
+        name: data.project.name,
+      });
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "assistant",
+          content: `**Published:** [${data.project!.name}](${absolute})\n\nLive link: ${absolute}\n\nAnyone with the link can open the app (Verlin UI).`,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      toast("Published — link ready to share", "success");
+      void loadMyApps();
+    } catch {
+      toast("Publish failed", "error");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  function copyLink() {
+    if (!published?.absoluteUrl) return;
+    void navigator.clipboard.writeText(published.absoluteUrl);
+    toast("Link copied", "success");
   }
 
   function onPickImage(file: File) {
@@ -318,25 +471,32 @@ export function AppStudioWorkspace() {
           <Button
             type="button"
             size="sm"
-            variant="secondary"
-            onClick={() =>
-              toast("Connect GitHub OAuth in settings (coming next) — use ZIP for now.", "success")
-            }
+            variant="cta"
+            loading={publishing}
+            disabled={!research && !verlinContent}
+            onClick={() => void publishLive()}
           >
-            <GitBranch className="h-3.5 w-3.5" /> GitHub
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() =>
-              toast("Deploy hooks for Vercel/Netlify ship next — export ZIP to deploy manually.", "success")
-            }
-          >
-            <UploadCloud className="h-3.5 w-3.5" /> Deploy
+            <UploadCloud className="h-3.5 w-3.5" /> Publish
           </Button>
         </div>
       </header>
+
+      {published && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-accent-teal/30 bg-accent-teal/5 px-3 py-2 text-sm">
+          <span className="font-medium text-foreground">Live:</span>
+          <Link
+            href={published.publicPath}
+            target="_blank"
+            className="inline-flex items-center gap-1 font-medium text-accent-teal hover:underline"
+          >
+            {published.absoluteUrl}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
+          <Button type="button" size="sm" variant="secondary" onClick={copyLink}>
+            <Copy className="h-3.5 w-3.5" /> Copy link
+          </Button>
+        </div>
+      )}
 
       {showKeyPanel && (
         <div className="border-b border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs space-y-2">
@@ -550,15 +710,27 @@ export function AppStudioWorkspace() {
             <div className="flex gap-1">
               <button
                 type="button"
-                onClick={() => setCanvasTab("preview")}
+                onClick={() => setCanvasTab("verlin")}
                 className={cn(
                   "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium",
-                  canvasTab === "preview"
+                  canvasTab === "verlin"
                     ? "bg-accent-teal/15 text-accent-teal"
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                <MonitorPlay className="h-3.5 w-3.5" /> Preview
+                <LayoutTemplate className="h-3.5 w-3.5" /> Verlin UI
+              </button>
+              <button
+                type="button"
+                onClick={() => setCanvasTab("sandbox")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium",
+                  canvasTab === "sandbox"
+                    ? "bg-accent-teal/15 text-accent-teal"
+                    : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                <MonitorPlay className="h-3.5 w-3.5" /> Sandbox
               </button>
               <button
                 type="button"
@@ -581,11 +753,26 @@ export function AppStudioWorkspace() {
             </div>
           </div>
 
-          {canvasTab === "preview" ? (
+          {canvasTab === "verlin" ? (
+            <div className="min-h-0 flex-1 overflow-hidden bg-muted/20 p-2">
+              {verlinContent ? (
+                <StudioVerlinPreview content={verlinContent} />
+              ) : (
+                <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                  <LayoutTemplate className="mb-3 h-10 w-10 opacity-40" />
+                  <p className="font-medium text-foreground">Verlin UI preview</p>
+                  <p className="mt-1 max-w-sm">
+                    After you Build, pages appear here using Verlin Labs components (Button, Card,
+                    Badge). Publish to get a public link at /apps/…
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : canvasTab === "sandbox" ? (
             <div className="flex min-h-0 flex-1 flex-col bg-slate-100 dark:bg-slate-900">
               <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Live preview · Sandpack React
+                Code sandbox preview
               </div>
               <div className="min-h-0 flex-1" style={{ minHeight: 420 }}>
                 <SandpackProvider
@@ -686,6 +873,27 @@ export function AppStudioWorkspace() {
                   >
                     {i + 1}. {v.label}
                   </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {myApps.length > 0 && (
+            <div className="border-t border-border bg-card/80 px-3 py-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Your published apps
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {myApps.slice(0, 8).map((a) => (
+                  <Link
+                    key={a.id}
+                    href={a.publicPath}
+                    target="_blank"
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium hover:border-accent-teal/50"
+                  >
+                    {a.name}
+                    <ExternalLink className="h-3 w-3 opacity-60" />
+                  </Link>
                 ))}
               </div>
             </div>

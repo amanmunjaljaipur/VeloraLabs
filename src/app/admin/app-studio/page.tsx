@@ -15,8 +15,8 @@ export default function AdminAppStudioPage() {
           App Studio
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lovable-style builder: chat on the left, live preview and code on the right. Uses platform
-          Grok (or Anthropic if configured).
+          Research workflows first, build with Verlin Labs UI components, then Publish to a live
+          share link at /apps/…
         </p>
       </div>
       <AppStudioWorkspace />
