@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { getLlmPublicInfo, isLlmConfigured } from "@/lib/chat/llm-client";
 import { answerWithLlm } from "@/lib/chat/llm-answer";
 import { loadChatbotIndex } from "@/lib/chat/load-index";
@@ -33,6 +34,10 @@ function getKnowledgeEntries(): Array<KnowledgeEntry & { embedding?: number[] }>
 }
 
 export async function GET() {
+  const paused = await assertAgentActive("site-chatbot");
+  if (paused) {
+    return NextResponse.json({ ...paused, llmEnabled: false, categories: [], topics: [] }, { status: 503 });
+  }
   const entries = getKnowledgeEntries();
   const menu = buildChatMenu(entries);
   const llm = getLlmPublicInfo();
@@ -54,6 +59,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const paused = await assertAgentActive("site-chatbot");
+  if (paused) {
+    return NextResponse.json(paused, { status: 503 });
+  }
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!checkRateLimit(ip)) {
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });

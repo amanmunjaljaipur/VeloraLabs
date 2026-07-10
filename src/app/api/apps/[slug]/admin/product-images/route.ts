@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { requireAppCapability } from "@/lib/app-builder/app-auth";
 import { findProductImageOptions } from "@/lib/app-builder/product-images";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
@@ -13,6 +14,9 @@ type Ctx = { params: Promise<{ slug: string }> };
  * Owner picks one in the admin Products UI.
  */
 export async function POST(request: Request, context: Ctx) {
+  const paused = await assertAgentActive("app-theme");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const { slug } = await context.params;
   const authz =
     (await requireAppCapability(slug, "products.edit")) ||

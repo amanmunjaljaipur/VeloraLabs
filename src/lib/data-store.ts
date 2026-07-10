@@ -35,6 +35,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "app-builder-tenants.json",
   /** App Builder ops memory (research + experience) — survives deploys, never git-seeded */
   "app-builder-ops-memory.json",
+  /** Super Admin agent pause/resume controls */
+  "agent-controls.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -52,6 +54,7 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "app-builder-projects.json",
   "app-builder-tenants.json",
   "app-builder-ops-memory.json",
+  "agent-controls.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

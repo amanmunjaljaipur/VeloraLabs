@@ -18,6 +18,10 @@ const SCOPES = new Set<ContentAgentScope>(["all", "home", "about", "faq", "seo",
  * Body: { scope?: "all"|"home"|"about"|"faq"|"seo"|"products", instruction?: string, apply?: boolean }
  */
 export async function POST(request: Request, context: Ctx) {
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("app-content");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const { slug } = await context.params;
   const authz =
     (await requireAppCapability(slug, "settings.edit")) ||

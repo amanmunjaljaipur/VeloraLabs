@@ -23,6 +23,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("document-summary");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   try {
     const body = previewSchema.parse(await req.json());
     const adminUrl = body.url.trim();

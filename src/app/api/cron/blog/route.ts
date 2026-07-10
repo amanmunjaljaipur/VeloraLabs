@@ -16,6 +16,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("cron-blog");
+  if (paused) {
+    return NextResponse.json({ success: false, ...paused, publishedCount: 0 });
+  }
+
   const published = publishDueBlogPosts();
   return NextResponse.json({
     success: true,

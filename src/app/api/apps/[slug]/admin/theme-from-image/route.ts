@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { requireAppCapability } from "@/lib/app-builder/app-auth";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
 import { suggestThemeFromPalette } from "@/lib/app-builder/theme-from-image";
@@ -12,6 +13,9 @@ type Ctx = { params: Promise<{ slug: string }> };
  * return a shop theme: primary/secondary + logo gradient.
  */
 export async function POST(request: Request, context: Ctx) {
+  const paused = await assertAgentActive("app-theme");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const { slug } = await context.params;
   const authz =
     (await requireAppCapability(slug, "settings.edit")) ||

@@ -36,6 +36,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/legal": FileText,
   "/admin/sessions": Video,
   "/admin/chatbot-training": Bot,
+  "/admin/agents": Shield,
   "/admin/blog": PenLine,
   "/admin/app-builder": AppWindow,
   "/admin/newsletter": Newspaper,

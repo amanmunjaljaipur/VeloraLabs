@@ -11,6 +11,10 @@ export async function POST() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("newsletter-ai");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   try {
     const draft = await generateNewsletterDraftFromWeb();
     return NextResponse.json({

@@ -58,6 +58,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     superAdminOnly: true,
   },
   {
+    label: "Agents",
+    href: "/admin/agents",
+    description: "Table of all AI/product agents — pause or resume anytime",
+    superAdminOnly: true,
+  },
+  {
     label: "Blog Studio",
     href: "/admin/blog",
     description: "AI blog posts, daily sequence, schedule publish",
@@ -65,7 +71,7 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
     label: "App Builder",
     href: "/admin/app-builder",
-    description: "Guided shop builder with suggestions, your points, city logos, Grok/own AI",
+    description: "Build any app from a prompt (shop, banking, resume…)",
   },
   {
     label: "Newsletter Studio",

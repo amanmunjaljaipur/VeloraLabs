@@ -23,6 +23,10 @@ export async function POST() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("chatbot-retrain");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   try {
     // Expand labeled question variations before embedding so free-form chat matches better
     const { dataset, changed } = enrichTrainingDatasetAlternates(readTrainingDataset());

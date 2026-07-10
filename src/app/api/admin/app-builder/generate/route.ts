@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
 import { packageAppProject } from "@/lib/app-builder/packager";
@@ -19,6 +20,9 @@ export const maxDuration = 120;
  * Keys from the request are never stored.
  */
 export async function POST(request: Request) {
+  const paused = await assertAgentActive("app-builder-generate");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

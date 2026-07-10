@@ -28,6 +28,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("blog-ai");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const session = await requireCmsEditor();
   if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

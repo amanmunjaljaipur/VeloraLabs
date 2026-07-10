@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { designInterviewQuestions } from "@/lib/app-builder/interview-questions";
 import type { LlmProviderKind } from "@/lib/app-builder/types";
@@ -12,6 +13,9 @@ export const maxDuration = 60;
  * Keys are never stored.
  */
 export async function POST(request: Request) {
+  const paused = await assertAgentActive("app-interview");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

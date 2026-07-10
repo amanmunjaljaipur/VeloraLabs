@@ -1,3 +1,4 @@
+import { assertAgentActive } from "@/lib/agents/controls";
 import { requireSuperAdmin } from "@/lib/chat/admin-auth";
 import { getVerticalResearch, listVerticals, touchVerticalUse } from "@/lib/app-builder/ops-memory";
 import { ensureVerticalResearched } from "@/lib/app-builder/vertical-research";
@@ -29,6 +30,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const paused = await assertAgentActive("app-vertical-research");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   const session = await requireSuperAdmin();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

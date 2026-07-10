@@ -10,6 +10,10 @@ export async function POST(request: NextRequest) {
     return newsletterMcpUnauthorized();
   }
 
+  const { assertAgentActive } = await import("@/lib/agents/controls");
+  const paused = await assertAgentActive("newsletter-mcp");
+  if (paused) return NextResponse.json(paused, { status: 503 });
+
   try {
     const draft = await generateNewsletterDraftFromWeb();
     return NextResponse.json({
