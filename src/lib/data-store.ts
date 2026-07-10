@@ -32,6 +32,7 @@ export const RUNTIME_DATA_FILES = new Set([
   "cms-custom-registry.json",
   "blog-posts.json",
   "app-builder-projects.json",
+  "app-builder-tenants.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -47,6 +48,7 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "chatbot-index.json",
   "blog-posts.json",
   "app-builder-projects.json",
+  "app-builder-tenants.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

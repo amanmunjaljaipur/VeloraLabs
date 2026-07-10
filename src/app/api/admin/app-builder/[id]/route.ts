@@ -1,6 +1,7 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { packageAppProject, removePackagedApp } from "@/lib/app-builder/packager";
 import { deleteAppProject, getAppProject, saveAppProject } from "@/lib/app-builder/store";
+import { deleteTenant } from "@/lib/app-builder/tenant-store";
 import type { AppProjectStatus } from "@/lib/app-builder/types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -68,6 +69,11 @@ export async function DELETE(_req: NextRequest, context: Ctx) {
   }
   try {
     await removePackagedApp(existing.slug);
+  } catch {
+    // ignore
+  }
+  try {
+    await deleteTenant(existing.slug);
   } catch {
     // ignore
   }

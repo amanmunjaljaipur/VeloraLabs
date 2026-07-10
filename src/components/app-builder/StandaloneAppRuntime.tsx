@@ -1,0 +1,405 @@
+"use client";
+
+import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
+import { AppAdminPanel } from "@/components/app-builder/AppAdminPanel";
+import { AppAuthScreens } from "@/components/app-builder/AppAuthScreens";
+import type { EcomLocalShopContent } from "@/lib/app-builder/types";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  ShoppingBag,
+  User,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+export type AppRoute =
+  | "home"
+  | "shop"
+  | "about"
+  | "faq"
+  | "contact"
+  | "login"
+  | "signup"
+  | "account"
+  | "admin"
+  | "admin-products"
+  | "admin-orders"
+  | "admin-customers"
+  | "admin-roles"
+  | "admin-settings";
+
+function parseRoute(segments: string[]): AppRoute {
+  const a = segments[0] || "home";
+  if (a === "login") return "login";
+  if (a === "signup") return "signup";
+  if (a === "account") return "account";
+  if (a === "admin") {
+    const b = segments[1];
+    if (b === "products") return "admin-products";
+    if (b === "orders") return "admin-orders";
+    if (b === "customers") return "admin-customers";
+    if (b === "roles") return "admin-roles";
+    if (b === "settings") return "admin-settings";
+    return "admin";
+  }
+  if (a === "shop" || a === "about" || a === "faq" || a === "contact") return a;
+  return "home";
+}
+
+function routeToPath(basePath: string, route: AppRoute): string {
+  const map: Record<AppRoute, string> = {
+    home: basePath,
+    shop: `${basePath}/shop`,
+    about: `${basePath}/about`,
+    faq: `${basePath}/faq`,
+    contact: `${basePath}/contact`,
+    login: `${basePath}/login`,
+    signup: `${basePath}/signup`,
+    account: `${basePath}/account`,
+    admin: `${basePath}/admin`,
+    "admin-products": `${basePath}/admin/products`,
+    "admin-orders": `${basePath}/admin/orders`,
+    "admin-customers": `${basePath}/admin/customers`,
+    "admin-roles": `${basePath}/admin/roles`,
+    "admin-settings": `${basePath}/admin/settings`,
+  };
+  return map[route];
+}
+
+export interface AppUserView {
+  email: string;
+  name: string;
+  roleId: string;
+  roleLabel: string;
+  isStaff: boolean;
+  isAdmin: boolean;
+  isOwner: boolean;
+  viaPlatformSuperAdmin?: boolean;
+}
+
+export function StandaloneAppRuntime({
+  content: initialContent,
+  basePath,
+  slug,
+  pathSegments = [],
+}: {
+  content: EcomLocalShopContent;
+  basePath: string;
+  slug: string;
+  pathSegments?: string[];
+}) {
+  const [route, setRoute] = useState<AppRoute>(() => parseRoute(pathSegments));
+  const [content, setContent] = useState(initialContent);
+  const [user, setUser] = useState<AppUserView | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  const accent = content.primaryColor || "#0d9488";
+
+  const loadMe = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/apps/${slug}/auth/me`);
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const data = (await res.json()) as { user: AppUserView | null };
+      setUser(data.user);
+    } catch {
+      setUser(null);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/apps/${slug}/auth/me`);
+        if (cancelled) return;
+        if (!res.ok) {
+          setUser(null);
+          return;
+        }
+        const data = (await res.json()) as { user: AppUserView | null };
+        if (!cancelled) setUser(data.user);
+      } catch {
+        if (!cancelled) setUser(null);
+      } finally {
+        if (!cancelled) setAuthLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  const go = useCallback(
+    (next: AppRoute) => {
+      setRoute(next);
+      const url = routeToPath(basePath, next);
+      if (typeof window !== "undefined") {
+        window.history.pushState({ appRoute: next }, "", url);
+      }
+    },
+    [basePath]
+  );
+
+  useEffect(() => {
+    const onPop = () => {
+      if (typeof window === "undefined") return;
+      const path = window.location.pathname.replace(/\/$/, "");
+      const base = basePath.replace(/\/$/, "");
+      const rest = path.startsWith(base) ? path.slice(base.length).replace(/^\//, "") : "";
+      const segs = rest.split("/").filter(Boolean);
+      setRoute(parseRoute(segs));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [basePath]);
+
+  async function handleLogout() {
+    await fetch(`/api/apps/${slug}/auth/logout`, { method: "POST" });
+    setUser(null);
+    go("home");
+  }
+
+  const shopPathSeg = useMemo(() => {
+    if (route === "shop") return ["shop"];
+    if (route === "about") return ["about"];
+    if (route === "faq") return ["faq"];
+    if (route === "contact") return ["contact"];
+    return [];
+  }, [route]);
+
+  const isAdminRoute = route.startsWith("admin");
+  const isAuthRoute = route === "login" || route === "signup";
+
+  return (
+    <div className="min-h-screen bg-background text-foreground" data-app-standalone="true">
+      {/* Standalone top bar — no Verlin Labs / platform admin menus */}
+      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white"
+              style={{
+                background: `linear-gradient(145deg, ${content.logo?.bgFrom || accent}, ${content.logo?.bgTo || "#0a1628"})`,
+              }}
+            >
+              {content.logo?.initials || content.brandName.slice(0, 2).toUpperCase()}
+            </span>
+            <span>
+              <span className="block text-sm font-semibold" style={{ color: accent }}>
+                {content.brandName}
+              </span>
+              <span className="block text-[10px] text-text-muted">{content.city}</span>
+            </span>
+          </button>
+
+          <nav className="flex flex-wrap items-center gap-1 text-sm font-medium">
+            {(
+              [
+                ["home", "Home"],
+                ["shop", "Products"],
+                ["about", "About"],
+                ["contact", "Contact"],
+              ] as const
+            ).map(([r, label]) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => go(r)}
+                className={cn(
+                  "rounded-lg px-2.5 py-1.5 hover:bg-muted",
+                  route === r && "bg-muted"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            {user?.isAdmin || user?.isStaff ? (
+              <button
+                type="button"
+                onClick={() => go("admin")}
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-medium hover:bg-muted"
+                style={{ color: accent }}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </button>
+            ) : null}
+            {authLoading ? (
+              <span className="text-xs text-text-muted">…</span>
+            ) : user ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => go("account")}
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 hover:bg-muted"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="max-w-[8rem] truncate">{user.name || user.email}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-text-muted hover:bg-muted"
+                  title="Sign out of this shop"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => go("login")}
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 hover:bg-muted"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => go("signup")}
+                  className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-semibold text-white"
+                  style={{ background: accent }}
+                >
+                  Join
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {user?.viaPlatformSuperAdmin ? (
+        <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-900 dark:text-amber-100">
+          You are viewing as platform Super Admin with Owner access on this shop.
+        </div>
+      ) : null}
+
+      {isAuthRoute ? (
+        <AppAuthScreens
+          slug={slug}
+          brandName={content.brandName}
+          accent={accent}
+          mode={route === "signup" ? "signup" : "login"}
+          onSuccess={() => {
+            void loadMe().then(() => go("account"));
+          }}
+          onSwitch={(mode) => go(mode === "signup" ? "signup" : "login")}
+        />
+      ) : null}
+
+      {isAdminRoute && user?.isAdmin ? (
+        <AppAdminPanel
+          slug={slug}
+          content={content}
+          accent={accent}
+          user={user}
+          section={route}
+          onSection={go}
+          onContentUpdated={setContent}
+        />
+      ) : null}
+
+      {isAdminRoute && user && !user.isAdmin && user.isStaff ? (
+        <AppAdminPanel
+          slug={slug}
+          content={content}
+          accent={accent}
+          user={user}
+          section={route === "admin" ? "admin-orders" : route}
+          onSection={go}
+          onContentUpdated={setContent}
+          staffOnly
+        />
+      ) : null}
+
+      {isAdminRoute && !user?.isAdmin && !user?.isStaff ? (
+        <div className="mx-auto max-w-lg px-4 py-16 text-center">
+          <p className="text-lg font-semibold">Admin access required</p>
+          <p className="mt-2 text-sm text-text-secondary">
+            Sign in with an Owner, Manager, or Staff account for this shop.
+          </p>
+          <button
+            type="button"
+            onClick={() => go("login")}
+            className="mt-6 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: accent }}
+          >
+            Sign in
+          </button>
+        </div>
+      ) : null}
+
+      {route === "account" && user ? (
+        <div className="mx-auto max-w-lg space-y-4 px-4 py-10">
+          <h1 className="text-2xl font-semibold">My account</h1>
+          <div className="rounded-2xl border border-border bg-card p-5 text-sm">
+            <p>
+              <span className="text-text-muted">Name:</span> {user.name}
+            </p>
+            <p className="mt-2">
+              <span className="text-text-muted">Email:</span> {user.email}
+            </p>
+            <p className="mt-2">
+              <span className="text-text-muted">Role:</span> {user.roleLabel}
+            </p>
+          </div>
+          <p className="text-xs text-text-muted">
+            This account is only for <strong>{content.brandName}</strong> — separate from any other
+            website logins.
+          </p>
+          <button
+            type="button"
+            onClick={() => go("shop")}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: accent }}
+          >
+            <ShoppingBag className="h-4 w-4" />
+            Continue shopping
+          </button>
+        </div>
+      ) : null}
+
+      {route === "account" && !user && !authLoading ? (
+        <div className="mx-auto max-w-lg px-4 py-16 text-center">
+          <p className="font-semibold">Please sign in</p>
+          <button
+            type="button"
+            onClick={() => go("login")}
+            className="mt-4 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: accent }}
+          >
+            Sign in
+          </button>
+        </div>
+      ) : null}
+
+      {!isAuthRoute && !isAdminRoute && route !== "account" ? (
+        <EcomLocalShopApp
+          content={content}
+          basePath={basePath}
+          pathSegments={shopPathSeg}
+          embedded
+          onNavigate={(page) => {
+            if (page === "home") go("home");
+            else if (page === "shop" || page === "about" || page === "faq" || page === "contact") {
+              go(page);
+            }
+          }}
+          slug={slug}
+          appUser={user}
+        />
+      ) : null}
+    </div>
+  );
+}

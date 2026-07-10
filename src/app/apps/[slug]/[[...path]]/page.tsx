@@ -1,4 +1,5 @@
-import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
+import { StandaloneAppRuntime } from "@/components/app-builder/StandaloneAppRuntime";
+import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
 import { createMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
@@ -25,18 +26,25 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function GeneratedAppPage({ params }: PageProps) {
   const { slug, path } = await params;
-  // Force Blob re-hydrate so navigation never hits an empty serverless seed
   const project = await getAppProjectBySlug(slug);
 
   if (!project || project.status !== "live" || !project.content) {
     notFound();
   }
 
+  // Ensure tenant auth exists (owner = creator, default role = customer)
+  try {
+    await ensureTenantForProject(project);
+  } catch (e) {
+    console.error("[apps] ensureTenantForProject", e);
+  }
+
   if (project.extensionId === "ecom-local-shop" && project.content.extensionId === "ecom-local-shop") {
     return (
-      <EcomLocalShopApp
+      <StandaloneAppRuntime
         content={project.content}
         basePath={project.publicPath}
+        slug={project.slug}
         pathSegments={path ?? []}
       />
     );

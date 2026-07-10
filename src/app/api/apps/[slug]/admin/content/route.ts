@@ -1,0 +1,82 @@
+import { requireAppCapability } from "@/lib/app-builder/app-auth";
+import { getAppProjectBySlug, saveAppProject } from "@/lib/app-builder/store";
+import type { EcomLocalShopContent, EcomProduct } from "@/lib/app-builder/types";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+type Ctx = { params: Promise<{ slug: string }> };
+
+export async function GET(_req: Request, context: Ctx) {
+  const { slug } = await context.params;
+  const authz =
+    (await requireAppCapability(slug, "products.view")) ||
+    (await requireAppCapability(slug, "products.edit")) ||
+    (await requireAppCapability(slug, "settings.edit")) ||
+    (await requireAppCapability(slug, "*"));
+  if (!authz) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const project = await getAppProjectBySlug(slug);
+  if (!project?.content) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ content: project.content });
+}
+
+export async function PATCH(request: Request, context: Ctx) {
+  const { slug } = await context.params;
+  const authz =
+    (await requireAppCapability(slug, "products.edit")) ||
+    (await requireAppCapability(slug, "settings.edit")) ||
+    (await requireAppCapability(slug, "*"));
+  if (!authz) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const project = await getAppProjectBySlug(slug);
+  if (!project?.content || project.content.extensionId !== "ecom-local-shop") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  let body: {
+    products?: EcomProduct[];
+    brandName?: string;
+    tagline?: string;
+    heroHeadline?: string;
+    heroSubheadline?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    whatsappNumber?: string;
+    address?: string;
+    openingHours?: string;
+    aboutHtml?: string;
+    faqs?: Array<{ question: string; answer: string }>;
+  };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+
+  const content: EcomLocalShopContent = { ...project.content };
+  if (body.products) {
+    content.products = body.products;
+    content.categories = [...new Set(body.products.map((p) => p.category || "General"))];
+  }
+  if (body.brandName?.trim()) content.brandName = body.brandName.trim();
+  if (body.tagline !== undefined) content.tagline = body.tagline;
+  if (body.heroHeadline !== undefined) content.heroHeadline = body.heroHeadline;
+  if (body.heroSubheadline !== undefined) content.heroSubheadline = body.heroSubheadline;
+  if (body.contactEmail !== undefined) content.contactEmail = body.contactEmail;
+  if (body.contactPhone !== undefined) content.contactPhone = body.contactPhone;
+  if (body.whatsappNumber !== undefined) content.whatsappNumber = body.whatsappNumber;
+  if (body.address !== undefined) content.address = body.address;
+  if (body.openingHours !== undefined) content.openingHours = body.openingHours;
+  if (body.aboutHtml !== undefined) content.aboutHtml = body.aboutHtml;
+  if (body.faqs) content.faqs = body.faqs;
+
+  const next = {
+    ...project,
+    name: content.brandName,
+    content,
+    updatedAt: new Date().toISOString(),
+  };
+  await saveAppProject(next);
+  return NextResponse.json({ content });
+}

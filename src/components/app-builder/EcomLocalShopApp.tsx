@@ -65,38 +65,77 @@ export function EcomLocalShopApp({
   content,
   basePath,
   pathSegments = [],
+  embedded = false,
+  onNavigate,
+  slug,
+  appUser,
 }: {
   content: EcomLocalShopContent;
   basePath: string;
   pathSegments?: string[];
+  /** When true, parent StandaloneAppRuntime owns chrome (header/auth) */
+  embedded?: boolean;
+  onNavigate?: (page: PageKey) => void;
+  slug?: string;
+  appUser?: { email: string; name: string } | null;
 }) {
   // Client-side page state — avoids full RSC re-fetch (which was 404ing when Blob lag/empty seed)
-  const [page, setPage] = useState<PageKey>(() => parsePage(pathSegments[0]));
+  const [localPage, setLocalPage] = useState<PageKey>(() => parsePage(pathSegments[0]));
   const [category, setCategory] = useState("");
+  const [orderMsg, setOrderMsg] = useState("");
+
+  // When embedded, parent drives the route via pathSegments
+  const page: PageKey = embedded ? parsePage(pathSegments[0]) : localPage;
 
   const go = useCallback(
     (next: PageKey) => {
-      setPage(next);
+      if (onNavigate) {
+        onNavigate(next);
+        return;
+      }
+      setLocalPage(next);
       const url = next === "home" ? basePath : `${basePath}/${next}`;
       if (typeof window !== "undefined") {
         window.history.pushState({ appPage: next }, "", url);
       }
     },
-    [basePath]
+    [basePath, onNavigate]
   );
 
   useEffect(() => {
+    if (embedded || onNavigate) return;
     const onPop = () => {
       if (typeof window === "undefined") return;
       const path = window.location.pathname.replace(/\/$/, "");
       const base = basePath.replace(/\/$/, "");
       const rest = path.startsWith(base) ? path.slice(base.length).replace(/^\//, "") : "";
       const seg = rest.split("/").filter(Boolean)[0];
-      setPage(parsePage(seg));
+      setLocalPage(parsePage(seg));
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [basePath]);
+  }, [basePath, embedded, onNavigate]);
+
+  async function placeOrder(product: EcomProduct) {
+    if (!slug) return;
+    setOrderMsg("");
+    const res = await fetch(`/api/apps/${slug}/admin/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerName: appUser?.name || "Guest",
+        customerEmail: appUser?.email || "",
+        items: [{ productId: product.id, name: product.name, price: product.price, qty: 1 }],
+        note: "Ordered from shop product card",
+      }),
+    });
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      setOrderMsg(data.error || "Could not place order — sign in first or add your email on contact.");
+      return;
+    }
+    setOrderMsg(`Order placed for ${product.name}. The shop will contact you.`);
+  }
 
   const products = useMemo(() => {
     if (!category) return content.products;
@@ -123,35 +162,43 @@ export function EcomLocalShopApp({
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-card/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <button type="button" onClick={() => go("home")} className="flex items-center gap-2.5 text-left">
-            <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
-            <span>
-              <span className="block text-base font-semibold tracking-tight" style={{ color: accent }}>
-                {content.brandName}
+    <div className={cn(!embedded && "min-h-screen", "bg-background text-foreground")}>
+      {!embedded ? (
+        <header className="border-b border-border bg-card/90 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <button type="button" onClick={() => go("home")} className="flex items-center gap-2.5 text-left">
+              <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
+              <span>
+                <span className="block text-base font-semibold tracking-tight" style={{ color: accent }}>
+                  {content.brandName}
+                </span>
+                <span className="block text-[11px] text-text-muted">{content.city}</span>
               </span>
-              <span className="block text-[11px] text-text-muted">{content.city}</span>
-            </span>
-          </button>
-          <nav className="flex flex-wrap gap-1 text-sm font-medium">
-            {navItems.map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => go(key)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 transition hover:bg-muted",
-                  page === key && "bg-muted"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
+            </button>
+            <nav className="flex flex-wrap gap-1 text-sm font-medium">
+              {navItems.map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => go(key)}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 transition hover:bg-muted",
+                    page === key && "bg-muted"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </header>
+      ) : null}
+
+      {orderMsg ? (
+        <div className="mx-auto max-w-6xl px-4 pt-4">
+          <p className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">{orderMsg}</p>
         </div>
-      </header>
+      ) : null}
 
       {page === "home" && (
         <>
@@ -267,7 +314,13 @@ export function EcomLocalShopApp({
                 .filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i)
                 .slice(0, 3)
                 .map((p) => (
-                  <ProductCard key={p.id} product={p} accent={accent} logo={logo} />
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    accent={accent}
+                    logo={logo}
+                    onOrder={slug ? () => void placeOrder(p) : undefined}
+                  />
                 ))}
             </div>
           </section>
@@ -307,7 +360,13 @@ export function EcomLocalShopApp({
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
-              <ProductCard key={p.id} product={p} accent={accent} logo={logo} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                accent={accent}
+                logo={logo}
+                onOrder={slug ? () => void placeOrder(p) : undefined}
+              />
             ))}
           </div>
           {wa ? (
@@ -442,12 +501,14 @@ export function EcomLocalShopApp({
           <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
         </div>
         <p>{content.footerNote}</p>
-        <p className="mt-2">
-          Built with Verlin Labs App Builder ·{" "}
-          <Link href="/admin/app-builder" className="hover:underline" style={{ color: accent }}>
-            Studio
-          </Link>
-        </p>
+        {!embedded ? (
+          <p className="mt-2">
+            Built with Verlin Labs App Builder ·{" "}
+            <Link href="/admin/app-builder" className="hover:underline" style={{ color: accent }}>
+              Studio
+            </Link>
+          </p>
+        ) : null}
       </footer>
     </div>
   );
@@ -457,10 +518,12 @@ function ProductCard({
   product,
   accent,
   logo,
+  onOrder,
 }: {
   product: EcomProduct;
   accent: string;
   logo: ShopLogo;
+  onOrder?: () => void;
 }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -480,6 +543,16 @@ function ProductCard({
         <p className="mt-3 text-base font-semibold" style={{ color: accent }}>
           {product.price}
         </p>
+        {onOrder ? (
+          <button
+            type="button"
+            onClick={onOrder}
+            className="mt-3 w-full rounded-xl py-2 text-xs font-semibold text-white"
+            style={{ background: accent }}
+          >
+            Order this
+          </button>
+        ) : null}
       </div>
     </article>
   );

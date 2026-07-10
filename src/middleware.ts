@@ -26,18 +26,45 @@ function resolveHost(request: NextRequest): string {
   return raw.split(",")[0]?.trim().toLowerCase() ?? "";
 }
 
+function isStandaloneAppPath(pathname: string): boolean {
+  return (
+    pathname === "/apps" ||
+    pathname.startsWith("/apps/") ||
+    pathname.startsWith("/api/apps/")
+  );
+}
+
+/** Forward request with optional standalone-app flag for root layout. */
+function nextWithAppShell(request: NextRequest, standalone: boolean) {
+  if (!standalone) return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-vl-app-shell", "1");
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+}
+
 export function middleware(request: NextRequest) {
   const host = resolveHost(request);
+  const pathname = request.nextUrl.pathname;
+  const standalone = isStandaloneAppPath(pathname);
 
   if (!shouldCanonicalize(host)) {
-    return NextResponse.next();
+    return nextWithAppShell(request, standalone);
   }
 
-  const canonicalUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, CANONICAL_ORIGIN);
+  const canonicalUrl = new URL(pathname + request.nextUrl.search, CANONICAL_ORIGIN);
 
   // Next.js client navigations cannot follow cross-host redirects for RSC payloads.
   // Rewrite flight requests internally so soft navigation works on apex / preview hosts.
   if (isRouterFlightRequest(request)) {
+    if (standalone) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-vl-app-shell", "1");
+      return NextResponse.rewrite(canonicalUrl, {
+        request: { headers: requestHeaders },
+      });
+    }
     return NextResponse.rewrite(canonicalUrl);
   }
 

@@ -2,6 +2,7 @@ import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
 import { packageAppProject } from "@/lib/app-builder/packager";
 import { getAppProject, saveAppProject } from "@/lib/app-builder/store";
+import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
 import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
 import { NextResponse } from "next/server";
 
@@ -81,6 +82,13 @@ export async function POST(request: Request) {
 
     await saveAppProject(next);
 
+    // Separate app tenancy: creator = Owner, new public sign-ups = Customer
+    try {
+      await ensureTenantForProject(next);
+    } catch (tenantErr) {
+      console.error("[app-builder] tenant init failed:", tenantErr);
+    }
+
     let packageInfo: { folderPath: string; files: string[] } | null = null;
     if (next.status === "live" && next.content) {
       try {
@@ -97,7 +105,7 @@ export async function POST(request: Request) {
         ? `generated-apps/${next.slug}`
         : undefined,
       packageFiles: packageInfo?.files,
-      note: "API key was used for this request only and was not stored. Shop data is saved permanently.",
+      note: "API key was used for this request only and was not stored. Shop has its own login at /apps/{slug}/login.",
     });
   } catch (error) {
     console.error("[app-builder/generate]", error);

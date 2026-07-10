@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -94,12 +95,31 @@ export const metadata: Metadata = {
   ...(siteVerification ? { verification: siteVerification } : {}),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const site = getSiteConfig();
+  const headerList = await headers();
+  // Set by middleware for /apps/* — hide Verlin Labs navbar, footer, admin chrome, chatbot
+  const standaloneApp = headerList.get("x-vl-app-shell") === "1";
+
+  if (standaloneApp) {
+    return (
+      <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+        <body className="min-h-full flex flex-col antialiased">
+          <ThemeProvider>
+            <ToastProvider>
+              <main id="main" className="flex-1">
+                {children}
+              </main>
+            </ToastProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
