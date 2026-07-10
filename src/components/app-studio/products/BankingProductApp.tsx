@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { mockApiCall, type MockPathMode } from "@/lib/app-studio/mock-api";
 import type { StudioAppSpec, StudioRole } from "@/lib/app-studio/types";
 import { cn } from "@/lib/utils";
 import {
@@ -22,6 +23,7 @@ import {
   HelpCircle,
   Landmark,
   LineChart,
+  Loader2,
   Lock,
   PiggyBank,
   Receipt,
@@ -215,6 +217,9 @@ export function BankingProductApp({
   const [tab, setTab] = useState<ModuleId>("home");
   const [toast, setToast] = useState<{ kind: ToastKind; msg: string } | null>(null);
   const [txFilter, setTxFilter] = useState("");
+  /** Demo toggle: force all mock APIs to pass or fail */
+  const [pathMode, setPathMode] = useState<MockPathMode>("auto");
+  const [busy, setBusy] = useState<string | null>(null);
 
   // Send money form
   const [step, setStep] = useState(0);
@@ -235,6 +240,13 @@ export function BankingProductApp({
   const [upiId, setUpiId] = useState("");
   const [upiAmt, setUpiAmt] = useState("");
   const [upiErrors, setUpiErrors] = useState<Record<string, string>>({});
+
+  // Support case form
+  const [caseSubject, setCaseSubject] = useState("");
+  const [caseCategory, setCaseCategory] = useState("Payments");
+  const [caseBody, setCaseBody] = useState("");
+  const [casePriority, setCasePriority] = useState("Normal");
+  const [caseErrors, setCaseErrors] = useState<Record<string, string>>({});
 
   const totalBalance = useMemo(
     () =>
@@ -297,15 +309,65 @@ export function BankingProductApp({
     flash("Enter demo OTP 123456 to complete (or 000000 to fail)", "info");
   }
 
-  function completeTransfer() {
+  async function completeTransfer() {
     if (!validateTransfer()) return;
-    if (otp.trim() === "000000" || forceFail) {
-      flash("Transfer failed: authentication rejected. Try OTP 123456.", "error");
+    if (otp.trim() !== "123456" && otp.trim() !== "000000" && pathMode === "auto") {
+      setFieldErrors({ otp: "Invalid OTP. Use 123456 (pass) or 000000 (fail demo)." });
+      flash("Invalid OTP — transfer not completed", "error");
+      return;
+    }
+
+    const amt = Number(amount);
+    const payeeName = payee.trim();
+    setBusy("transfer");
+    const res = await mockApiCall({
+      endpoint: "POST /mock/transfers",
+      mode: pathMode,
+      payload: { payee: payeeName, amount: amt, otp, forceFail },
+      shouldFail: () =>
+        otp.trim() === "000000" || forceFail || /fail@|blocked@/i.test(payeeName),
+      failMessage: "Transfer failed: bank declined or authentication rejected",
+      failCode: "TRANSFER_DECLINED",
+      successMessage: `Success: ${inr(amt)} sent to ${payeeName}`,
+      onSuccess: () => {
+        setAccounts((prev) =>
+          prev.map((a) =>
+            String(a.title) === fromAcct
+              ? { ...a, amount: Math.max(0, (Number(a.amount) || 0) - amt) }
+              : a
+          )
+        );
+        setTransfers((prev) => [
+          {
+            id: uid("tx"),
+            title: payeeName,
+            amount: amt,
+            description: note || "Transfer",
+            plan: fromAcct,
+            status: "Completed",
+            channel: "IMPS",
+          },
+          ...prev,
+        ]);
+        setNotifications((prev) => [
+          {
+            id: uid("n"),
+            title: `Sent ${inr(amt)} to ${payeeName}`,
+            status: "Unread",
+            description: "IMPS success",
+          },
+          ...prev,
+        ]);
+        return { id: "ok" };
+      },
+    });
+    setBusy(null);
+    if (!res.ok) {
       setTransfers((prev) => [
         {
           id: uid("tf"),
-          title: payee.trim(),
-          amount: Number(amount),
+          title: payeeName,
+          amount: amt,
           description: note || "Transfer",
           plan: fromAcct,
           status: "Failed",
@@ -313,56 +375,23 @@ export function BankingProductApp({
         },
         ...prev,
       ]);
+      flash(`${res.error} (${res.latencyMs}ms)`, "error");
       setStep(0);
       setForceFail(false);
       return;
     }
-    if (otp.trim() !== "123456") {
-      setFieldErrors({ otp: "Invalid OTP. Use 123456 (pass) or 000000 (fail demo)." });
-      flash("Invalid OTP — transfer not completed", "error");
-      return;
-    }
-
-    const amt = Number(amount);
-    setAccounts((prev) =>
-      prev.map((a) =>
-        String(a.title) === fromAcct
-          ? { ...a, amount: Math.max(0, (Number(a.amount) || 0) - amt) }
-          : a
-      )
-    );
-    setTransfers((prev) => [
-      {
-        id: uid("tx"),
-        title: payee.trim(),
-        amount: amt,
-        description: note || "Transfer",
-        plan: fromAcct,
-        status: "Completed",
-        channel: "IMPS",
-      },
-      ...prev,
-    ]);
-    setNotifications((prev) => [
-      {
-        id: uid("n"),
-        title: `Sent ${inr(amt)} to ${payee.trim()}`,
-        status: "Unread",
-        description: "IMPS success",
-      },
-      ...prev,
-    ]);
     setPayee("");
     setAmount("");
     setNote("");
     setOtp("");
     setStep(0);
     setFieldErrors({});
+    setForceFail(false);
     setTab("transactions");
-    flash(`Success: ${inr(amt)} sent to ${payee.trim() || "payee"}`, "success");
+    flash(`${res.message} · mock ${res.latencyMs}ms`, "success");
   }
 
-  function payBill(id: string) {
+  async function payBill(id: string) {
     const bill = bills.find((b) => b.id === id);
     if (!bill) return;
     if (String(bill.status) === "Paid") {
@@ -370,30 +399,50 @@ export function BankingProductApp({
       return;
     }
     const amt = Number(bill.amount) || 0;
-    const src = accounts.find((a) => String(a.status) === "Active" && (Number(a.amount) || 0) >= amt);
-    if (!src) {
+    const src = accounts.find(
+      (a) => String(a.status) === "Active" && (Number(a.amount) || 0) >= amt
+    );
+    if (!src && pathMode !== "always_ok") {
       flash("Payment failed: insufficient balance across active accounts", "error");
       return;
     }
-    setAccounts((prev) =>
-      prev.map((a) =>
-        a.id === src.id ? { ...a, amount: (Number(a.amount) || 0) - amt } : a
-      )
-    );
-    setBills((prev) => prev.map((b) => (b.id === id ? { ...b, status: "Paid" } : b)));
-    setTransfers((prev) => [
-      {
-        id: uid("bill"),
-        title: String(bill.title),
-        amount: amt,
-        description: "Bill payment",
-        plan: String(src.title),
-        status: "Completed",
-        channel: "Bill",
+    setBusy(`bill-${id}`);
+    const res = await mockApiCall({
+      endpoint: "POST /mock/bills/pay",
+      mode: pathMode,
+      payload: { billId: id, title: bill.title, amount: amt },
+      shouldFail: () => !src,
+      failMessage: "Bill payment failed: insufficient funds or biller timeout",
+      successMessage: `Bill paid: ${String(bill.title)} ${inr(amt)}`,
+      onSuccess: () => {
+        if (src) {
+          setAccounts((prev) =>
+            prev.map((a) =>
+              a.id === src.id ? { ...a, amount: (Number(a.amount) || 0) - amt } : a
+            )
+          );
+        }
+        setBills((prev) => prev.map((b) => (b.id === id ? { ...b, status: "Paid" } : b)));
+        setTransfers((prev) => [
+          {
+            id: uid("bill"),
+            title: String(bill.title),
+            amount: amt,
+            description: "Bill payment",
+            plan: String(src?.title || "—"),
+            status: "Completed",
+            channel: "Bill",
+          },
+          ...prev,
+        ]);
+        return true;
       },
-      ...prev,
-    ]);
-    flash(`Bill paid: ${String(bill.title)} ${inr(amt)}`, "success");
+    });
+    setBusy(null);
+    flash(
+      res.ok ? `${res.message} · mock ${res.latencyMs}ms` : `${res.error} (${res.latencyMs}ms)`,
+      res.ok ? "success" : "error"
+    );
   }
 
   function addBeneficiary() {
@@ -424,27 +473,65 @@ export function BankingProductApp({
     flash("Payee added — pending verification (success)", "success");
   }
 
-  function sendUpi() {
+  async function sendUpi() {
     const err: Record<string, string> = {};
     const amt = Number(upiAmt);
     if (!upiId.trim()) err.upi = "UPI ID required";
-    else if (!/^[\w.-]+@[\w]+$/i.test(upiId.trim())) err.upi = "Invalid UPI ID";
+    else if (!/^[\w.-]+@[\w]+$/i.test(upiId.trim()) && pathMode === "auto") {
+      err.upi = "Invalid UPI ID";
+    }
     if (!upiAmt.trim() || Number.isNaN(amt) || amt <= 0) err.amount = "Valid amount required";
     else if (amt > limits.upi) err.amount = `Exceeds UPI limit ${inr(limits.upi)}`;
-    const wallet = accounts.find((a) => /wallet/i.test(String(a.title)) || /wallet/i.test(String(a.level)));
+    const wallet = accounts.find(
+      (a) => /wallet/i.test(String(a.title)) || /wallet/i.test(String(a.level))
+    );
     const src = wallet || accounts.find((a) => String(a.status) === "Active");
-    if (src && amt > (Number(src.amount) || 0)) err.amount = `Insufficient funds in ${String(src.title)}`;
+    if (src && amt > (Number(src.amount) || 0) && pathMode !== "always_ok") {
+      err.amount = `Insufficient funds in ${String(src.title)}`;
+    }
     setUpiErrors(err);
     if (Object.keys(err).length) {
       flash(Object.values(err)[0], "error");
       return;
     }
-    if (/fail@/i.test(upiId)) {
-      flash("UPI failed: payee bank declined (negative case)", "error");
+    setBusy("upi");
+    const id = upiId.trim();
+    const res = await mockApiCall({
+      endpoint: "POST /mock/upi/pay",
+      mode: pathMode,
+      payload: { upiId: id, amount: amt },
+      shouldFail: () => /fail@/i.test(id) || !src,
+      failMessage: "UPI failed: payee bank declined (negative path)",
+      successMessage: `UPI success: paid ${inr(amt)}`,
+      onSuccess: () => {
+        if (src) {
+          setAccounts((prev) =>
+            prev.map((a) =>
+              a.id === src.id ? { ...a, amount: (Number(a.amount) || 0) - amt } : a
+            )
+          );
+        }
+        setTransfers((prev) => [
+          {
+            id: uid("upi"),
+            title: id,
+            amount: amt,
+            description: "UPI pay",
+            plan: String(src?.title || "Wallet"),
+            status: "Completed",
+            channel: "UPI",
+          },
+          ...prev,
+        ]);
+        return true;
+      },
+    });
+    setBusy(null);
+    if (!res.ok) {
       setTransfers((prev) => [
         {
           id: uid("upi"),
-          title: upiId,
+          title: id,
           amount: amt,
           description: "UPI",
           plan: String(src?.title || "Wallet"),
@@ -453,29 +540,97 @@ export function BankingProductApp({
         },
         ...prev,
       ]);
+      flash(`${res.error} (${res.latencyMs}ms)`, "error");
       return;
     }
-    setAccounts((prev) =>
-      prev.map((a) =>
-        a.id === src!.id ? { ...a, amount: (Number(a.amount) || 0) - amt } : a
-      )
-    );
-    setTransfers((prev) => [
-      {
-        id: uid("upi"),
-        title: upiId,
-        amount: amt,
-        description: "UPI pay",
-        plan: String(src?.title),
-        status: "Completed",
-        channel: "UPI",
-      },
-      ...prev,
-    ]);
     setUpiId("");
     setUpiAmt("");
     setUpiErrors({});
-    flash(`UPI success: paid ${inr(amt)}`, "success");
+    flash(`${res.message} · mock ${res.latencyMs}ms`, "success");
+  }
+
+  async function submitSupportCase() {
+    const err: Record<string, string> = {};
+    if (!caseSubject.trim()) err.subject = "Subject is required";
+    else if (caseSubject.trim().length < 5) err.subject = "Subject must be at least 5 characters";
+    if (!caseBody.trim()) err.body = "Please describe the issue";
+    else if (caseBody.trim().length < 10) err.body = "Description too short (min 10 chars)";
+    setCaseErrors(err);
+    if (Object.keys(err).length) {
+      flash(Object.values(err)[0], "error");
+      return;
+    }
+    setBusy("support");
+    const res = await mockApiCall({
+      endpoint: "POST /mock/support/cases",
+      mode: pathMode,
+      payload: {
+        subject: caseSubject,
+        category: caseCategory,
+        body: caseBody,
+        priority: casePriority,
+      },
+      shouldFail: (p) => {
+        const s = JSON.stringify(p).toLowerCase();
+        return s.includes("fail") || s.includes("reject");
+      },
+      failMessage:
+        "Support case rejected: ticketing system unavailable or policy block (try without word “fail”)",
+      successMessage: "Support case created successfully",
+      onSuccess: () => {
+        const row: Row = {
+          id: uid("k"),
+          title: caseSubject.trim(),
+          description: `${caseCategory} · ${casePriority} · ${caseBody.trim()}`,
+          status: "Open",
+          memberName: role?.label || "Customer",
+          category: caseCategory,
+          priority: casePriority,
+        };
+        setCases((prev) => [row, ...prev]);
+        setNotifications((prev) => [
+          {
+            id: uid("n"),
+            title: `Case opened: ${caseSubject.trim()}`,
+            status: "Unread",
+            description: "Support will reply in demo",
+          },
+          ...prev,
+        ]);
+        return row;
+      },
+    });
+    setBusy(null);
+    if (!res.ok) {
+      flash(`${res.error} (${res.latencyMs}ms)`, "error");
+      return;
+    }
+    setCaseSubject("");
+    setCaseBody("");
+    setCaseCategory("Payments");
+    setCasePriority("Normal");
+    setCaseErrors({});
+    flash(`${res.message} · mock ${res.latencyMs}ms · #${res.data.id}`, "success");
+  }
+
+  async function updateCaseStatus(id: string, status: string) {
+    setBusy(`case-${id}`);
+    const res = await mockApiCall({
+      endpoint: `PATCH /mock/support/cases/${id}`,
+      mode: pathMode,
+      payload: { id, status },
+      failMessage: "Could not update case status (mock failure)",
+      successMessage: `Case updated → ${status}`,
+      onSuccess: () => {
+        setCases((prev) => prev.map((x) => (x.id === id ? { ...x, status } : x)));
+        return true;
+      },
+    });
+    setBusy(null);
+    flash(
+      res.ok ? `${res.message} · ${res.latencyMs}ms` : `${res.error} (${res.latencyMs}ms)`,
+      res.ok ? "success" : "error"
+    );
   }
 
   function freezeCard(id: string, status: string) {
@@ -508,14 +663,14 @@ export function BankingProductApp({
   return (
     <div
       className={cn(
-        "flex flex-col bg-background text-foreground",
+        "flex min-h-0 flex-col bg-background text-foreground",
         fullScreen
-          ? "h-full min-h-0"
-          : "h-full min-h-[560px] rounded-xl border border-border overflow-hidden"
+          ? "h-full"
+          : "h-full min-h-[560px] max-h-[calc(100vh-6rem)] rounded-xl border border-border overflow-hidden"
       )}
     >
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2.5 md:px-5">
+      <header className="shrink-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-3 py-2.5 md:px-5">
           <div className="flex min-w-0 items-center gap-2">
             <div
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"
@@ -528,29 +683,44 @@ export function BankingProductApp({
                 {spec.brandName}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
-                Full digital bank demo · 18 modules · validation + pass/fail
+                Mock APIs · happy & fail paths · {visibleModules.length} modules
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 rounded-xl border-2 border-accent-teal/40 bg-accent-teal/10 px-2.5 py-1.5">
-            <UserRound className="h-4 w-4 text-accent-teal" />
-            <select
-              value={roleId}
-              onChange={(e) => {
-                onRoleChange(e.target.value);
-                setTab("home");
-              }}
-              className="max-w-[12rem] bg-transparent text-sm font-bold outline-none"
-            >
-              {spec.roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2 py-1 text-[11px]">
+              <span className="text-muted-foreground">API path</span>
+              <select
+                value={pathMode}
+                onChange={(e) => setPathMode(e.target.value as MockPathMode)}
+                className="bg-transparent font-semibold outline-none"
+                title="Force mock API success or failure for demos"
+              >
+                <option value="auto">Auto (realistic)</option>
+                <option value="always_ok">Always success</option>
+                <option value="always_fail">Always fail</option>
+              </select>
+            </label>
+            <div className="flex items-center gap-1.5 rounded-xl border-2 border-accent-teal/40 bg-accent-teal/10 px-2.5 py-1.5">
+              <UserRound className="h-4 w-4 text-accent-teal" />
+              <select
+                value={roleId}
+                onChange={(e) => {
+                  onRoleChange(e.target.value);
+                  setTab("home");
+                }}
+                className="max-w-[12rem] bg-transparent text-sm font-bold outline-none"
+              >
+                {spec.roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto border-t border-border/50 px-2 py-1.5 md:px-4">
+        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto overscroll-x-contain border-t border-border/50 px-2 py-1.5 md:px-4 [scrollbar-width:thin]">
           {visibleModules.map((m) => (
             <button
               key={m.id}
@@ -589,7 +759,16 @@ export function BankingProductApp({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-7xl flex-1 overflow-y-auto px-3 py-5 md:px-5">
+      <main
+        className="mx-auto w-full max-w-7xl min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-5 md:px-5"
+        style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+      >
+        {busy && (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-3 py-2 text-xs text-accent-teal">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Calling mock API… ({busy})
+          </div>
+        )}
         {tab === "home" && (
           <div className="space-y-5">
             <Card
@@ -809,7 +988,15 @@ export function BankingProductApp({
                   <Button type="button" variant="secondary" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button type="button" variant="cta" onClick={completeTransfer}>
+                  <Button
+                    type="button"
+                    variant="cta"
+                    disabled={busy === "transfer"}
+                    onClick={() => void completeTransfer()}
+                  >
+                    {busy === "transfer" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : null}
                     Complete transfer
                   </Button>
                 </div>
@@ -830,7 +1017,13 @@ export function BankingProductApp({
             <Field label="Amount" error={upiErrors.amount}>
               <Input type="number" value={upiAmt} onChange={(e) => setUpiAmt(e.target.value)} />
             </Field>
-            <Button type="button" variant="cta" onClick={sendUpi}>
+            <Button
+              type="button"
+              variant="cta"
+              disabled={busy === "upi"}
+              onClick={() => void sendUpi()}
+            >
+              {busy === "upi" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Pay via UPI
             </Button>
           </Card>
@@ -890,7 +1083,16 @@ export function BankingProductApp({
                   <p className="font-bold">{inr(b.amount)}</p>
                   <Badge className="bg-muted">{String(b.status)}</Badge>
                   {String(b.status) !== "Paid" && (
-                    <Button type="button" size="sm" variant="cta" onClick={() => payBill(b.id)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="cta"
+                      disabled={busy === `bill-${b.id}`}
+                      onClick={() => void payBill(b.id)}
+                    >
+                      {busy === `bill-${b.id}` ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : null}
                       Pay now
                     </Button>
                   )}
@@ -1353,49 +1555,100 @@ export function BankingProductApp({
         )}
 
         {tab === "support" && (
-          <Module title="Support cases">
-            {cases.map((c) => (
-              <Card key={c.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="font-semibold">{String(c.title)}</p>
-                  <p className="text-xs text-muted-foreground">{String(c.description)}</p>
-                </div>
-                <select
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
-                  value={String(c.status)}
-                  onChange={(e) => {
-                    setCases((prev) =>
-                      prev.map((x) => (x.id === c.id ? { ...x, status: e.target.value } : x))
-                    );
-                    flash(`Case updated → ${e.target.value}`, "success");
-                  }}
-                >
-                  {["Open", "In progress", "Resolved"].map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </Card>
-            ))}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setCases((prev) => [
-                  {
-                    id: uid("k"),
-                    title: "Need help with transfer",
-                    description: "Customer raised from app",
-                    status: "Open",
-                    memberName: role?.label || "Customer",
-                  },
-                  ...prev,
-                ]);
-                flash("Support case created", "success");
-              }}
-            >
-              New support case
-            </Button>
-          </Module>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="space-y-3 p-5">
+              <h2 className="text-lg font-semibold">Raise support case</h2>
+              <p className="text-xs text-muted-foreground">
+                Mock API <code className="rounded bg-muted px-1">POST /mock/support/cases</code>.
+                Type <strong>fail</strong> in subject to force failure (or set API path → Always fail).
+              </p>
+              <Field label="Subject" error={caseErrors.subject}>
+                <Input
+                  value={caseSubject}
+                  onChange={(e) => setCaseSubject(e.target.value)}
+                  placeholder="e.g. Transfer stuck Pending"
+                />
+              </Field>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Category">
+                  <select
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    value={caseCategory}
+                    onChange={(e) => setCaseCategory(e.target.value)}
+                  >
+                    {["Payments", "Cards", "KYC", "Login", "Other"].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Priority">
+                  <select
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    value={casePriority}
+                    onChange={(e) => setCasePriority(e.target.value)}
+                  >
+                    {["Low", "Normal", "High", "Urgent"].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+              <Field label="Description" error={caseErrors.body}>
+                <textarea
+                  className="mt-1 min-h-[100px] w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  value={caseBody}
+                  onChange={(e) => setCaseBody(e.target.value)}
+                  placeholder="What went wrong? Include amount, time, UPI if any."
+                />
+              </Field>
+              <Button
+                type="button"
+                variant="cta"
+                disabled={busy === "support"}
+                onClick={() => void submitSupportCase()}
+              >
+                {busy === "support" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : null}
+                Submit case (mock API)
+              </Button>
+            </Card>
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold">Your cases</h2>
+              {cases.length === 0 && (
+                <p className="text-sm text-muted-foreground">No cases yet — submit one on the left.</p>
+              )}
+              {cases.map((c) => (
+                <Card key={c.id} className="space-y-2 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{String(c.title)}</p>
+                      <p className="text-xs text-muted-foreground">{String(c.description)}</p>
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        id {c.id} · {String(c.memberName || "")}
+                      </p>
+                    </div>
+                    <StatusBadge status={String(c.status)} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+                      value={String(c.status)}
+                      disabled={Boolean(busy?.startsWith("case-"))}
+                      onChange={(e) => void updateCaseStatus(c.id, e.target.value)}
+                    >
+                      {["Open", "In progress", "Resolved", "Closed"].map((s) => (
+                        <option key={s}>{s}</option>
+                      ))}
+                    </select>
+                    {busy === `case-${c.id}` && (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
         )}
 
         {tab === "ops" && (
@@ -1415,26 +1668,71 @@ export function BankingProductApp({
                       type="button"
                       size="sm"
                       variant="cta"
+                      disabled={busy === `ops-${t.id}`}
                       onClick={() => {
-                        setTransfers((prev) =>
-                          prev.map((x) =>
-                            x.id === t.id ? { ...x, status: "Completed" } : x
-                          )
-                        );
-                        flash("Ops approved transfer", "success");
+                        void (async () => {
+                          setBusy(`ops-${t.id}`);
+                          const res = await mockApiCall({
+                            endpoint: `POST /mock/ops/transfers/${t.id}/approve`,
+                            mode: pathMode,
+                            payload: { id: t.id, action: "approve" },
+                            successMessage: "Ops approved transfer",
+                            failMessage: "Ops approve failed (mock)",
+                            onSuccess: () => {
+                              setTransfers((prev) =>
+                                prev.map((x) =>
+                                  x.id === t.id ? { ...x, status: "Completed" } : x
+                                )
+                              );
+                              return true;
+                            },
+                          });
+                          setBusy(null);
+                          flash(
+                            res.ok
+                              ? `${res.message} · ${res.latencyMs}ms`
+                              : `${res.error} (${res.latencyMs}ms)`,
+                            res.ok ? "success" : "error"
+                          );
+                        })();
                       }}
                     >
+                      {busy === `ops-${t.id}` ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : null}
                       Approve
                     </Button>
                     <Button
                       type="button"
                       size="sm"
                       variant="secondary"
+                      disabled={busy === `ops-r-${t.id}`}
                       onClick={() => {
-                        setTransfers((prev) =>
-                          prev.map((x) => (x.id === t.id ? { ...x, status: "Failed" } : x))
-                        );
-                        flash("Ops rejected transfer", "error");
+                        void (async () => {
+                          setBusy(`ops-r-${t.id}`);
+                          const res = await mockApiCall({
+                            endpoint: `POST /mock/ops/transfers/${t.id}/reject`,
+                            mode: pathMode,
+                            payload: { id: t.id, action: "reject" },
+                            successMessage: "Ops rejected transfer",
+                            failMessage: "Ops reject failed (mock)",
+                            onSuccess: () => {
+                              setTransfers((prev) =>
+                                prev.map((x) =>
+                                  x.id === t.id ? { ...x, status: "Failed" } : x
+                                )
+                              );
+                              return true;
+                            },
+                          });
+                          setBusy(null);
+                          flash(
+                            res.ok
+                              ? `${res.message} · ${res.latencyMs}ms`
+                              : `${res.error} (${res.latencyMs}ms)`,
+                            res.ok ? "error" : "error"
+                          );
+                        })();
                       }}
                     >
                       Reject

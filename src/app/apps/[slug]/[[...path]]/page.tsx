@@ -66,8 +66,13 @@ export default async function GeneratedAppPage({ params }: PageProps) {
     try {
       const { spec } = await resolveInteractiveAppSpec(project);
       return (
-        <div className="min-h-screen bg-background">
-          <StudioWorkingApp key={`${project.slug}-${spec.brandName}`} spec={spec} fullScreen />
+        <div className="flex h-full min-h-0 flex-col bg-background">
+          <StudioWorkingApp
+            key={`${project.slug}-${spec.brandName}`}
+            spec={spec}
+            fullScreen
+            className="h-full min-h-0"
+          />
         </div>
       );
     } catch (e) {

@@ -106,12 +106,13 @@ export default async function RootLayout({
   const standaloneApp = headerList.get("x-vl-app-shell") === "1";
 
   if (standaloneApp) {
+    // Fixed height chain so touchpad/wheel scroll works inside app main panes
     return (
       <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-        <body className="min-h-full flex flex-col antialiased">
+        <body className="h-full overflow-hidden antialiased">
           <ThemeProvider>
             <ToastProvider>
-              <main id="main" className="flex-1">
+              <main id="main" className="flex h-full min-h-0 flex-col overflow-hidden">
                 {children}
               </main>
             </ToastProvider>

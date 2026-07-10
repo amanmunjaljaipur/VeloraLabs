@@ -144,11 +144,13 @@ export function ResumeProductApp({
   return (
     <div
       className={cn(
-        "flex flex-col bg-background text-foreground",
-        fullScreen ? "h-full min-h-0" : "h-full min-h-[520px] rounded-xl border border-border overflow-hidden"
+        "flex min-h-0 flex-col bg-background text-foreground",
+        fullScreen
+          ? "h-full"
+          : "h-full min-h-[520px] max-h-[calc(100vh-6rem)] rounded-xl border border-border overflow-hidden"
       )}
     >
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+      <header className="shrink-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2.5 md:px-5">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold" style={{ color: spec.primaryColor }}>
@@ -208,7 +210,10 @@ export function ResumeProductApp({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-3 py-4 md:px-5">
+      <main
+        className="mx-auto w-full max-w-6xl min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-4 md:px-5"
+        style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+      >
         {tab === "list" && (
           <div className="space-y-3">
             <h2 className="text-xl font-semibold">

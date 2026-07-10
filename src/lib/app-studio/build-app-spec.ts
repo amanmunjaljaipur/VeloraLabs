@@ -167,12 +167,20 @@ RESUME productKind: create resume, live preview, AI improve, submit/export.
 BOOKING: schedule → book → my bookings.
 EXPENSE: submit → approve board.
 
+MOCK APIs (required in rewrittenPrompt for every product):
+- Every write action is a mock endpoint (e.g. POST /mock/transfers, POST /mock/support/cases).
+- Each action documents HAPPY path (200 + success toast) and FAIL path (4xx message + no state change or Failed status).
+- Explicit negative-test knobs: OTP 000000 fail, fail@upi decline, subject containing "fail" rejects support ticket, insufficient balance, always_fail demo toggle.
+- Support is a REAL form (subject, category, priority, description) with field validation — not a stub button that invents a case.
+- Loading state while mock call runs (200–900ms latency).
+
 HARD RULES:
 - ≥2 roles, exactly one isDefault:true.
 - productKind required and accurate.
 - ≥4 seed rows on primary entities.
 - Every role ≥1 workflow.
-- Never brochure-only / pricing-only / waitlist-only.`;
+- Never brochure-only / pricing-only / waitlist-only.
+- Never ship non-interactive modules — every listed module must create/update data via mock API with pass AND fail.`;
 
 export async function expandAndBuildAppSpec(input: {
   prompt: string;
@@ -829,6 +837,10 @@ MODULES (all required in UI): Home, Accounts, Send money, UPI, Payees/Beneficiar
 VALIDATION & MESSAGES
 - Required payee/amount; amount > 0; insufficient balance; daily/UPI limits; invalid UPI format; note max 40 chars; frozen source account blocked.
 - OTP 123456 pass, 000000 fail; success "₹X sent"; failure toasts for every reject path.
+
+MOCK APIS
+- POST /mock/transfers, /mock/upi/pay, /mock/bills/pay, /mock/support/cases, PATCH /mock/support/cases/:id
+- Demo toggle Always success / Always fail; latency 300–900ms; support form rejects subject containing "fail".
 
 ROLES: Customer (default), Support agent, Bank ops.
 

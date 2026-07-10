@@ -52,7 +52,7 @@ export function StudioWorkingApp({
   // Specialized product experiences (not generic dashboards)
   if (productKind === "resume") {
     return (
-      <div className={className}>
+      <div className={cn("flex h-full min-h-0 flex-col", className)}>
         <ResumeProductApp
           spec={spec}
           role={role}
@@ -65,7 +65,7 @@ export function StudioWorkingApp({
   }
   if (productKind === "banking") {
     return (
-      <div className={className}>
+      <div className={cn("flex h-full min-h-0 flex-col", className)}>
         <BankingProductApp
           spec={spec}
           role={role}
