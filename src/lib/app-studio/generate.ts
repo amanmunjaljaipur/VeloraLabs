@@ -202,10 +202,13 @@ async function callWithFallback(
   throw new StudioLlmError("upstream", errors[errors.length - 1] || joined);
 }
 
-const RESEARCH_SYSTEM = `You are a product researcher for an AI app builder (like Lovable).
-Given a product idea, return ONLY JSON:
+const RESEARCH_SYSTEM = `You are a senior product researcher for an AI app builder that ships WORKING multi-role apps (not marketing sites).
+
+After research, another step will expand your pack into a full build spec. So be thorough.
+
+Return ONLY JSON:
 {
-  "summary": "one paragraph product summary",
+  "summary": "2-4 sentence product summary including region and primary job-to-be-done",
   "targetUsers": string[],
   "coreWorkflows": [{ "name": string, "steps": string[] }],
   "screens": string[],
@@ -213,7 +216,13 @@ Given a product idea, return ONLY JSON:
   "techNotes": string[],
   "competitors": [{ "name": string, "takeaway": string }]
 }
-Use real competitor names when you know them; otherwise empty array. Class-8 English. Keep workflows concrete (3-6 steps).`;
+
+Rules:
+- coreWorkflows: include BOTH happy-path and failure-path notes in step names where relevant (e.g. "Enter amount — reject if over balance").
+- screens: for digital banking list 15–20 modules (Home, Accounts, Send money, UPI, Payees, Bills, Cards, Transactions, Statements, Insights, Deposits, Loans, Scheduled, Limits, KYC, Security, Alerts, Disputes, Support, Ops queue).
+- For resume products: Builder, Live preview, Tips, LinkedIn checklist, Review queue, Export.
+- competitors: real names when known (Jupiter, Fi, CRED, PhonePe for India banking; LinkedIn/Naukri for career).
+- Class-8 clear English. Concrete steps only.`;
 
 export async function researchStudioIdea(input: {
   prompt: string;

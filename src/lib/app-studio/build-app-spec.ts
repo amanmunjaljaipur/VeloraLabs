@@ -121,17 +121,22 @@ async function callLlmJson(
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
-const EXPAND_SYSTEM = `You design REAL interactive products (like a mini Notion/Canva/GPay for a niche) — NOT marketing websites.
+const EXPAND_SYSTEM = `You are a senior product architect writing the BUILD SPEC for a working multi-role app after research is done.
+NOT a marketing website. The runtime will implement real modules with form validation, success and failure messages.
 
-Think from the PRIMARY USER'S JOB TO BE DONE first:
-- Resume app: user must CREATE a resume, see LIVE PREVIEW while editing, improve with AI, export/submit.
-- Banking app: user sees BALANCES, SENDS MONEY in a wizard, FREEZES CARDS — not a list of feature cards.
-- Booking: browse schedule → book → see my bookings.
-- Expense: submit claim → manager approves.
+STEP A — rewrittenPrompt (MANDATORY, 400–900 words) must include:
+1) Product summary & region
+2) Roles (who does what)
+3) FULL module list (for banking: 15–20 modules — see below)
+4) Primary happy paths with steps
+5) Negative / failure cases (validation errors, insufficient balance, wrong OTP, blocked payee, failed UPI)
+6) Positive success messages expected
+7) Data entities & statuses
+8) Acceptance criteria: "user can complete X without leaving the app"
 
-Return ONLY JSON:
+STEP B — Return ONLY JSON (no markdown) with that brief + structured fields:
 {
-  "rewrittenPrompt": "3-5 paragraphs: primary happy path first, then roles, screens, data, success criteria",
+  "rewrittenPrompt": "long mature product brief from STEP A",
   "brandName": "string",
   "tagline": "string",
   "description": "string",
@@ -141,22 +146,33 @@ Return ONLY JSON:
     "id":"kebab",
     "name":"Item",
     "namePlural":"Items",
-    "statuses":["New","In progress","Done"],
-    "fields":[{"key":"title","label":"Title","type":"text","required":true},{"key":"description","label":"Body","type":"textarea"},{"key":"status","label":"Status","type":"status"}],
-    "seed":[{"title":"Example 1","description":"...","status":"New"},{"title":"Example 2","status":"In progress"},{"title":"Example 3","status":"Done"},{"title":"Example 4","status":"New"}]
+    "statuses":["..."],
+    "fields":[{"key":"title","label":"Title","type":"text","required":true},{"key":"amount","label":"Amount","type":"number"},{"key":"status","label":"Status","type":"status"}],
+    "seed":[/* 4+ realistic rows */]
   }],
-  "screens": [{"id":"kebab","title":"string","type":"dashboard|list|form|board|schedule|workspace|transfer|settings","roleIds":["role-id"],"entityId":"optional","description":"what user DOES here"}],
-  "workflows": [{"id":"kebab","name":"string","description":"string","roleId":"role-id","steps":["step1","step2"],"screenId":"screen-id","entityId":"optional"}]
+  "screens": [{"id":"kebab","title":"string","type":"dashboard|list|form|board|schedule|workspace|transfer|settings","roleIds":[],"entityId":"optional","description":"what user DOES + validation"}],
+  "workflows": [{"id":"kebab","name":"string","description":"string","roleId":"role-id","steps":["..."],"screenId":"screen-id","entityId":"optional"}]
 }
 
+BANKING productKind MUST cover these modules in rewrittenPrompt (all of them):
+Home/dashboard, Accounts, Send money (IMPS/NEFT wizard + OTP), UPI pay, Beneficiaries/payees, Bill payments, Cards (freeze + limits), Transactions history, Statements download, Spend insights/budgets, Deposits FD/RD, Loans/EMI, Scheduled standing orders, Payment limits, KYC/profile, Security (2FA/devices), Notifications/alerts, Disputes, Support cases, Ops/risk queue (for ops role).
+
+BANKING validation & messages MUST be specified:
+- Required fields, amount > 0, insufficient balance, daily limits, invalid UPI format
+- OTP pass code vs fail code
+- Success: "₹X sent", "Bill paid", "Card frozen"
+- Failure: "Insufficient balance", "Invalid OTP", "UPI declined", "Payee blocked"
+
+RESUME productKind: create resume, live preview, AI improve, submit/export.
+BOOKING: schedule → book → my bookings.
+EXPENSE: submit → approve board.
+
 HARD RULES:
-- productKind MUST match the idea (resume/banking/booking/expense/crm/tasks/generic).
 - ≥2 roles, exactly one isDefault:true.
-- Primary happy path is doable in the app (create + preview, or send money, or book).
-- For resume: fields must include title, memberName, description (summary), experience (textarea bullets), skills, education, status.
-- For banking: entities account (amount balance), transfer, card; statuses for transfers Pending/Completed.
-- ≥4 seed records per main entity. Never a brochure/pricing/waitlist-only app.
-- Every role has ≥1 workflow mapping to real screens.`;
+- productKind required and accurate.
+- ≥4 seed rows on primary entities.
+- Every role ≥1 workflow.
+- Never brochure-only / pricing-only / waitlist-only.`;
 
 export async function expandAndBuildAppSpec(input: {
   prompt: string;
@@ -387,6 +403,27 @@ function normalizeAppSpec(
     fallback.productKind ||
     undefined;
 
+  // Banking/resume: never ship thin entity sets — runtime needs rich seed
+  let finalEntities: StudioEntity[] = fixedEntities;
+  let finalScreens: StudioScreen[] = fixedScreens;
+  let finalWorkflows: StudioWorkflow[] = fixedWorkflows;
+  if (
+    (productKind === "banking" || fallback.productKind === "banking") &&
+    (finalEntities.length < 3 || finalScreens.length < 8)
+  ) {
+    if (fallback.entities.length >= 3) finalEntities = fallback.entities;
+    if (fallback.screens.length >= 8) finalScreens = fallback.screens;
+    if (fallback.workflows.length >= 3) finalWorkflows = fallback.workflows;
+  }
+  if (
+    (productKind === "resume" || fallback.productKind === "resume") &&
+    finalEntities[0] &&
+    !finalEntities[0].fields.some((f) => f.key === "experience")
+  ) {
+    finalEntities = fallback.entities;
+    if (fallback.screens.length) finalScreens = fallback.screens;
+  }
+
   return {
     version: 1,
     brandName,
@@ -395,11 +432,11 @@ function normalizeAppSpec(
     rewrittenPrompt,
     primaryColor: raw.primaryColor || "#0f2744",
     accentColor: raw.accentColor || "#0d9488",
-    productKind,
+    productKind: productKind || fallback.productKind,
     roles: uniqueDefaultRoles,
-    entities: fixedEntities,
-    screens: fixedScreens,
-    workflows: fixedWorkflows,
+    entities: finalEntities,
+    screens: finalScreens,
+    workflows: finalWorkflows,
   };
 }
 
@@ -772,13 +809,28 @@ function bankingSpec(
   return {
     version: 1,
     brandName: brand,
-    tagline: "Balances · send money · freeze cards",
+    tagline: "18 modules · pay · cards · bills · deposits",
     productKind: "banking",
     description:
       research?.summary ||
-      `${brand}: see balances, send money in a wizard, freeze cards; support and ops handle cases and risk. Demo only.`,
+      `${brand}: full digital bank demo — accounts, UPI, bills, cards, deposits, loans, KYC, security, disputes, ops. Demo only.`,
     rewrittenPrompt: `Build a COMPLETE multi-role digital banking product named ${brand} — NOT a marketing website.
-PRIMARY PATH: Customer opens Home → sees ₹ balances → Send money wizard (payee, amount, review, confirm) → balance updates → freeze a card with one tap.
+
+PRIMARY HAPPY PATHS
+1) Customer Home → total ₹ balance → Send money (Details → Review → OTP 123456) → balance decreases → success toast.
+2) UPI pay with valid UPI ID → success; fail@… declines.
+3) Pay bills when due; insufficient balance fails with error toast.
+4) Freeze/unfreeze cards; update spend limits with validation.
+5) Book FD; pay EMI; pause scheduled payments.
+6) Raise dispute; open support case; ops approve/reject pending transfers.
+
+MODULES (all required in UI): Home, Accounts, Send money, UPI, Payees/Beneficiaries, Bills, Cards, Transactions, Statements, Insights, Deposits, Loans, Scheduled, Limits, KYC, Security, Alerts, Disputes, Support, Ops queue.
+
+VALIDATION & MESSAGES
+- Required payee/amount; amount > 0; insufficient balance; daily/UPI limits; invalid UPI format; note max 40 chars; frozen source account blocked.
+- OTP 123456 pass, 000000 fail; success "₹X sent"; failure toasts for every reject path.
+
+ROLES: Customer (default), Support agent, Bank ops.
 
 ROLES
 1) Customer — home dashboard with account counts, list accounts, send money form, my transfers, freeze cards board, security settings.
