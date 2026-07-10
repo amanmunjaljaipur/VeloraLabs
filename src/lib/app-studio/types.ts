@@ -81,7 +81,21 @@ export type StudioScreenType =
   | "board"
   | "schedule"
   | "detail"
-  | "settings";
+  | "settings"
+  /** Split editor + live document preview (resume, proposals…) */
+  | "workspace"
+  /** Multi-step money / payment flow */
+  | "transfer";
+
+/** Drives specialized product UI (not generic CRUD only). */
+export type StudioProductKind =
+  | "resume"
+  | "banking"
+  | "booking"
+  | "expense"
+  | "crm"
+  | "tasks"
+  | "generic";
 
 export type StudioScreen = {
   id: string;
@@ -112,6 +126,8 @@ export type StudioAppSpec = {
   rewrittenPrompt: string;
   primaryColor: string;
   accentColor: string;
+  /** Specialized product experience in the runtime */
+  productKind?: StudioProductKind;
   roles: StudioRole[];
   entities: StudioEntity[];
   screens: StudioScreen[];

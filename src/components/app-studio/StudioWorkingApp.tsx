@@ -1,14 +1,17 @@
 "use client";
 
 /**
- * Fully interactive multi-role app runtime.
- * Role selector top-right; screens & workflows change per role; create/list/board work with local state.
+ * Interactive multi-role app runtime.
+ * Domain products (resume, banking) get real UIs; others use generic workflows.
  */
 
+import { BankingProductApp } from "@/components/app-studio/products/BankingProductApp";
+import { ResumeProductApp } from "@/components/app-studio/products/ResumeProductApp";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { detectProductKind } from "@/lib/app-studio/product-kind";
 import type { StudioAppSpec, StudioEntity, StudioScreen } from "@/lib/app-studio/types";
 import { cn } from "@/lib/utils";
 import {
@@ -18,7 +21,6 @@ import {
   LayoutGrid,
   ListTodo,
   Plus,
-  Settings,
   UserRound,
 } from "lucide-react";
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
@@ -41,11 +43,67 @@ export function StudioWorkingApp({
   fullScreen?: boolean;
   className?: string;
 }) {
+  const productKind = detectProductKind(spec);
   const defaultRole =
     spec.roles.find((r) => r.isDefault)?.id || spec.roles[0]?.id || "member";
   const [roleId, setRoleId] = useState(defaultRole);
   const role = spec.roles.find((r) => r.id === roleId) || spec.roles[0];
 
+  // Specialized product experiences (not generic dashboards)
+  if (productKind === "resume") {
+    return (
+      <div className={className}>
+        <ResumeProductApp
+          spec={spec}
+          role={role}
+          roleId={roleId}
+          onRoleChange={setRoleId}
+          fullScreen={fullScreen}
+        />
+      </div>
+    );
+  }
+  if (productKind === "banking") {
+    return (
+      <div className={className}>
+        <BankingProductApp
+          spec={spec}
+          role={role}
+          roleId={roleId}
+          onRoleChange={setRoleId}
+          fullScreen={fullScreen}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <GenericProductApp
+      spec={spec}
+      fullScreen={fullScreen}
+      className={className}
+      roleId={roleId}
+      setRoleId={setRoleId}
+      role={role}
+    />
+  );
+}
+
+function GenericProductApp({
+  spec,
+  fullScreen,
+  className,
+  roleId,
+  setRoleId,
+  role,
+}: {
+  spec: StudioAppSpec;
+  fullScreen?: boolean;
+  className?: string;
+  roleId: string;
+  setRoleId: (id: string) => void;
+  role?: StudioAppSpec["roles"][0];
+}) {
   const visibleScreens = useMemo(() => {
     return spec.screens.filter(
       (s) => !s.roleIds?.length || s.roleIds.includes(roleId)
@@ -53,10 +111,13 @@ export function StudioWorkingApp({
   }, [spec.screens, roleId]);
 
   const [screenId, setScreenId] = useState(
-    () => visibleScreens[0]?.id || spec.screens[0]?.id || ""
+    () =>
+      visibleScreens.find((s) => s.type !== "dashboard")?.id ||
+      visibleScreens[0]?.id ||
+      spec.screens[0]?.id ||
+      ""
   );
 
-  // Keep screen valid when role changes
   const activeScreen: StudioScreen | undefined =
     visibleScreens.find((s) => s.id === screenId) || visibleScreens[0];
 
@@ -73,6 +134,7 @@ export function StudioWorkingApp({
 
   const workflowsForRole = spec.workflows.filter((w) => w.roleId === roleId);
   const entityMap = Object.fromEntries(spec.entities.map((e) => [e.id, e]));
+  const primaryEntity = spec.entities[0];
 
   function flash(msg: string) {
     setToast(msg);
@@ -84,7 +146,9 @@ export function StudioWorkingApp({
     const nextScreens = spec.screens.filter(
       (s) => !s.roleIds?.length || s.roleIds.includes(id)
     );
-    setScreenId(nextScreens[0]?.id || "");
+    setScreenId(
+      nextScreens.find((s) => s.type !== "dashboard")?.id || nextScreens[0]?.id || ""
+    );
     setForm({});
   }
 
@@ -104,7 +168,6 @@ export function StudioWorkingApp({
         })
       ),
     };
-    // default status
     if (entity.statuses?.length && row.status == null) {
       row.status = entity.statuses[0];
     }
@@ -114,7 +177,6 @@ export function StudioWorkingApp({
     }));
     flash(`${entity.name} created`);
     setForm({});
-    // jump to list/board for that entity
     const listScreen = visibleScreens.find(
       (s) =>
         s.entityId === entityId &&
@@ -143,40 +205,37 @@ export function StudioWorkingApp({
     }));
   }
 
-  const primaryEntity = spec.entities[0];
-
   return (
     <div
       className={cn(
         "flex flex-col bg-background text-foreground",
-        fullScreen ? "h-full min-h-0" : "h-full min-h-[480px] rounded-xl border border-border overflow-hidden",
+        fullScreen
+          ? "h-full min-h-0"
+          : "h-full min-h-[480px] rounded-xl border border-border overflow-hidden",
         className
       )}
     >
-      {/* Brand + ROLE SELECTOR always top-right */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2.5 md:px-5">
           <div className="min-w-0">
-            <p className="truncate text-lg font-bold tracking-tight" style={{ color: spec.primaryColor }}>
+            <p
+              className="truncate text-lg font-bold tracking-tight"
+              style={{ color: spec.primaryColor }}
+            >
               {spec.brandName}
             </p>
             <p className="truncate text-xs text-muted-foreground">{spec.tagline}</p>
           </div>
-
           <div className="flex shrink-0 items-center gap-2">
             <span className="hidden text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:inline">
               Try as
             </span>
             <div className="flex items-center gap-1.5 rounded-xl border-2 border-accent-teal/40 bg-accent-teal/10 px-2.5 py-1.5 shadow-sm">
               <UserRound className="h-4 w-4 text-accent-teal" />
-              <label className="sr-only" htmlFor="role-select">
-                Role
-              </label>
               <select
-                id="role-select"
                 value={roleId}
                 onChange={(e) => switchRole(e.target.value)}
-                className="max-w-[11rem] bg-transparent text-sm font-bold text-foreground outline-none md:max-w-[14rem]"
+                className="max-w-[11rem] bg-transparent text-sm font-bold outline-none md:max-w-[14rem]"
               >
                 {spec.roles.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -187,7 +246,6 @@ export function StudioWorkingApp({
             </div>
           </div>
         </div>
-
         <nav className="mx-auto flex max-w-6xl flex-wrap gap-1 border-t border-border/50 px-3 py-1.5 md:px-5">
           {visibleScreens.map((s) => (
             <button
@@ -205,20 +263,6 @@ export function StudioWorkingApp({
             </button>
           ))}
         </nav>
-
-        {role && (
-          <div className="border-t border-border/60 bg-accent-teal/5 px-3 py-1.5 text-xs text-muted-foreground md:px-5">
-            <span className="font-semibold text-accent-teal">Viewing as {role.label}</span>
-            {" — "}
-            {role.description}
-            {workflowsForRole[0] && (
-              <span className="hidden sm:inline">
-                {" "}
-                · Start: <strong>{workflowsForRole[0].name}</strong>
-              </span>
-            )}
-          </div>
-        )}
       </header>
 
       {toast && (
@@ -229,7 +273,6 @@ export function StudioWorkingApp({
       )}
 
       <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto px-3 py-5 md:px-5">
-        {/* Workflow chips for this role */}
         {workflowsForRole.length > 0 && (
           <div className="mb-5 flex flex-wrap gap-2">
             {workflowsForRole.map((w) => (
@@ -247,20 +290,35 @@ export function StudioWorkingApp({
           </div>
         )}
 
-        {!activeScreen && (
-          <p className="text-muted-foreground">No screens for this role.</p>
-        )}
-
         {activeScreen?.type === "dashboard" && (
-          <DashboardView
-            spec={spec}
-            roleLabel={role?.label || ""}
-            entity={primaryEntity}
-            counts={primaryEntity ? countsFor(primaryEntity.id) : []}
-            workflows={workflowsForRole}
-            onOpen={(id) => setScreenId(id)}
-            screens={visibleScreens}
-          />
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold">Welcome, {role?.label}</h1>
+              <p className="mt-1 text-muted-foreground">{spec.description}</p>
+            </div>
+            {primaryEntity && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {countsFor(primaryEntity.id).map((c) => (
+                  <Card key={c.status} className="p-4">
+                    <p className="text-xs uppercase text-muted-foreground">{c.status}</p>
+                    <p className="mt-1 text-3xl font-bold text-accent-teal">{c.count}</p>
+                  </Card>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {workflowsForRole.map((w) => (
+                <Button
+                  key={w.id}
+                  type="button"
+                  variant="cta"
+                  onClick={() => setScreenId(w.screenId)}
+                >
+                  {w.name}
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
 
         {activeScreen?.type === "list" && activeScreen.entityId && (
@@ -275,32 +333,6 @@ export function StudioWorkingApp({
                 (s) => s.type === "form" && s.entityId === activeScreen.entityId
               );
               if (formScreen) setScreenId(formScreen.id);
-              else {
-                const anyForm = visibleScreens.find((s) => s.type === "form");
-                if (anyForm) setScreenId(anyForm.id);
-              }
-            }}
-          />
-        )}
-
-        {activeScreen?.type === "schedule" && activeScreen.entityId && (
-          <ScheduleView
-            entity={entityMap[activeScreen.entityId]}
-            rows={data[activeScreen.entityId] || []}
-            canBook={Boolean(role?.canCreate)}
-            onBook={(row) => {
-              const bookingEntity = spec.entities.find((e) => e.id === "booking") ||
-                spec.entities.find((e) => /book/i.test(e.id));
-              if (bookingEntity) {
-                addRecord(bookingEntity.id, {
-                  memberName: role?.label || "You",
-                  classTitle: String(row.title || row.name || "Item"),
-                  plan: "Drop-in",
-                  status: bookingEntity.statuses?.[0] || "Confirmed",
-                });
-              } else {
-                flash("Booked (local)");
-              }
             }}
           />
         )}
@@ -324,149 +356,66 @@ export function StudioWorkingApp({
           />
         )}
 
+        {activeScreen?.type === "schedule" && activeScreen.entityId && (
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold">
+              {entityMap[activeScreen.entityId]?.namePlural} schedule
+            </h2>
+            {(data[activeScreen.entityId] || []).map((r) => (
+              <Card
+                key={r.id}
+                className="flex flex-wrap items-center justify-between gap-3 p-4"
+              >
+                <div>
+                  <p className="font-semibold">{String(r.title)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {String(r.when || "")}
+                    {r.instructor ? ` · ${String(r.instructor)}` : ""}
+                  </p>
+                </div>
+                {role?.canCreate && (
+                  <Button
+                    type="button"
+                    variant="cta"
+                    onClick={() => {
+                      const booking =
+                        spec.entities.find((e) => /book/i.test(e.id)) ||
+                        spec.entities[1];
+                      if (booking) {
+                        addRecord(booking.id, {
+                          memberName: role?.label || "You",
+                          classTitle: String(r.title || ""),
+                          plan: "Drop-in",
+                          status: booking.statuses?.[0] || "Confirmed",
+                        });
+                      }
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Book
+                  </Button>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+
         {activeScreen?.type === "settings" && (
           <Card className="max-w-lg space-y-3 p-6">
             <h2 className="text-lg font-semibold">Settings</h2>
-            <p className="text-sm text-muted-foreground">
-              {spec.description}
-            </p>
-            <div className="space-y-2 text-sm">
-              <p>
-                <strong>Roles in this app:</strong>
-              </p>
-              <ul className="list-inside list-disc text-muted-foreground">
-                {spec.roles.map((r) => (
-                  <li key={r.id}>
-                    {r.label} — {r.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Switch roles with the selector (top right) to try every workflow.
-            </p>
-          </Card>
-        )}
-
-        {activeScreen?.type === "detail" && (
-          <Card className="p-6">
-            <h2 className="font-semibold">{activeScreen.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {activeScreen.description || "Detail view"}
-            </p>
-          </Card>
-        )}
-
-        {/* Workflow detail card */}
-        {workflowsForRole.length > 0 && activeScreen && (
-          <Card className="mt-8 border-dashed p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Your workflows as {role?.label}
-            </p>
-            <div className="mt-3 space-y-3">
-              {workflowsForRole.map((w) => (
-                <div key={w.id}>
-                  <p className="text-sm font-medium">{w.name}</p>
-                  <p className="text-xs text-muted-foreground">{w.description}</p>
-                  <ol className="mt-1 flex flex-wrap gap-1 text-[11px]">
-                    {w.steps.map((s, i) => (
-                      <li
-                        key={s}
-                        className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground"
-                      >
-                        {i + 1}. {s}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+            <p className="text-sm text-muted-foreground">{spec.description}</p>
+            <ul className="list-inside list-disc text-sm text-muted-foreground">
+              {spec.roles.map((r) => (
+                <li key={r.id}>
+                  {r.label} — {r.description}
+                </li>
               ))}
-            </div>
+            </ul>
           </Card>
         )}
       </main>
-
-      <footer className="border-t border-border px-4 py-2 text-center text-[11px] text-muted-foreground">
-        {spec.brandName} · Interactive demo · Role: {role?.label}
-      </footer>
     </div>
   );
 }
-
-function DashboardView({
-  spec,
-  roleLabel,
-  entity,
-  counts,
-  workflows,
-  onOpen,
-  screens,
-}: {
-  spec: StudioAppSpec;
-  roleLabel: string;
-  entity?: StudioEntity;
-  counts: Array<{ status: string; count: number }>;
-  workflows: StudioWorkflowLike[];
-  onOpen: (screenId: string) => void;
-  screens: StudioScreen[];
-}) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-          Welcome, {roleLabel}
-        </h1>
-        <p className="mt-1 text-muted-foreground">{spec.description}</p>
-        <p className="mt-2 text-xs text-accent-teal">
-          Switch roles with the selector (top right) to see other user workflows.
-        </p>
-      </div>
-      {counts.length > 0 && entity && (
-        <div className="grid gap-3 sm:grid-cols-3">
-          {counts.map((c) => (
-            <Card key={c.status} className="p-4">
-              <p className="text-xs font-medium uppercase text-muted-foreground">{c.status}</p>
-              <p className="mt-1 text-3xl font-bold text-accent-teal">{c.count}</p>
-              <p className="text-xs text-muted-foreground">{entity.namePlural}</p>
-            </Card>
-          ))}
-        </div>
-      )}
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Your workflows
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {workflows.map((w) => (
-            <Button key={w.id} type="button" variant="cta" onClick={() => onOpen(w.screenId)}>
-              {w.name}
-            </Button>
-          ))}
-          {workflows.length === 0 &&
-            screens
-              .filter((s) => s.type !== "dashboard" && s.type !== "settings")
-              .slice(0, 4)
-              .map((s) => (
-                <Button key={s.id} type="button" variant="secondary" onClick={() => onOpen(s.id)}>
-                  {s.title}
-                </Button>
-              ))}
-        </div>
-      </div>
-      <Card className="border-dashed p-4">
-        <p className="text-sm font-medium">Roles in this app</p>
-        <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-          {spec.roles.map((r) => (
-            <li key={r.id}>
-              <strong className="text-foreground">{r.label}</strong> — {r.description}
-            </li>
-          ))}
-        </ul>
-      </Card>
-    </div>
-  );
-}
-
-type StudioWorkflowLike = { id: string; name: string; screenId: string };
 
 function ListView({
   entity,
@@ -494,13 +443,15 @@ function ListView({
           </Button>
         )}
       </div>
-      {rows.length === 0 && (
-        <p className="text-sm text-muted-foreground">No records yet. Use the form to create one.</p>
-      )}
       {rows.map((r) => (
-        <Card key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <Card
+          key={r.id}
+          className="flex flex-wrap items-center justify-between gap-3 p-4"
+        >
           <div>
-            <p className="font-semibold">{String(r.title || r.name || r.memberName || r.classTitle || entity.name)}</p>
+            <p className="font-semibold">
+              {String(r.title || r.name || r.memberName || entity.name)}
+            </p>
             <p className="text-xs text-muted-foreground">
               {entity.fields
                 .filter((f) => f.key !== "title" && f.key !== "status")
@@ -531,48 +482,6 @@ function ListView({
   );
 }
 
-function ScheduleView({
-  entity,
-  rows,
-  canBook,
-  onBook,
-}: {
-  entity?: StudioEntity;
-  rows: RecordRow[];
-  canBook: boolean;
-  onBook: (row: RecordRow) => void;
-}) {
-  if (!entity) return null;
-  return (
-    <div className="space-y-3">
-      <h2 className="text-xl font-semibold">{entity.namePlural} schedule</h2>
-      {rows.map((r) => (
-        <Card
-          key={r.id}
-          className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center"
-        >
-          <div>
-            <p className="text-lg font-semibold">{String(r.title)}</p>
-            <p className="text-sm text-muted-foreground">
-              {String(r.when || "")}
-              {r.instructor ? ` · ${String(r.instructor)}` : ""}
-              {r.level ? ` · ${String(r.level)}` : ""}
-            </p>
-            {r.spots != null && (
-              <p className="mt-1 text-xs text-accent-teal">{String(r.spots)} spots left</p>
-            )}
-          </div>
-          {canBook && (
-            <Button type="button" variant="cta" onClick={() => onBook(r)}>
-              <Plus className="h-4 w-4" /> Book
-            </Button>
-          )}
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 function BoardView({
   entity,
   rows,
@@ -597,7 +506,7 @@ function BoardView({
             key={status}
             className="min-h-[200px] rounded-xl border border-border bg-muted/30 p-3"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">
               {status} ({rows.filter((r) => String(r.status) === status).length})
             </p>
             <div className="space-y-2">
@@ -606,7 +515,7 @@ function BoardView({
                 .map((r) => (
                   <Card key={r.id} className="p-3 shadow-sm">
                     <p className="text-sm font-semibold">
-                      {String(r.title || r.memberName || r.classTitle || entity.name)}
+                      {String(r.title || r.memberName || entity.name)}
                     </p>
                     {canManage && (
                       <select
@@ -666,13 +575,17 @@ function FormView({
               <textarea
                 className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
                 value={form[f.key] || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
               />
             ) : f.type === "select" ? (
               <select
                 className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
                 value={form[f.key] || f.options?.[0] || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
               >
                 {(f.options || []).map((o) => (
                   <option key={o} value={o}>
@@ -682,10 +595,12 @@ function FormView({
               </select>
             ) : (
               <Input
-                type={f.type === "number" ? "number" : f.type === "email" ? "email" : "text"}
+                type={f.type === "number" ? "number" : "text"}
                 className="mt-1"
                 value={form[f.key] || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
               />
             )}
           </label>

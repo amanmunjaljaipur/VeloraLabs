@@ -121,38 +121,42 @@ async function callLlmJson(
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
-const EXPAND_SYSTEM = `You are a product architect. Your job is NOT a landing page.
-Rewrite a short product idea into a COMPLETE interactive operational web app.
+const EXPAND_SYSTEM = `You design REAL interactive products (like a mini Notion/Canva/GPay for a niche) — NOT marketing websites.
 
-First expand rewrittenPrompt (2-4 paragraphs) covering: all users/roles, every core workflow with steps, every screen, data entities, and success criteria (create records, change status, role-switch changes nav).
+Think from the PRIMARY USER'S JOB TO BE DONE first:
+- Resume app: user must CREATE a resume, see LIVE PREVIEW while editing, improve with AI, export/submit.
+- Banking app: user sees BALANCES, SENDS MONEY in a wizard, FREEZES CARDS — not a list of feature cards.
+- Booking: browse schedule → book → see my bookings.
+- Expense: submit claim → manager approves.
 
-Return ONLY JSON (no markdown):
+Return ONLY JSON:
 {
-  "rewrittenPrompt": "full product brief",
+  "rewrittenPrompt": "3-5 paragraphs: primary happy path first, then roles, screens, data, success criteria",
   "brandName": "string",
   "tagline": "string",
   "description": "string",
+  "productKind": "resume|banking|booking|expense|crm|tasks|generic",
   "roles": [{"id":"kebab","label":"string","description":"string","canCreate":true,"canManage":false,"isDefault":true}],
   "entities": [{
     "id":"kebab",
     "name":"Item",
     "namePlural":"Items",
     "statuses":["New","In progress","Done"],
-    "fields":[{"key":"title","label":"Title","type":"text","required":true},{"key":"status","label":"Status","type":"status"}],
-    "seed":[{"title":"Example 1","status":"New"},{"title":"Example 2","status":"In progress"},{"title":"Example 3","status":"Done"},{"title":"Example 4","status":"New"}]
+    "fields":[{"key":"title","label":"Title","type":"text","required":true},{"key":"description","label":"Body","type":"textarea"},{"key":"status","label":"Status","type":"status"}],
+    "seed":[{"title":"Example 1","description":"...","status":"New"},{"title":"Example 2","status":"In progress"},{"title":"Example 3","status":"Done"},{"title":"Example 4","status":"New"}]
   }],
-  "screens": [{"id":"kebab","title":"string","type":"dashboard|list|form|board|schedule|settings","roleIds":["role-id"],"entityId":"optional","description":"string"}],
+  "screens": [{"id":"kebab","title":"string","type":"dashboard|list|form|board|schedule|workspace|transfer|settings","roleIds":["role-id"],"entityId":"optional","description":"what user DOES here"}],
   "workflows": [{"id":"kebab","name":"string","description":"string","roleId":"role-id","steps":["step1","step2"],"screenId":"screen-id","entityId":"optional"}]
 }
 
 HARD RULES:
-- At least 2 roles (e.g. customer + staff, employee + manager). Exactly one isDefault:true.
-- At least 1 entity with 4+ realistic seed records. Include status when work has stages.
-- Screens: role dashboards, list and/or board for primary entity, form to create, settings for admin-like roles.
-- roleIds [] = all roles see the screen. Otherwise only listed roles.
-- Every role has ≥1 workflow; each workflow.screenId must exist; workflow.roleId must match a role.
-- Field types: text|textarea|number|date|select|status|email|phone
-- NEVER a marketing brochure, pricing page, or waitlist-only shell. Always operational (book, create, approve, move pipeline).`;
+- productKind MUST match the idea (resume/banking/booking/expense/crm/tasks/generic).
+- ≥2 roles, exactly one isDefault:true.
+- Primary happy path is doable in the app (create + preview, or send money, or book).
+- For resume: fields must include title, memberName, description (summary), experience (textarea bullets), skills, education, status.
+- For banking: entities account (amount balance), transfer, card; statuses for transfers Pending/Completed.
+- ≥4 seed records per main entity. Never a brochure/pricing/waitlist-only app.
+- Every role has ≥1 workflow mapping to real screens.`;
 
 export async function expandAndBuildAppSpec(input: {
   prompt: string;
@@ -378,6 +382,11 @@ function normalizeAppSpec(
           fallback: fallback.rewrittenPrompt,
         });
 
+  const productKind =
+    raw.productKind ||
+    fallback.productKind ||
+    undefined;
+
   return {
     version: 1,
     brandName,
@@ -386,6 +395,7 @@ function normalizeAppSpec(
     rewrittenPrompt,
     primaryColor: raw.primaryColor || "#0f2744",
     accentColor: raw.accentColor || "#0d9488",
+    productKind,
     roles: uniqueDefaultRoles,
     entities: fixedEntities,
     screens: fixedScreens,
@@ -762,11 +772,13 @@ function bankingSpec(
   return {
     version: 1,
     brandName: brand,
-    tagline: "Accounts · pay · cards · support",
+    tagline: "Balances · send money · freeze cards",
+    productKind: "banking",
     description:
       research?.summary ||
-      `${brand}: customers manage accounts and transfers; support handles cases; ops reviews payments and cards. Demo only — no real money movement.`,
+      `${brand}: see balances, send money in a wizard, freeze cards; support and ops handle cases and risk. Demo only.`,
     rewrittenPrompt: `Build a COMPLETE multi-role digital banking product named ${brand} — NOT a marketing website.
+PRIMARY PATH: Customer opens Home → sees ₹ balances → Send money wizard (payee, amount, review, confirm) → balance updates → freeze a card with one tap.
 
 ROLES
 1) Customer — home dashboard with account counts, list accounts, send money form, my transfers, freeze cards board, security settings.
@@ -834,42 +846,65 @@ function resumeSpec(prompt: string, research?: StudioResearchPack | null): Studi
       fields: [
         { key: "title", label: "Target role", type: "text", required: true },
         { key: "memberName", label: "Candidate", type: "text", required: true },
+        { key: "email", label: "Email", type: "email" },
+        { key: "phone", label: "Phone", type: "phone" },
         {
           key: "level",
           label: "Level",
           type: "select",
           options: ["Student", "Early career", "Experienced", "Career switch"],
         },
-        { key: "description", label: "Summary / headline", type: "textarea" },
+        { key: "description", label: "Professional summary", type: "textarea" },
+        { key: "experience", label: "Experience bullets", type: "textarea" },
+        { key: "education", label: "Education", type: "text" },
+        { key: "skills", label: "Skills", type: "text" },
         { key: "status", label: "Status", type: "status" },
       ],
       seed: [
         {
           title: "Frontend Engineer",
           memberName: "Priya S.",
+          email: "priya@email.com",
+          phone: "+91 98xxx",
           level: "Early career",
-          description: "React + TypeScript · 2 years",
+          description:
+            "Frontend engineer who ships React apps with clear UX and measurable performance wins.",
+          experience:
+            "- Shipped checkout UI used by 12k monthly users\n- Cut LCP by 28% via code-splitting\n- Partnered with design on a design system",
+          education: "B.Tech CSE · 2021",
+          skills: "React, TypeScript, CSS, Next.js, Figma",
           status: "Draft",
         },
         {
           title: "Product Manager",
           memberName: "Arjun K.",
+          email: "arjun@email.com",
           level: "Experienced",
-          description: "B2B SaaS · 5 years",
+          description: "B2B SaaS PM with 5 years shipping roadmaps from discovery to launch.",
+          experience:
+            "- Owned payments roadmap for SMB segment\n- Raised activation +14% with onboarding redesign",
+          education: "MBA · 2018",
+          skills: "Roadmaps, SQL, Stakeholder management",
           status: "In review",
         },
         {
           title: "Data Analyst",
           memberName: "Meera R.",
           level: "Career switch",
-          description: "SQL + Python · bootcamp grad",
+          description: "Analyst transitioning from operations; strong SQL and storytelling.",
+          experience: "- Built weekly KPI dashboards\n- Automated reports saving 6 hrs/week",
+          education: "Data analytics bootcamp · 2024",
+          skills: "SQL, Python, Excel, Tableau",
           status: "Ready",
         },
         {
           title: "Sales Associate",
           memberName: "You",
           level: "Student",
-          description: "Campus placements · internship focus",
+          description: "Campus hire focused on consultative selling and CRM hygiene.",
+          experience: "- Internship: 30+ discovery calls\n- Exceeded demo booking target by 20%",
+          education: "B.Com · 2025",
+          skills: "Communication, CRM, Negotiation",
           status: "Draft",
         },
       ],
@@ -1051,11 +1086,13 @@ function resumeSpec(prompt: string, research?: StudioResearchPack | null): Studi
   return {
     version: 1,
     brandName: brand,
-    tagline: "Build · tip · checklist · export",
+    tagline: "Build · live preview · AI improve · export",
+    productKind: "resume",
     description:
       research?.summary ||
-      `${brand}: job seekers build resumes with actionable tips and LinkedIn checklist; coaches review; admins see the full pipeline.`,
+      `${brand}: create a resume, edit with live preview, improve with AI, submit for coach review.`,
     rewrittenPrompt: `Build a complete multi-role career product named ${brand} — NOT a marketing site.
+PRIMARY PATH: Job seeker clicks New resume → fills name/role/summary/experience → sees LIVE PREVIEW update → Improve with AI → Submit for review / Export.
 
 ROLES
 1) Job seeker — create resumes, apply tips (Open → Applied), complete LinkedIn checklist, track status Draft → Ready → Exported.
@@ -1272,6 +1309,7 @@ function yogaSpec(prompt: string, research?: StudioResearchPack | null): StudioA
     version: 1,
     brandName: brand,
     tagline: "Book classes · memberships · drop-ins",
+    productKind: "booking",
     description:
       research?.summary ||
       `${brand}: members book yoga classes, instructors see rosters, owners manage the schedule.`,
@@ -1312,6 +1350,7 @@ function taskBoardSpec(prompt: string, research?: StudioResearchPack | null): St
     version: 1,
     brandName: brand,
     tagline: "Tasks · columns · team roles",
+    productKind: "tasks",
     description:
       research?.summary ||
       `${brand}: team task board with members who create tasks and managers who move status.`,
@@ -1403,8 +1442,9 @@ function expenseSpec(prompt: string, research?: StudioResearchPack | null): Stud
     version: 1,
     brandName: brand,
     tagline: "Submit · approve · track expenses",
+    productKind: "expense",
     description: research?.summary || "Team expense tracker with employee submit and manager approval.",
-    rewrittenPrompt: `Expense app: Employee submits expenses with category/amount; Manager approves/rejects on a board. Screens: my expenses, submit form, approvals board, dashboard.`,
+    rewrittenPrompt: `Expense app: Employee submits expenses with category/amount; Manager approves/rejects on a board. Screens: my expenses, submit form, approvals board, dashboard. PRIMARY PATH: employee opens Submit → enters amount → sees claim on My expenses → manager moves board to Approved.`,
     primaryColor: "#0f2744",
     accentColor: "#0d9488",
     roles: [
@@ -1483,8 +1523,9 @@ function crmSpec(prompt: string, research?: StudioResearchPack | null): StudioAp
     version: 1,
     brandName: "Pipeline",
     tagline: "Leads · deals · follow-ups",
+    productKind: "crm",
     description: research?.summary || "Lightweight CRM for leads and deal stages.",
-    rewrittenPrompt: `CRM with Sales rep (log leads) and Manager (pipeline board). Entity Deal with stages New/Contacted/Proposal/Won.`,
+    rewrittenPrompt: `CRM with Sales rep (log leads) and Manager (pipeline board). Entity Deal with stages New/Contacted/Proposal/Won. PRIMARY PATH: rep creates lead → appears on pipeline → manager advances stage.`,
     primaryColor: "#0f2744",
     accentColor: "#0d9488",
     roles: [

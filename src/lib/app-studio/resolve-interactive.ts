@@ -63,10 +63,15 @@ function isStrongSpec(spec: StudioAppSpec | undefined | null): boolean {
 export async function resolveInteractiveAppSpec(
   project: AppProject
 ): Promise<{ spec: StudioAppSpec; project: AppProject }> {
-  // Re-build if stored spec is missing/weak (old empty upgrades or partial data)
-  if (isStrongSpec(project.studioAppSpec)) {
+  // Keep strong specs that already declare a specialized productKind
+  if (
+    isStrongSpec(project.studioAppSpec) &&
+    project.studioAppSpec!.productKind &&
+    project.studioAppSpec!.productKind !== "generic"
+  ) {
     return { spec: project.studioAppSpec!, project };
   }
+  // Rebuild weak/generic shells so resume/banking get real product UIs + rich seed
 
   const prompt = promptFromProject(project);
   const spec = buildHeuristicAppSpec(prompt, null, {
