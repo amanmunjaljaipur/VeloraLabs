@@ -6,6 +6,7 @@
  */
 
 import { BankingProductApp } from "@/components/app-studio/products/BankingProductApp";
+import { EcomProductApp } from "@/components/app-studio/products/EcomProductApp";
 import { MultiModuleProductApp } from "@/components/app-studio/products/MultiModuleProductApp";
 import { ResumeProductApp } from "@/components/app-studio/products/ResumeProductApp";
 import { detectProductKind } from "@/lib/app-studio/product-kind";
@@ -51,6 +52,19 @@ export function StudioWorkingApp({
     return (
       <div className={shell}>
         <BankingProductApp
+          spec={spec}
+          role={role}
+          roleId={roleId}
+          onRoleChange={setRoleId}
+          fullScreen={fullScreen}
+        />
+      </div>
+    );
+  }
+  if (productKind === "ecommerce") {
+    return (
+      <div className={shell}>
+        <EcomProductApp
           spec={spec}
           role={role}
           roleId={roleId}

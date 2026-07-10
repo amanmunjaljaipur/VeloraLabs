@@ -91,6 +91,7 @@ export type StudioScreenType =
 export type StudioProductKind =
   | "resume"
   | "banking"
+  | "ecommerce"
   | "booking"
   | "expense"
   | "crm"

@@ -25,6 +25,13 @@ export function detectProductKind(spec: StudioAppSpec): StudioProductKind {
   ) {
     return "banking";
   }
+  if (
+    /\bmarketplace|e-?commerce|amazon|flipkart|cart|checkout|seller.?central|product catalog|online.?shop\b/.test(
+      blob
+    )
+  ) {
+    return "ecommerce";
+  }
   if (/\byoga|booking|class schedule|appointment|salon\b/.test(blob)) return "booking";
   if (/\bexpense|claim|reimburse\b/.test(blob)) return "expense";
   if (/\bcrm|pipeline|lead|deal\b/.test(blob)) return "crm";

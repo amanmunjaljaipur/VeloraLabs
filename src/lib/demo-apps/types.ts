@@ -50,7 +50,15 @@ export type DemoCategoryDef = {
   tagline: string;
   description: string;
   examples: string[];
-  productKind: "banking" | "resume" | "booking" | "expense" | "crm" | "tasks" | "generic";
+  productKind:
+    | "banking"
+    | "resume"
+    | "ecommerce"
+    | "booking"
+    | "expense"
+    | "crm"
+    | "tasks"
+    | "generic";
   brandName: string;
   /** Optional authored learning content; premiumize fills gaps */
   learning?: DemoLearningContent;
@@ -79,7 +87,16 @@ export type DemoCategoryDef = {
   modules: Array<{
     id: string;
     title: string;
-    type: "dashboard" | "list" | "form" | "board" | "schedule" | "settings" | "workspace" | "transfer";
+    type:
+      | "dashboard"
+      | "list"
+      | "form"
+      | "board"
+      | "schedule"
+      | "settings"
+      | "workspace"
+      | "transfer"
+      | "detail";
     entityId?: string;
     roleIds?: string[];
     description: string;
