@@ -384,12 +384,15 @@ export function EcomProductApp({
   roleId,
   onRoleChange,
   fullScreen,
+  canSwitchRoles = true,
 }: {
   spec: StudioAppSpec;
   role?: StudioRole;
   roleId: string;
   onRoleChange: (id: string) => void;
   fullScreen?: boolean;
+  canSwitchRoles?: boolean;
+  sessionName?: string;
 }) {
   const brand = spec.brandName || "Horizon Market";
   const primary = spec.primaryColor || "#0f2744";
@@ -859,6 +862,12 @@ export function EcomProductApp({
       <UserRound className="h-4 w-4 text-muted-foreground" />
       <select
         value={roleId}
+        disabled={!canSwitchRoles}
+        title={
+          canSwitchRoles
+            ? "App admin: switch Shopper / Seller / Ops portals"
+            : "Your account can only use this role"
+        }
         onChange={(e) => {
           onRoleChange(e.target.value);
           const r = spec.roles.find((x) => x.id === e.target.value);
@@ -873,7 +882,7 @@ export function EcomProductApp({
             "info"
           );
         }}
-        className="max-w-[9rem] bg-transparent text-xs font-semibold outline-none sm:max-w-[12rem] sm:text-sm"
+        className="max-w-[9rem] bg-transparent text-xs font-semibold outline-none sm:max-w-[12rem] sm:text-sm disabled:opacity-60"
       >
         {spec.roles.map((r) => (
           <option key={r.id} value={r.id}>

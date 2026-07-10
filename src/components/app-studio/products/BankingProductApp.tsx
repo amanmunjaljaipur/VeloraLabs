@@ -138,12 +138,15 @@ export function BankingProductApp({
   roleId,
   onRoleChange,
   fullScreen,
+  canSwitchRoles = true,
 }: {
   spec: StudioAppSpec;
   role?: StudioRole;
   roleId: string;
   onRoleChange: (id: string) => void;
   fullScreen?: boolean;
+  canSwitchRoles?: boolean;
+  sessionName?: string;
 }) {
   const accountSeed = spec.entities.find((e) => /account/i.test(e.id))?.seed;
   const transferSeed = spec.entities.find((e) => /transfer|payment|txn/i.test(e.id))?.seed;
@@ -705,6 +708,12 @@ export function BankingProductApp({
               <UserRound className="h-4 w-4 text-accent-teal" />
               <select
                 value={roleId}
+                disabled={!canSwitchRoles}
+                title={
+                  canSwitchRoles
+                    ? "App admin: switch any role to test workflows"
+                    : "Your account can only use this role"
+                }
                 onChange={(e) => {
                   onRoleChange(e.target.value);
                   setTab("home");

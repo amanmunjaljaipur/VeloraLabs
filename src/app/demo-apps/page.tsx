@@ -60,11 +60,14 @@ export default function DemoAppsIndexPage() {
           </p>
           <ul className="list-inside list-disc text-sm text-muted-foreground">
             <li>
-              <strong>Opens in a new tab</strong> as a full-screen product — no Verlin navbar,
-              admin menu, or site footer
+              <strong>Each demo is its own app</strong> — separate sign up / log in, session stays
+              on that app only
             </li>
-            <li>Industry nav: top bar or left sidebar + mobile bottom tabs</li>
-            <li>Multi-sided roles (customer, ops, compliance, teacher, driver…)</li>
+            <li>
+              Signup grants <strong>app admin</strong> so you can switch all roles and test full
+              workflows
+            </li>
+            <li>Opens in a new tab — no Verlin site chrome</li>
           </ul>
         </section>
 
@@ -86,7 +89,7 @@ export default function DemoAppsIndexPage() {
                         {c.brandName}
                       </p>
                       <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        Opens as app ↗
+                        Login · own app ↗
                       </span>
                     </div>
                     <h3 className="mt-1 text-base font-semibold text-foreground">{c.name}</h3>

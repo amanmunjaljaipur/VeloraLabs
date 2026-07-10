@@ -46,12 +46,15 @@ export function ResumeProductApp({
   roleId,
   onRoleChange,
   fullScreen,
+  canSwitchRoles = true,
 }: {
   spec: StudioAppSpec;
   role?: StudioRole;
   roleId: string;
   onRoleChange: (id: string) => void;
   fullScreen?: boolean;
+  canSwitchRoles?: boolean;
+  sessionName?: string;
 }) {
   const entity =
     spec.entities.find((e) => /resume/i.test(e.id) || /resume/i.test(e.name)) ||
@@ -164,6 +167,12 @@ export function ResumeProductApp({
             <UserRound className="h-4 w-4 text-accent-teal" />
             <select
               value={roleId}
+              disabled={!canSwitchRoles}
+              title={
+                canSwitchRoles
+                  ? "App admin: switch any role"
+                  : "Your account can only use this role"
+              }
               onChange={(e) => onRoleChange(e.target.value)}
               className="max-w-[12rem] bg-transparent text-sm font-bold outline-none"
             >

@@ -156,12 +156,15 @@ export function MultiModuleProductApp({
   roleId,
   onRoleChange,
   fullScreen,
+  canSwitchRoles = true,
 }: {
   spec: StudioAppSpec;
   role?: StudioRole;
   roleId: string;
   onRoleChange: (id: string) => void;
   fullScreen?: boolean;
+  canSwitchRoles?: boolean;
+  sessionName?: string;
 }) {
   const visibleScreens = useMemo(
     () =>
@@ -632,8 +635,14 @@ export function MultiModuleProductApp({
               <select
                 value={roleId}
                 onChange={(e) => switchRole(e.target.value)}
-                className="max-w-[10rem] bg-transparent text-sm font-semibold outline-none sm:max-w-[14rem]"
+                disabled={!canSwitchRoles}
+                className="max-w-[10rem] bg-transparent text-sm font-semibold outline-none sm:max-w-[14rem] disabled:opacity-60"
                 aria-label="Role"
+                title={
+                  canSwitchRoles
+                    ? "App admin: switch any role to test workflows"
+                    : "Your account can only use this role"
+                }
               >
                 {spec.roles.map((r) => (
                   <option key={r.id} value={r.id}>
