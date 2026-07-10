@@ -244,11 +244,24 @@ function normalizeAppSpec(
   };
 }
 
+/** Sync heuristic blueprint — used by expand fallback and live-app auto-upgrade. */
+export function buildHeuristicAppSpec(
+  prompt: string,
+  research?: StudioResearchPack | null
+): StudioAppSpec {
+  return heuristicAppSpec(prompt, research);
+}
+
 function heuristicAppSpec(
   prompt: string,
   research?: StudioResearchPack | null
 ): StudioAppSpec {
   const p = prompt.toLowerCase();
+  if (
+    /\bresume|cv\b|linkedin|career|job.?seek|cover.?letter|resumelift\b/.test(p)
+  ) {
+    return resumeSpec(prompt, research);
+  }
   if (/\byoga|class|studio|booking|appointment|salon|spa|clinic\b/.test(p)) {
     return yogaSpec(prompt, research);
   }
@@ -263,6 +276,295 @@ function heuristicAppSpec(
   }
   // Default: multi-role ops board (never a marketing shell)
   return taskBoardSpec(prompt, research);
+}
+
+function resumeSpec(prompt: string, research?: StudioResearchPack | null): StudioAppSpec {
+  const brand =
+    prompt.match(/(?:called|named)\s+["']?([A-Za-z0-9 &'-]{2,40})/i)?.[1] ||
+    (/\bresumelift\b/i.test(prompt) ? "ResumeLift" : null) ||
+    "ResumeLift";
+  const roles: StudioRole[] = [
+    {
+      id: "seeker",
+      label: "Job seeker",
+      description: "Builds resume sections, applies tips, tracks LinkedIn checklist, exports",
+      canCreate: true,
+      canManage: false,
+      isDefault: true,
+    },
+    {
+      id: "coach",
+      label: "Career coach",
+      description: "Reviews client resumes, adds feedback, advances review status",
+      canCreate: true,
+      canManage: true,
+    },
+    {
+      id: "admin",
+      label: "Product admin",
+      description: "Sees all resumes and exports; manages pipeline",
+      canCreate: true,
+      canManage: true,
+    },
+  ];
+  const entities: StudioEntity[] = [
+    {
+      id: "resume",
+      name: "Resume",
+      namePlural: "Resumes",
+      statuses: ["Draft", "In review", "Ready", "Exported"],
+      fields: [
+        { key: "title", label: "Target role", type: "text", required: true },
+        { key: "memberName", label: "Candidate", type: "text", required: true },
+        {
+          key: "level",
+          label: "Level",
+          type: "select",
+          options: ["Student", "Early career", "Experienced", "Career switch"],
+        },
+        { key: "description", label: "Summary / headline", type: "textarea" },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Frontend Engineer",
+          memberName: "Priya S.",
+          level: "Early career",
+          description: "React + TypeScript · 2 years",
+          status: "Draft",
+        },
+        {
+          title: "Product Manager",
+          memberName: "Arjun K.",
+          level: "Experienced",
+          description: "B2B SaaS · 5 years",
+          status: "In review",
+        },
+        {
+          title: "Data Analyst",
+          memberName: "Meera R.",
+          level: "Career switch",
+          description: "SQL + Python · bootcamp grad",
+          status: "Ready",
+        },
+        {
+          title: "Sales Associate",
+          memberName: "You",
+          level: "Student",
+          description: "Campus placements · internship focus",
+          status: "Draft",
+        },
+      ],
+    },
+    {
+      id: "tip",
+      name: "Tip",
+      namePlural: "Tips",
+      statuses: ["Open", "Applied", "Skipped"],
+      fields: [
+        { key: "title", label: "Tip", type: "text", required: true },
+        { key: "description", label: "How to apply", type: "textarea" },
+        {
+          key: "category",
+          label: "Section",
+          type: "select",
+          options: ["Summary", "Experience", "Skills", "LinkedIn", "Export"],
+        },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Lead bullets with impact verbs",
+          description: "Start with Built / Led / Reduced + a metric",
+          category: "Experience",
+          status: "Open",
+        },
+        {
+          title: "Add 3 quantified wins",
+          description: "%, time saved, or ₹ impact for each role",
+          category: "Experience",
+          status: "Open",
+        },
+        {
+          title: "Match skills to JD keywords",
+          description: "Mirror 5–8 terms from the job post",
+          category: "Skills",
+          status: "Applied",
+        },
+        {
+          title: "Rewrite LinkedIn headline",
+          description: "Role · superpower · audience, under 120 chars",
+          category: "LinkedIn",
+          status: "Open",
+        },
+      ],
+    },
+    {
+      id: "checklist",
+      name: "LinkedIn item",
+      namePlural: "LinkedIn checklist",
+      statuses: ["Todo", "Done"],
+      fields: [
+        { key: "title", label: "Item", type: "text", required: true },
+        { key: "description", label: "Notes", type: "textarea" },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        { title: "Photo + banner", description: "Clear headshot", status: "Done" },
+        { title: "Headline", description: "Target role + value", status: "Todo" },
+        { title: "About section", description: "3 short paragraphs", status: "Todo" },
+        { title: "Featured work", description: "Link portfolio or case study", status: "Todo" },
+      ],
+    },
+  ];
+  const screens: StudioScreen[] = [
+    {
+      id: "seeker-home",
+      title: "My dashboard",
+      type: "dashboard",
+      roleIds: ["seeker"],
+      description: "Progress across resumes, tips, LinkedIn",
+    },
+    {
+      id: "my-resumes",
+      title: "My resumes",
+      type: "list",
+      roleIds: ["seeker"],
+      entityId: "resume",
+    },
+    {
+      id: "new-resume",
+      title: "New resume",
+      type: "form",
+      roleIds: ["seeker", "coach", "admin"],
+      entityId: "resume",
+    },
+    {
+      id: "tips",
+      title: "Tips board",
+      type: "board",
+      roleIds: ["seeker", "coach"],
+      entityId: "tip",
+    },
+    {
+      id: "linkedin",
+      title: "LinkedIn checklist",
+      type: "board",
+      roleIds: ["seeker"],
+      entityId: "checklist",
+    },
+    {
+      id: "coach-queue",
+      title: "Review queue",
+      type: "board",
+      roleIds: ["coach", "admin"],
+      entityId: "resume",
+    },
+    {
+      id: "all-resumes",
+      title: "All resumes",
+      type: "list",
+      roleIds: ["admin"],
+      entityId: "resume",
+    },
+    {
+      id: "coach-home",
+      title: "Coach dashboard",
+      type: "dashboard",
+      roleIds: ["coach"],
+    },
+    {
+      id: "admin-home",
+      title: "Admin dashboard",
+      type: "dashboard",
+      roleIds: ["admin"],
+    },
+    {
+      id: "settings",
+      title: "Settings",
+      type: "settings",
+      roleIds: ["admin"],
+    },
+  ];
+  const workflows: StudioWorkflow[] = [
+    {
+      id: "wf-build",
+      name: "Build a resume",
+      description: "Seeker creates a resume and works tips until Ready",
+      roleId: "seeker",
+      steps: [
+        "Open New resume",
+        "Add target role + summary",
+        "Apply tips on Tips board",
+        "Complete LinkedIn checklist",
+        "Move resume to Ready",
+      ],
+      screenId: "new-resume",
+      entityId: "resume",
+    },
+    {
+      id: "wf-linkedin",
+      name: "Upgrade LinkedIn",
+      description: "Tick profile checklist items",
+      roleId: "seeker",
+      steps: ["Open LinkedIn checklist", "Mark items Done", "Rewrite headline"],
+      screenId: "linkedin",
+      entityId: "checklist",
+    },
+    {
+      id: "wf-coach",
+      name: "Coach review",
+      description: "Coach moves resumes In review → Ready and adds tips",
+      roleId: "coach",
+      steps: ["Open Review queue", "Read draft", "Add tip", "Set status Ready"],
+      screenId: "coach-queue",
+      entityId: "resume",
+    },
+    {
+      id: "wf-admin",
+      name: "Ops overview",
+      description: "Admin monitors all resumes and statuses",
+      roleId: "admin",
+      steps: ["Open dashboard", "Scan all resumes", "Fix stuck Drafts"],
+      screenId: "all-resumes",
+      entityId: "resume",
+    },
+  ];
+  return {
+    version: 1,
+    brandName: brand,
+    tagline: "Build · tip · checklist · export",
+    description:
+      research?.summary ||
+      `${brand}: job seekers build resumes with actionable tips and LinkedIn checklist; coaches review; admins see the full pipeline.`,
+    rewrittenPrompt: `Build a complete multi-role career product named ${brand} — NOT a marketing site.
+
+ROLES
+1) Job seeker — create resumes, apply tips (Open → Applied), complete LinkedIn checklist, track status Draft → Ready → Exported.
+2) Career coach — review queue board, change resume status, create tips for clients.
+3) Product admin — all resumes list, dashboards, settings.
+
+WORKFLOWS
+- Build a resume: form → my resumes → tips board → LinkedIn checklist → Ready.
+- Coach review: review queue board → status changes → tips.
+- Admin ops: all resumes + status management.
+
+SCREENS
+Seeker dashboard, My resumes, New resume form, Tips board, LinkedIn checklist, Coach dashboard, Review queue, Admin dashboard, All resumes, Settings.
+
+DATA
+Resume (target role, candidate, level, summary, status). Tip (title, how-to, section, status). LinkedIn checklist items. Seed with realistic India job-seeker examples.
+
+SUCCESS
+Role selector top-right switches nav and workflows. Creating a resume updates lists immediately. Moving board cards changes status. Never a static brochure.`,
+    primaryColor: "#0f2744",
+    accentColor: "#0d9488",
+    roles,
+    entities,
+    screens,
+    workflows,
+    research: research || undefined,
+  };
 }
 
 function yogaSpec(prompt: string, research?: StudioResearchPack | null): StudioAppSpec {

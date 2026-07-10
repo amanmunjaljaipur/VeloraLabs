@@ -4,6 +4,10 @@ import { StudioWorkingApp } from "@/components/app-studio/StudioWorkingApp";
 import { isGenericContent } from "@/lib/app-builder/types";
 import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
+import {
+  resolveInteractiveAppSpec,
+  shouldUseInteractiveRuntime,
+} from "@/lib/app-studio/resolve-interactive";
 import { createMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
@@ -27,7 +31,13 @@ export async function generateMetadata({ params }: PageProps) {
       path: project.publicPath,
     });
   }
-  if (!project.content) return { title: "App not found" };
+  if (!project.content) {
+    return createMetadata({
+      title: `${project.name} · Live app`,
+      description: project.prompt?.slice(0, 160) || project.name,
+      path: project.publicPath,
+    });
+  }
   const c = project.content;
   return createMetadata({
     title: c.seoTitle || `${c.brandName}`,
@@ -50,11 +60,12 @@ export default async function GeneratedAppPage({ params }: PageProps) {
     console.error("[apps] ensureTenantForProject", e);
   }
 
-  // Interactive multi-role App Studio product
-  if (project.runtimeStyle === "studio-interactive" && project.studioAppSpec) {
+  // Non-shop apps: always interactive multi-role product (auto-upgrades old marketing shells)
+  if (shouldUseInteractiveRuntime(project)) {
+    const { spec } = await resolveInteractiveAppSpec(project);
     return (
       <div className="min-h-screen">
-        <StudioWorkingApp spec={project.studioAppSpec} fullScreen />
+        <StudioWorkingApp spec={spec} fullScreen />
       </div>
     );
   }
