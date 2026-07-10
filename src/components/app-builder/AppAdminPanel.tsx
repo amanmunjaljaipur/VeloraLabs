@@ -113,6 +113,11 @@ export function AppAdminPanel({
   const [defaultRoleId, setDefaultRoleId] = useState("customer");
   const [members, setMembers] = useState<Member[]>([]);
   const [products, setProducts] = useState<EcomProduct[]>(content.products || []);
+  const [imagePicker, setImagePicker] = useState<{
+    index: number;
+    loading: boolean;
+    options: Array<{ url: string; source: string; label: string }>;
+  } | null>(null);
   const [invite, setInvite] = useState({ email: "", name: "", password: "", roleId: "staff" });
   const [msg, setMsg] = useState("");
   const [crm, setCrm] = useState<CrmContact[]>([]);
@@ -226,7 +231,59 @@ export function AppAdminPanel({
         category: p.category.trim() || "General",
       }))
       .filter((p) => p.name);
-    await patchContent({ products: cleaned }, "Products saved");
+    // Server fills custom images for any product still missing a photo
+    await patchContent({ products: cleaned, autoImages: true }, "Products saved (photos added)");
+  }
+
+  async function findImagesForProduct(index: number) {
+    const p = products[index];
+    if (!p?.name?.trim()) {
+      setMsg("Type a product name first, then we can search and build photos.");
+      return;
+    }
+    setImagePicker({ index, loading: true, options: [] });
+    setMsg("");
+    try {
+      const res = await fetch(`/api/apps/${slug}/admin/product-images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: p.name,
+          description: p.description,
+          category: p.category,
+        }),
+      });
+      const data = (await res.json()) as {
+        options?: Array<{ url: string; source: string; label: string }>;
+        error?: string;
+      };
+      if (!res.ok) {
+        setMsg(data.error || "Could not find images");
+        setImagePicker(null);
+        return;
+      }
+      setImagePicker({
+        index,
+        loading: false,
+        options: data.options || [],
+      });
+      if (!data.options?.length) {
+        setMsg("No images found — try a clearer product name.");
+      }
+    } catch {
+      setMsg("Image search failed. Try again.");
+      setImagePicker(null);
+    }
+  }
+
+  function pickProductImage(url: string) {
+    if (!imagePicker) return;
+    const next = [...products];
+    const i = imagePicker.index;
+    next[i] = { ...next[i], image: url };
+    setProducts(next);
+    setImagePicker(null);
+    setMsg("Photo selected — click Save products to keep it.");
   }
 
   async function inviteMember() {
@@ -792,13 +849,16 @@ export function AppAdminPanel({
             </div>
           )}
 
-          {/* PRODUCTS — form cards, no JSON */}
+          {/* PRODUCTS — form cards + search/custom images */}
           {section === "admin-products" && !staffOnly && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h1 className="text-2xl font-semibold">Products</h1>
-                  <p className="text-sm text-text-secondary">Edit product cards — no code or JSON.</p>
+                  <p className="text-sm text-text-secondary">
+                    Add products, then <strong>Find photos</strong> — we search the web and build
+                    custom images. Tap one to use it. Saving also auto-adds photos if missing.
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -809,59 +869,74 @@ export function AppAdminPanel({
                 </button>
               </div>
               {products.map((p, i) => (
-                <div key={p.id || i} className="space-y-2 rounded-2xl border border-border bg-card p-4">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <label className="block text-sm">
-                      <span className={label}>Name</span>
-                      <input
-                        className={field}
-                        value={p.name}
-                        onChange={(e) => {
-                          const next = [...products];
-                          next[i] = { ...p, name: e.target.value };
-                          setProducts(next);
-                        }}
-                      />
-                    </label>
-                    <label className="block text-sm">
-                      <span className={label}>Price</span>
-                      <input
-                        className={field}
-                        value={p.price}
-                        onChange={(e) => {
-                          const next = [...products];
-                          next[i] = { ...p, price: e.target.value };
-                          setProducts(next);
-                        }}
-                      />
-                    </label>
-                    <label className="block text-sm">
-                      <span className={label}>Category</span>
-                      <input
-                        className={field}
-                        value={p.category}
-                        onChange={(e) => {
-                          const next = [...products];
-                          next[i] = { ...p, category: e.target.value };
-                          setProducts(next);
-                        }}
-                      />
-                    </label>
-                    <label className="block text-sm">
-                      <span className={label}>Photo link (optional)</span>
-                      <input
-                        className={field}
-                        value={p.image || ""}
-                        onChange={(e) => {
-                          const next = [...products];
-                          next[i] = { ...p, image: e.target.value };
-                          setProducts(next);
-                        }}
-                      />
-                    </label>
+                <div key={p.id || i} className="space-y-3 rounded-2xl border border-border bg-card p-4">
+                  <div className="flex flex-wrap gap-3">
+                    <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                      {p.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.image} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[10px] text-text-muted">
+                          No photo
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <label className="block text-sm">
+                          <span className={label}>Name</span>
+                          <input
+                            className={field}
+                            value={p.name}
+                            onChange={(e) => {
+                              const next = [...products];
+                              next[i] = { ...p, name: e.target.value };
+                              setProducts(next);
+                            }}
+                          />
+                        </label>
+                        <label className="block text-sm">
+                          <span className={label}>Price</span>
+                          <input
+                            className={field}
+                            value={p.price}
+                            onChange={(e) => {
+                              const next = [...products];
+                              next[i] = { ...p, price: e.target.value };
+                              setProducts(next);
+                            }}
+                          />
+                        </label>
+                        <label className="block text-sm">
+                          <span className={label}>Category</span>
+                          <input
+                            className={field}
+                            value={p.category}
+                            onChange={(e) => {
+                              const next = [...products];
+                              next[i] = { ...p, category: e.target.value };
+                              setProducts(next);
+                            }}
+                          />
+                        </label>
+                        <label className="block text-sm">
+                          <span className={label}>Or paste your own photo link</span>
+                          <input
+                            className={field}
+                            value={p.image || ""}
+                            onChange={(e) => {
+                              const next = [...products];
+                              next[i] = { ...p, image: e.target.value };
+                              setProducts(next);
+                            }}
+                            placeholder="https://…"
+                          />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <label className="block text-sm">
-                    <span className={label}>Description</span>
+                    <span className={label}>Description (helps find better photos)</span>
                     <textarea
                       className={field}
                       rows={2}
@@ -873,25 +948,79 @@ export function AppAdminPanel({
                       }}
                     />
                   </label>
-                  <label className="inline-flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(p.featured)}
-                      onChange={(e) => {
-                        const next = [...products];
-                        next[i] = { ...p, featured: e.target.checked };
-                        setProducts(next);
-                      }}
-                    />
-                    Featured on home
-                  </label>
-                  <button
-                    type="button"
-                    className="text-xs text-red-600"
-                    onClick={() => setProducts(products.filter((_, j) => j !== i))}
-                  >
-                    Remove product
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(p.featured)}
+                        onChange={(e) => {
+                          const next = [...products];
+                          next[i] = { ...p, featured: e.target.checked };
+                          setProducts(next);
+                        }}
+                      />
+                      Featured on home
+                    </label>
+                    <button
+                      type="button"
+                      className="rounded-xl px-3 py-1.5 text-xs font-semibold text-white"
+                      style={{ background: accent }}
+                      onClick={() => void findImagesForProduct(i)}
+                    >
+                      Find photos for this product
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs text-red-600"
+                      onClick={() => setProducts(products.filter((_, j) => j !== i))}
+                    >
+                      Remove product
+                    </button>
+                  </div>
+
+                  {imagePicker?.index === i ? (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3">
+                      <p className="mb-2 text-xs font-semibold text-foreground">
+                        {imagePicker.loading
+                          ? "Searching the web and building custom photos…"
+                          : "Tap a photo to use it"}
+                      </p>
+                      {imagePicker.loading ? (
+                        <p className="text-xs text-text-muted">Please wait a few seconds…</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                          {imagePicker.options.map((opt) => (
+                            <button
+                              key={opt.url}
+                              type="button"
+                              onClick={() => pickProductImage(opt.url)}
+                              className="group overflow-hidden rounded-xl border border-border bg-card text-left hover:border-accent-teal"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={opt.url}
+                                alt=""
+                                className="aspect-square w-full object-cover"
+                                loading="lazy"
+                              />
+                              <span className="block truncate px-1.5 py-1 text-[10px] text-text-muted">
+                                {opt.source === "custom" ? "Custom" : "Web"} · {opt.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {!imagePicker.loading ? (
+                        <button
+                          type="button"
+                          className="mt-2 text-xs text-text-muted underline"
+                          onClick={() => setImagePicker(null)}
+                        >
+                          Close
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               ))}
               <button

@@ -6,7 +6,7 @@
 
 import type { EcomProduct, ShopLogo } from "@/lib/app-builder/types";
 
-function seedFrom(...parts: string[]): number {
+export function seedFrom(...parts: string[]): number {
   const s = parts.join("|").toLowerCase();
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;

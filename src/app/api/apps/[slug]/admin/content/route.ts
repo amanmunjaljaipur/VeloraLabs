@@ -1,4 +1,5 @@
 import { requireAppCapability } from "@/lib/app-builder/app-auth";
+import { ensureProductImages } from "@/lib/app-builder/product-images";
 import { getAppProjectBySlug, saveAppProject } from "@/lib/app-builder/store";
 import type { EcomLocalShopContent, EcomProduct } from "@/lib/app-builder/types";
 import { NextResponse } from "next/server";
@@ -52,6 +53,8 @@ export async function PATCH(request: Request, context: Ctx) {
     logoImageUrl?: string;
     heroImageUrl?: string;
     faqs?: Array<{ question: string; answer: string }>;
+    /** When true, regenerate AI images for products missing a user-picked photo */
+    autoImages?: boolean;
   };
   try {
     body = await request.json();
@@ -61,8 +64,15 @@ export async function PATCH(request: Request, context: Ctx) {
 
   const content: EcomLocalShopContent = { ...project.content };
   if (body.products) {
-    content.products = body.products;
-    content.categories = [...new Set(body.products.map((p) => p.category || "General"))];
+    const withImages =
+      body.autoImages !== false
+        ? ensureProductImages(body.products, {
+            brandName: content.brandName,
+            city: content.city,
+          })
+        : body.products;
+    content.products = withImages;
+    content.categories = [...new Set(withImages.map((p) => p.category || "General"))];
   }
   if (body.brandName?.trim()) content.brandName = body.brandName.trim();
   if (body.tagline !== undefined) content.tagline = body.tagline;
