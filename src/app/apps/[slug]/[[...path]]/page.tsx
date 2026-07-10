@@ -60,14 +60,20 @@ export default async function GeneratedAppPage({ params }: PageProps) {
     console.error("[apps] ensureTenantForProject", e);
   }
 
-  // Non-shop apps: always interactive multi-role product (auto-upgrades old marketing shells)
+  // Non-shop apps: always interactive multi-role product (auto-upgrades old marketing shells
+  // e.g. ResumeLift, Verlin Bank from App Builder / App Studio)
   if (shouldUseInteractiveRuntime(project)) {
-    const { spec } = await resolveInteractiveAppSpec(project);
-    return (
-      <div className="min-h-screen">
-        <StudioWorkingApp spec={spec} fullScreen />
-      </div>
-    );
+    try {
+      const { spec } = await resolveInteractiveAppSpec(project);
+      return (
+        <div className="min-h-screen bg-background">
+          <StudioWorkingApp key={`${project.slug}-${spec.brandName}`} spec={spec} fullScreen />
+        </div>
+      );
+    } catch (e) {
+      console.error("[apps] interactive upgrade failed", e);
+      // fall through to content runtime only as last resort
+    }
   }
 
   if (project.content) {

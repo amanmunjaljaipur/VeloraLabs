@@ -247,22 +247,36 @@ function normalizeAppSpec(
 /** Sync heuristic blueprint — used by expand fallback and live-app auto-upgrade. */
 export function buildHeuristicAppSpec(
   prompt: string,
-  research?: StudioResearchPack | null
+  research?: StudioResearchPack | null,
+  hints?: { extensionId?: string; slug?: string; name?: string }
 ): StudioAppSpec {
-  return heuristicAppSpec(prompt, research);
+  return heuristicAppSpec(prompt, research, hints);
 }
 
 function heuristicAppSpec(
   prompt: string,
-  research?: StudioResearchPack | null
+  research?: StudioResearchPack | null,
+  hints?: { extensionId?: string; slug?: string; name?: string }
 ): StudioAppSpec {
-  const p = prompt.toLowerCase();
+  const p = `${prompt} ${hints?.extensionId || ""} ${hints?.slug || ""} ${hints?.name || ""}`.toLowerCase();
   if (
+    hints?.extensionId === "digital-banking" ||
+    /\bbank|neobank|fintech|wallet|upi|transfer money|digital.?bank|verlin.?bank|horizon bank\b/.test(
+      p
+    )
+  ) {
+    return bankingSpec(prompt, research, hints?.name);
+  }
+  if (
+    hints?.extensionId === "resume-career" ||
     /\bresume|cv\b|linkedin|career|job.?seek|cover.?letter|resumelift\b/.test(p)
   ) {
     return resumeSpec(prompt, research);
   }
-  if (/\byoga|class|studio|booking|appointment|salon|spa|clinic\b/.test(p)) {
+  if (
+    hints?.extensionId === "booking-local" ||
+    /\byoga|class|studio|booking|appointment|salon|spa|clinic\b/.test(p)
+  ) {
     return yogaSpec(prompt, research);
   }
   if (/\bexpense|claim|receipt|reimburse|finance|budget\b/.test(p)) {
@@ -276,6 +290,361 @@ function heuristicAppSpec(
   }
   // Default: multi-role ops board (never a marketing shell)
   return taskBoardSpec(prompt, research);
+}
+
+function bankingSpec(
+  prompt: string,
+  research?: StudioResearchPack | null,
+  preferredName?: string
+): StudioAppSpec {
+  const brand =
+    preferredName ||
+    prompt.match(/(?:called|named)\s+["']?([A-Za-z0-9 &'-]{2,40})/i)?.[1] ||
+    (/\bverlin\b/i.test(prompt) ? "Verlin Bank" : null) ||
+    "Horizon Bank";
+  const roles: StudioRole[] = [
+    {
+      id: "customer",
+      label: "Customer",
+      description: "See balances, send money, freeze cards, view transactions",
+      canCreate: true,
+      canManage: true,
+      isDefault: true,
+    },
+    {
+      id: "support",
+      label: "Support agent",
+      description: "Handle customer cases and payment disputes",
+      canCreate: true,
+      canManage: true,
+    },
+    {
+      id: "ops",
+      label: "Bank ops",
+      description: "Review transfers, cards, and risk flags across all customers",
+      canCreate: true,
+      canManage: true,
+    },
+  ];
+  const entities: StudioEntity[] = [
+    {
+      id: "account",
+      name: "Account",
+      namePlural: "Accounts",
+      statuses: ["Active", "Frozen", "Closed"],
+      fields: [
+        { key: "title", label: "Account name", type: "text", required: true },
+        {
+          key: "level",
+          label: "Type",
+          type: "select",
+          options: ["Savings", "Current", "Wallet"],
+        },
+        { key: "amount", label: "Balance (₹)", type: "number", required: true },
+        { key: "memberName", label: "Holder", type: "text" },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Everyday Savings",
+          level: "Savings",
+          amount: 84250,
+          memberName: "You",
+          status: "Active",
+        },
+        {
+          title: "Salary Current",
+          level: "Current",
+          amount: 126400,
+          memberName: "You",
+          status: "Active",
+        },
+        {
+          title: "UPI Wallet",
+          level: "Wallet",
+          amount: 2340,
+          memberName: "You",
+          status: "Active",
+        },
+        {
+          title: "Emergency Fund",
+          level: "Savings",
+          amount: 50000,
+          memberName: "You",
+          status: "Frozen",
+        },
+      ],
+    },
+    {
+      id: "transfer",
+      name: "Transfer",
+      namePlural: "Transfers",
+      statuses: ["Pending", "2FA", "Completed", "Failed"],
+      fields: [
+        { key: "title", label: "Payee", type: "text", required: true },
+        { key: "amount", label: "Amount (₹)", type: "number", required: true },
+        { key: "description", label: "Reference / note", type: "textarea" },
+        {
+          key: "plan",
+          label: "From account",
+          type: "select",
+          options: ["Everyday Savings", "Salary Current", "UPI Wallet"],
+        },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Asha Sharma (UPI)",
+          amount: 1500,
+          description: "Dinner split",
+          plan: "UPI Wallet",
+          status: "Completed",
+        },
+        {
+          title: "BESCOM bill",
+          amount: 2200,
+          description: "Electricity Mar",
+          plan: "Salary Current",
+          status: "Completed",
+        },
+        {
+          title: "Rohan Mehta",
+          amount: 25000,
+          description: "Rent",
+          plan: "Salary Current",
+          status: "Pending",
+        },
+        {
+          title: "Unknown UPI",
+          amount: 9000,
+          description: "Flagged for review",
+          plan: "Everyday Savings",
+          status: "2FA",
+        },
+      ],
+    },
+    {
+      id: "card",
+      name: "Card",
+      namePlural: "Cards",
+      statuses: ["Active", "Frozen", "Blocked"],
+      fields: [
+        { key: "title", label: "Card", type: "text", required: true },
+        {
+          key: "level",
+          label: "Type",
+          type: "select",
+          options: ["Debit", "Virtual", "Credit"],
+        },
+        { key: "amount", label: "Spend limit (₹)", type: "number" },
+        { key: "description", label: "Last 4 / note", type: "text" },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Primary debit",
+          level: "Debit",
+          amount: 50000,
+          description: "•••• 4821",
+          status: "Active",
+        },
+        {
+          title: "Online virtual",
+          level: "Virtual",
+          amount: 15000,
+          description: "•••• 9033",
+          status: "Active",
+        },
+        {
+          title: "Travel card",
+          level: "Debit",
+          amount: 20000,
+          description: "•••• 1102",
+          status: "Frozen",
+        },
+      ],
+    },
+    {
+      id: "case",
+      name: "Support case",
+      namePlural: "Support cases",
+      statuses: ["Open", "In progress", "Resolved"],
+      fields: [
+        { key: "title", label: "Subject", type: "text", required: true },
+        { key: "memberName", label: "Customer", type: "text" },
+        { key: "description", label: "Details", type: "textarea" },
+        { key: "status", label: "Status", type: "status" },
+      ],
+      seed: [
+        {
+          title: "Card not working overseas",
+          memberName: "Priya S.",
+          description: "Declined in Singapore",
+          status: "Open",
+        },
+        {
+          title: "Transfer stuck Pending",
+          memberName: "Arjun K.",
+          description: "Rent transfer 25k",
+          status: "In progress",
+        },
+        {
+          title: "Limit increase request",
+          memberName: "Meera R.",
+          description: "Virtual card limit",
+          status: "Resolved",
+        },
+      ],
+    },
+  ];
+  const screens: StudioScreen[] = [
+    {
+      id: "cust-home",
+      title: "Home",
+      type: "dashboard",
+      roleIds: ["customer"],
+      description: "Balances and quick actions",
+    },
+    {
+      id: "accounts",
+      title: "Accounts",
+      type: "list",
+      roleIds: ["customer", "ops"],
+      entityId: "account",
+    },
+    {
+      id: "transfer",
+      title: "Send money",
+      type: "form",
+      roleIds: ["customer"],
+      entityId: "transfer",
+    },
+    {
+      id: "transfers",
+      title: "My transfers",
+      type: "list",
+      roleIds: ["customer"],
+      entityId: "transfer",
+    },
+    {
+      id: "cards",
+      title: "Cards",
+      type: "board",
+      roleIds: ["customer", "ops"],
+      entityId: "card",
+    },
+    {
+      id: "support-home",
+      title: "Agent home",
+      type: "dashboard",
+      roleIds: ["support"],
+    },
+    {
+      id: "cases",
+      title: "Cases",
+      type: "board",
+      roleIds: ["support", "ops"],
+      entityId: "case",
+    },
+    {
+      id: "ops-home",
+      title: "Ops home",
+      type: "dashboard",
+      roleIds: ["ops"],
+    },
+    {
+      id: "ops-transfers",
+      title: "All transfers",
+      type: "board",
+      roleIds: ["ops", "support"],
+      entityId: "transfer",
+    },
+    {
+      id: "settings",
+      title: "Security & settings",
+      type: "settings",
+      roleIds: ["customer", "ops"],
+    },
+  ];
+  const workflows: StudioWorkflow[] = [
+    {
+      id: "wf-pay",
+      name: "Send money",
+      description: "Customer pays someone: form → Pending/2FA → Completed",
+      roleId: "customer",
+      steps: [
+        "Open Send money",
+        "Enter payee + amount",
+        "Submit (Pending)",
+        "Confirm 2FA on board/list",
+        "See Completed",
+      ],
+      screenId: "transfer",
+      entityId: "transfer",
+    },
+    {
+      id: "wf-freeze",
+      name: "Freeze a card",
+      description: "Customer freezes a lost/stolen card on the cards board",
+      roleId: "customer",
+      steps: ["Open Cards", "Find card", "Move to Frozen", "Optional raise support case"],
+      screenId: "cards",
+      entityId: "card",
+    },
+    {
+      id: "wf-case",
+      name: "Resolve a case",
+      description: "Support agent works Open → In progress → Resolved",
+      roleId: "support",
+      steps: ["Open Cases board", "Pick Open case", "Move In progress", "Resolve"],
+      screenId: "cases",
+      entityId: "case",
+    },
+    {
+      id: "wf-ops",
+      name: "Review risky transfers",
+      description: "Ops clears Pending/2FA transfers or marks Failed",
+      roleId: "ops",
+      steps: ["Open All transfers", "Review 2FA/Pending", "Complete or Fail"],
+      screenId: "ops-transfers",
+      entityId: "transfer",
+    },
+  ];
+  return {
+    version: 1,
+    brandName: brand,
+    tagline: "Accounts · pay · cards · support",
+    description:
+      research?.summary ||
+      `${brand}: customers manage accounts and transfers; support handles cases; ops reviews payments and cards. Demo only — no real money movement.`,
+    rewrittenPrompt: `Build a COMPLETE multi-role digital banking product named ${brand} — NOT a marketing website.
+
+ROLES
+1) Customer — home dashboard with account counts, list accounts, send money form, my transfers, freeze cards board, security settings.
+2) Support agent — cases board (Open / In progress / Resolved).
+3) Bank ops — all transfers board, cards, accounts overview.
+
+WORKFLOWS
+- Send money: form → Pending → 2FA → Completed/Failed.
+- Freeze card: cards board Active → Frozen.
+- Support case: Open → In progress → Resolved.
+- Ops review: clear Pending/2FA transfers.
+
+SCREENS
+Customer Home, Accounts, Send money, My transfers, Cards, Agent home, Cases, Ops home, All transfers, Security settings.
+
+DATA with seed India-style amounts in ₹. Label as demo / fictional bank.
+
+SUCCESS
+Role selector top-right changes nav. Creating a transfer updates lists. Moving board cards changes status. Never a brochure with only highlights.`,
+    primaryColor: "#0b1f3a",
+    accentColor: "#0d9488",
+    roles,
+    entities,
+    screens,
+    workflows,
+    research: research || undefined,
+  };
 }
 
 function resumeSpec(prompt: string, research?: StudioResearchPack | null): StudioAppSpec {
