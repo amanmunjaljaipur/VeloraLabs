@@ -4,6 +4,7 @@
  */
 import { getExtension } from "@/lib/app-builder/extensions";
 import { callUserLlm, defaultModelForProvider, parseJsonObject } from "@/lib/app-builder/llm";
+import { getPlatformAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import type {
   AppLlmSecrets,
   InterviewQuestion,
@@ -191,26 +192,6 @@ export function fallbackInterviewQuestions(
   return ensureCoreQuestions(merged, extensionId);
 }
 
-function platformSecretsFromEnv(): AppLlmSecrets | null {
-  const xai = process.env.XAI_API_KEY?.trim();
-  if (xai) {
-    return {
-      provider: "xai",
-      apiKey: xai,
-      model: process.env.XAI_MODEL?.trim() || defaultModelForProvider("xai"),
-    };
-  }
-  const groq = process.env.GROQ_API_KEY?.trim();
-  if (groq) {
-    return {
-      provider: "groq",
-      apiKey: groq,
-      model: process.env.GROQ_MODEL?.trim() || defaultModelForProvider("groq"),
-    };
-  }
-  return null;
-}
-
 const PM_SYSTEM = `You are a senior product manager for Verlin Labs App Builder.
 You design SHORT guided interviews for people who are NOT technical
 (school students' parents, local shop owners, first-time founders in India).
@@ -262,7 +243,7 @@ export async function designInterviewQuestions(
 
   const secrets = input.secrets?.apiKey?.trim()
     ? input.secrets
-    : platformSecretsFromEnv();
+    : getPlatformAppBuilderSecrets();
 
   if (!secrets) {
     return {

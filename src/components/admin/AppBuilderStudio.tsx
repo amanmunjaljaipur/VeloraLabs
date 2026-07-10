@@ -88,6 +88,8 @@ export function AppBuilderStudio() {
   const [showAdvancedAi, setShowAdvancedAi] = useState(false);
   const [busy, setBusy] = useState(false);
   const [activeProject, setActiveProject] = useState<AppProject | null>(null);
+  const [usePlatformKeyByDefault, setUsePlatformKeyByDefault] = useState(false);
+  const [platformGrokReady, setPlatformGrokReady] = useState(false);
 
   const extension = useMemo(
     () => extensions.find((e) => e.id === extensionId) ?? null,
@@ -110,18 +112,22 @@ export function AppBuilderStudio() {
       extensions: AppExtensionMeta[];
       ideaExamples?: AppIdeaExample[];
       llmProviders: LlmProviderOption[];
+      platformGrokReady?: boolean;
+      usePlatformKeyByDefault?: boolean;
     };
     setProjects(data.projects);
     setExtensions(data.extensions);
     setIdeaExamples(data.ideaExamples || []);
     setLlmProviders(data.llmProviders);
+    setPlatformGrokReady(Boolean(data.platformGrokReady));
+    setUsePlatformKeyByDefault(Boolean(data.usePlatformKeyByDefault));
     if (data.extensions[0]) setExtensionId(data.extensions[0].id);
-    if (data.llmProviders[0]) {
-      setProvider(data.llmProviders[0].id);
-      setModel(data.llmProviders[0].defaultModel);
-      if (data.llmProviders[0].id !== "custom") {
-        setBaseUrl(data.llmProviders[0].baseUrl);
-      }
+    // Prefer Grok when platform key is ready
+    const xai = data.llmProviders.find((p) => p.id === "xai") || data.llmProviders[0];
+    if (xai) {
+      setProvider(xai.id);
+      setModel(xai.defaultModel);
+      if (xai.id !== "custom") setBaseUrl(xai.baseUrl);
     }
   }, [toast]);
 
@@ -319,7 +325,7 @@ export function AppBuilderStudio() {
         return;
       }
     }
-    if (!apiKey.trim()) {
+    if (!apiKey.trim() && !usePlatformKeyByDefault && !platformGrokReady) {
       toast("Paste your AI helper key so we can write the shop pages for you.", "error");
       setStep("ai");
       return;
@@ -353,11 +359,13 @@ export function AppBuilderStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId: createData.project.id,
-          apiKey: apiKey.trim(),
+          // Super admin: omit key → server uses XAI_API_KEY
+          apiKey: apiKey.trim() || undefined,
           provider,
           model,
           baseUrl: provider === "custom" ? baseUrl : undefined,
           publish: true,
+          usePlatformKey: !apiKey.trim(),
         }),
       });
       const genData = (await genRes.json()) as {
@@ -927,11 +935,20 @@ export function AppBuilderStudio() {
                   Back
                 </button>
               </div>
-              <p className="text-sm text-text-secondary">
-                Your AI helper writes product names, page text, and FAQ in simple language. You use{" "}
-                <strong>your own</strong> key from Grok or Groq. We use it <strong>only once</strong>{" "}
-                to build the shop — we <strong>never store</strong> the key.
-              </p>
+              {usePlatformKeyByDefault || platformGrokReady ? (
+                <div className="rounded-xl border border-accent-teal/25 bg-accent-teal/5 p-3 text-sm text-text-secondary">
+                  <p className="font-semibold text-foreground">Platform Grok is ready</p>
+                  <p className="mt-1">
+                    Super admin can build without pasting a key. Question design and shop writing use
+                    the server Grok key by default. You may still paste your own key below to override.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-text-secondary">
+                  Your AI helper writes product names, page text, and FAQ in simple language. Paste a
+                  Grok or Groq key — used <strong>only once</strong>, never stored.
+                </p>
+              )}
 
               <fieldset className="grid gap-2 sm:grid-cols-3">
                 {llmProviders.map((p) => (
@@ -956,7 +973,9 @@ export function AppBuilderStudio() {
 
               <label className="block text-sm">
                 <span className="mb-1 block text-xs font-medium text-text-secondary">
-                  Paste your AI key here *
+                  {usePlatformKeyByDefault
+                    ? "Optional: paste your own AI key to override platform Grok"
+                    : "Paste your AI key here *"}
                 </span>
                 <input
                   type="password"
@@ -964,7 +983,13 @@ export function AppBuilderStudio() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder={
-                    provider === "xai" ? "starts with xai-…" : provider === "groq" ? "starts with gsk_…" : "your key…"
+                    usePlatformKeyByDefault
+                      ? "Leave blank to use platform Grok"
+                      : provider === "xai"
+                        ? "starts with xai-…"
+                        : provider === "groq"
+                          ? "starts with gsk_…"
+                          : "your key…"
                   }
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 font-mono text-sm"
                 />

@@ -6,12 +6,14 @@ import {
   slugifyAppName,
 } from "@/lib/app-builder/extensions";
 import { defaultModelForProvider } from "@/lib/app-builder/llm";
+import { hasPlatformAppBuilderLlm } from "@/lib/app-builder/platform-llm";
 import {
   listAppProjects,
   saveAppProject,
   uniqueAppSlug,
 } from "@/lib/app-builder/store";
 import type { AppInterviewAnswer, AppProject, LlmProviderKind } from "@/lib/app-builder/types";
+import { isSuperAdminRole } from "@/lib/session-access";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -21,19 +23,29 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const projects = await listAppProjects();
+  const platformGrokReady = hasPlatformAppBuilderLlm();
+  const isSuperAdmin = isSuperAdminRole(session.user?.role);
 
   return NextResponse.json({
     projects,
     extensions: APP_EXTENSIONS,
     ideaExamples: APP_IDEA_EXAMPLES,
+    platformGrokReady,
+    isSuperAdmin,
+    /** Super admin can skip pasting a key when platform key is set */
+    usePlatformKeyByDefault: isSuperAdmin && platformGrokReady,
     llmProviders: [
       {
         id: "xai" as const,
         label: "Grok (xAI)",
-        plainLabel: "Grok — smart AI helper from xAI",
+        plainLabel: platformGrokReady
+          ? "Grok (platform default for super admin)"
+          : "Grok — smart AI helper from xAI",
         defaultModel: defaultModelForProvider("xai"),
         baseUrl: "https://api.x.ai/v1",
-        hint: "Paste the key you get from console.x.ai. We never save it.",
+        hint: platformGrokReady
+          ? "Server Grok key is configured. Super admin can leave the key blank."
+          : "Paste the key you get from console.x.ai. We never save it.",
       },
       {
         id: "groq" as const,

@@ -1,18 +1,21 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
 import { packageAppProject } from "@/lib/app-builder/packager";
+import { resolveAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import { getAppProject, saveAppProject } from "@/lib/app-builder/store";
 import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
-import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
+import type { LlmProviderKind } from "@/lib/app-builder/types";
+import { isSuperAdminRole } from "@/lib/session-access";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 /**
- * Generate + publish app content using the caller's LLM API key.
- * Secrets are request-only and never stored.
- * Awaits Blob persist so the public /apps/{slug} page works on any server instance.
+ * Generate + publish app content.
+ * Super admin: uses platform XAI_API_KEY by default (no paste required).
+ * Others: may paste their own key; platform key used as fallback when configured.
+ * Keys from the request are never stored.
  */
 export async function POST(request: Request) {
   const session = await requireCmsEditor();
@@ -25,6 +28,7 @@ export async function POST(request: Request) {
     model?: string;
     baseUrl?: string;
     publish?: boolean;
+    usePlatformKey?: boolean;
   };
 
   try {
@@ -36,25 +40,28 @@ export async function POST(request: Request) {
   if (!body.projectId) {
     return NextResponse.json({ error: "projectId is required" }, { status: 400 });
   }
-  if (!body.apiKey?.trim()) {
-    return NextResponse.json(
-      {
-        error:
-          "Please paste your AI helper key (from Grok, Groq, or your own AI). We use it once and never save it.",
-      },
-      { status: 400 }
-    );
-  }
 
   const project = await getAppProject(body.projectId);
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
-  const secrets: AppLlmSecrets = {
+  const isSuper = isSuperAdminRole(session.user?.role);
+  const secrets = resolveAppBuilderSecrets({
+    apiKey: body.apiKey,
     provider: body.provider || project.llm.provider || "xai",
-    apiKey: body.apiKey.trim(),
     model: body.model || project.llm.model,
     baseUrl: body.baseUrl || project.llm.baseUrl,
-  };
+  });
+
+  if (!secrets) {
+    return NextResponse.json(
+      {
+        error: isSuper
+          ? "Platform Grok key is not configured. Set XAI_API_KEY on the server."
+          : "Please paste your AI helper key (Grok / Groq / custom), or ask an admin to set XAI_API_KEY.",
+      },
+      { status: 400 }
+    );
+  }
 
   try {
     const { content, generatedBy } = await generateExtensionContent({
