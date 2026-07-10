@@ -1222,7 +1222,28 @@ export function BankingProductApp({
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => flash(`${m} statement download started (demo success)`, "success")}
+                  onClick={() => {
+                    const body = [
+                      `${spec.brandName} — Account statement`,
+                      `Period: ${m}`,
+                      `Generated: ${new Date().toISOString()}`,
+                      "",
+                      "Date,Description,Amount,Status",
+                      "2026-03-01,Salary credit,85000,Success",
+                      "2026-03-05,UPI to merchant,-1240,Success",
+                      "2026-03-12,NEFT rent,-25000,Success",
+                      "",
+                      "Demo file only — not a bank statement.",
+                    ].join("\n");
+                    const blob = new Blob([body], { type: "text/csv;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `statement-${m.replace(/\s+/g, "-").toLowerCase()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    flash(`${m} statement downloaded (CSV demo)`, "success");
+                  }}
                 >
                   Download
                 </Button>
