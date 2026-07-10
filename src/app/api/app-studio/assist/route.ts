@@ -36,8 +36,7 @@ function secretsFromBody(body: {
   }
   const list = listEnvSecrets();
   if (list.length) return list;
-  const groq = getDefaultGroqSecrets();
-  return groq ? [groq] : [];
+  return [getDefaultGroqSecrets()];
 }
 
 function systemFor(action: AssistAction): string {

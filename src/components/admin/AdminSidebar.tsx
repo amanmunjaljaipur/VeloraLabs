@@ -40,6 +40,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/agents": Shield,
   "/admin/blog": PenLine,
   "/admin/app-studio": Rocket,
+  "/demo-apps": Rocket,
   "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,

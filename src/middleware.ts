@@ -30,7 +30,9 @@ function isStandaloneAppPath(pathname: string): boolean {
   return (
     pathname === "/apps" ||
     pathname.startsWith("/apps/") ||
-    pathname.startsWith("/api/apps/")
+    pathname.startsWith("/api/apps/") ||
+    pathname === "/demo-apps" ||
+    pathname.startsWith("/demo-apps/")
   );
 }
 

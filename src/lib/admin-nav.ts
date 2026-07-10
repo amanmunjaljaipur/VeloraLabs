@@ -74,6 +74,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI app generator — chat, live preview, code, version history",
   },
   {
+    label: "50 Demo Apps",
+    href: "/demo-apps",
+    description: "Interactive multi-role demos for 50 product categories",
+  },
+  {
     label: "Verlin Bank",
     href: "/admin/verlin-bank",
     description: "Verlin Bank prototype (Project Aura) - RBAC & multi-agent banking dashboard",

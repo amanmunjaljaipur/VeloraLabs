@@ -53,9 +53,8 @@ function friendlyLlmError(err: unknown): StudioLlmError {
 function listEnvSecrets(): AppLlmSecrets[] {
   const list: AppLlmSecrets[] = [];
 
-  // Groq always first when configured (GROQ_API_KEY / GROQ_FALLBACK_KEY)
-  const groq = getDefaultGroqSecrets();
-  if (groq) list.push(groq);
+  // Groq always first (env or platform default)
+  list.push(getDefaultGroqSecrets());
 
   const anthropic = process.env.ANTHROPIC_API_KEY?.trim();
   if (anthropic) {
