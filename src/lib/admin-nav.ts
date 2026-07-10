@@ -69,9 +69,14 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI blog posts, daily sequence, schedule publish",
   },
   {
+    label: "Forge",
+    href: "/admin/forge",
+    description: "AI product builder — discovery, editable plan, then build",
+  },
+  {
     label: "App Builder",
     href: "/admin/app-builder",
-    description: "Build any app from a prompt (shop, banking, resume…)",
+    description: "Classic studio — prompt, interview, plan, deploy",
   },
   {
     label: "Newsletter Studio",

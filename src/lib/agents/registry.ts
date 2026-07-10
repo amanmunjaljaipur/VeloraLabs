@@ -19,6 +19,7 @@ export type PlatformAgentId =
   | "app-vertical-research"
   | "app-interview"
   | "app-builder-generate"
+  | "forge-discovery"
   | "app-content"
   | "app-theme"
   | "app-admin-design"
@@ -105,9 +106,20 @@ export const PLATFORM_AGENTS: PlatformAgentDef[] = [
     area: "App Builder",
     kind: "runtime",
     description: "Generates live multi-tenant app content (shop or generic product sites).",
-    surfaces: ["Admin → App Builder → Build"],
-    routes: ["/api/admin/app-builder/generate"],
+    surfaces: ["Admin → App Builder → Build", "Admin → Forge → Build"],
+    routes: ["/api/admin/app-builder/generate", "/api/forge/build"],
     pausableRuntime: true,
+  },
+  {
+    id: "forge-discovery",
+    name: "Forge Discovery",
+    area: "App Builder",
+    kind: "runtime",
+    description:
+      "Adaptive product interview + editable plan for Forge (discovery-first builder).",
+    surfaces: ["Admin → Forge"],
+    routes: ["/api/forge/discovery", "/api/forge/plan", "/api/forge/plan/edit"],
+    pausableRuntime: false,
   },
   {
     id: "app-content",
