@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * Amazon-style mass marketplace product runtime.
- * IA mirrors Amazon web/app: top utility bar, search, account/orders/cart,
- * department strip, home rails, PDP, cart, checkout, orders, returns, seller central.
+ * Premium multi-sided marketplace runtime (original product UI).
+ * Commerce jobs of a mature marketplace — search, catalog, PDP, cart, checkout,
+ * orders, returns, wish list, seller hub, ops — with Verlin Labs visual system.
+ * Not a visual clone of any third-party brand.
  */
 
 import { Badge } from "@/components/ui/Badge";
@@ -15,21 +16,25 @@ import type { StudioAppSpec, StudioRole } from "@/lib/app-studio/types";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
-  ChevronDown,
+  ChevronRight,
   Heart,
   Home,
+  LayoutGrid,
   Loader2,
   MapPin,
-  Menu,
   Package,
   Search,
+  ShieldCheck,
+  ShoppingBag,
   ShoppingCart,
-  Star,
+  Sparkles,
   Store,
   Truck,
   UserRound,
   XCircle,
+  Zap,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -43,11 +48,12 @@ type Product = {
   category: string;
   rating: number;
   reviews: number;
-  prime: boolean;
+  express: boolean;
   status: "Active" | "Out of stock" | "Suspended";
   description: string;
   seller: string;
   badge?: string;
+  hue: string;
 };
 
 type CartLine = { productId: string; qty: number };
@@ -64,164 +70,165 @@ type Order = {
 
 type PageId =
   | "home"
-  | "search"
+  | "browse"
   | "pdp"
   | "cart"
   | "checkout"
   | "orders"
   | "returns"
   | "account"
-  | "lists"
+  | "saved"
   | "addresses"
-  | "customer-service"
-  | "departments"
+  | "help"
   | "deals"
   | "seller"
   | "seller-orders"
   | "seller-inventory"
   | "ops";
 
-const DEPARTMENTS = [
+const CATEGORIES = [
   "All",
   "Electronics",
-  "Computers",
-  "Smart Home",
-  "Arts & Crafts",
-  "Automotive",
-  "Baby",
-  "Beauty",
   "Fashion",
-  "Health",
-  "Home & Kitchen",
+  "Home",
   "Books",
   "Sports",
-  "Toys",
+  "Beauty",
   "Grocery",
+  "Work",
 ] as const;
 
-const DEFAULT_PRODUCTS: Product[] = [
+const CATALOG: Product[] = [
   {
     id: "p1",
-    title: "Noise Cancelling Wireless Earbuds Pro",
+    title: "Auralis ANC Earbuds",
     price: 2499,
     mrp: 4999,
     category: "Electronics",
-    rating: 4.4,
-    reviews: 12840,
-    prime: true,
+    rating: 4.5,
+    reviews: 2840,
+    express: true,
     status: "Active",
-    description: "40hr battery · IPX5 · dual device connect. Fulfilled by marketplace.",
-    seller: "AudioHub Official",
-    badge: "Best seller",
+    description: "Active noise cancel · 36h case battery · dual-device connect. Ideal for commute and focus blocks.",
+    seller: "Auralis Official",
+    badge: "Editor pick",
+    hue: "from-sky-500/20 to-indigo-600/30",
   },
   {
     id: "p2",
-    title: "Premium Yoga Mat 6mm Anti-Slip",
+    title: "StudioFlow Yoga Mat 6mm",
     price: 899,
     mrp: 1499,
     category: "Sports",
-    rating: 4.2,
-    reviews: 3201,
-    prime: true,
+    rating: 4.3,
+    reviews: 1201,
+    express: true,
     status: "Active",
-    description: "Non-slip TPE · carry strap · eco-friendly.",
-    seller: "FitLife Store",
+    description: "Non-slip TPE · light carry strap · easy wipe clean.",
+    seller: "StudioFlow",
+    hue: "from-emerald-400/25 to-teal-700/25",
   },
   {
     id: "p3",
-    title: "USB-C 7-in-1 Hub HDMI 4K",
+    title: "DockOne USB-C Hub 7-port",
     price: 1299,
     mrp: 2499,
-    category: "Computers",
+    category: "Work",
     rating: 4.1,
-    reviews: 890,
-    prime: false,
+    reviews: 640,
+    express: false,
     status: "Out of stock",
-    description: "HDMI · USB 3.0 · SD · 100W PD pass-through.",
-    seller: "GadgetNest",
+    description: "4K HDMI · USB 3 · SD · 100W pass-through. Restocking soon.",
+    seller: "DockOne Labs",
+    hue: "from-slate-400/20 to-slate-700/30",
   },
   {
     id: "p4",
-    title: "Stainless Steel Water Bottle 1L",
+    title: "Northline Insulated Bottle 1L",
     price: 599,
     mrp: 999,
-    category: "Home & Kitchen",
+    category: "Home",
     rating: 4.6,
-    reviews: 5402,
-    prime: true,
+    reviews: 3102,
+    express: true,
     status: "Active",
-    description: "Hot 12h · cold 24h · leak-proof lid.",
-    seller: "DailyHome",
-    badge: "Amazon's Choice",
+    description: "Keeps cold 24h · hot 12h · leak-safe lid for desk and travel.",
+    seller: "Northline",
+    badge: "Top rated",
+    hue: "from-cyan-400/20 to-blue-700/25",
   },
   {
     id: "p5",
-    title: "Cotton Crew T-Shirt Pack of 3",
+    title: "Everyday Cotton Tee · 3 pack",
     price: 799,
     mrp: 1599,
     category: "Fashion",
-    rating: 4.0,
-    reviews: 2100,
-    prime: true,
+    rating: 4.2,
+    reviews: 980,
+    express: true,
     status: "Active",
-    description: "100% cotton · regular fit · machine wash.",
-    seller: "Basics Co.",
+    description: "Soft mid-weight cotton · regular fit · machine wash.",
+    seller: "Thread & Co.",
+    hue: "from-amber-300/25 to-orange-600/20",
   },
   {
     id: "p6",
-    title: "Atomic Habits (Paperback)",
-    price: 399,
-    mrp: 599,
+    title: "Clear Thinking · Mental Models Journal",
+    price: 449,
+    mrp: 699,
     category: "Books",
     rating: 4.7,
-    reviews: 45200,
-    prime: true,
+    reviews: 5200,
+    express: true,
     status: "Active",
-    description: "International bestseller · clear habits framework.",
-    seller: "BookWorld",
-    badge: "#1 in Self-Help",
+    description: "Prompted pages for decisions, second-order effects, and weekly review.",
+    seller: "Horizon Press",
+    badge: "Bestseller",
+    hue: "from-violet-400/20 to-purple-700/25",
   },
   {
     id: "p7",
-    title: "Smart LED Bulb 9W Colour",
+    title: "Lumen Colour Smart Bulb",
     price: 449,
     mrp: 899,
-    category: "Smart Home",
-    rating: 4.3,
-    reviews: 1560,
-    prime: true,
+    category: "Home",
+    rating: 4.4,
+    reviews: 760,
+    express: true,
     status: "Active",
-    description: "App + voice · 16M colours · schedules.",
-    seller: "HomeSense",
+    description: "App schedules · warm-to-cool white · voice ready.",
+    seller: "Lumen Home",
+    hue: "from-yellow-300/25 to-amber-600/20",
   },
   {
     id: "p8",
-    title: "Organic Honey 500g",
+    title: "Hillside Raw Honey 500g",
     price: 349,
     mrp: 450,
     category: "Grocery",
     rating: 4.5,
-    reviews: 980,
-    prime: false,
+    reviews: 420,
+    express: false,
     status: "Active",
-    description: "Raw · unprocessed · glass jar.",
-    seller: "FarmDirect",
+    description: "Single-origin · glass jar · no added sugar.",
+    seller: "Hillside Farms",
+    hue: "from-amber-200/30 to-yellow-700/20",
   },
 ];
 
-const DEFAULT_ORDERS: Order[] = [
+const SEED_ORDERS: Order[] = [
   {
-    id: "ORD-10482",
-    title: "Wireless Earbuds Pro",
+    id: "HM-10482",
+    title: "Auralis ANC Earbuds",
     amount: 2499,
     status: "Shipped",
     items: "1 item",
-    eta: "Arriving Thu",
+    eta: "Arrives Thu",
     address: "Koramangala, Bengaluru 560034",
   },
   {
-    id: "ORD-10391",
-    title: "Yoga Mat + Water Bottle",
+    id: "HM-10391",
+    title: "Yoga mat + bottle",
     amount: 1498,
     status: "Delivered",
     items: "2 items",
@@ -229,32 +236,27 @@ const DEFAULT_ORDERS: Order[] = [
     address: "Koramangala, Bengaluru 560034",
   },
   {
-    id: "ORD-10220",
-    title: "USB-C Hub",
+    id: "HM-10220",
+    title: "DockOne Hub",
     amount: 1299,
     status: "Returned",
     items: "1 item",
-    eta: "Refund processed",
+    eta: "Refund completed",
     address: "Koramangala, Bengaluru 560034",
   },
   {
-    id: "ORD-10501",
-    title: "T-Shirt Pack",
+    id: "HM-10501",
+    title: "Cotton tee pack",
     amount: 799,
     status: "Placed",
     items: "1 item",
-    eta: "Dispatch by tomorrow",
+    eta: "Ships tomorrow",
     address: "Koramangala, Bengaluru 560034",
   },
 ];
 
 function inr(n: number) {
   return `₹${n.toLocaleString("en-IN")}`;
-}
-
-function stars(n: number) {
-  const full = Math.round(n);
-  return "★".repeat(Math.min(5, full)) + "☆".repeat(Math.max(0, 5 - full));
 }
 
 export function EcomProductApp({
@@ -270,33 +272,32 @@ export function EcomProductApp({
   onRoleChange: (id: string) => void;
   fullScreen?: boolean;
 }) {
-  const brand = spec.brandName || "Market";
-  const primary = spec.primaryColor || "#131921";
-  const accent = spec.accentColor || "#febd69";
+  const brand = spec.brandName || "Horizon Market";
+  const primary = spec.primaryColor || "#0f2744";
+  const accent = spec.accentColor || "#0d9488";
 
   const [page, setPage] = useState<PageId>("home");
-  const [deptOpen, setDeptOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [searchDept, setSearchDept] = useState("All");
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [category, setCategory] = useState<string>("All");
+  const [products, setProducts] = useState<Product[]>(CATALOG);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [orders, setOrders] = useState<Order[]>(DEFAULT_ORDERS);
-  const [lists, setLists] = useState<string[]>([]);
+  const [orders, setOrders] = useState<Order[]>(SEED_ORDERS);
+  const [saved, setSaved] = useState<string[]>([]);
   const [pdpId, setPdpId] = useState<string | null>(null);
   const [address, setAddress] = useState("Koramangala 5th Block, Bengaluru 560034");
   const [pathMode, setPathMode] = useState<MockPathMode>("auto");
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ kind: ToastKind; msg: string } | null>(null);
-  const [checkoutName, setCheckoutName] = useState("Asha Sharma");
-  const [checkoutPhone, setCheckoutPhone] = useState("9876543210");
-  const [payMethod, setPayMethod] = useState<"upi" | "card" | "cod">("upi");
-  const [listProductTitle, setListProductTitle] = useState("");
+  const [name, setName] = useState("Asha Sharma");
+  const [phone, setPhone] = useState("9876543210");
+  const [pay, setPay] = useState<"upi" | "card" | "cod">("upi");
+  const [listTitle, setListTitle] = useState("");
   const [listPrice, setListPrice] = useState("");
-  const [listCategory, setListCategory] = useState("Electronics");
+  const [listCat, setListCat] = useState("Electronics");
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const isSeller = /seller|merchant|vendor/i.test(roleId) || /seller|merchant/i.test(role?.label || "");
-  const isOps = /ops|admin|support|moderator/i.test(roleId) || /ops|admin|support/i.test(role?.label || "");
+  const isSeller = /seller|merchant|vendor/i.test(`${roleId} ${role?.label || ""}`);
+  const isOps = /ops|admin|support|moderator/i.test(`${roleId} ${role?.label || ""}`);
 
   const cartCount = cart.reduce((s, l) => s + l.qty, 0);
   const cartLines = cart
@@ -309,33 +310,32 @@ export function EcomProductApp({
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => p.status !== "Suspended");
-    if (activeCategory !== "All") list = list.filter((p) => p.category === activeCategory);
+    if (category !== "All") list = list.filter((p) => p.category === category);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
+          p.description.toLowerCase().includes(q) ||
+          p.seller.toLowerCase().includes(q)
       );
     }
-    if (searchDept !== "All" && page === "search") {
-      list = list.filter((p) => p.category === searchDept || searchDept === "All");
-    }
     return list;
-  }, [products, activeCategory, search, searchDept, page]);
+  }, [products, category, search]);
 
   const pdp = products.find((p) => p.id === pdpId) || null;
+  const deals = products.filter((p) => p.status === "Active" && p.mrp > p.price * 1.15);
 
   function flash(msg: string, kind: ToastKind = "success") {
     setToast({ msg, kind });
     setTimeout(() => setToast(null), 3200);
   }
 
-  function go(pageId: PageId) {
-    setPage(pageId);
-    setDeptOpen(false);
-    if (pageId !== "pdp") setPdpId(null);
+  function go(next: PageId) {
+    setPage(next);
+    setMenuOpen(false);
+    if (next !== "pdp") setPdpId(null);
   }
 
   function openPdp(id: string) {
@@ -343,85 +343,86 @@ export function EcomProductApp({
     setPage("pdp");
   }
 
-  function runSearch() {
-    setPage("search");
-    setActiveCategory(searchDept === "All" ? "All" : searchDept);
-    flash(search.trim() ? `Results for “${search.trim()}”` : "Browsing all products", "info");
+  function runSearch(e?: React.FormEvent) {
+    e?.preventDefault();
+    go("browse");
+    flash(search.trim() ? `Showing results for “${search.trim()}”` : "Browsing catalog", "info");
   }
 
   function addToCart(productId: string, qty = 1) {
     const p = products.find((x) => x.id === productId);
     if (!p || p.status !== "Active") {
-      flash("Item unavailable", "error");
+      flash("This item is not available right now", "error");
       return;
     }
     setCart((prev) => {
       const hit = prev.find((l) => l.productId === productId);
       if (hit) {
         return prev.map((l) =>
-          l.productId === productId ? { ...l, qty: l.qty + qty } : l
+          l.productId === productId ? { ...l, qty: Math.min(10, l.qty + qty) } : l
         );
       }
       return [...prev, { productId, qty }];
     });
-    flash(`Added to cart · ${p.title}`, "success");
+    flash(`Added · ${p.title}`, "success");
   }
 
   function setQty(productId: string, qty: number) {
     if (qty <= 0) {
       setCart((prev) => prev.filter((l) => l.productId !== productId));
-      flash("Removed from cart", "info");
+      flash("Removed from bag", "info");
       return;
     }
     setCart((prev) =>
-      prev.map((l) => (l.productId === productId ? { ...l, qty } : l))
+      prev.map((l) => (l.productId === productId ? { ...l, qty: Math.min(10, qty) } : l))
     );
   }
 
-  function toggleList(productId: string) {
+  function toggleSaved(productId: string) {
     const p = products.find((x) => x.id === productId);
     if (!p) return;
-    setLists((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-    flash(
-      lists.includes(productId) ? "Removed from Wish List" : "Saved to Wish List",
-      "success"
-    );
+    const on = saved.includes(productId);
+    setSaved((prev) => (on ? prev.filter((id) => id !== productId) : [...prev, productId]));
+    flash(on ? "Removed from saved" : "Saved for later", "success");
   }
 
   async function placeOrder() {
     if (!cartLines.length) {
-      flash("Your cart is empty", "error");
+      flash("Your bag is empty — add something first", "error");
       return;
     }
-    if (!checkoutName.trim() || checkoutPhone.replace(/\D/g, "").length < 10) {
-      flash("Enter a valid name and 10-digit phone", "error");
+    if (!name.trim()) {
+      flash("Name is required", "error");
       return;
     }
-    if (!address.trim()) {
-      flash("Delivery address is required", "error");
+    if (phone.replace(/\D/g, "").length < 10) {
+      flash("Enter a valid 10-digit phone number", "error");
+      return;
+    }
+    if (!address.trim() || address.trim().length < 8) {
+      flash("Enter a full delivery address", "error");
       return;
     }
     setBusy("checkout");
     const res = await mockApiCall({
-      endpoint: "POST /orders",
+      endpoint: "POST /marketplace/orders",
       mode: pathMode,
-      payload: { cart, address, payMethod, checkoutName },
-      failMessage: "Payment failed — try another method or Always succeed in Account",
-      successMessage: "Order placed",
+      payload: { cart, address, pay, name, phone },
+      failMessage: "Payment could not be completed. Try another method or change sandbox mode in Account.",
+      successMessage: "Order confirmed",
       onSuccess: () => {
-        const id = `ORD-${10000 + Math.floor(Math.random() * 90000)}`;
-        const title = cartLines.map((l) => l.product.title).slice(0, 2).join(" + ");
+        const id = `HM-${10000 + Math.floor(Math.random() * 90000)}`;
+        const title = cartLines
+          .map((l) => l.product.title)
+          .slice(0, 2)
+          .join(" + ");
         const order: Order = {
           id,
           title,
           amount: cartTotal,
           status: "Placed",
-          items: `${cartCount} item${cartCount > 1 ? "s" : ""}`,
-          eta: "Dispatch by tomorrow",
+          items: `${cartCount} item${cartCount === 1 ? "" : "s"}`,
+          eta: "Ships within 24 hours",
           address,
         };
         setOrders((prev) => [order, ...prev]);
@@ -441,47 +442,62 @@ export function EcomProductApp({
   async function advanceOrder(id: string) {
     const order = orders.find((o) => o.id === id);
     if (!order) return;
-    const flow: Order["status"][] = [
-      "Placed",
-      "Shipped",
-      "Out for delivery",
-      "Delivered",
-    ];
+    const flow: Order["status"][] = ["Placed", "Shipped", "Out for delivery", "Delivered"];
     const idx = flow.indexOf(order.status as (typeof flow)[number]);
     if (idx < 0 || idx >= flow.length - 1) {
-      if (order.status === "Delivered") flash("Already delivered", "info");
-      else flash("Cannot advance this status", "info");
+      flash(
+        order.status === "Delivered" ? "Already delivered" : "Status cannot move further",
+        "info"
+      );
       return;
     }
     const next = flow[idx + 1];
     setBusy(`ord-${id}`);
     const res = await mockApiCall({
-      endpoint: `PATCH /orders/${id}`,
+      endpoint: `PATCH /marketplace/orders/${id}`,
       mode: pathMode,
       payload: { status: next },
-      failMessage: "Status update failed",
-      successMessage: `Order → ${next}`,
+      failMessage: "Could not update tracking",
+      successMessage: `Now ${next}`,
       onSuccess: () => {
         setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, status: next, eta: next } : o))
+          prev.map((o) =>
+            o.id === id
+              ? {
+                  ...o,
+                  status: next,
+                  eta:
+                    next === "Shipped"
+                      ? "In transit"
+                      : next === "Out for delivery"
+                        ? "Today"
+                        : next === "Delivered"
+                          ? "Delivered"
+                          : o.eta,
+                }
+              : o
+          )
         );
         return true;
       },
     });
     setBusy(null);
-    flash(
-      res.ok ? `${res.message} · ${res.latencyMs}ms` : `${res.error}`,
-      res.ok ? "success" : "error"
-    );
+    flash(res.ok ? `${res.message} · ${res.latencyMs}ms` : res.error, res.ok ? "success" : "error");
   }
 
   async function requestReturn(id: string) {
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
+    if (order.status !== "Delivered" && order.status !== "Shipped") {
+      flash("Only shipped or delivered orders can start a return", "error");
+      return;
+    }
     setBusy(`ret-${id}`);
     const res = await mockApiCall({
-      endpoint: `POST /orders/${id}/return`,
+      endpoint: `POST /marketplace/orders/${id}/return`,
       mode: pathMode,
       payload: { id },
-      failMessage: "Return window closed or item not eligible",
+      failMessage: "Return not eligible for this item",
       successMessage: "Return started",
       onSuccess: () => {
         setOrders((prev) =>
@@ -493,151 +509,151 @@ export function EcomProductApp({
       },
     });
     setBusy(null);
-    flash(
-      res.ok ? `${res.message} · ${res.latencyMs}ms` : `${res.error}`,
-      res.ok ? "success" : "error"
-    );
+    flash(res.ok ? `${res.message} · ${res.latencyMs}ms` : res.error, res.ok ? "success" : "error");
   }
 
   async function createListing() {
-    if (!listProductTitle.trim() || !listPrice || Number(listPrice) <= 0) {
-      flash("Title and valid price required", "error");
+    if (!isSeller && !isOps) {
+      flash("Switch to Seller role to publish listings", "error");
       return;
     }
-    if (listProductTitle.toLowerCase().includes("fail")) {
-      flash("Listing rejected (fail test)", "error");
+    if (!listTitle.trim()) {
+      flash("Product title is required", "error");
+      return;
+    }
+    if (!listPrice || Number(listPrice) <= 0) {
+      flash("Enter a valid price", "error");
+      return;
+    }
+    if (listTitle.toLowerCase().includes("fail")) {
+      flash("Listing rejected by policy check (fail test)", "error");
       return;
     }
     setBusy("list");
     const res = await mockApiCall({
-      endpoint: "POST /seller/listings",
+      endpoint: "POST /marketplace/listings",
       mode: pathMode,
-      payload: { listProductTitle, listPrice, listCategory },
-      failMessage: "Listing failed compliance check",
-      successMessage: "Listing live",
+      payload: { listTitle, listPrice, listCat },
+      failMessage: "Listing failed review",
+      successMessage: "Listing is live",
       onSuccess: () => {
         const p: Product = {
           id: `p-${Date.now().toString(36)}`,
-          title: listProductTitle.trim(),
+          title: listTitle.trim(),
           price: Number(listPrice),
-          mrp: Math.round(Number(listPrice) * 1.4),
-          category: listCategory,
+          mrp: Math.round(Number(listPrice) * 1.35),
+          category: listCat,
           rating: 0,
           reviews: 0,
-          prime: false,
+          express: false,
           status: "Active",
-          description: "Seller listing · ships from India",
-          seller: role?.label || "Your store",
+          description: "Ships from seller warehouse · quality checked",
+          seller: role?.label || "Your shop",
+          hue: "from-teal-400/20 to-navy/20",
         };
         setProducts((prev) => [p, ...prev]);
-        setListProductTitle("");
+        setListTitle("");
         setListPrice("");
         return p;
       },
     });
     setBusy(null);
-    flash(
-      res.ok ? `${res.message} · ${res.latencyMs}ms` : `${res.error}`,
-      res.ok ? "success" : "error"
-    );
+    flash(res.ok ? `${res.message} · ${res.latencyMs}ms` : res.error, res.ok ? "success" : "error");
+    if (res.ok) go("seller-inventory");
   }
 
-  const topCats = [
-    "Electronics",
-    "Fashion",
-    "Home & Kitchen",
-    "Books",
-    "Sports",
-    "Grocery",
-    "Smart Home",
-    "Computers",
+  const navMain: Array<{ id: PageId; label: string }> = [
+    { id: "home", label: "Home" },
+    { id: "browse", label: "Shop" },
+    { id: "deals", label: "Deals" },
+    { id: "orders", label: "Orders" },
+    { id: "help", label: "Help" },
   ];
+  if (isSeller) {
+    navMain.push({ id: "seller", label: "Sell" });
+  }
+  if (isOps) {
+    navMain.push({ id: "ops", label: "Ops" });
+  }
 
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-col overflow-hidden bg-[#eaeded] text-[#0f1111]",
-        fullScreen ? "h-full max-h-full flex-1" : "h-full min-h-[560px] max-h-[calc(100dvh-6rem)] rounded-xl border border-border"
+        "flex min-h-0 flex-col overflow-hidden bg-background text-foreground",
+        fullScreen
+          ? "h-full max-h-full flex-1"
+          : "h-full min-h-[560px] max-h-[calc(100dvh-6rem)] rounded-xl border border-border"
       )}
     >
-      {/* ═══ Amazon-style top chrome ═══ */}
-      <header className="shrink-0 text-white" style={{ background: primary }}>
-        {/* Row 1: logo · location · search · account · orders · cart */}
-        <div className="flex flex-wrap items-center gap-2 px-2 py-2 md:px-3">
+      {/* Premium header — original, not a third-party clone */}
+      <header className="z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 md:px-5">
           <button
             type="button"
             onClick={() => go("home")}
-            className="flex items-center gap-1 rounded px-2 py-1 hover:outline hover:outline-1 hover:outline-white"
+            className="flex items-center gap-2 rounded-xl pr-2"
           >
-            <Store className="h-6 w-6" style={{ color: accent }} />
-            <span className="text-lg font-bold tracking-tight">
-              {brand}
-              <span className="text-[10px] font-normal">.in</span>
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm"
+              style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+            >
+              <ShoppingBag className="h-4 w-4" />
+            </span>
+            <span className="text-left">
+              <span className="block text-sm font-bold tracking-tight" style={{ color: primary }}>
+                {brand}
+              </span>
+              <span className="block text-[10px] text-muted-foreground">
+                Quality goods · clear returns
+              </span>
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => go("addresses")}
-            className="hidden max-w-[9rem] rounded px-2 py-1 text-left text-[11px] leading-tight hover:outline hover:outline-1 hover:outline-white sm:block"
+            className="hidden items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-left text-[11px] hover:border-accent-teal/40 sm:flex"
           >
-            <span className="block text-white/70">Deliver to</span>
-            <span className="flex items-center gap-0.5 font-bold">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate">{address.split(",")[0]}</span>
+            <MapPin className="h-3.5 w-3.5 text-accent-teal" />
+            <span>
+              <span className="block text-muted-foreground">Deliver to</span>
+              <span className="font-semibold">{address.split(",")[0]}</span>
             </span>
           </button>
 
-          {/* Search — dominant like Amazon */}
           <form
-            className="flex min-w-[12rem] flex-1 items-stretch overflow-hidden rounded-md"
-            onSubmit={(e) => {
-              e.preventDefault();
-              runSearch();
-            }}
+            onSubmit={runSearch}
+            className="flex min-w-[10rem] flex-1 items-center gap-0 overflow-hidden rounded-xl border border-border bg-muted/40 focus-within:border-accent-teal/50 focus-within:ring-2 focus-within:ring-accent-teal/20"
           >
-            <select
-              value={searchDept}
-              onChange={(e) => setSearchDept(e.target.value)}
-              className="hidden bg-[#e6e6e6] px-2 text-[11px] text-black sm:block"
-              aria-label="Search department"
-            >
-              {DEPARTMENTS.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+            <Search className="ml-3 h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${brand}`}
-              className="min-w-0 flex-1 px-3 py-2 text-sm text-black outline-none"
+              placeholder={`Search ${brand}…`}
+              className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm outline-none"
             />
-            <button
-              type="submit"
-              className="flex items-center justify-center px-3 text-black"
-              style={{ background: accent }}
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+            <Button type="submit" size="sm" variant="cta" className="m-1 rounded-lg">
+              Search
+            </Button>
           </form>
 
-          <div className="flex items-center gap-1">
-            <div className="hidden items-center gap-1 rounded border border-white/30 px-2 py-1 text-[11px] lg:flex">
-              <span className="text-white/70">Role</span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/30 px-2 py-1.5">
+              <UserRound className="h-4 w-4 text-muted-foreground" />
               <select
                 value={roleId}
                 onChange={(e) => {
                   onRoleChange(e.target.value);
-                  flash(`Signed in as ${e.target.options[e.target.selectedIndex].text}`, "info");
+                  const label =
+                    spec.roles.find((r) => r.id === e.target.value)?.label || e.target.value;
+                  flash(`Signed in as ${label}`, "info");
                   go("home");
                 }}
-                className="max-w-[8rem] bg-transparent font-bold outline-none"
+                className="max-w-[7.5rem] bg-transparent text-xs font-semibold outline-none sm:max-w-[10rem] sm:text-sm"
+                aria-label="Role"
               >
                 {spec.roles.map((r) => (
-                  <option key={r.id} value={r.id} className="text-black">
+                  <option key={r.id} value={r.id}>
                     {r.label}
                   </option>
                 ))}
@@ -647,110 +663,94 @@ export function EcomProductApp({
             <button
               type="button"
               onClick={() => go("account")}
-              className="rounded px-2 py-1 text-left text-[11px] leading-tight hover:outline hover:outline-1 hover:outline-white"
+              className="hidden rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground md:inline"
             >
-              <span className="block text-white/70">Hello, {role?.label || "Guest"}</span>
-              <span className="font-bold">Account & Lists</span>
+              Account
             </button>
-
             <button
               type="button"
               onClick={() => go("orders")}
-              className="hidden rounded px-2 py-1 text-left text-[11px] leading-tight hover:outline hover:outline-1 hover:outline-white sm:block"
+              className="hidden rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline"
             >
-              <span className="block text-white/70">Returns</span>
-              <span className="font-bold">& Orders</span>
+              Orders
             </button>
-
             <button
               type="button"
               onClick={() => go("cart")}
-              className="relative flex items-end gap-1 rounded px-2 py-1 hover:outline hover:outline-1 hover:outline-white"
+              className="relative inline-flex items-center gap-1.5 rounded-xl border border-border bg-accent-teal/10 px-2.5 py-1.5 text-sm font-semibold text-accent-teal hover:bg-accent-teal/15"
             >
-              <ShoppingCart className="h-7 w-7" />
-              <span
-                className="absolute top-0 left-5 text-sm font-bold"
-                style={{ color: accent }}
-              >
-                {cartCount}
-              </span>
-              <span className="hidden text-sm font-bold sm:inline">Cart</span>
+              <ShoppingCart className="h-4 w-4" />
+              <span className="hidden sm:inline">Bag</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-cta-amber px-1 text-[10px] font-bold text-navy">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Row 2: All + department strip (Amazon secondary nav) */}
-        <div
-          className="flex items-center gap-1 overflow-x-auto px-2 py-1.5 text-sm [scrollbar-width:none]"
-          style={{ background: "#232f3e" }}
-        >
+        {/* Category / module strip */}
+        <div className="flex items-center gap-1 overflow-x-auto border-t border-border/60 bg-muted/20 px-2 py-1.5 md:px-5 [scrollbar-width:none]">
           <button
             type="button"
-            onClick={() => setDeptOpen((v) => !v)}
-            className="inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 font-bold hover:outline hover:outline-1 hover:outline-white"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
           >
-            <Menu className="h-4 w-4" /> All
+            <LayoutGrid className="h-3.5 w-3.5" /> Categories
           </button>
-          {(
-            [
-              ["deals", "Today's Deals"],
-              ["orders", "Buy Again"],
-              ["customer-service", "Customer Service"],
-              ["lists", "Wish List"],
-              ...(isSeller
-                ? ([["seller", "Sell"], ["seller-inventory", "Inventory"], ["seller-orders", "Seller Orders"]] as const)
-                : ([["seller", "Sell"]] as const)),
-              ...(isOps ? ([["ops", "Ops desk"]] as const) : []),
-            ] as const
-          ).map(([id, label]) => (
+          {navMain.map((n) => (
             <button
-              key={id}
+              key={n.id}
               type="button"
-              onClick={() => go(id as PageId)}
+              onClick={() => go(n.id)}
               className={cn(
-                "shrink-0 rounded px-2 py-1 whitespace-nowrap hover:outline hover:outline-1 hover:outline-white",
-                page === id && "outline outline-1 outline-white"
+                "shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium whitespace-nowrap",
+                page === n.id
+                  ? "bg-accent-teal/15 text-accent-teal"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              {label}
+              {n.label}
             </button>
           ))}
-          {topCats.map((c) => (
+          {CATEGORIES.filter((c) => c !== "All").map((c) => (
             <button
               key={c}
               type="button"
               onClick={() => {
-                setActiveCategory(c);
-                setSearchDept(c);
+                setCategory(c);
                 setSearch("");
-                go("search");
+                go("browse");
               }}
-              className="shrink-0 rounded px-2 py-1 whitespace-nowrap text-white/90 hover:outline hover:outline-1 hover:outline-white"
+              className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               {c}
             </button>
           ))}
         </div>
 
-        {/* All departments flyout */}
-        {deptOpen && (
-          <div className="border-t border-white/10 bg-[#232f3e] px-3 py-3">
-            <p className="mb-2 text-xs font-bold text-white/70">Shop by Department</p>
+        {menuOpen && (
+          <div className="border-t border-border bg-card px-3 py-3 md:px-5">
             <div className="flex flex-wrap gap-2">
-              {DEPARTMENTS.map((d) => (
+              {CATEGORIES.map((c) => (
                 <button
-                  key={d}
+                  key={c}
                   type="button"
                   onClick={() => {
-                    setActiveCategory(d);
-                    setSearchDept(d);
+                    setCategory(c);
                     setSearch("");
-                    go("search");
-                    setDeptOpen(false);
+                    go("browse");
+                    setMenuOpen(false);
                   }}
-                  className="rounded-full bg-white/10 px-3 py-1 text-xs hover:bg-white/20"
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium",
+                    category === c
+                      ? "border-accent-teal/40 bg-accent-teal/10 text-accent-teal"
+                      : "border-border hover:border-accent-teal/30"
+                  )}
                 >
-                  {d}
+                  {c}
                 </button>
               ))}
             </div>
@@ -762,588 +762,549 @@ export function EcomProductApp({
         <div
           className={cn(
             "flex shrink-0 items-center gap-2 px-4 py-2 text-sm",
-            toast.kind === "success" && "bg-emerald-50 text-emerald-900",
-            toast.kind === "error" && "bg-red-50 text-red-900",
-            toast.kind === "info" && "bg-sky-50 text-sky-900"
+            toast.kind === "success" &&
+              "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100",
+            toast.kind === "error" &&
+              "bg-red-50 text-red-900 dark:bg-red-950/40 dark:text-red-100",
+            toast.kind === "info" &&
+              "bg-sky-50 text-sky-900 dark:bg-sky-950/40 dark:text-sky-100"
           )}
+          role="status"
         >
-          {toast.kind === "success" && <CheckCircle2 className="h-4 w-4" />}
-          {toast.kind === "error" && <XCircle className="h-4 w-4" />}
-          {toast.kind === "info" && <AlertTriangle className="h-4 w-4" />}
+          {toast.kind === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" />}
+          {toast.kind === "error" && <XCircle className="h-4 w-4 shrink-0" />}
+          {toast.kind === "info" && <AlertTriangle className="h-4 w-4 shrink-0" />}
           {toast.msg}
         </div>
       )}
 
       <main
-        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-20 md:pb-6"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {busy && (
-          <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 text-xs text-amber-900">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {busy}
+          <div className="flex items-center gap-2 border-b border-accent-teal/20 bg-accent-teal/5 px-4 py-2 text-xs text-accent-teal">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Working… {busy}
           </div>
         )}
 
-        {/* ── HOME ── */}
+        {/* HOME */}
         {page === "home" && (
-          <div className="space-y-4 pb-10">
-            <div
-              className="relative mx-2 mt-2 overflow-hidden rounded-lg px-5 py-8 text-white md:mx-4 md:py-12"
+          <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 md:px-5">
+            <section
+              className="overflow-hidden rounded-3xl border border-border p-6 text-white shadow-md md:p-10"
               style={{
-                background: `linear-gradient(90deg, ${primary} 0%, #37475a 55%, ${accent}55 100%)`,
+                background: `linear-gradient(135deg, ${primary} 0%, #1e293b 50%, ${accent} 160%)`,
               }}
             >
-              <p className="text-sm font-medium text-white/80">Welcome to {brand}</p>
-              <h1 className="mt-1 max-w-xl text-2xl font-bold md:text-3xl">
-                Great prices. Fast delivery. Everything you need.
-              </h1>
-              <p className="mt-2 max-w-lg text-sm text-white/85">
-                Search millions of products · Track orders · Easy returns — same structure as
-                Amazon-class marketplaces.
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                {role?.label || "Shopper"} · {brand}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <h1 className="mt-2 max-w-xl text-2xl font-bold tracking-tight md:text-4xl">
+                Shop with clarity — fair prices, fast dispatch, honest returns
+              </h1>
+              <p className="mt-3 max-w-lg text-sm text-white/80 md:text-base">
+                A full marketplace product: catalog, bag, checkout, tracking, seller tools, and
+                ops. Built for demos that feel production-ready.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
                 <Button
                   type="button"
-                  className="bg-white text-black hover:bg-white/90"
+                  variant="cta"
                   onClick={() => {
-                    setActiveCategory("All");
-                    go("search");
+                    setCategory("All");
+                    go("browse");
                   }}
                 >
-                  Shop all
+                  Browse catalog <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
-                  className="border-white/40 bg-transparent text-white hover:bg-white/10"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
                   onClick={() => go("deals")}
                 >
-                  Today&apos;s Deals
+                  <Sparkles className="h-4 w-4" /> Today&apos;s deals
                 </Button>
-              </div>
-            </div>
-
-            {/* Category tiles */}
-            <div className="mx-2 grid gap-3 sm:grid-cols-2 md:mx-4 lg:grid-cols-4">
-              {topCats.slice(0, 4).map((c) => {
-                const sample = products.filter((p) => p.category === c).slice(0, 4);
-                return (
-                  <Card key={c} className="bg-white p-4 shadow-sm">
-                    <h2 className="text-base font-bold">{c}</h2>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      {sample.length
-                        ? sample.map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => openPdp(p.id)}
-                              className="rounded border border-border p-2 text-left text-[11px] hover:border-[#c45500]"
-                            >
-                              <p className="line-clamp-2 font-medium">{p.title}</p>
-                              <p className="mt-1 font-bold">{inr(p.price)}</p>
-                            </button>
-                          ))
-                        : (
-                            <p className="col-span-2 text-xs text-muted-foreground">
-                              Browse {c}
-                            </p>
-                          )}
-                    </div>
-                    <button
-                      type="button"
-                      className="mt-3 text-xs text-[#007185] hover:underline"
-                      onClick={() => {
-                        setActiveCategory(c);
-                        go("search");
-                      }}
-                    >
-                      See more
-                    </button>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {/* Deal rail */}
-            <section className="mx-2 bg-white p-4 shadow-sm md:mx-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-bold">Today&apos;s Deals</h2>
-                <button
-                  type="button"
-                  className="text-sm text-[#007185] hover:underline"
-                  onClick={() => go("deals")}
-                >
-                  See all deals
-                </button>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {products
-                  .filter((p) => p.status === "Active" && p.mrp > p.price)
-                  .map((p) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      onOpen={() => openPdp(p.id)}
-                      onAdd={() => addToCart(p.id)}
-                      onList={() => toggleList(p.id)}
-                      listed={lists.includes(p.id)}
-                      compact
-                    />
-                  ))}
               </div>
             </section>
 
-            {/* Recommended */}
-            <section className="mx-2 bg-white p-4 shadow-sm md:mx-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { icon: Truck, t: "Express delivery", d: "On eligible items — clear ETA on every order" },
+                { icon: ShieldCheck, t: "Buyer protection", d: "Easy returns on delivered orders" },
+                { icon: Store, t: "Verified sellers", d: "Seller hub for listings and fulfilment" },
+              ].map((x) => (
+                <Card key={x.t} className="flex gap-3 p-4">
+                  <x.icon className="h-5 w-5 shrink-0 text-accent-teal" />
+                  <div>
+                    <p className="text-sm font-semibold">{x.t}</p>
+                    <p className="text-xs text-muted-foreground">{x.d}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-bold">Shop by category</h2>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-accent-teal hover:underline"
+                  onClick={() => go("browse")}
+                >
+                  View all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {CATEGORIES.filter((c) => c !== "All").map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setCategory(c);
+                      go("browse");
+                    }}
+                    className="rounded-2xl border border-border bg-card p-4 text-left transition hover:border-accent-teal/40 hover:shadow-sm"
+                  >
+                    <p className="font-semibold">{c}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {products.filter((p) => p.category === c).length} products
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-bold">Featured deals</h2>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-accent-teal hover:underline"
+                  onClick={() => go("deals")}
+                >
+                  All deals
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {deals.slice(0, 4).map((p) => (
+                  <ProductTile
+                    key={p.id}
+                    product={p}
+                    saved={saved.includes(p.id)}
+                    onOpen={() => openPdp(p.id)}
+                    onAdd={() => addToCart(p.id)}
+                    onSave={() => toggleSaved(p.id)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">Recommended for you</h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {products
                   .filter((p) => p.status === "Active")
-                  .slice(0, 8)
                   .map((p) => (
-                    <ProductCard
+                    <ProductTile
                       key={p.id}
                       product={p}
+                      saved={saved.includes(p.id)}
                       onOpen={() => openPdp(p.id)}
                       onAdd={() => addToCart(p.id)}
-                      onList={() => toggleList(p.id)}
-                      listed={lists.includes(p.id)}
+                      onSave={() => toggleSaved(p.id)}
                     />
                   ))}
               </div>
             </section>
-
-            {/* Sign-in / role strip */}
-            <div className="mx-2 border border-[#ddd] bg-white p-6 text-center md:mx-4">
-              <p className="font-bold">See personalized recommendations</p>
-              <div className="mt-2 flex flex-wrap justify-center gap-2">
-                {spec.roles.map((r) => (
-                  <Button
-                    key={r.id}
-                    type="button"
-                    size="sm"
-                    variant={r.id === roleId ? "cta" : "secondary"}
-                    onClick={() => {
-                      onRoleChange(r.id);
-                      flash(`Viewing as ${r.label}`, "info");
-                    }}
-                  >
-                    {r.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        {/* ── SEARCH / BROWSE ── */}
-        {(page === "search" || page === "deals") && (
-          <div className="mx-auto grid max-w-7xl gap-4 p-3 md:grid-cols-[220px_1fr] md:p-4">
-            <aside className="rounded border border-[#ddd] bg-white p-3 text-sm">
-              <p className="font-bold">Department</p>
-              <ul className="mt-2 space-y-1">
-                {["All", ...topCats].map((c) => (
-                  <li key={c}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveCategory(c)}
-                      className={cn(
-                        "w-full rounded px-2 py-1 text-left hover:bg-[#f0f2f2]",
-                        activeCategory === c && "bg-[#f0f2f2] font-semibold"
-                      )}
-                    >
-                      {c}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 font-bold">Customer reviews</p>
-              <p className="mt-1 text-xs text-[#c45500]">{stars(4)} & Up</p>
-              <p className="mt-3 font-bold">Delivery</p>
-              <label className="mt-1 flex items-center gap-2 text-xs">
-                <input type="checkbox" defaultChecked className="rounded" /> Get It by Tomorrow
-              </label>
+        {/* BROWSE / DEALS */}
+        {(page === "browse" || page === "deals") && (
+          <div className="mx-auto grid max-w-6xl gap-4 px-3 py-5 md:grid-cols-[200px_1fr] md:px-5">
+            <aside className="h-fit space-y-1 rounded-2xl border border-border bg-card p-3">
+              <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Filters
+              </p>
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCategory(c)}
+                  className={cn(
+                    "w-full rounded-lg px-2.5 py-2 text-left text-sm",
+                    category === c
+                      ? "bg-accent-teal/15 font-semibold text-accent-teal"
+                      : "hover:bg-muted"
+                  )}
+                >
+                  {c}
+                </button>
+              ))}
+              <div className="mt-3 border-t border-border px-2 pt-3 text-xs text-muted-foreground">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    onChange={(e) => {
+                      if (e.target.checked) go("deals");
+                      else go("browse");
+                    }}
+                    checked={page === "deals"}
+                  />
+                  On sale only
+                </label>
+              </div>
             </aside>
             <div>
-              <p className="mb-2 text-sm text-[#565959]">
-                {page === "deals" ? "Today's Deals" : "Results"}
-                {activeCategory !== "All" ? ` · ${activeCategory}` : ""}
-                {search ? ` · “${search}”` : ""} · {filtered.length} results
+              <p className="mb-3 text-sm text-muted-foreground">
+                {page === "deals" ? "Deals" : "Catalog"}
+                {category !== "All" ? ` · ${category}` : ""}
+                {search ? ` · “${search}”` : ""} ·{" "}
+                {(page === "deals" ? filtered.filter((p) => p.mrp > p.price * 1.15) : filtered)
+                  .length}{" "}
+                results
               </p>
-              <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {(page === "deals"
-                  ? filtered.filter((p) => p.mrp > p.price)
+                  ? filtered.filter((p) => p.mrp > p.price * 1.15)
                   : filtered
                 ).map((p) => (
-                  <Card
+                  <ProductTile
                     key={p.id}
-                    className="flex flex-wrap gap-4 bg-white p-4 shadow-sm"
-                  >
-                    <button
-                      type="button"
-                      className="flex h-28 w-28 shrink-0 items-center justify-center rounded bg-[#f7f8f8] text-3xl"
-                      onClick={() => openPdp(p.id)}
-                    >
-                      📦
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <button
-                        type="button"
-                        className="text-left text-base font-medium text-[#0f1111] hover:text-[#c45500] hover:underline"
-                        onClick={() => openPdp(p.id)}
-                      >
-                        {p.title}
-                      </button>
-                      <p className="text-sm text-[#c45500]">
-                        {stars(p.rating)}{" "}
-                        <span className="text-[#007185]">{p.reviews.toLocaleString()}</span>
-                      </p>
-                      <p className="mt-1 text-lg font-bold">
-                        {inr(p.price)}{" "}
-                        <span className="text-sm font-normal text-[#565959] line-through">
-                          {inr(p.mrp)}
-                        </span>
-                      </p>
-                      {p.prime && (
-                        <p className="text-xs font-semibold text-[#00a8e1]">prime</p>
-                      )}
-                      <p className="mt-1 text-xs text-[#565959]">{p.description}</p>
-                      <p className="text-xs text-[#565959]">Sold by {p.seller}</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="cta"
-                          disabled={p.status !== "Active"}
-                          onClick={() => addToCart(p.id)}
-                        >
-                          Add to Cart
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => toggleList(p.id)}
-                        >
-                          <Heart className="h-3.5 w-3.5" /> List
-                        </Button>
-                        {p.status !== "Active" && (
-                          <Badge className="bg-muted">{p.status}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                    product={p}
+                    saved={saved.includes(p.id)}
+                    onOpen={() => openPdp(p.id)}
+                    onAdd={() => addToCart(p.id)}
+                    onSave={() => toggleSaved(p.id)}
+                  />
                 ))}
-                {filtered.length === 0 && (
-                  <Card className="p-8 text-center">
-                    <p className="font-medium">No results</p>
-                    <Button type="button" className="mt-3" onClick={() => go("home")}>
-                      Back to home
-                    </Button>
-                  </Card>
-                )}
               </div>
+              {(page === "deals"
+                ? filtered.filter((p) => p.mrp > p.price * 1.15)
+                : filtered
+              ).length === 0 && (
+                <Card className="p-8 text-center">
+                  <p className="font-medium">No products match</p>
+                  <Button
+                    type="button"
+                    className="mt-3"
+                    variant="secondary"
+                    onClick={() => {
+                      setSearch("");
+                      setCategory("All");
+                      go("browse");
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </Card>
+              )}
             </div>
           </div>
         )}
 
-        {/* ── PDP ── */}
+        {/* PDP */}
         {page === "pdp" && pdp && (
-          <div className="mx-auto grid max-w-6xl gap-6 p-4 md:grid-cols-[1fr_1.2fr_280px]">
-            <div className="flex h-64 items-center justify-center rounded border border-[#ddd] bg-white text-6xl md:h-96">
-              📦
+          <div className="mx-auto grid max-w-5xl gap-6 px-3 py-5 md:grid-cols-2 md:px-5">
+            <div
+              className={cn(
+                "flex min-h-[280px] items-center justify-center rounded-3xl bg-gradient-to-br p-8",
+                pdp.hue
+              )}
+            >
+              <Package className="h-24 w-24 text-navy/30" />
             </div>
-            <div>
-              <h1 className="text-xl font-medium md:text-2xl">{pdp.title}</h1>
-              <p className="mt-1 text-sm text-[#007185]">Visit the {pdp.seller} Store</p>
-              <p className="text-[#c45500]">
-                {stars(pdp.rating)} {pdp.rating} · {pdp.reviews.toLocaleString()} ratings
+            <div className="space-y-4">
+              {pdp.badge && (
+                <Badge className="bg-accent-teal/15 text-accent-teal">{pdp.badge}</Badge>
+              )}
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{pdp.title}</h1>
+              <p className="text-sm text-muted-foreground">
+                {pdp.rating.toFixed(1)} ★ · {pdp.reviews.toLocaleString()} reviews · Sold by{" "}
+                <strong className="text-foreground">{pdp.seller}</strong>
               </p>
-              <hr className="my-3 border-[#ddd]" />
-              <p className="text-2xl font-normal">
-                <span className="text-sm align-top">₹</span>
-                {pdp.price.toLocaleString("en-IN")}
-              </p>
-              <p className="text-sm text-[#565959]">
-                M.R.P.: <span className="line-through">{inr(pdp.mrp)}</span> ·{" "}
-                {Math.round((1 - pdp.price / pdp.mrp) * 100)}% off
-              </p>
-              {pdp.prime && (
-                <p className="mt-2 text-sm">
-                  <span className="font-bold text-[#00a8e1]">prime</span> FREE delivery Tomorrow
+              <div>
+                <p className="text-3xl font-bold">{inr(pdp.price)}</p>
+                <p className="text-sm text-muted-foreground">
+                  MRP <span className="line-through">{inr(pdp.mrp)}</span> ·{" "}
+                  {Math.round((1 - pdp.price / pdp.mrp) * 100)}% off
+                </p>
+              </div>
+              {pdp.express && (
+                <p className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-teal">
+                  <Zap className="h-4 w-4" /> Horizon Express · next-day on this pin
                 </p>
               )}
-              <p className="mt-3 text-sm">{pdp.description}</p>
-              <ul className="mt-3 list-inside list-disc text-sm text-[#0f1111]">
-                <li>Category: {pdp.category}</li>
-                <li>Sold by {pdp.seller}</li>
-                <li>Status: {pdp.status}</li>
-              </ul>
-            </div>
-            <Card className="h-fit border-[#d5d9d9] p-4 shadow-sm">
-              <p className="text-xl">
-                <span className="text-sm align-top">₹</span>
-                {pdp.price.toLocaleString("en-IN")}
-              </p>
-              <p className="mt-2 text-sm text-[#007185]">
-                <Truck className="mr-1 inline h-4 w-4" />
-                FREE delivery <strong>Tomorrow</strong>
-              </p>
-              <p className="mt-1 text-sm">
-                Delivering to <strong>{address.split(",")[0]}</strong> —{" "}
-                <button
-                  type="button"
-                  className="text-[#007185] hover:underline"
-                  onClick={() => go("addresses")}
-                >
-                  Update location
-                </button>
-              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{pdp.description}</p>
               <p
                 className={cn(
-                  "mt-3 text-lg font-medium",
-                  pdp.status === "Active" ? "text-[#007600]" : "text-red-700"
+                  "text-sm font-semibold",
+                  pdp.status === "Active" ? "text-emerald-700" : "text-red-600"
                 )}
               >
                 {pdp.status === "Active" ? "In stock" : pdp.status}
               </p>
-              <Button
-                type="button"
-                className="mt-3 w-full"
-                variant="cta"
-                disabled={pdp.status !== "Active"}
-                onClick={() => addToCart(pdp.id)}
-              >
-                Add to Cart
-              </Button>
-              <Button
-                type="button"
-                className="mt-2 w-full"
-                variant="secondary"
-                disabled={pdp.status !== "Active"}
-                onClick={() => {
-                  addToCart(pdp.id);
-                  go("checkout");
-                }}
-              >
-                Buy Now
-              </Button>
-              <Button
-                type="button"
-                className="mt-2 w-full"
-                variant="secondary"
-                onClick={() => toggleList(pdp.id)}
-              >
-                <Heart className="h-4 w-4" /> Add to Wish List
-              </Button>
-              <p className="mt-3 text-xs text-[#565959]">
-                Secure transaction · 7-day return (demo)
-              </p>
-            </Card>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="cta"
+                  disabled={pdp.status !== "Active"}
+                  onClick={() => addToCart(pdp.id)}
+                >
+                  Add to bag
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={pdp.status !== "Active"}
+                  onClick={() => {
+                    addToCart(pdp.id);
+                    go("checkout");
+                  }}
+                >
+                  Buy now
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => toggleSaved(pdp.id)}>
+                  <Heart
+                    className={cn(
+                      "h-4 w-4",
+                      saved.includes(pdp.id) && "fill-red-500 text-red-500"
+                    )}
+                  />
+                  Save
+                </Button>
+              </div>
+              <Card className="space-y-1 border-dashed p-4 text-xs text-muted-foreground">
+                <p className="flex items-center gap-1.5">
+                  <Truck className="h-3.5 w-3.5" /> Deliver to {address.split(",")[0]}
+                </p>
+                <button
+                  type="button"
+                  className="text-accent-teal hover:underline"
+                  onClick={() => go("addresses")}
+                >
+                  Change address
+                </button>
+              </Card>
+            </div>
           </div>
         )}
 
-        {/* ── CART ── */}
+        {/* CART */}
         {page === "cart" && (
-          <div className="mx-auto grid max-w-6xl gap-4 p-4 lg:grid-cols-[1fr_280px]">
-            <div className="bg-white p-4 shadow-sm">
-              <h1 className="text-2xl font-normal">Shopping Cart</h1>
+          <div className="mx-auto grid max-w-5xl gap-4 px-3 py-5 lg:grid-cols-[1fr_300px] md:px-5">
+            <div className="space-y-3">
+              <h1 className="text-2xl font-bold">Your bag</h1>
               {!cartLines.length && (
-                <div className="py-10 text-center">
-                  <p className="text-lg">Your {brand} Cart is empty</p>
-                  <Button type="button" className="mt-3" variant="cta" onClick={() => go("home")}>
+                <Card className="p-10 text-center">
+                  <ShoppingCart className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <p className="mt-3 font-medium">Bag is empty</p>
+                  <Button type="button" className="mt-3" variant="cta" onClick={() => go("browse")}>
                     Continue shopping
                   </Button>
-                </div>
+                </Card>
               )}
               {cartLines.map((l) => (
-                <div
-                  key={l.productId}
-                  className="flex flex-wrap gap-4 border-t border-[#ddd] py-4"
-                >
-                  <div className="flex h-24 w-24 items-center justify-center bg-[#f7f8f8] text-3xl">
-                    📦
+                <Card key={l.productId} className="flex flex-wrap gap-4 p-4">
+                  <div
+                    className={cn(
+                      "flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br",
+                      l.product.hue
+                    )}
+                  >
+                    <Package className="h-8 w-8 text-navy/40" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <button
                       type="button"
-                      className="text-left font-medium hover:text-[#c45500] hover:underline"
+                      className="text-left font-semibold hover:text-accent-teal"
                       onClick={() => openPdp(l.productId)}
                     >
                       {l.product.title}
                     </button>
-                    <p className="text-sm text-[#007600]">In stock</p>
                     <p className="text-sm font-bold">{inr(l.product.price)}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <label className="text-sm">
-                        Qty{" "}
-                        <select
-                          value={l.qty}
-                          onChange={(e) => setQty(l.productId, Number(e.target.value))}
-                          className="rounded border border-[#d5d9d9] px-2 py-1"
-                        >
-                          {[0, 1, 2, 3, 4, 5].map((n) => (
-                            <option key={n} value={n}>
-                              {n === 0 ? "0 (Delete)" : n}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <select
+                        value={l.qty}
+                        onChange={(e) => setQty(l.productId, Number(e.target.value))}
+                        className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                      >
+                        {[0, 1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n === 0 ? "Remove" : `Qty ${n}`}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         type="button"
-                        className="text-sm text-[#007185] hover:underline"
-                        onClick={() => setQty(l.productId, 0)}
+                        className="text-xs text-accent-teal hover:underline"
+                        onClick={() => toggleSaved(l.productId)}
                       >
-                        Delete
+                        Save for later
                       </button>
                       <button
                         type="button"
-                        className="text-sm text-[#007185] hover:underline"
-                        onClick={() => toggleList(l.productId)}
+                        className="text-xs text-red-600 hover:underline"
+                        onClick={() => setQty(l.productId, 0)}
                       >
-                        Save for later
+                        Remove
                       </button>
                     </div>
                   </div>
                   <p className="font-bold">{inr(l.product.price * l.qty)}</p>
-                </div>
+                </Card>
               ))}
             </div>
-            <Card className="h-fit border-[#d5d9d9] p-4">
-              <p className="text-lg">
-                Subtotal ({cartCount} items): <strong>{inr(cartTotal)}</strong>
+            <Card className="h-fit space-y-3 p-5">
+              <p className="text-sm text-muted-foreground">
+                Subtotal · {cartCount} item{cartCount === 1 ? "" : "s"}
               </p>
+              <p className="text-2xl font-bold">{inr(cartTotal)}</p>
               <Button
                 type="button"
-                className="mt-3 w-full"
                 variant="cta"
+                className="w-full"
                 disabled={!cartLines.length}
                 onClick={() => go("checkout")}
               >
-                Proceed to Buy
+                Checkout
               </Button>
-            </Card>
-          </div>
-        )}
-
-        {/* ── CHECKOUT ── */}
-        {page === "checkout" && (
-          <div className="mx-auto max-w-3xl space-y-4 p-4">
-            <h1 className="text-2xl font-normal">Checkout</h1>
-            <Card className="space-y-3 border-[#d5d9d9] p-4">
-              <h2 className="font-bold">1 · Delivery address</h2>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Input
-                  value={checkoutName}
-                  onChange={(e) => setCheckoutName(e.target.value)}
-                  placeholder="Full name"
-                />
-                <Input
-                  value={checkoutPhone}
-                  onChange={(e) => setCheckoutPhone(e.target.value)}
-                  placeholder="Phone"
-                />
-              </div>
-            </Card>
-            <Card className="space-y-2 border-[#d5d9d9] p-4">
-              <h2 className="font-bold">2 · Payment method</h2>
-              {(
-                [
-                  ["upi", "UPI"],
-                  ["card", "Credit / Debit card"],
-                  ["cod", "Cash on Delivery"],
-                ] as const
-              ).map(([id, label]) => (
-                <label key={id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="pay"
-                    checked={payMethod === id}
-                    onChange={() => setPayMethod(id)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </Card>
-            <Card className="border-[#d5d9d9] p-4">
-              <h2 className="font-bold">3 · Review items</h2>
-              {cartLines.map((l) => (
-                <p key={l.productId} className="mt-1 text-sm">
-                  {l.qty}× {l.product.title} — {inr(l.product.price * l.qty)}
-                </p>
-              ))}
-              <p className="mt-3 text-lg font-bold">Order total: {inr(cartTotal)}</p>
               <Button
                 type="button"
-                className="mt-3"
-                variant="cta"
-                disabled={Boolean(busy) || !cartLines.length}
-                onClick={() => void placeOrder()}
+                variant="secondary"
+                className="w-full"
+                onClick={() => go("browse")}
               >
-                {busy === "checkout" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : null}
-                Place your order
+                Keep shopping
               </Button>
-              <p className="mt-2 text-xs text-[#565959]">
-                Demo payment only. Use Account → sandbox path to force fail/success.
-              </p>
             </Card>
           </div>
         )}
 
-        {/* ── ORDERS ── */}
+        {/* CHECKOUT */}
+        {page === "checkout" && (
+          <div className="mx-auto max-w-xl space-y-4 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Checkout</h1>
+            {!cartLines.length ? (
+              <Card className="p-6 text-center">
+                <p>Nothing to checkout</p>
+                <Button type="button" className="mt-3" onClick={() => go("browse")}>
+                  Shop now
+                </Button>
+              </Card>
+            ) : (
+              <>
+                <Card className="space-y-3 p-5">
+                  <h2 className="font-semibold">1 · Delivery</h2>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Full name"
+                  />
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Phone"
+                  />
+                  <textarea
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    rows={3}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Full address"
+                  />
+                </Card>
+                <Card className="space-y-2 p-5">
+                  <h2 className="font-semibold">2 · Payment</h2>
+                  {(
+                    [
+                      ["upi", "UPI"],
+                      ["card", "Card"],
+                      ["cod", "Cash on delivery"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <label
+                      key={id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-accent-teal/40"
+                    >
+                      <input
+                        type="radio"
+                        name="pay"
+                        checked={pay === id}
+                        onChange={() => setPay(id)}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </Card>
+                <Card className="space-y-2 p-5">
+                  <h2 className="font-semibold">3 · Review</h2>
+                  {cartLines.map((l) => (
+                    <p key={l.productId} className="text-sm text-muted-foreground">
+                      {l.qty}× {l.product.title} — {inr(l.product.price * l.qty)}
+                    </p>
+                  ))}
+                  <p className="pt-2 text-xl font-bold">Total {inr(cartTotal)}</p>
+                  <Button
+                    type="button"
+                    variant="cta"
+                    className="w-full"
+                    disabled={Boolean(busy)}
+                    onClick={() => void placeOrder()}
+                  >
+                    {busy === "checkout" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Place order
+                  </Button>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ORDERS */}
         {page === "orders" && (
-          <div className="mx-auto max-w-4xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Your Orders</h1>
-            <div className="flex flex-wrap gap-2 text-sm">
-              <Badge className="bg-[#232f3e] text-white">Orders</Badge>
-              <button type="button" className="text-[#007185] hover:underline" onClick={() => go("returns")}>
-                Buy Again
-              </button>
-              <button type="button" className="text-[#007185] hover:underline" onClick={() => go("returns")}>
-                Not Yet Shipped
-              </button>
-              <button type="button" className="text-[#007185] hover:underline" onClick={() => go("returns")}>
-                Cancelled Orders
-              </button>
+          <div className="mx-auto max-w-3xl space-y-3 px-3 py-5 md:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h1 className="text-2xl font-bold">Your orders</h1>
+              <Button type="button" size="sm" variant="secondary" onClick={() => go("returns")}>
+                Returns
+              </Button>
             </div>
             {orders.map((o) => (
-              <Card key={o.id} className="border-[#d5d9d9] bg-white p-4">
-                <div className="flex flex-wrap justify-between gap-2 border-b border-[#ddd] pb-2 text-xs text-[#565959]">
-                  <span>
-                    ORDER PLACED
-                    <br />
-                    <strong className="text-[#0f1111]">{o.id}</strong>
-                  </span>
-                  <span>
-                    TOTAL
-                    <br />
-                    <strong className="text-[#0f1111]">{inr(o.amount)}</strong>
-                  </span>
-                  <span>
-                    SHIP TO
-                    <br />
-                    <strong className="text-[#0f1111]">{o.address.split(",")[0]}</strong>
-                  </span>
-                </div>
-                <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+              <Card key={o.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-bold text-[#007600]">{o.status}</p>
-                    <p className="text-sm">{o.title}</p>
-                    <p className="text-xs text-[#565959]">
-                      {o.items} · {o.eta}
+                    <p className="text-xs text-muted-foreground">{o.id}</p>
+                    <p className="font-semibold">{o.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {o.items} · {inr(o.amount)} · {o.eta}
                     </p>
+                    <Badge
+                      className={cn(
+                        "mt-2",
+                        o.status === "Delivered" && "bg-emerald-100 text-emerald-800",
+                        o.status === "Returned" && "bg-amber-100 text-amber-900",
+                        o.status === "Placed" && "bg-sky-100 text-sky-900"
+                      )}
+                    >
+                      {o.status}
+                    </Badge>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1.5">
                     <Button
                       type="button"
                       size="sm"
                       variant="secondary"
                       onClick={() => void advanceOrder(o.id)}
                     >
-                      Track package
+                      Update tracking
                     </Button>
                     {(o.status === "Delivered" || o.status === "Shipped") && (
                       <Button
@@ -1352,16 +1313,16 @@ export function EcomProductApp({
                         variant="secondary"
                         onClick={() => void requestReturn(o.id)}
                       >
-                        Return or replace
+                        Start return
                       </Button>
                     )}
                     <Button
                       type="button"
                       size="sm"
                       variant="secondary"
-                      onClick={() => go("customer-service")}
+                      onClick={() => go("help")}
                     >
-                      Problem with order
+                      Get help
                     </Button>
                   </div>
                 </div>
@@ -1371,24 +1332,29 @@ export function EcomProductApp({
         )}
 
         {page === "returns" && (
-          <div className="mx-auto max-w-3xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Returns & refunds</h1>
+          <div className="mx-auto max-w-xl space-y-3 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Returns</h1>
             {orders
               .filter((o) => o.status === "Returned" || o.status === "Delivered")
               .map((o) => (
                 <Card key={o.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div>
                     <p className="font-medium">{o.title}</p>
-                    <p className="text-xs text-[#565959]">
-                      {o.id} · {o.status} · {o.eta}
+                    <p className="text-xs text-muted-foreground">
+                      {o.id} · {o.status}
                     </p>
                   </div>
                   {o.status === "Delivered" ? (
-                    <Button type="button" size="sm" variant="cta" onClick={() => void requestReturn(o.id)}>
-                      Start return
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="cta"
+                      onClick={() => void requestReturn(o.id)}
+                    >
+                      Return
                     </Button>
                   ) : (
-                    <Badge className="bg-muted">Return in progress</Badge>
+                    <Badge className="bg-muted">In progress</Badge>
                   )}
                 </Card>
               ))}
@@ -1398,79 +1364,29 @@ export function EcomProductApp({
           </div>
         )}
 
-        {/* ── ACCOUNT ── */}
-        {page === "account" && (
-          <div className="mx-auto max-w-4xl p-4">
-            <h1 className="text-2xl font-normal">Your Account</h1>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {(
-                [
-                  ["orders", "Your Orders", "Track, return, or buy again", Package],
-                  ["lists", "Wish List", "View saved items", Heart],
-                  ["addresses", "Addresses", "Edit delivery locations", MapPin],
-                  ["customer-service", "Customer Service", "Help with orders", AlertTriangle],
-                  ["cart", "Cart", "Review items before checkout", ShoppingCart],
-                  ["home", "Home", "Continue shopping", Home],
-                ] as const
-              ).map(([id, title, sub, Icon]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => go(id)}
-                  className="flex gap-3 rounded border border-[#d5d9d9] bg-white p-4 text-left hover:bg-[#f7fafa]"
-                >
-                  <Icon className="h-8 w-8 text-[#565959]" />
-                  <span>
-                    <span className="block font-bold">{title}</span>
-                    <span className="text-xs text-[#565959]">{sub}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-            <Card className="mt-4 space-y-2 p-4">
-              <p className="font-bold">Demo sandbox</p>
-              <label className="block text-sm">
-                API path
-                <select
-                  className="mt-1 w-full rounded border border-[#d5d9d9] px-2 py-2"
-                  value={pathMode}
-                  onChange={(e) => setPathMode(e.target.value as MockPathMode)}
-                >
-                  <option value="auto">Auto (realistic)</option>
-                  <option value="always_ok">Always succeed</option>
-                  <option value="always_fail">Always fail</option>
-                </select>
-              </label>
-              <p className="text-xs text-[#565959]">
-                Signed in as <strong>{role?.label}</strong> — switch roles in the header.
-              </p>
-            </Card>
-          </div>
-        )}
-
-        {page === "lists" && (
-          <div className="mx-auto max-w-4xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Your Wish List</h1>
-            {!lists.length && (
+        {page === "saved" && (
+          <div className="mx-auto max-w-5xl space-y-3 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Saved items</h1>
+            {!saved.length && (
               <Card className="p-8 text-center">
-                <p>Your list is empty</p>
-                <Button type="button" className="mt-3" variant="cta" onClick={() => go("home")}>
-                  Find something to save
+                <p>Nothing saved yet</p>
+                <Button type="button" className="mt-3" variant="cta" onClick={() => go("browse")}>
+                  Explore products
                 </Button>
               </Card>
             )}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {lists.map((id) => {
+              {saved.map((id) => {
                 const p = products.find((x) => x.id === id);
                 if (!p) return null;
                 return (
-                  <ProductCard
+                  <ProductTile
                     key={id}
                     product={p}
+                    saved
                     onOpen={() => openPdp(id)}
                     onAdd={() => addToCart(id)}
-                    onList={() => toggleList(id)}
-                    listed
+                    onSave={() => toggleSaved(id)}
                   />
                 );
               })}
@@ -1479,13 +1395,12 @@ export function EcomProductApp({
         )}
 
         {page === "addresses" && (
-          <div className="mx-auto max-w-xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Your Addresses</h1>
-            <Card className="space-y-2 border-[#d5d9d9] p-4">
-              <p className="font-bold">Default delivery address</p>
+          <div className="mx-auto max-w-md space-y-3 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Delivery address</h1>
+            <Card className="space-y-3 p-5">
               <textarea
-                className="w-full rounded border border-[#d5d9d9] p-2 text-sm"
-                rows={3}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                rows={4}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
@@ -1493,6 +1408,10 @@ export function EcomProductApp({
                 type="button"
                 variant="cta"
                 onClick={() => {
+                  if (address.trim().length < 8) {
+                    flash("Enter a fuller address", "error");
+                    return;
+                  }
                   flash("Address saved", "success");
                   go("home");
                 }}
@@ -1503,113 +1422,138 @@ export function EcomProductApp({
           </div>
         )}
 
-        {page === "customer-service" && (
-          <div className="mx-auto max-w-2xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Customer Service</h1>
-            <Card className="divide-y border-[#d5d9d9]">
-              {[
-                ["Track your package", "orders"],
-                ["Returns & refunds", "returns"],
-                ["Manage address", "addresses"],
-                ["Payment issues (demo)", "account"],
-              ].map(([label, id]) => (
+        {page === "account" && (
+          <div className="mx-auto max-w-3xl space-y-4 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Account</h1>
+            <p className="text-sm text-muted-foreground">
+              Signed in as <strong className="text-foreground">{role?.label}</strong>
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  ["orders", "Orders", "Track and manage"],
+                  ["saved", "Saved", "Wish list"],
+                  ["addresses", "Addresses", "Delivery locations"],
+                  ["help", "Help", "Support options"],
+                  ["cart", "Bag", `${cartCount} items`],
+                  ["home", "Home", "Continue shopping"],
+                ] as const
+              ).map(([id, title, sub]) => (
                 <button
-                  key={label}
+                  key={id}
                   type="button"
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-[#f7fafa]"
-                  onClick={() => go(id as PageId)}
+                  onClick={() => go(id)}
+                  className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 text-left hover:border-accent-teal/40"
                 >
-                  {label}
-                  <ChevronDown className="h-4 w-4 -rotate-90" />
+                  <span>
+                    <span className="block font-semibold">{title}</span>
+                    <span className="text-xs text-muted-foreground">{sub}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </button>
               ))}
+            </div>
+            <Card className="space-y-2 p-5">
+              <p className="font-semibold">Sandbox controls</p>
+              <select
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                value={pathMode}
+                onChange={(e) => {
+                  setPathMode(e.target.value as MockPathMode);
+                  flash(`API path: ${e.target.value}`, "info");
+                }}
+              >
+                <option value="auto">Realistic (auto)</option>
+                <option value="always_ok">Always succeed</option>
+                <option value="always_fail">Always fail</option>
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Use Always fail, then try Place order, to rehearse payment errors.
+              </p>
             </Card>
-            <Button type="button" variant="secondary" onClick={() => flash("Support ticket created (demo)", "success")}>
-              Contact us
+          </div>
+        )}
+
+        {page === "help" && (
+          <div className="mx-auto max-w-lg space-y-3 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Help centre</h1>
+            {[
+              ["Track an order", "orders"],
+              ["Start a return", "returns"],
+              ["Update address", "addresses"],
+              ["Payment help", "account"],
+            ].map(([label, id]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => go(id as PageId)}
+                className="flex w-full items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm font-medium hover:border-accent-teal/40"
+              >
+                {label}
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            ))}
+            <Button
+              type="button"
+              variant="cta"
+              onClick={() => flash("Support request submitted (demo)", "success")}
+            >
+              Contact support
             </Button>
           </div>
         )}
 
-        {page === "departments" && (
-          <div className="p-4">
-            <h1 className="text-xl font-bold">All Departments</h1>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {DEPARTMENTS.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className="rounded-full border bg-white px-3 py-1.5 text-sm"
-                  onClick={() => {
-                    setActiveCategory(d);
-                    go("search");
-                  }}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── SELLER CENTRAL ── */}
+        {/* SELLER */}
         {(page === "seller" || page === "seller-inventory" || page === "seller-orders") && (
-          <div className="mx-auto max-w-4xl space-y-4 p-4">
+          <div className="mx-auto max-w-3xl space-y-4 px-3 py-5 md:px-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h1 className="text-2xl font-normal">Seller Central</h1>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={page === "seller" ? "cta" : "secondary"}
-                  onClick={() => go("seller")}
-                >
-                  Add product
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={page === "seller-inventory" ? "cta" : "secondary"}
-                  onClick={() => go("seller-inventory")}
-                >
-                  Inventory
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={page === "seller-orders" ? "cta" : "secondary"}
-                  onClick={() => go("seller-orders")}
-                >
-                  Orders
-                </Button>
+              <h1 className="text-2xl font-bold">Seller hub</h1>
+              <div className="flex gap-1">
+                {(
+                  [
+                    ["seller", "New listing"],
+                    ["seller-inventory", "Inventory"],
+                    ["seller-orders", "Orders"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <Button
+                    key={id}
+                    type="button"
+                    size="sm"
+                    variant={page === id ? "cta" : "secondary"}
+                    onClick={() => go(id)}
+                  >
+                    {label}
+                  </Button>
+                ))}
               </div>
             </div>
-            {!isSeller && !isOps && (
-              <Card className="border-amber-300 bg-amber-50 p-4 text-sm">
-                Switch role to <strong>Seller</strong> (header) for full listing permissions.
-                You can still preview Seller Central.
+            {!isSeller && (
+              <Card className="border-amber-300/50 bg-amber-50/50 p-4 text-sm dark:bg-amber-950/20">
+                Switch role to <strong>Seller</strong> in the header for full listing rights.
               </Card>
             )}
             {page === "seller" && (
-              <Card className="space-y-3 border-[#d5d9d9] p-4">
-                <h2 className="font-bold">Create a listing</h2>
+              <Card className="space-y-3 p-5">
+                <h2 className="font-semibold">Create listing</h2>
                 <Input
                   placeholder="Product title"
-                  value={listProductTitle}
-                  onChange={(e) => setListProductTitle(e.target.value)}
+                  value={listTitle}
+                  onChange={(e) => setListTitle(e.target.value)}
                 />
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Input
                     type="number"
-                    placeholder="Price (₹)"
+                    placeholder="Price ₹"
                     value={listPrice}
                     onChange={(e) => setListPrice(e.target.value)}
                   />
                   <select
-                    className="rounded border border-[#d5d9d9] px-2 py-2 text-sm"
-                    value={listCategory}
-                    onChange={(e) => setListCategory(e.target.value)}
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    value={listCat}
+                    onChange={(e) => setListCat(e.target.value)}
                   >
-                    {topCats.map((c) => (
+                    {CATEGORIES.filter((c) => c !== "All").map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -1636,7 +1580,7 @@ export function EcomProductApp({
                   >
                     <div>
                       <p className="font-medium">{p.title}</p>
-                      <p className="text-xs text-[#565959]">
+                      <p className="text-xs text-muted-foreground">
                         {p.category} · {inr(p.price)} · {p.seller}
                       </p>
                     </div>
@@ -1652,8 +1596,7 @@ export function EcomProductApp({
                               x.id === p.id
                                 ? {
                                     ...x,
-                                    status:
-                                      x.status === "Active" ? "Out of stock" : "Active",
+                                    status: x.status === "Active" ? "Out of stock" : "Active",
                                   }
                                 : x
                             )
@@ -1679,7 +1622,7 @@ export function EcomProductApp({
                       <p className="font-medium">
                         {o.id} · {o.title}
                       </p>
-                      <p className="text-xs text-[#565959]">
+                      <p className="text-xs text-muted-foreground">
                         {o.status} · {inr(o.amount)}
                       </p>
                     </div>
@@ -1699,26 +1642,25 @@ export function EcomProductApp({
         )}
 
         {page === "ops" && (
-          <div className="mx-auto max-w-4xl space-y-3 p-4">
-            <h1 className="text-2xl font-normal">Marketplace ops</h1>
-            <p className="text-sm text-[#565959]">
-              Disputes, suspended listings, and returns queue (Amazon Seller Support / A-to-z style).
+          <div className="mx-auto max-w-3xl space-y-3 px-3 py-5 md:px-5">
+            <h1 className="text-2xl font-bold">Ops desk</h1>
+            <p className="text-sm text-muted-foreground">
+              Reinstate listings and review returns — marketplace trust & safety surface.
             </p>
             {products
-              .filter((p) => p.status === "Suspended" || p.status === "Out of stock")
+              .filter((p) => p.status !== "Active")
               .map((p) => (
-                <Card key={p.id} className="flex justify-between gap-2 p-3">
+                <Card key={p.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
                   <span>
                     {p.title} · <Badge className="bg-muted">{p.status}</Badge>
                   </span>
                   <Button
                     type="button"
                     size="sm"
+                    variant="cta"
                     onClick={() => {
                       setProducts((prev) =>
-                        prev.map((x) =>
-                          x.id === p.id ? { ...x, status: "Active" } : x
-                        )
+                        prev.map((x) => (x.id === p.id ? { ...x, status: "Active" } : x))
                       );
                       flash("Listing reinstated", "success");
                     }}
@@ -1734,65 +1676,65 @@ export function EcomProductApp({
                   {o.id} · {o.title} · {o.status}
                 </Card>
               ))}
+            {!products.some((p) => p.status !== "Active") && (
+              <Card className="p-4 text-sm text-muted-foreground">
+                No suspended listings right now. Toggle stock as Seller to create ops work.
+              </Card>
+            )}
           </div>
         )}
 
-        {/* Amazon-style footer */}
-        <footer className="mt-8 text-white" style={{ background: "#232f3e" }}>
-          <button
-            type="button"
-            className="w-full bg-[#37475a] py-3 text-sm font-medium hover:bg-[#485769]"
-            onClick={() => {
-              if (typeof window !== "undefined")
-                document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            Back to top
-          </button>
-          <div className="mx-auto grid max-w-5xl gap-6 px-6 py-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        {/* Footer — original brand, compact */}
+        <footer className="mt-10 border-t border-border bg-card">
+          <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 lg:grid-cols-4 md:px-5">
             <div>
-              <p className="mb-2 font-bold">Get to Know Us</p>
-              <FooterBtn onClick={() => go("customer-service")}>About {brand}</FooterBtn>
-              <FooterBtn onClick={() => go("customer-service")}>Careers</FooterBtn>
+              <p className="text-sm font-bold" style={{ color: primary }}>
+                {brand}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Premium multi-sided marketplace demo. Clear jobs, honest status, mock payments.
+              </p>
             </div>
-            <div>
-              <p className="mb-2 font-bold">Make Money with Us</p>
-              <FooterBtn onClick={() => go("seller")}>Sell products</FooterBtn>
-              <FooterBtn onClick={() => go("seller-inventory")}>Seller Central</FooterBtn>
-            </div>
-            <div>
-              <p className="mb-2 font-bold">Let Us Help You</p>
-              <FooterBtn onClick={() => go("account")}>Your Account</FooterBtn>
-              <FooterBtn onClick={() => go("orders")}>Your Orders</FooterBtn>
-              <FooterBtn onClick={() => go("returns")}>Returns Centre</FooterBtn>
-              <FooterBtn onClick={() => go("customer-service")}>Help</FooterBtn>
-            </div>
-            <div>
-              <p className="mb-2 font-bold">Shop</p>
-              <FooterBtn onClick={() => go("home")}>Home</FooterBtn>
-              <FooterBtn onClick={() => go("deals")}>Today&apos;s Deals</FooterBtn>
-              <FooterBtn onClick={() => go("cart")}>Cart ({cartCount})</FooterBtn>
-            </div>
+            <FooterCol
+              title="Shop"
+              links={[
+                ["Browse", () => go("browse")],
+                ["Deals", () => go("deals")],
+                ["Bag", () => go("cart")],
+              ]}
+            />
+            <FooterCol
+              title="Orders"
+              links={[
+                ["Your orders", () => go("orders")],
+                ["Returns", () => go("returns")],
+                ["Help", () => go("help")],
+              ]}
+            />
+            <FooterCol
+              title="Partners"
+              links={[
+                ["Seller hub", () => go("seller")],
+                ["Inventory", () => go("seller-inventory")],
+                ["Ops desk", () => go("ops")],
+              ]}
+            />
           </div>
-          <div className="border-t border-white/10 py-4 text-center text-xs text-white/70">
-            © {new Date().getFullYear()} {brand}. Demo marketplace — not affiliated with Amazon.
-            No real payments.
+          <div className="border-t border-border px-4 py-3 text-center text-[11px] text-muted-foreground">
+            © {new Date().getFullYear()} {brand}. Interactive demo — no real payments or shipping.
           </div>
         </footer>
       </main>
 
-      {/* Mobile bottom bar — Amazon app-like */}
-      <nav
-        className="flex shrink-0 border-t border-[#ddd] bg-white md:hidden"
-        style={{ color: primary }}
-      >
+      {/* Mobile nav */}
+      <nav className="flex shrink-0 border-t border-border bg-card md:hidden">
         {(
           [
             ["home", "Home", Home],
-            ["account", "You", UserRound],
+            ["browse", "Shop", LayoutGrid],
             ["orders", "Orders", Package],
-            ["cart", "Cart", ShoppingCart],
-            ["departments", "Menu", Menu],
+            ["cart", "Bag", ShoppingCart],
+            ["account", "You", UserRound],
           ] as const
         ).map(([id, label, Icon]) => (
           <button
@@ -1800,18 +1742,16 @@ export function EcomProductApp({
             type="button"
             onClick={() => go(id)}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px]",
-              page === id ? "text-[#c45500]" : "text-[#565959]"
+              "relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium",
+              page === id ? "text-accent-teal" : "text-muted-foreground"
             )}
           >
-            <span className="relative">
-              <Icon className="h-5 w-5" />
-              {id === "cart" && cartCount > 0 && (
-                <span className="absolute -top-1 -right-2 rounded-full bg-[#f08804] px-1 text-[9px] font-bold text-black">
-                  {cartCount}
-                </span>
-              )}
-            </span>
+            <Icon className="h-5 w-5" />
+            {id === "cart" && cartCount > 0 && (
+              <span className="absolute top-1 right-[28%] flex h-4 min-w-4 items-center justify-center rounded-full bg-cta-amber px-0.5 text-[9px] font-bold text-navy">
+                {cartCount}
+              </span>
+            )}
             {label}
           </button>
         ))}
@@ -1820,92 +1760,103 @@ export function EcomProductApp({
   );
 }
 
-function FooterBtn({
-  children,
-  onClick,
+function FooterCol({
+  title,
+  links,
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
+  title: string;
+  links: Array<[string, () => void]>;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="block py-0.5 text-left text-white/80 hover:underline"
-    >
-      {children}
-    </button>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <ul className="mt-2 space-y-1">
+        {links.map(([label, onClick]) => (
+          <li key={label}>
+            <button
+              type="button"
+              onClick={onClick}
+              className="text-sm text-foreground/80 hover:text-accent-teal"
+            >
+              {label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function ProductCard({
+function ProductTile({
   product,
+  saved,
   onOpen,
   onAdd,
-  onList,
-  listed,
-  compact,
+  onSave,
 }: {
   product: Product;
+  saved?: boolean;
   onOpen: () => void;
   onAdd: () => void;
-  onList: () => void;
-  listed?: boolean;
-  compact?: boolean;
+  onSave: () => void;
 }) {
+  const off = Math.round((1 - product.price / product.mrp) * 100);
   return (
-    <div
-      className={cn(
-        "rounded border border-[#ddd] bg-white p-3 shadow-sm",
-        compact && "w-44 shrink-0"
-      )}
-    >
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex h-28 w-full items-center justify-center rounded bg-[#f7f8f8] text-3xl"
-      >
-        📦
+    <Card className="flex flex-col overflow-hidden p-0 transition hover:border-accent-teal/40 hover:shadow-md">
+      <button type="button" onClick={onOpen} className="text-left">
+        <div
+          className={cn(
+            "relative flex h-36 items-center justify-center bg-gradient-to-br",
+            product.hue
+          )}
+        >
+          <Package className="h-14 w-14 text-navy/25" />
+          {product.badge && (
+            <span className="absolute top-2 left-2 rounded-full bg-card/95 px-2 py-0.5 text-[10px] font-bold text-accent-teal shadow-sm">
+              {product.badge}
+            </span>
+          )}
+          {off >= 15 && (
+            <span className="absolute top-2 right-2 rounded-full bg-cta-amber px-2 py-0.5 text-[10px] font-bold text-navy">
+              -{off}%
+            </span>
+          )}
+        </div>
+        <div className="space-y-1 p-3">
+          <p className="line-clamp-2 text-sm font-semibold leading-snug">{product.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {product.rating.toFixed(1)} ★ · {product.reviews.toLocaleString()}
+          </p>
+          <p className="text-base font-bold">
+            {inr(product.price)}{" "}
+            <span className="text-xs font-normal text-muted-foreground line-through">
+              {inr(product.mrp)}
+            </span>
+          </p>
+          {product.express && (
+            <p className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-accent-teal">
+              <Zap className="h-3 w-3" /> Express
+            </p>
+          )}
+        </div>
       </button>
-      {product.badge && (
-        <p className="mt-1 text-[10px] font-bold text-[#c45500]">{product.badge}</p>
-      )}
-      <button
-        type="button"
-        onClick={onOpen}
-        className="mt-1 line-clamp-2 text-left text-sm hover:text-[#c45500]"
-      >
-        {product.title}
-      </button>
-      <p className="text-xs text-[#c45500]">{stars(product.rating)}</p>
-      <p className="font-bold">
-        {inr(product.price)}{" "}
-        <span className="text-xs font-normal text-[#565959] line-through">
-          {inr(product.mrp)}
-        </span>
-      </p>
-      {product.prime && <p className="text-[10px] font-bold text-[#00a8e1]">prime</p>}
-      <div className="mt-2 flex flex-wrap gap-1">
+      <div className="mt-auto flex gap-1.5 border-t border-border p-2">
         <Button
           type="button"
           size="sm"
           variant="cta"
-          className="h-8 text-xs"
+          className="h-8 flex-1 text-xs"
           disabled={product.status !== "Active"}
           onClick={onAdd}
         >
-          Add to Cart
+          Add
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className="h-8 text-xs"
-          onClick={onList}
-        >
-          <Heart className={cn("h-3 w-3", listed && "fill-red-500 text-red-500")} />
+        <Button type="button" size="sm" variant="secondary" className="h-8 px-2" onClick={onSave}>
+          <Heart className={cn("h-3.5 w-3.5", saved && "fill-red-500 text-red-500")} />
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }
