@@ -6,7 +6,6 @@ import type { UserRole } from "@/types/roles";
 import {
   BarChart3,
   Bot,
-  Flame,
   ChevronLeft,
   ChevronRight,
   Contact,
@@ -39,7 +38,6 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/chatbot-training": Bot,
   "/admin/agents": Shield,
   "/admin/blog": PenLine,
-  "/admin/forge": Flame,
   "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,

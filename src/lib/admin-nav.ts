@@ -69,11 +69,6 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "AI blog posts, daily sequence, schedule publish",
   },
   {
-    label: "Forge",
-    href: "/admin/forge",
-    description: "AI product builder — discovery, editable plan, then build",
-  },
-  {
     label: "Verlin Bank",
     href: "/admin/verlin-bank",
     description: "Verlin Bank prototype (Project Aura) - RBAC & multi-agent banking dashboard",

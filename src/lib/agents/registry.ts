@@ -19,7 +19,6 @@ export type PlatformAgentId =
   | "app-vertical-research"
   | "app-interview"
   | "app-builder-generate"
-  | "forge-discovery"
   | "app-content"
   | "app-theme"
   | "app-admin-design"
@@ -96,8 +95,8 @@ export const PLATFORM_AGENTS: PlatformAgentDef[] = [
     area: "App Builder",
     kind: "runtime",
     description: "Designs skippable guided questions from the user’s product idea.",
-    surfaces: ["Admin → Forge → Discovery", "Interview API"],
-    routes: ["/api/admin/app-builder/interview", "/api/forge/discovery"],
+    surfaces: ["Interview API"],
+    routes: ["/api/admin/app-builder/interview"],
     pausableRuntime: true,
   },
   {
@@ -106,20 +105,9 @@ export const PLATFORM_AGENTS: PlatformAgentDef[] = [
     area: "App Builder",
     kind: "runtime",
     description: "Generates live multi-tenant app content (shop or generic product sites).",
-    surfaces: ["Admin → Forge → Build"],
-    routes: ["/api/admin/app-builder/generate", "/api/forge/build"],
+    surfaces: ["App generate API"],
+    routes: ["/api/admin/app-builder/generate"],
     pausableRuntime: true,
-  },
-  {
-    id: "forge-discovery",
-    name: "Forge Discovery",
-    area: "App Builder",
-    kind: "runtime",
-    description:
-      "Adaptive product interview + editable plan for Forge (discovery-first builder).",
-    surfaces: ["Admin → Forge"],
-    routes: ["/api/forge/discovery", "/api/forge/plan", "/api/forge/plan/edit"],
-    pausableRuntime: false,
   },
   {
     id: "app-content",
