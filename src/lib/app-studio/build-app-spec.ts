@@ -25,7 +25,16 @@ function secretsList(override?: AppLlmSecrets | null): AppLlmSecrets[] {
   return listEnvSecrets();
 }
 
-async function callLlmJson(
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function isRateLimitError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /\b429\b|rate limit|tokens per minute|tpm|too many requests/i.test(msg);
+}
+
+async function callLlmJsonOnce(
   secrets: AppLlmSecrets,
   system: string,
   user: string
@@ -44,7 +53,10 @@ async function callLlmJson(
       }),
       signal: AbortSignal.timeout(90_000),
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`Gemini ${res.status}: ${body.slice(0, 200)}`);
+    }
     const data = (await res.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
@@ -66,7 +78,10 @@ async function callLlmJson(
       }),
       signal: AbortSignal.timeout(90_000),
     });
-    if (!res.ok) throw new Error(`Anthropic ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`Anthropic ${res.status}: ${body.slice(0, 200)}`);
+    }
     const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
     return data.content?.find((c) => c.type === "text")?.text || "";
   }
@@ -80,6 +95,30 @@ async function callLlmJson(
       { role: "user", content: user },
     ],
   });
+}
+
+/** Groq free tier often 429s — retry with backoff so expand still succeeds. */
+async function callLlmJson(
+  secrets: AppLlmSecrets,
+  system: string,
+  user: string
+): Promise<string> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      return await callLlmJsonOnce(secrets, system, user);
+    } catch (e) {
+      lastErr = e;
+      if (isRateLimitError(e) && attempt < 3) {
+        const waitMs = 8_000 * (attempt + 1);
+        console.warn(`[app-studio/expand] rate limited, retry in ${waitMs}ms (attempt ${attempt + 1})`);
+        await sleep(waitMs);
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 const EXPAND_SYSTEM = `You are a product architect. Your job is NOT a landing page.
@@ -182,6 +221,42 @@ function emptyResearch(prompt: string): StudioResearchPack {
   };
 }
 
+function composeRewrittenPrompt(parts: {
+  brandName: string;
+  description: string;
+  roles: StudioRole[];
+  workflows: StudioWorkflow[];
+  screens: StudioScreen[];
+  entities: StudioEntity[];
+  fallback: string;
+}): string {
+  const body = `Build a complete multi-role working product named ${parts.brandName} — not a marketing site.
+
+${parts.description}
+
+ROLES
+${parts.roles.map((r, i) => `${i + 1}) ${r.label} — ${r.description}`).join("\n")}
+
+WORKFLOWS
+${parts.workflows
+  .map((w) => `- ${w.name} (${w.roleId}): ${w.steps.join(" → ")}`)
+  .join("\n")}
+
+SCREENS
+${parts.screens.map((s) => s.title).join(", ")}.
+
+DATA
+${parts.entities.map((e) => `${e.name} (${e.fields.map((f) => f.key).join(", ")})`).join("; ")}.
+
+SUCCESS
+Role selector top-right switches nav and workflows. Creating records and moving board statuses update the app immediately.`;
+
+  if (parts.fallback && parts.fallback.length > body.length) {
+    return parts.fallback;
+  }
+  return body;
+}
+
 function normalizeAppSpec(
   raw: Partial<StudioAppSpec> & { rewrittenPrompt?: string },
   prompt: string,
@@ -199,7 +274,7 @@ function normalizeAppSpec(
       : fallback.workflows;
 
   // Ensure every role has isDefault exactly once
-  let hasDefault = roles.some((r) => r.isDefault);
+  const hasDefault = roles.some((r) => r.isDefault);
   const fixedRoles = roles.map((r, i) => ({
     ...r,
     id: r.id || `role-${i}`,
@@ -208,16 +283,37 @@ function normalizeAppSpec(
     canManage: Boolean(r.canManage),
   }));
 
-  return {
-    version: 1,
-    brandName: raw.brandName || fallback.brandName,
-    tagline: raw.tagline || fallback.tagline,
-    description: raw.description || fallback.description,
-    rewrittenPrompt: raw.rewrittenPrompt || fallback.rewrittenPrompt,
-    primaryColor: raw.primaryColor || "#0f2744",
-    accentColor: raw.accentColor || "#0d9488",
-    roles: fixedRoles,
-    entities: entities.map((e, i) => ({
+  // Exactly one default if LLM set multiple
+  let sawDefault = false;
+  const uniqueDefaultRoles = fixedRoles.map((r) => {
+    if (r.isDefault) {
+      if (sawDefault) return { ...r, isDefault: false };
+      sawDefault = true;
+      return r;
+    }
+    return r;
+  });
+  if (!sawDefault && uniqueDefaultRoles[0]) uniqueDefaultRoles[0].isDefault = true;
+
+  const fixedScreens = screens.map((s, i) => ({
+    ...s,
+    id: s.id || `screen-${i}`,
+    roleIds: Array.isArray(s.roleIds) ? s.roleIds : [],
+    type: (s.type || "list") as StudioScreen["type"],
+  }));
+  const screenIds = new Set(fixedScreens.map((s) => s.id));
+
+  const fixedEntities = entities.map((e, i) => {
+    const seed =
+      e.seed?.length && e.seed.length >= 2
+        ? e.seed
+        : fallback.entities[i]?.seed ||
+          fallback.entities[0]?.seed || [
+            { title: "Sample A", status: "New" },
+            { title: "Sample B", status: "In progress" },
+            { title: "Sample C", status: "Done" },
+          ];
+    return {
       ...e,
       id: e.id || `entity-${i}`,
       namePlural: e.namePlural || `${e.name}s`,
@@ -228,19 +324,72 @@ function normalizeAppSpec(
             { key: "status", label: "Status", type: "status" as const },
           ],
       statuses: e.statuses?.length ? e.statuses : ["New", "In progress", "Done"],
-      seed: e.seed?.length ? e.seed : fallback.entities[0]?.seed || [],
-    })),
-    screens: screens.map((s, i) => ({
-      ...s,
-      id: s.id || `screen-${i}`,
-      roleIds: Array.isArray(s.roleIds) ? s.roleIds : [],
-      type: s.type || "list",
-    })),
-    workflows: workflows.map((w, i) => ({
+      seed,
+    };
+  });
+
+  const fixedWorkflows = workflows.map((w, i) => {
+    const roleId =
+      uniqueDefaultRoles.some((r) => r.id === w.roleId)
+        ? w.roleId
+        : uniqueDefaultRoles[i % uniqueDefaultRoles.length]?.id || "member";
+    const screenId = screenIds.has(w.screenId)
+      ? w.screenId
+      : fixedScreens[Math.min(i, fixedScreens.length - 1)]?.id || fixedScreens[0]?.id || "dash";
+    return {
       ...w,
       id: w.id || `wf-${i}`,
+      roleId,
+      screenId,
       steps: w.steps?.length ? w.steps : ["Open", "Act", "Done"],
-    })),
+    };
+  });
+
+  // Every role needs ≥1 workflow
+  for (const role of uniqueDefaultRoles) {
+    if (!fixedWorkflows.some((w) => w.roleId === role.id)) {
+      const screen =
+        fixedScreens.find((s) => !s.roleIds.length || s.roleIds.includes(role.id)) ||
+        fixedScreens[0];
+      fixedWorkflows.push({
+        id: `wf-auto-${role.id}`,
+        name: `${role.label} path`,
+        description: role.description,
+        roleId: role.id,
+        steps: ["Open app", "Use main screen", "Complete action"],
+        screenId: screen?.id || "dash",
+      });
+    }
+  }
+
+  const brandName = raw.brandName || fallback.brandName;
+  const description = raw.description || fallback.description;
+  const rawBrief = (raw.rewrittenPrompt || "").trim();
+  const rewrittenPrompt =
+    rawBrief.length >= 120
+      ? rawBrief
+      : composeRewrittenPrompt({
+          brandName,
+          description,
+          roles: uniqueDefaultRoles,
+          workflows: fixedWorkflows,
+          screens: fixedScreens,
+          entities: fixedEntities,
+          fallback: fallback.rewrittenPrompt,
+        });
+
+  return {
+    version: 1,
+    brandName,
+    tagline: raw.tagline || fallback.tagline,
+    description,
+    rewrittenPrompt,
+    primaryColor: raw.primaryColor || "#0f2744",
+    accentColor: raw.accentColor || "#0d9488",
+    roles: uniqueDefaultRoles,
+    entities: fixedEntities,
+    screens: fixedScreens,
+    workflows: fixedWorkflows,
   };
 }
 

@@ -41,11 +41,13 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+/** Verified multi-role product prompts (research + expand must produce working apps). */
 const EXAMPLE_PROMPTS = [
-  "Yoga studio booking: members book classes, instructors see roster, owner manages all bookings",
-  "Team task board: members create tasks, managers move status on a Kanban board",
-  "Expense tracker: employees submit claims, managers approve or reject on a board",
-  "Sales CRM: reps log leads, managers advance deals through pipeline stages",
+  "Digital banking for India: savings, UPI transfers, freeze cards — roles customer, support, ops",
+  "Yoga studio booking: members book classes, instructors see roster, owner manages bookings",
+  "ResumeLift career tool: job seekers build resumes + LinkedIn checklist; coaches review",
+  "Team expense tracker: employees submit claims, managers approve or reject on a board",
+  "Sales CRM pipeline: reps log leads, managers advance deals through stages",
 ];
 
 type CanvasTab = "verlin" | "sandbox" | "code";

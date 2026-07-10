@@ -124,5 +124,17 @@ export function parseJsonObject<T>(raw: string): T {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end <= start) throw new Error("LLM response was not valid JSON");
-  return JSON.parse(text.slice(start, end + 1)) as T;
+  let slice = text.slice(start, end + 1);
+  // Common LLM JSON defects
+  slice = slice
+    .replace(/,\s*([}\]])/g, "$1") // trailing commas
+    .replace(/[\u201c\u201d]/g, '"') // smart quotes
+    .replace(/[\u2018\u2019]/g, "'");
+  try {
+    return JSON.parse(slice) as T;
+  } catch {
+    // Strip control chars except newline/tab
+    const cleaned = slice.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+    return JSON.parse(cleaned) as T;
+  }
 }

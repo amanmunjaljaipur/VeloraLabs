@@ -171,15 +171,28 @@ async function callWithFallback(
 
   const errors: string[] = [];
   for (const secrets of secretsList) {
-    try {
-      const text = await callAnyLlm(secrets, input);
-      return { text, used: secrets };
-    } catch (e) {
-      const fe = friendlyLlmError(e);
-      console.warn(`[app-studio] provider ${secrets.provider} failed:`, fe.message);
-      errors.push(`${secrets.provider}: ${fe.message}`);
-      // try next provider
+    let lastForProvider: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const text = await callAnyLlm(secrets, input);
+        return { text, used: secrets };
+      } catch (e) {
+        lastForProvider = e;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/\b429\b|rate limit|tokens per minute|tpm/i.test(msg) && attempt < 2) {
+          const waitMs = 8_000 * (attempt + 1);
+          console.warn(
+            `[app-studio] ${secrets.provider} rate limited, retry in ${waitMs}ms (attempt ${attempt + 1})`
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
+          continue;
+        }
+        break;
+      }
     }
+    const fe = friendlyLlmError(lastForProvider);
+    console.warn(`[app-studio] provider ${secrets.provider} failed:`, fe.message);
+    errors.push(`${secrets.provider}: ${fe.message}`);
   }
 
   const joined = errors.join(" | ");
