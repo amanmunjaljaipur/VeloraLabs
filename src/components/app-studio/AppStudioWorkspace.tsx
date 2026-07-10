@@ -1,5 +1,6 @@
 "use client";
 
+import { StudioAppFullscreen } from "@/components/app-studio/StudioAppFullscreen";
 import { StudioVerlinPreview } from "@/components/app-studio/StudioVerlinPreview";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -25,6 +26,7 @@ import {
   History,
   ImagePlus,
   Loader2,
+  Maximize2,
   MonitorPlay,
   Rocket,
   Send,
@@ -89,6 +91,7 @@ export function AppStudioWorkspace() {
   const [aiKey, setAiKey] = useState("");
   const [aiModel, setAiModel] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
+  const [fullScreen, setFullScreen] = useState(false);
   const lastPromptRef = useRef("");
 
   const paths = useMemo(() => listFilePaths(files), [files]);
@@ -307,7 +310,9 @@ export function AppStudioWorkspace() {
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast("App ready — review Verlin UI, then Publish for a share link", "success");
+      toast("App ready — click See full app for the complete screen", "success");
+      // Open full product screen so the user sees the whole app immediately
+      setFullScreen(true);
     } catch {
       toast("Network error during generation", "error");
     } finally {
@@ -471,6 +476,21 @@ export function AppStudioWorkspace() {
           <Button
             type="button"
             size="sm"
+            variant="secondary"
+            disabled={!verlinContent}
+            onClick={() => {
+              if (!verlinContent) {
+                toast("Build an app first to open the full screen", "error");
+                return;
+              }
+              setFullScreen(true);
+            }}
+          >
+            <Maximize2 className="h-3.5 w-3.5" /> See full app
+          </Button>
+          <Button
+            type="button"
+            size="sm"
             variant="cta"
             loading={publishing}
             disabled={!research && !verlinContent}
@@ -494,6 +514,14 @@ export function AppStudioWorkspace() {
           </Link>
           <Button type="button" size="sm" variant="secondary" onClick={copyLink}>
             <Copy className="h-3.5 w-3.5" /> Copy link
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="cta"
+            onClick={() => window.open(published.publicPath, "_blank")}
+          >
+            <Maximize2 className="h-3.5 w-3.5" /> Open full app
           </Button>
         </div>
       )}
@@ -756,14 +784,22 @@ export function AppStudioWorkspace() {
           {canvasTab === "verlin" ? (
             <div className="min-h-0 flex-1 overflow-hidden bg-muted/20 p-2">
               {verlinContent ? (
-                <StudioVerlinPreview content={verlinContent} />
+                <div className="relative h-full min-h-[480px]">
+                  <div className="absolute right-3 top-3 z-10">
+                    <Button type="button" size="sm" variant="cta" onClick={() => setFullScreen(true)}>
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      See full app
+                    </Button>
+                  </div>
+                  <StudioVerlinPreview content={verlinContent} />
+                </div>
               ) : (
                 <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
                   <LayoutTemplate className="mb-3 h-10 w-10 opacity-40" />
-                  <p className="font-medium text-foreground">Verlin UI preview</p>
+                  <p className="font-medium text-foreground">Full product screen</p>
                   <p className="mt-1 max-w-sm">
-                    After you Build, pages appear here using Verlin Labs components (Button, Card,
-                    Badge). Publish to get a public link at /apps/…
+                    After you Build, use <strong>See full app</strong> for a complete full-screen
+                    experience. Publish for a public link at /apps/…
                   </p>
                 </div>
               )}
@@ -900,6 +936,14 @@ export function AppStudioWorkspace() {
           )}
         </section>
       </div>
+
+      <StudioAppFullscreen
+        open={fullScreen}
+        onClose={() => setFullScreen(false)}
+        content={verlinContent}
+        publishedPath={published?.publicPath}
+        publishedUrl={published?.absoluteUrl}
+      />
     </div>
   );
 }
