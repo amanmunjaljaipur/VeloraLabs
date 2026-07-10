@@ -1,5 +1,6 @@
 "use client";
 
+import { AppBuilderFooter } from "@/components/app-builder/AppBuilderFooter";
 import type { EcomLocalShopContent, EcomProduct, ShopLogo } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
@@ -12,7 +13,6 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type PageKey = "home" | "shop" | "about" | "contact" | "faq";
@@ -548,20 +548,11 @@ export function EcomLocalShopApp({
 
       {!PAGE_KEYS.includes(page) ? null : null}
 
-      <footer className="border-t border-border bg-muted/20 py-8 text-center text-xs text-text-muted">
-        <div className="mb-3 flex justify-center">
-          <ShopLogoMark logo={logo} brandName={content.brandName} size="sm" />
-        </div>
-        <p>{content.footerNote}</p>
-        {!embedded ? (
-          <p className="mt-2">
-            Built with Verlin Labs App Builder ·{" "}
-            <Link href="/admin/app-builder" className="hover:underline" style={{ color: accent }}>
-              Studio
-            </Link>
-          </p>
-        ) : null}
-      </footer>
+      <AppBuilderFooter
+        content={content}
+        accent={accent}
+        onNavigate={(p) => go(p)}
+      />
     </div>
   );
 }

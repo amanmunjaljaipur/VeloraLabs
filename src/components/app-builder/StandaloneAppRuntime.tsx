@@ -1,8 +1,13 @@
 "use client";
 
-import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
 import { AppAdminPanel } from "@/components/app-builder/AppAdminPanel";
 import { AppAuthScreens } from "@/components/app-builder/AppAuthScreens";
+import { AppBuilderFooter } from "@/components/app-builder/AppBuilderFooter";
+import {
+  AppGuidedTour,
+  AppTourReplayButton,
+} from "@/components/app-builder/AppGuidedTour";
+import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
 import type { EcomLocalShopContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
@@ -108,6 +113,7 @@ export function StandaloneAppRuntime({
   const [content, setContent] = useState(initialContent);
   const [user, setUser] = useState<AppUserView | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [forceTour, setForceTour] = useState(false);
 
   const accent = content.primaryColor || "#0d9488";
 
@@ -199,6 +205,7 @@ export function StandaloneAppRuntime({
           "sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur",
           isAdminRoute && "lg:pl-0"
         )}
+        data-tour="header"
       >
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
@@ -254,7 +261,10 @@ export function StandaloneAppRuntime({
             <p className="text-xs font-medium text-text-muted">Admin panel</p>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm" data-tour="auth-actions">
+            {!isAdminRoute ? (
+              <AppTourReplayButton accent={accent} onClick={() => setForceTour(true)} />
+            ) : null}
             {user?.isAdmin || user?.isStaff ? (
               <button
                 type="button"
@@ -310,6 +320,17 @@ export function StandaloneAppRuntime({
           </div>
         </div>
       </header>
+
+      {/* Tour stays mounted across pages (including login/admin steps) */}
+      <AppGuidedTour
+        slug={slug}
+        brandName={content.brandName}
+        accent={accent}
+        includeAdmin={Boolean(user?.isAdmin || user?.isStaff)}
+        onNavigate={go}
+        forceOpen={forceTour}
+        onCloseForce={() => setForceTour(false)}
+      />
 
       {user?.viaPlatformSuperAdmin ? (
         <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-900 dark:text-amber-100">
@@ -430,6 +451,15 @@ export function StandaloneAppRuntime({
           }}
           slug={slug}
           appUser={user}
+        />
+      ) : null}
+
+      {/* Footer on account / auth pages (shop pages include their own footer) */}
+      {(isAuthRoute || route === "account") && !isAdminRoute ? (
+        <AppBuilderFooter
+          content={content}
+          accent={accent}
+          onNavigate={(p) => go(p)}
         />
       ) : null}
     </div>
