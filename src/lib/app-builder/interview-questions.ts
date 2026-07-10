@@ -226,15 +226,46 @@ function ensureCoreQuestions(
     }
   }
 
-  // Prefer order: brandName, city, then rest (deduped)
-  const ordered: InterviewQuestion[] = [];
-  for (const id of CORE_IDS) {
-    const q = byId.get(id);
-    if (q) {
-      ordered.push({ ...q, required: true });
-      byId.delete(id);
-    }
+  // Ensure workflow discovery questions exist (offline business first)
+  for (const wq of WORKFLOW_DEFAULTS) {
+    if (!byId.has(wq.id)) byId.set(wq.id, wq);
   }
+
+  // Order: identity → offline workflow → offer → logo → rest
+  const preferredOrder = [
+    "brandName",
+    "city",
+    "offlineDay",
+    "customerSteps",
+    "busyTimes",
+    "whoDoesWhat",
+    "offlinePain",
+    "appHelpHope",
+    "whatYouSell",
+    "shopType",
+    "audience",
+    "contact",
+    "howToOrder",
+    "logoPreference",
+  ];
+
+  const ordered: InterviewQuestion[] = [];
+  const workflowRequired = new Set([
+    "offlineDay",
+    "customerSteps",
+    "offlinePain",
+    "appHelpHope",
+  ]);
+  const take = (id: string) => {
+    const q = byId.get(id);
+    if (!q) return;
+    const force =
+      (CORE_IDS as readonly string[]).includes(id) || workflowRequired.has(id);
+    ordered.push(force ? { ...q, required: true } : q);
+    byId.delete(id);
+  };
+
+  for (const id of preferredOrder) take(id);
   for (const q of questions) {
     if (byId.has(q.id)) {
       ordered.push(byId.get(q.id)!);
@@ -243,7 +274,7 @@ function ensureCoreQuestions(
   }
   for (const q of byId.values()) ordered.push(q);
 
-  return ordered.slice(0, 12);
+  return ordered.slice(0, 14);
 }
 
 /**
