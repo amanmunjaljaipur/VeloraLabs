@@ -66,12 +66,12 @@ export default async function GeneratedAppPage({ params }: PageProps) {
     try {
       const { spec } = await resolveInteractiveAppSpec(project);
       return (
-        <div className="flex h-full min-h-0 flex-col bg-background">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <StudioWorkingApp
             key={`${project.slug}-${spec.brandName}`}
             spec={spec}
             fullScreen
-            className="h-full min-h-0"
+            className="h-full min-h-0 flex-1 overflow-hidden"
           />
         </div>
       );

@@ -27,12 +27,12 @@ function resolveHost(request: NextRequest): string {
 }
 
 function isStandaloneAppPath(pathname: string): boolean {
+  // Locked full-viewport shell (inner scroll only). Gallery index stays normal document scroll.
   return (
     pathname === "/apps" ||
     pathname.startsWith("/apps/") ||
     pathname.startsWith("/api/apps/") ||
-    pathname === "/demo-apps" ||
-    pathname.startsWith("/demo-apps/")
+    /^\/demo-apps\/[^/]+\/?$/.test(pathname)
   );
 }
 

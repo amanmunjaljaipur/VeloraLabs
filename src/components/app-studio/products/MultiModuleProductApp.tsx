@@ -214,10 +214,10 @@ export function MultiModuleProductApp({
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-col bg-background text-foreground",
+        "flex min-h-0 flex-col overflow-hidden bg-background text-foreground",
         fullScreen
-          ? "h-full"
-          : "h-full min-h-[520px] max-h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-border"
+          ? "h-full max-h-full flex-1"
+          : "h-full min-h-[520px] max-h-[calc(100dvh-6rem)] rounded-xl border border-border"
       )}
     >
       <header className="z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur">
@@ -311,8 +311,12 @@ export function MultiModuleProductApp({
       )}
 
       <main
-        className="mx-auto w-full max-w-7xl min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-5 md:px-5"
-        style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+        className="mx-auto w-full max-w-7xl min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 py-5 md:px-5"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
+          overflowY: "auto",
+        }}
       >
         {busy && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-accent-teal/30 bg-accent-teal/10 px-3 py-2 text-xs text-accent-teal">

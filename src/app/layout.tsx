@@ -106,13 +106,21 @@ export default async function RootLayout({
   const standaloneApp = headerList.get("x-vl-app-shell") === "1";
 
   if (standaloneApp) {
-    // Fixed height chain so touchpad/wheel scroll works inside app main panes
+    // Viewport-locked shell: document does not scroll; product <main> does.
+    // min-h-0 on every flex step is required for overflow-y-auto children.
     return (
-      <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-        <body className="h-full overflow-hidden antialiased">
+      <html
+        lang="en"
+        className={`${inter.variable} h-dvh max-h-dvh overflow-hidden`}
+        suppressHydrationWarning
+      >
+        <body className="h-dvh max-h-dvh overflow-hidden antialiased">
           <ThemeProvider>
             <ToastProvider>
-              <main id="main" className="flex h-full min-h-0 flex-col overflow-hidden">
+              <main
+                id="main"
+                className="flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden"
+              >
                 {children}
               </main>
             </ToastProvider>

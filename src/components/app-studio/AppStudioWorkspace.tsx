@@ -964,7 +964,11 @@ export function AppStudioWorkspace() {
             </div>
           </div>
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <StudioWorkingApp spec={appSpec} fullScreen className="h-full min-h-0" />
+            <StudioWorkingApp
+              spec={appSpec}
+              fullScreen
+              className="h-full min-h-0 flex-1 overflow-hidden"
+            />
           </div>
         </div>
       )}

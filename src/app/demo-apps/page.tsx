@@ -18,9 +18,10 @@ export default function DemoAppsIndexPage() {
     items: DEMO_CATEGORIES.filter((c) => c.group === g),
   }));
 
+  // Normal document scroll (not standalone shell) so the catalog is easy to browse
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-card/80 backdrop-blur">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy text-white dark:bg-accent-teal dark:text-navy">
@@ -42,7 +43,7 @@ export default function DemoAppsIndexPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 md:px-6">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 pb-20 md:px-6">
         <p className="max-w-3xl text-sm text-muted-foreground">
           Each card opens a full interactive product demo: roles (top-right selector), modules,
           create/list/board workflows, validation, and mock API happy/fail paths. Banking and career

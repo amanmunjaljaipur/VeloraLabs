@@ -29,8 +29,9 @@ export default async function DemoAppPage({ params }: Props) {
   const hit = getDemoSpecBySlug(slug);
   if (!hit) notFound();
 
+  // Fill standalone layout (h-dvh overflow-hidden); product <main> is the scroll surface.
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-navy px-3 py-2 text-white">
         <Link
           href="/demo-apps"
@@ -45,8 +46,12 @@ export default async function DemoAppPage({ params }: Props) {
           Switch roles top-right
         </span>
       </div>
-      <div className="min-h-0 flex-1">
-        <StudioWorkingApp spec={hit.spec} fullScreen className="h-full min-h-0" />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <StudioWorkingApp
+          spec={hit.spec}
+          fullScreen
+          className="h-full min-h-0 flex-1 overflow-hidden"
+        />
       </div>
     </div>
   );

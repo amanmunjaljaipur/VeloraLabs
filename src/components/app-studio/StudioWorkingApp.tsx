@@ -28,9 +28,15 @@ export function StudioWorkingApp({
   const [roleId, setRoleId] = useState(defaultRole);
   const role = spec.roles.find((r) => r.id === roleId) || spec.roles[0];
 
+  // min-h-0 + overflow-hidden so nested product <main overflow-y-auto> can scroll.
+  const shell = cn(
+    "flex h-full min-h-0 flex-1 flex-col overflow-hidden",
+    className
+  );
+
   if (productKind === "resume") {
     return (
-      <div className={cn("flex h-full min-h-0 flex-col", className)}>
+      <div className={shell}>
         <ResumeProductApp
           spec={spec}
           role={role}
@@ -43,7 +49,7 @@ export function StudioWorkingApp({
   }
   if (productKind === "banking") {
     return (
-      <div className={cn("flex h-full min-h-0 flex-col", className)}>
+      <div className={shell}>
         <BankingProductApp
           spec={spec}
           role={role}
@@ -56,7 +62,7 @@ export function StudioWorkingApp({
   }
 
   return (
-    <div className={cn("flex h-full min-h-0 flex-col", className)}>
+    <div className={shell}>
       <MultiModuleProductApp
         spec={spec}
         role={role}
