@@ -47,6 +47,7 @@ export default async function GeneratedAppPage({ params }: PageProps) {
         basePath={project.publicPath}
         slug={project.slug}
         pathSegments={path ?? []}
+        dataModels={project.dataModels}
       />
     );
   }

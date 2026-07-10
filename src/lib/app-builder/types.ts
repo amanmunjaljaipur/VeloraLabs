@@ -145,7 +145,7 @@ export interface GenericAppContent {
   heroHeadline: string;
   heroSubheadline: string;
   ctaLabel: string;
-  /** Secondary CTA (e.g. “Apply”, “Book demo”) */
+  /** Secondary CTA (e.g. "Apply", "Book demo") */
   secondaryCtaLabel?: string;
   aboutHtml: string;
   logo: ShopLogo;
@@ -177,6 +177,26 @@ export function isGenericContent(
   return Boolean(content && content.extensionId !== "ecom-local-shop");
 }
 
+/** Minimal, structurally-compatible mirror of Forge's ForgeDataField/ForgeDataModel
+ *  (kept here, not imported from @/lib/forge/types, to avoid a circular dependency —
+ *  app-builder is the lower-level module Forge builds on top of). */
+export interface AppDataFieldSpec {
+  name: string;
+  type: string;
+  required?: boolean;
+  /** Relation target entity name/id when type is "relation" */
+  ref?: string;
+  description?: string;
+}
+
+export interface AppDataModelSpec {
+  id: string;
+  name: string;
+  description?: string;
+  fields: AppDataFieldSpec[];
+  relationships?: string[];
+}
+
 export interface AppProject {
   id: string;
   slug: string;
@@ -189,6 +209,8 @@ export interface AppProject {
   customPoints?: string[];
   llm: AppLlmConfigPublic;
   content: AppExtensionContent | null;
+  /** Forge build-plan data models — drives the generic CRUD admin for non-ecommerce apps */
+  dataModels?: AppDataModelSpec[];
   publicPath: string;
   createdAt: string;
   updatedAt: string;
@@ -219,7 +241,7 @@ export interface InterviewQuestion {
   suggestions?: string[];
   /** single = one chip; multi = many chips; free = type only */
   selectMode?: InterviewSelectMode;
-  /** Show “add your own” input (default true) */
+  /** Show "add your own" input (default true) */
   allowCustom?: boolean;
 }
 

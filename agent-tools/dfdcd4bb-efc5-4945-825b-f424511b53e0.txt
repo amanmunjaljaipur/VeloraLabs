@@ -1,0 +1,811 @@
+
+<!DOCTYPE html><html lang="en" class="inter_ce929fb-module__qqrwVG__variable h-full"><head><meta 
+charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" 
+imageSrcSet="/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=640&amp;q=75 640w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=750&amp;q=75 750w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=828&amp;q=75 828w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1080&amp;q=75 1080w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1200&amp;q=75 1200w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1920&amp;q=75 1920w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=2048&amp;q=75 2048w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=3840&amp;q=75 3840w" imageSizes="100vw"/><link 
+rel="stylesheet" href="/_next/static/chunks/0bu0h_63lvjtp.css" data-precedence="next"/><link rel="stylesheet" 
+href="/_next/static/chunks/0kjy84idqm8hb.css" data-precedence="next"/><link rel="preload" as="script" 
+fetchPriority="low" href="/_next/static/chunks/0_j_6z6vt952j.js"/><script src="/_next/static/chunks/27jktro2p5rq9.js" 
+async=""></script><script src="/_next/static/chunks/0injn07qfcgrb.js" async=""></script><script 
+src="/_next/static/chunks/2hhhl697c3mfx.js" async=""></script><script 
+src="/_next/static/chunks/turbopack-23bgmop76jfqa.js" async=""></script><script 
+src="/_next/static/chunks/2x_5boebukexb.js" async=""></script><script src="/_next/static/chunks/0px0x5udpt-i6.js" 
+async=""></script><script src="/_next/static/chunks/14mrh2-p_w84d.js" async=""></script><script 
+src="/_next/static/chunks/14xp3dfwd4j5o.js" async=""></script><script src="/_next/static/chunks/07qi8k1eixj6o.js" 
+async=""></script><meta name="next-size-adjust" content=""/><title>For School Students (Classes 6–12) | Verlin 
+Labs</title><meta name="description" content="An 8-day student-friendly program with fun analogies, safe AI tool use, 
+and a hands-on showcase project."/><meta property="og:title" content="Verlin Labs | Clarity-First Learning for the AI 
+Age"/><meta property="og:description" content="Understand complex AI concepts through clear mental models. Free 2-hour 
+session, hands-on programs for students, engineers, and product managers."/><meta property="og:site_name" 
+content="Verlin Labs"/><meta property="og:image" content="https://www.verlinlabs.com/images/hero-side.jpg"/><meta 
+property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta 
+property="og:image:alt" content="Verlin Labs — clarity-first learning for the AI age"/><meta property="og:type" 
+content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="Verlin 
+Labs | Clarity-First Learning for the AI Age"/><meta name="twitter:description" content="Understand complex AI 
+concepts through clear mental models. Free 2-hour session and hands-on programs."/><meta name="twitter:image" 
+content="https://www.verlinlabs.com/images/hero-side.jpg"/><link rel="icon" 
+href="/favicon.ico?favicon.2vob68tjqpejf.ico" sizes="256x256" type="image/x-icon"/><script 
+src="/_next/static/chunks/0cz1d0mv5g_q7.js" noModule=""></script></head><body class="min-h-full flex flex-col 
+antialiased"><div hidden=""><!--$--><!--/$--></div><script>((a,b,c,d,e,f,g,h)=>{let 
+i=document.documentElement,j=["light","dark"];function k(b){var c;(Array.isArray(a)?a:[a]).forEach(a=>{let c="class"===
+a,d=c&&f?e.map(a=>f[a]||a):e;c?(i.classList.remove(...d),i.classList.add(f&&f[b]?f[b]:b)):i.setAttribute(a,b)}),c=b,h&&
+j.includes(c)&&(i.style.colorScheme=c)}if(d)k(d);else try{let 
+a=localStorage.getItem(b)||c,d=g&&"system"===a?window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"
+:a;k(d)}catch(a){}})("class","theme","light",null,["light","dark"],null,true,true)</script><a href="#main" 
+class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl 
+focus:bg-deep-teal focus:px-4 focus:py-2 focus:text-white">Skip to content</a><header class="sticky top-0 z-50 w-full 
+transition-all duration-200 ease-out border-b border-transparent bg-background/90 backdrop-blur-sm"><nav 
+class="container-verlin-nav flex h-16 items-center gap-3 md:h-[4.25rem] lg:gap-4" aria-label="Main navigation"><a 
+class="flex items-center gap-2.5 group shrink-0" href="/"><svg viewBox="0 0 40 40" class="h-8 w-8 shrink-0 lg:h-9 
+lg:w-9" aria-hidden="true"><defs><linearGradient id="verlin-grad-1" x1="0%" y1="100%" x2="100%" y2="0%"><stop 
+offset="0%" stop-color="#0F172A"></stop><stop offset="100%" 
+stop-color="#14B8A6"></stop></linearGradient><linearGradient id="verlin-grad-2" x1="100%" y1="0%" x2="0%" 
+y2="100%"><stop offset="0%" stop-color="#14B8A6"></stop><stop offset="100%" 
+stop-color="#0D9488"></stop></linearGradient></defs><path d="M8 32 C8 20, 16 8, 28 8 C22 14, 18 24, 20 32 Z" 
+fill="url(#verlin-grad-1)" class="transition-transform group-hover:scale-105"></path><path d="M32 8 C32 20, 24 32, 12 
+32 C18 26, 22 16, 20 8 Z" fill="url(#verlin-grad-2)" opacity="0.85" class="transition-transform 
+group-hover:scale-105"></path></svg><span class="text-base font-semibold tracking-tight lg:text-lg text-navy 
+dark:text-foreground">Verlin<!-- --> <span class="text-accent-teal">Labs</span></span></a><div class="hidden flex-1 
+items-center justify-center gap-x-4 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-6 2xl:gap-x-7"><a class="group 
+relative whitespace-nowrap text-sm font-medium transition-colors duration-150 text-foreground/75 
+hover:text-foreground" href="/free-session">Free Session<span class="absolute -bottom-1 left-0 h-0.5 rounded-full 
+bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" aria-hidden="true"></span></a><a 
+class="group relative whitespace-nowrap text-sm font-medium transition-colors duration-150 text-accent-teal" 
+href="/courses">Courses<span class="absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all 
+duration-150 ease-out w-full" aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm 
+font-medium transition-colors duration-150 text-foreground/75 hover:text-foreground" href="/mental-models">Mental 
+Models<span class="absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out 
+w-0 group-hover:w-full" aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-medium 
+transition-colors duration-150 text-foreground/75 hover:text-foreground" href="/about">About<span class="absolute 
+-bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-medium transition-colors 
+duration-150 text-foreground/75 hover:text-foreground" href="/faq">FAQ<span class="absolute -bottom-1 left-0 h-0.5 
+rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-medium transition-colors 
+duration-150 text-foreground/75 hover:text-foreground" href="/contact">Contact<span class="absolute -bottom-1 left-0 
+h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a></div><div class="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3"><div 
+class="h-9 w-9 shrink-0"></div><div class="hidden sm:block xl:hidden"><div class="h-9 w-28 rounded-xl bg-muted 
+animate-pulse"></div></div><div class="hidden xl:block"><div class="h-9 w-28 rounded-xl bg-muted 
+animate-pulse"></div></div><a class="hidden lg:block xl:hidden" href="/free-session"><span class="inline-flex" 
+tabindex="0"><button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl h-9 text-sm 
+bg-cta-amber text-navy font-bold shadow-sm hover:bg-cta-amber-hover hover:shadow-glow-amber focus-visible:ring-2 
+focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2 whitespace-nowrap px-4">Book Free</button></span></a><a 
+class="hidden xl:block" href="/free-session"><span class="inline-flex" tabindex="0"><button type="button" 
+class="inline-flex items-center justify-center gap-2 rounded-xl h-9 px-4 text-sm bg-cta-amber text-navy font-bold 
+shadow-sm hover:bg-cta-amber-hover hover:shadow-glow-amber focus-visible:ring-2 focus-visible:ring-cta-amber/50 
+focus-visible:ring-offset-2 whitespace-nowrap">Book Free Session</button></span></a><button type="button" 
+class="rounded-xl p-2 text-foreground/80 transition-colors hover:bg-muted lg:hidden" aria-expanded="false" 
+aria-controls="mobile-nav-panel" aria-label="Open menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+class="lucide lucide-menu h-6 w-6" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 
+19h16"></path></svg></button></div></nav></header><main id="main" class="flex-1"><section class="relative 
+overflow-hidden border-b border-border/80"><div class="absolute inset-0"><img alt="" decoding="async" data-nimg="fill" 
+class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" 
+sizes="100vw" srcSet="/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=640&amp;q=75 640w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=750&amp;q=75 750w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=828&amp;q=75 828w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1080&amp;q=75 1080w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1200&amp;q=75 1200w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=1920&amp;q=75 1920w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=2048&amp;q=75 2048w, 
+/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=3840&amp;q=75 3840w" 
+src="/_next/image?url=%2Fimages%2Faudience-students-illustration.jpg&amp;w=3840&amp;q=75"/><div class="absolute 
+inset-0 bg-gradient-to-r from-background via-background/94 to-background/70"></div><div class="absolute inset-0 
+bg-gradient-to-t from-background/30 to-transparent"></div></div><div class="pattern-grid absolute inset-0 opacity-30" 
+aria-hidden="true"></div><div class="container-verlin relative flex flex-col gap-4 py-12 md:py-16 sm:flex-row 
+sm:items-center sm:justify-between"><div><p class="text-sm font-medium text-teal uppercase tracking-wider">For School 
+Students (Classes 6–12)</p><h1 class="mt-1 text-2xl md:text-3xl font-semibold text-foreground">AI Explorers for 
+School Students</h1><p class="mt-1 text-sm text-text-secondary">8 days · 2 phases</p><div class="mt-4 max-w-xs"><div 
+class="space-y-1" aria-label="Introductory offer: ₹2,999, list price ₹9,999, 70% off"><p class="inline-flex 
+rounded-md bg-cta-amber font-bold uppercase tracking-wide text-white shadow-sm text-[10px] px-2 py-0.5">70<!-- -->% 
+off</p><p class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"><span class="text-xl font-bold tabular-nums 
+tracking-tight text-teal" aria-label="Current price ₹2,999">₹2,999</span><span class="text-sm font-medium 
+text-text-muted line-through decoration-2" aria-label="List price ₹9,999">₹9,999</span></p><p class="text-[11px] 
+text-text-secondary">Introductory offer<!-- --> · You save <!-- -->₹7,000</p></div></div></div><div class="flex 
+flex-col sm:flex-row gap-3 shrink-0"><a href="/free-session?audience=students"><span class="inline-flex" 
+tabindex="0"><button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl font-medium h-9 
+px-4 text-sm bg-navy text-white shadow-sm hover:bg-navy-muted hover:shadow-md focus-visible:ring-2 
+focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2">Book Free Session</button></span></a><a 
+href="#enroll"><span class="inline-flex" tabindex="0"><button type="button" class="inline-flex items-center 
+justify-center gap-2 rounded-xl font-medium h-9 px-4 text-sm border border-border bg-card/60 text-foreground shadow-xs 
+backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal hover:shadow-sm 
+focus-visible:ring-2 focus-visible:ring-accent-teal/30 
+focus-visible:ring-offset-2">Enroll</button></span></a></div></div></section><section id="curriculum" class="pt-10 
+pb-16 scroll-mt-20"><div class="mx-auto max-w-7xl px-4 md:px-8"><div class="mb-12 flex flex-col gap-4 sm:flex-row 
+sm:items-end sm:justify-between"><div><h2 class="text-2xl font-semibold text-foreground">8-Day Program 
+Structure</h2><p class="mt-2 text-text-secondary max-w-2xl">An 8-day student-friendly program that helps school 
+students understand AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini 
+projects.</p></div><p class="text-sm font-medium text-teal shrink-0">8 days · 2 phases</p></div><div 
+class="space-y-16"><div><h2 class="text-2xl font-semibold mb-8 text-teal">Phase 1: Understanding the Digital 
+World</h2><div class="grid gap-6 md:grid-cols-2"><a class="block h-full group" href="/sessions/students-day-1"><div 
+class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 card-verlin-hover transition-shadow duration-[250ms] 
+hover:border-accent-teal/25 hover:shadow-lg flex h-full flex-col"><div class="flex items-start justify-between gap-3 
+mb-3"><div class="flex items-center gap-3 min-w-0"><span class="flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm font-semibold">1</span><h3 class="font-semibold text-foreground 
+group-hover:text-teal transition-colors">What is AI, Really?</h3></div><span class="inline-flex shrink-0 items-center 
+gap-1 rounded-lg bg-teal/10 px-2 py-1 text-xs font-medium text-teal"><svg xmlns="http://www.w3.org/2000/svg" 
+width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="lucide lucide-video h-3.5 w-3.5" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 
+0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path><rect x="2" y="6" width="14" height="12" 
+rx="2"></rect></svg>Recording</span></div><p class="text-sm text-text-secondary leading-relaxed mb-4">Discover what 
+artificial intelligence means using everyday analogies — no scary jargon, just clear mental models.</p><div 
+class="space-y-1 mb-4"><div class="flex items-center justify-between gap-2 text-xs text-text-secondary"><span>Video 
+progress</span><span class="font-medium text-teal">0<!-- -->%</span></div><div class="overflow-hidden rounded-full 
+bg-muted h-1.5"><div class="h-full rounded-full bg-teal transition-all duration-500" 
+style="width:0%"></div></div></div><div class="mt-auto"><p class="text-xs font-medium uppercase tracking-wider 
+text-text-secondary mb-2">Topics</p><ul class="space-y-1.5"><li class="text-sm text-foreground flex items-start 
+gap-2"><span class="text-teal mt-1">•</span>AI vs human intelligence</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>How machines &#x27;learn&#x27; patterns</li><li 
+class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Real-world AI you 
+already use</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal 
+mt-1">•</span>Myths vs facts about AI</li></ul><p class="mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity">Watch session →</p></div></div></a><a class="block h-full group" 
+href="/sessions/students-day-2"><div class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 card-verlin-hover 
+transition-shadow duration-[250ms] hover:border-accent-teal/25 hover:shadow-lg flex h-full flex-col"><div class="flex 
+items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3 min-w-0"><span class="flex h-8 w-8 
+shrink-0 items-center justify-center rounded-lg bg-teal/10 text-teal text-sm font-semibold">2</span><h3 
+class="font-semibold text-foreground group-hover:text-teal transition-colors">How Apps &amp; the Internet 
+Work</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-play 
+h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" aria-hidden="true"><path d="M9 
+9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"></path><circle cx="12" 
+cy="12" r="10"></circle></svg></div><p class="text-sm text-text-secondary leading-relaxed mb-4">Build intuition for 
+how your phone, apps, and the internet connect — explained like a story, not a textbook.</p><div class="mt-auto"><p 
+class="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2">Topics</p><ul class="space-y-1.5"><li 
+class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>What happens when you 
+tap an app</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>How 
+data travels online</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal 
+mt-1">•</span>Cloud storage explained simply</li><li class="text-sm text-foreground flex items-start gap-2"><span 
+class="text-teal mt-1">•</span>Privacy basics every student should know</li></ul><p class="mt-4 text-xs font-medium 
+text-teal opacity-0 group-hover:opacity-100 transition-opacity">Open session →</p></div></div></a><a class="block 
+h-full group" href="/sessions/students-day-3"><div class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 
+card-verlin-hover transition-shadow duration-[250ms] hover:border-accent-teal/25 hover:shadow-lg flex h-full 
+flex-col"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3 min-w-0"><span 
+class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold">3</span><h3 class="font-semibold text-foreground group-hover:text-teal transition-colors">ChatGPT &amp; 
+AI Assistants — Safely</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide 
+lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" 
+aria-hidden="true"><path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 
+14.996z"></path><circle cx="12" cy="12" r="10"></circle></svg></div><p class="text-sm text-text-secondary 
+leading-relaxed mb-4">Learn to use AI assistants responsibly for homework help, curiosity, and creativity — with 
+clear do&#x27;s and don&#x27;ts.</p><div class="mt-auto"><p class="text-xs font-medium uppercase tracking-wider 
+text-text-secondary mb-2">Topics</p><ul class="space-y-1.5"><li class="text-sm text-foreground flex items-start 
+gap-2"><span class="text-teal mt-1">•</span>What ChatGPT can and cannot do</li><li class="text-sm text-foreground 
+flex items-start gap-2"><span class="text-teal mt-1">•</span>Safe and ethical AI use for students</li><li 
+class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Asking better 
+questions</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>When 
+to trust (and not trust) AI answers</li></ul><p class="mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity">Open session →</p></div></div></a><a class="block h-full group" 
+href="/sessions/students-day-4"><div class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 card-verlin-hover 
+transition-shadow duration-[250ms] hover:border-accent-teal/25 hover:shadow-lg flex h-full flex-col"><div class="flex 
+items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3 min-w-0"><span class="flex h-8 w-8 
+shrink-0 items-center justify-center rounded-lg bg-teal/10 text-teal text-sm font-semibold">4</span><h3 
+class="font-semibold text-foreground group-hover:text-teal transition-colors">Mental Models for Learning 
+Tech</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-play 
+h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" aria-hidden="true"><path d="M9 
+9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"></path><circle cx="12" 
+cy="12" r="10"></circle></svg></div><p class="text-sm text-text-secondary leading-relaxed mb-4">Learn Verlin&#x27;s 
+clarity-first frameworks so any new technology feels understandable instead of overwhelming.</p><div 
+class="mt-auto"><p class="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2">Topics</p><ul 
+class="space-y-1.5"><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal 
+mt-1">•</span>The Information Pipeline model</li><li class="text-sm text-foreground flex items-start gap-2"><span 
+class="text-teal mt-1">•</span>Breaking big ideas into small pieces</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>How to learn any tech topic</li><li class="text-sm 
+text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Building your personal tech 
+notebook</li></ul><span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium mt-4 bg-teal/10 
+text-teal border-0">Assignment: <!-- -->Start your AI Explorer Journal</span><p class="mt-4 text-xs font-medium 
+text-teal opacity-0 group-hover:opacity-100 transition-opacity">Open session 
+→</p></div></div></a></div></div><div><h2 class="text-2xl font-semibold mb-8 text-teal">Phase 2: Create &amp; 
+Explore</h2><div class="grid gap-6 md:grid-cols-2"><a class="block h-full group" href="/sessions/students-day-5"><div 
+class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 card-verlin-hover transition-shadow duration-[250ms] 
+hover:border-accent-teal/25 hover:shadow-lg flex h-full flex-col"><div class="flex items-start justify-between gap-3 
+mb-3"><div class="flex items-center gap-3 min-w-0"><span class="flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm font-semibold">5</span><h3 class="font-semibold text-foreground 
+group-hover:text-teal transition-colors">Prompting Like a Pro (Beginner)</h3></div><svg 
+xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-play h-5 w-5 shrink-0 
+text-text-secondary/50 group-hover:text-teal transition-colors" aria-hidden="true"><path d="M9 9.003a1 1 0 0 1 
+1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"></path><circle cx="12" cy="12" 
+r="10"></circle></svg></div><p class="text-sm text-text-secondary leading-relaxed mb-4">Practice writing prompts that 
+get helpful, accurate responses — a superpower for school projects and curiosity.</p><div class="mt-auto"><p 
+class="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2">Topics</p><ul class="space-y-1.5"><li 
+class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Good vs bad 
+prompts</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal 
+mt-1">•</span>Step-by-step prompting</li><li class="text-sm text-foreground flex items-start gap-2"><span 
+class="text-teal mt-1">•</span>Using AI for explanations and revision</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>Creative projects with AI</li></ul><p class="mt-4 text-xs 
+font-medium text-teal opacity-0 group-hover:opacity-100 transition-opacity">Open session →</p></div></div></a><a 
+class="block h-full group" href="/sessions/students-day-6"><div class="card-verlin rounded-2xl p-5 
+text-card-foreground md:p-8 card-verlin-hover transition-shadow duration-[250ms] hover:border-accent-teal/25 
+hover:shadow-lg flex h-full flex-col"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex 
+items-center gap-3 min-w-0"><span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal/10 
+text-teal text-sm font-semibold">6</span><h3 class="font-semibold text-foreground group-hover:text-teal 
+transition-colors">Fun with AI Tools</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+class="lucide lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" 
+aria-hidden="true"><path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 
+14.996z"></path><circle cx="12" cy="12" r="10"></circle></svg></div><p class="text-sm text-text-secondary 
+leading-relaxed mb-4">Explore age-appropriate AI tools for learning, creativity, and problem-solving in a guided 
+hands-on session.</p><div class="mt-auto"><p class="text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2">Topics</p><ul class="space-y-1.5"><li class="text-sm text-foreground flex items-start gap-2"><span 
+class="text-teal mt-1">•</span>AI for study and revision</li><li class="text-sm text-foreground flex items-start 
+gap-2"><span class="text-teal mt-1">•</span>Image and story creation</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>Research helpers</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>Tool safety checklist</li></ul><p class="mt-4 text-xs 
+font-medium text-teal opacity-0 group-hover:opacity-100 transition-opacity">Open session →</p></div></div></a><a 
+class="block h-full group" href="/sessions/students-day-7"><div class="card-verlin rounded-2xl p-5 
+text-card-foreground md:p-8 card-verlin-hover transition-shadow duration-[250ms] hover:border-accent-teal/25 
+hover:shadow-lg flex h-full flex-col"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex 
+items-center gap-3 min-w-0"><span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal/10 
+text-teal text-sm font-semibold">7</span><h3 class="font-semibold text-foreground group-hover:text-teal 
+transition-colors">Mini Project — Solve a Real Problem</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" 
+height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="lucide lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors" aria-hidden="true"><path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 
+2.997A1 1 0 0 1 9 14.996z"></path><circle cx="12" cy="12" r="10"></circle></svg></div><p class="text-sm 
+text-text-secondary leading-relaxed mb-4">Apply everything you&#x27;ve learned to a small project — pick a problem 
+you care about and use AI + mental models to explore solutions.</p><div class="mt-auto"><p class="text-xs font-medium 
+uppercase tracking-wider text-text-secondary mb-2">Topics</p><ul class="space-y-1.5"><li class="text-sm 
+text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Choosing a project topic</li><li 
+class="text-sm text-foreground flex items-start gap-2"><span class="text-teal mt-1">•</span>Research with AI 
+assistance</li><li class="text-sm text-foreground flex items-start gap-2"><span class="text-teal 
+mt-1">•</span>Presenting your findings</li><li class="text-sm text-foreground flex items-start gap-2"><span 
+class="text-teal mt-1">•</span>Getting feedback from mentors</li></ul><p class="mt-4 text-xs font-medium text-teal 
+opacity-0 group-hover:opacity-100 transition-opacity">Open session →</p></div></div></a><a class="block h-full 
+group" href="/sessions/students-day-8"><div class="card-verlin rounded-2xl p-5 text-card-foreground md:p-8 
+card-verlin-hover transition-shadow duration-[250ms] hover:border-accent-teal/25 hover:shadow-lg flex h-full 
+flex-col"><div class="flex items-start justify-between gap-3 mb-3"><div class="flex items-center gap-3 min-w-0"><span 
+class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold">8</span><h3 class="font-semibold text-foreground group-hover:text-teal transition-colors">Showcase 
+&amp; Next Steps</h3></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide 
+lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal transition-colors" 
+aria-hidden="true"><path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 
+14.996z"></path><circle cx="12" cy="12" r="10"></circle></svg></div><p class="text-sm text-text-secondary 
+leading-relaxed mb-4">Present your project, celebrate what you&#x27;ve learned, and get a personalized roadmap for 
+continuing your tech journey.</p><div class="mt-auto"><p class="text-xs font-medium uppercase tracking-wider 
+text-text-secondary mb-2">Activities</p><ul class="space-y-1.5"><li class="text-sm text-foreground flex items-start 
+gap-2"><span class="text-teal mt-1">•</span>Project showcase</li><li class="text-sm text-foreground flex items-start 
+gap-2"><span class="text-teal mt-1">•</span>Peer presentations</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>Mentor feedback</li><li class="text-sm text-foreground flex 
+items-start gap-2"><span class="text-teal mt-1">•</span>Certificate ceremony</li><li class="text-sm text-foreground 
+flex items-start gap-2"><span class="text-teal mt-1">•</span>Personalized learning roadmap</li></ul><p class="mt-4 
+text-xs font-medium text-teal opacity-0 group-hover:opacity-100 transition-opacity">Open session 
+→</p></div></div></a></div></div></div></div></section><section id="enroll" class="py-16 md:py-24 bg-muted/30 
+scroll-mt-20"><div class="mx-auto max-w-lg px-4 md:px-8 text-center"><div class="card-verlin rounded-2xl p-5 
+text-card-foreground md:p-8 border-teal ring-2 ring-teal/10"><p class="text-sm font-medium text-teal uppercase 
+tracking-wider">Full Program</p><div class="mt-4 flex justify-center"><div class="space-y-1 flex flex-col items-center 
+text-center" aria-label="Introductory offer: ₹2,999, list price ₹9,999, 70% off"><p class="inline-flex rounded-md 
+bg-cta-amber font-bold uppercase tracking-wide text-white shadow-sm text-xs px-3 py-1">70<!-- -->% off</p><p 
+class="text-4xl font-bold tabular-nums tracking-tight text-teal" aria-label="Current price ₹2,999">₹2,999</p><p 
+class="text-text-secondary text-sm">List price<!-- --> <span class="text-lg font-medium text-text-muted line-through 
+decoration-2" aria-label="List price ₹9,999">₹9,999</span></p><p class="text-sm text-text-secondary">Introductory 
+offer<!-- --> · You save <!-- -->₹7,000</p></div></div><p class="mt-2 text-text-secondary">8 days · 2 
+phases</p><div class="mt-8 flex flex-col gap-3"><a href="/free-session?audience=students"><span class="inline-flex" 
+tabindex="0"><button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl h-14 px-8 text-base 
+font-semibold md:text-lg bg-navy text-white shadow-sm hover:bg-navy-muted hover:shadow-md focus-visible:ring-2 
+focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2 w-full">Book Free Session First</button></span></a><a 
+href="/contact"><span class="inline-flex" tabindex="0"><button type="button" class="inline-flex items-center 
+justify-center gap-2 rounded-xl h-14 px-8 text-base font-semibold md:text-lg border border-border bg-card/60 
+text-foreground shadow-xs backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal 
+hover:shadow-sm focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2 w-full">Enroll Now 
+— Contact Us</button></span></a></div></div></div></section><!--$--><!--/$--></main><footer class="relative border-t 
+border-white/10 bg-navy text-white"><div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r 
+from-transparent via-accent-teal/50 to-transparent" aria-hidden="true"></div><div class="container-verlin py-14 
+md:py-16 lg:py-20"><div class="grid gap-12 lg:grid-cols-12 lg:gap-10"><div class="lg:col-span-4 xl:col-span-4"><a 
+class="flex shrink-0 items-center gap-2.5 group" href="/"><svg viewBox="0 0 40 40" class="h-8 w-8 shrink-0 lg:h-9 
+lg:w-9" aria-hidden="true"><defs><linearGradient id="verlin-grad-1" x1="0%" y1="100%" x2="100%" y2="0%"><stop 
+offset="0%" stop-color="#0F172A"></stop><stop offset="100%" 
+stop-color="#14B8A6"></stop></linearGradient><linearGradient id="verlin-grad-2" x1="100%" y1="0%" x2="0%" 
+y2="100%"><stop offset="0%" stop-color="#14B8A6"></stop><stop offset="100%" 
+stop-color="#0D9488"></stop></linearGradient></defs><path d="M8 32 C8 20, 16 8, 28 8 C22 14, 18 24, 20 32 Z" 
+fill="url(#verlin-grad-1)" class="transition-transform group-hover:scale-105"></path><path d="M32 8 C32 20, 24 32, 12 
+32 C18 26, 22 16, 20 8 Z" fill="url(#verlin-grad-2)" opacity="0.85" class="transition-transform 
+group-hover:scale-105"></path></svg><span class="text-base font-semibold tracking-tight lg:text-lg 
+text-white">Verlin<!-- --> <span class="text-accent-teal-light">Labs</span></span></a><p class="mt-4 max-w-xs text-sm 
+leading-relaxed text-white/65">Clarity-first learning for builders, students, and professionals.</p><address 
+class="mt-6 space-y-3 not-italic"><a href="mailto:snemanenterprises@gmail.com" class="inline-flex items-center gap-1.5 
+text-sm text-white/70 transition-colors hover:text-accent-teal-light"><svg xmlns="http://www.w3.org/2000/svg" 
+width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="lucide lucide-mail h-4 w-4 shrink-0 text-accent-teal-light/80" aria-hidden="true"><path 
+d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg><span 
+class="break-all">snemanenterprises@gmail.com</span></a><p class="flex items-start gap-2 text-sm text-white/65"><svg 
+xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin mt-0.5 h-4 w-4 shrink-0 
+text-accent-teal-light/80" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 
+0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>India</p><p 
+class="text-xs text-white/45">Response within 24–48 hours (India time)</p></address><div class="mt-6 flex 
+items-center gap-2.5"><a href="https://www.linkedin.com/in/verlin-labs-05678141b/" target="_blank" rel="noopener 
+noreferrer" aria-label="LinkedIn" class="flex h-10 w-10 items-center justify-center rounded-full border 
+border-white/15 bg-white/5 text-white/75 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/15 
+hover:text-accent-teal-light"><svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4" aria-hidden="true"><path 
+d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 
+2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 
+7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 114.126 0 2.063 2.063 0 01-2.063 2.065zm1.782 
+13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 
+23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg></a><a 
+href="https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" target="_blank" rel="noopener noreferrer" 
+aria-label="YouTube" class="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 
+text-white/75 transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/15 hover:text-accent-teal-light"><svg 
+viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 
+00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 
+3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 
+002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 
+3.568z"></path></svg></a></div><a class="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-white/15 
+bg-white/5 px-3.5 py-2 text-sm font-medium text-white/85 transition-colors hover:border-accent-teal/35 
+hover:bg-accent-teal/10 hover:text-accent-teal-light" href="/newsletter">Subscribe to newsletter<span 
+aria-hidden="true">→</span></a></div><div class="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 md:gap-x-8 
+lg:col-span-8 lg:grid-cols-4"><div><h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] 
+text-white/45">Programs</h3><ul class="mt-4 flex flex-col gap-2.5"><li><a class="inline-flex items-center gap-1.5 
+text-sm text-white/70 transition-colors hover:text-accent-teal-light" href="/free-session">Free Session</a></li><li><a 
+class="inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/programs">Programs</a></li><li><a class="inline-flex items-center gap-1.5 text-sm text-white/70 
+transition-colors hover:text-accent-teal-light" href="/courses">Courses</a></li><li><a class="inline-flex items-center 
+gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" href="/corporate">Corporate 
+Workshops</a></li></ul><div class="mt-5"><p class="text-[10px] font-semibold uppercase tracking-[0.12em] 
+text-white/35">By track</p><ul class="mt-2.5 flex flex-col gap-2 border-l border-white/10 pl-3"><li><a 
+class="inline-flex items-center gap-1.5 transition-colors hover:text-accent-teal-light text-[13px] text-white/60" 
+href="/courses/students">School Students Program</a></li><li><a class="inline-flex items-center gap-1.5 
+transition-colors hover:text-accent-teal-light text-[13px] text-white/60" href="/courses/engineers">College Engineers 
+Program</a></li><li><a class="inline-flex items-center gap-1.5 transition-colors hover:text-accent-teal-light 
+text-[13px] text-white/60" href="/courses/professionals">Product Managers Program</a></li></ul></div></div><div><h3 
+class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Learn</h3><ul class="mt-4 flex flex-col 
+gap-2.5"><li><a class="inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors 
+hover:text-accent-teal-light" href="/library">Library</a></li><li><a class="inline-flex items-center gap-1.5 text-sm 
+text-white/70 transition-colors hover:text-accent-teal-light" href="/blog">Blog</a></li><li><a class="inline-flex 
+items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/mental-models">Mental Models</a></li><li><a class="inline-flex items-center gap-1.5 text-sm text-white/70 
+transition-colors hover:text-accent-teal-light" href="/resources">Resources Hub</a></li><li><a class="inline-flex 
+items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/newsletter">Newsletter</a></li></ul></div><div><h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] 
+text-white/45">Company</h3><ul class="mt-4 flex flex-col gap-2.5"><li><a class="inline-flex items-center gap-1.5 
+text-sm text-white/70 transition-colors hover:text-accent-teal-light" href="/about">About</a></li><li><a 
+class="inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/testimonials">Testimonials</a></li><li><a class="inline-flex items-center gap-1.5 text-sm text-white/70 
+transition-colors hover:text-accent-teal-light" href="/faq">FAQ</a></li><li><a class="inline-flex items-center gap-1.5 
+text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/contact">Contact</a></li></ul></div><div><h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] 
+text-white/45">Legal</h3><ul class="mt-4 flex flex-col gap-2.5"><li><a class="inline-flex items-center gap-1.5 text-sm 
+text-white/70 transition-colors hover:text-accent-teal-light" href="/terms">Terms of Service</a></li><li><a 
+class="inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/privacy">Privacy Policy</a></li><li><a class="inline-flex items-center gap-1.5 text-sm text-white/70 
+transition-colors hover:text-accent-teal-light" href="/refund-policy">Refund Policy</a></li><li><a class="inline-flex 
+items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light" 
+href="/sitemap">Sitemap</a></li></ul></div></div></div></div><div class="border-t border-white/10 
+bg-navy-muted/50"><div class="container-verlin flex flex-col items-center justify-between gap-4 py-6 text-sm 
+text-white/50 sm:flex-row"><p>© <!-- -->2026<!-- --> Verlin Labs. All rights reserved.</p><nav aria-label="Legal" 
+class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"><a class="inline-flex items-center gap-1.5 
+transition-colors hover:text-accent-teal-light text-xs text-white/50" href="/terms">Terms of Service</a><a 
+class="inline-flex items-center gap-1.5 transition-colors hover:text-accent-teal-light text-xs text-white/50" 
+href="/privacy">Privacy Policy</a><a class="inline-flex items-center gap-1.5 transition-colors 
+hover:text-accent-teal-light text-xs text-white/50" href="/refund-policy">Refund 
+Policy</a></nav></div></div></footer><!--$!--><template 
+data-dgst="BAILOUT_TO_CLIENT_SIDE_RENDERING"></template><!--/$--><!--$!--><template 
+data-dgst="BAILOUT_TO_CLIENT_SIDE_RENDERING"></template><!--/$--><div class="fixed bottom-4 left-1/2 z-50 flex 
+-translate-x-1/2 flex-col gap-2 md:bottom-auto md:left-auto md:right-4 md:top-4 md:translate-x-0"></div><script 
+src="/_next/static/chunks/0_j_6z6vt952j.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([
+0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[43121,[\"/_next/static/chunks/2x_5boebukexb.js\"
+,\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j
+5o.js\"],\"SessionProvider\"]\n3:I[15290,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i
+6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"ThemeProvider\"]\n4:I[888
+40,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p
+_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"ToastProvider\"]\n5:I[3265,[\"/_next/static/chunks/2x_5boebukex
+b.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3
+dfwd4j5o.js\"],\"Navbar\"]\n6:I[39756,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.j
+s\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"default\"]\n7:I[37457,[\"/_n
+ext/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\
+",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"default\"]\n8:I[58234,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_nex
+t/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"]
+,\"Footer\"]\n10:I[68027,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/
+static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"default\",1]\n13:I[46598,[\"/_next/static
+/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next
+/static/chunks/14xp3dfwd4j5o.js\"],\"ChatWidgetLoader\"]\n14:I[28797,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_nex
+t/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"]
+,\"LegalAcceptanceGateLoader\"]\n16:I[97367,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udp
+t-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"OutletBoundary\"]\n17:
+\"$Sreact.suspense\"\n1a:I[97367,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\
+"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"ViewportBoundary\"]\n1c:I[97367,[
+\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84
+d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\"],\"MetadataBoundary\"]\n1e:I[27201,[\"/_next/static/chunks/2x_5boebuke
+xb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp
+3dfwd4j5o.js\"],\"IconMark\"]\n:HL[\"/_next/static/chunks/0bu0h_63lvjtp.css\",\"style\"]\n:HL[\"/_next/static/chunks/0k
+jy84idqm8hb.css\",\"style\"]\n:HL[\"/_next/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2\",\"font\",{\"crossOri
+gin\":\"\",\"type\":\"font/woff2\"}]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"c\":[\"\",\"courses\",
+\"students\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"courses\",{\"children\":[[\"slug\",\"students\",\"d
+\",null],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",16],[[\"$\",\"$1\",\"c\",{\"children\":[[[\
+"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/0bu0h_63lvjtp.css\",\"precedence\":\"next\"
+,\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_n
+ext/static/chunks/0kjy84idqm8hb.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]
+,[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/2x_5boebukexb.js\",\"async\":true,\"nonce\":\"$undefine
+d\"}],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/chunks/0px0x5udpt-i6.js\",\"async\":true,\"nonce\":\"$und
+efined\"}],[\"$\",\"script\",\"script-2\",{\"src\":\"/_next/static/chunks/14mrh2-p_w84d.js\",\"async\":true,\"nonce\":\
+"$undefined\"}],[\"$\",\"script\",\"script-3\",{\"src\":\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"async\":true,\"nonc
+e\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"className\":\"inter_ce929fb-module__qqrwVG__variable 
+h-full\",\"suppressHydrationWarning\":true,\"children\":[\"$\",\"body\",null,{\"className\":\"min-h-full flex flex-col 
+antialiased\",\"children\":[\"$\",\"$L2\",null,{\"children\":[\"$\",\"$L3\",null,{\"children\":[\"$\",\"$L4\",null,{\"c
+hildren\":[[\"$\",\"a\",null,{\"href\":\"#main\",\"className\":\"sr-only focus:not-sr-only focus:absolute focus:top-4 
+focus:left-4 focus:z-50 focus:rounded-xl focus:bg-deep-teal focus:px-4 focus:py-2 
+focus:text-white\",\"children\":\"Skip to content\"}],[\"$\",\"$L5\",null,{\"nav\":[{\"label\":\"Free 
+Session\",\"href\":\"/free-session\"},{\"label\":\"Courses\",\"href\":\"/courses\"},{\"label\":\"Mental Models\",\"href
+\":\"/mental-models\"},{\"label\":\"About\",\"href\":\"/about\"},{\"label\":\"FAQ\",\"href\":\"/faq\"},{\"label\":\"Con
+tact\",\"href\":\"/contact\"}]}],[\"$\",\"main\",null,{\"id\":\"main\",\"className\":\"flex-1\",\"children\":[\"$\",\"$
+L6\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":
+\"$undefined\",\"template\":[\"$\",\"$L7\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\
+",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be 
+found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe 
+UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"text
+Align\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"cen
+ter\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\
+"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media 
+(prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}
+}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 
+0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},
+\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"sty
+le\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be fo
+und.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}],[\"$\",\"$L8\",null,{\"tagline\":
+\"Clarity-first learning for builders, students, and 
+professionals.\",\"linkGroups\":[{\"title\":\"Programs\",\"links\":[{\"label\":\"Free Session\",\"href\":\"/free-sessio
+n\"},{\"label\":\"Programs\",\"href\":\"/programs\"},{\"label\":\"Courses\",\"href\":\"/courses\"},{\"label\":\"School 
+Students Program\",\"href\":\"/courses/students\"},{\"label\":\"College Engineers 
+Program\",\"href\":\"/courses/engineers\"},{\"label\":\"Product Managers 
+Program\",\"href\":\"/courses/professionals\"},{\"label\":\"Corporate Workshops\",\"href\":\"/corporate\"}]},{\"title\"
+:\"Learn\",\"links\":[{\"label\":\"Library\",\"href\":\"/library\"},{\"label\":\"Blog\",\"href\":\"/blog\"},{\"label\":
+\"Mental Models\",\"href\":\"/mental-models\"},{\"label\":\"Resources Hub\",\"href\":\"/resources\"},{\"label\":\"Newsl
+etter\",\"href\":\"/newsletter\"}]},{\"title\":\"Company\",\"links\":[{\"label\":\"About\",\"href\":\"/about\"},{\"labe
+l\":\"Testimonials\",\"href\":\"/testimonials\"},{\"label\":\"FAQ\",\"href\":\"/faq\"},{\"label\":\"Contact\",\"href\":
+\"/contact\"}]},{\"title\":\"Legal\",\"links\":[{\"label\":\"Terms of 
+Service\",\"href\":\"/terms\"},{\"label\":\"Privacy Policy\",\"href\":\"/privacy\"},{\"label\":\"Refund Policy\",\"href
+\":\"/refund-policy\"},{\"label\":\"Sitemap\",\"href\":\"/sitemap\"}]}],\"social\":[{\"label\":\"LinkedIn\",\"href\":\"
+https://www.linkedin.com/in/verlin-labs-05678141b/\"},{\"label\":\"YouTube\",\"href\":\"https://youtube.com/@verlinlabs
+?si=8HP1JaV5lprlc7zp\"},{\"label\":\"Newsletter\",\"href\":\"/newsletter\"}],\"contact\":{\"email\":\"snemanenterprises
+@gmail.com\",\"location\":\"India\",\"responseNote\":\"Response within 24–48 hours (India time)\"}}],\"$L9\",\"$La\"]
+}]}]}]}]}]]}],{\"children\":[\"$Lb\",{\"children\":[\"$Lc\",{\"children\":[\"$Ld\",{},null,false,null]},null,false,\"$@
+e\"]},null,false,\"$@e\"]},null,false,null],\"$Lf\",false]],\"m\":\"$undefined\",\"G\":[\"$10\",[\"$L11\",\"$L12\"]],\"
+S\":false,\"h\":null,\"s\":\"$undefined\",\"l\":\"$undefined\",\"p\":\"$undefined\",\"d\":\"$undefined\",\"b\":\"CVBSjM
+-ORzNflfLkURD23\"}\n"])</script><script>self.__next_f.push([1,"9:[\"$\",\"$L13\",null,{}]\na:[\"$\",\"$L14\",null,{}]\n
+b:[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L6\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefine
+d\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L7\",null,{}],\"templateStyle
+s\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauth
+orized\":\"$undefined\"}]]}]\nc:[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L6\",null,{\"parallelRouterKey\":\"ch
+ildren\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"
+$L7\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbi
+dden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}]\nd:[\"$\",\"$1\",\"c\",{\"children\":[\"$L15\",[[\"$\",\"scr
+ipt\",\"script-0\",{\"src\":\"/_next/static/chunks/07qi8k1eixj6o.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\"
+,\"$L16\",null,{\"children\":[\"$\",\"$17\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@18\"}]}]]}]\n19:[]\
+ne:\"$W19\"\nf:[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$L1a\",null,{\"children\":\"$L1b\"}],[\"$\",\"div\",nul
+l,{\"hidden\":true,\"children\":[\"$\",\"$L1c\",null,{\"children\":[\"$\",\"$17\",null,{\"name\":\"Next.Metadata\",\"ch
+ildren\":\"$L1d\"}]}]}],[\"$\",\"meta\",null,{\"name\":\"next-size-adjust\",\"content\":\"\"}]]}]\n11:[\"$\",\"link\",\
+"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/0bu0h_63lvjtp.css\",\"precedence\":\"next\",\"crossOrigin\
+":\"$undefined\",\"nonce\":\"$undefined\"}]\n12:[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/
+chunks/0kjy84idqm8hb.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]\n1b:[[\"$\
+",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width
+, initial-scale=1\"}]]\n18:null\n"])</script><script>self.__next_f.push([1,"1d:[[\"$\",\"title\",\"0\",{\"children\":\"
+For School Students (Classes 6–12) | Verlin 
+Labs\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"An 8-day student-friendly program with fun 
+analogies, safe AI tool use, and a hands-on showcase 
+project.\"}],[\"$\",\"meta\",\"2\",{\"property\":\"og:title\",\"content\":\"Verlin Labs | Clarity-First Learning for 
+the AI Age\"}],[\"$\",\"meta\",\"3\",{\"property\":\"og:description\",\"content\":\"Understand complex AI concepts 
+through clear mental models. Free 2-hour session, hands-on programs for students, engineers, and product 
+managers.\"}],[\"$\",\"meta\",\"4\",{\"property\":\"og:site_name\",\"content\":\"Verlin Labs\"}],[\"$\",\"meta\",\"5\",
+{\"property\":\"og:image\",\"content\":\"https://www.verlinlabs.com/images/hero-side.jpg\"}],[\"$\",\"meta\",\"6\",{\"p
+roperty\":\"og:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:image:height\",\"content\"
+:\"630\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:image:alt\",\"content\":\"Verlin Labs — clarity-first learning 
+for the AI age\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"10\",{\"
+name\":\"twitter:card\",\"content\":\"summary_large_image\"}],[\"$\",\"meta\",\"11\",{\"name\":\"twitter:title\",\"cont
+ent\":\"Verlin Labs | Clarity-First Learning for the AI 
+Age\"}],[\"$\",\"meta\",\"12\",{\"name\":\"twitter:description\",\"content\":\"Understand complex AI concepts through 
+clear mental models. Free 2-hour session and hands-on programs.\"}],[\"$\",\"meta\",\"13\",{\"name\":\"twitter:image\",
+\"content\":\"https://www.verlinlabs.com/images/hero-side.jpg\"}],[\"$\",\"link\",\"14\",{\"rel\":\"icon\",\"href\":\"/
+favicon.ico?favicon.2vob68tjqpejf.ico\",\"sizes\":\"256x256\",\"type\":\"image/x-icon\"}],[\"$\",\"$L1e\",\"15\",{}]]\n
+"])</script><script>self.__next_f.push([1,"1f:I[85437,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks
+/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"/_next/static
+/chunks/07qi8k1eixj6o.js\"],\"Image\"]\n20:I[22016,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0p
+x0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"/_next/static/ch
+unks/07qi8k1eixj6o.js\"],\"\"]\n21:I[59544,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt
+-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"/_next/static/chunks/07q
+i8k1eixj6o.js\"],\"Button\"]\n22:I[39964,[\"/_next/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i
+6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\",\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"/_next/static/chunks/07qi8
+k1eixj6o.js\"],\"Card\"]\n"])</script><script>self.__next_f.push([1,"15:[[\"$\",\"section\",null,{\"className\":\"relat
+ive overflow-hidden border-b border-border/80\",\"children\":[[\"$\",\"div\",null,{\"className\":\"absolute inset-0\",\
+"children\":[[\"$\",\"$L1f\",null,{\"src\":\"/images/audience-students-illustration.jpg\",\"alt\":\"\",\"fill\":true,\"
+className\":\"object-cover\",\"sizes\":\"100vw\",\"priority\":true}],[\"$\",\"div\",null,{\"className\":\"absolute 
+inset-0 bg-gradient-to-r from-background via-background/94 
+to-background/70\"}],[\"$\",\"div\",null,{\"className\":\"absolute inset-0 bg-gradient-to-t from-background/30 
+to-transparent\"}]]}],[\"$\",\"div\",null,{\"className\":\"pattern-grid absolute inset-0 
+opacity-30\",\"aria-hidden\":\"true\"}],[\"$\",\"div\",null,{\"className\":\"container-verlin relative flex flex-col 
+gap-4 py-12 md:py-16 sm:flex-row sm:items-center 
+sm:justify-between\",\"children\":[[\"$\",\"div\",null,{\"children\":[[\"$\",\"p\",null,{\"className\":\"text-sm 
+font-medium text-teal uppercase tracking-wider\",\"children\":\"For School Students (Classes 
+6–12)\"}],[\"$\",\"h1\",null,{\"className\":\"mt-1 text-2xl md:text-3xl font-semibold 
+text-foreground\",\"children\":\"AI Explorers for School Students\"}],[\"$\",\"p\",null,{\"className\":\"mt-1 text-sm 
+text-text-secondary\",\"children\":\"8 days · 2 phases\"}],[\"$\",\"div\",null,{\"className\":\"mt-4 
+max-w-xs\",\"children\":[\"$\",\"div\",null,{\"className\":\"space-y-1\",\"aria-label\":\"Introductory offer: 
+₹2,999, list price ₹9,999, 70% off\",\"children\":[[\"$\",\"p\",null,{\"className\":\"inline-flex rounded-md 
+bg-cta-amber font-bold uppercase tracking-wide text-white shadow-sm text-[10px] px-2 py-0.5\",\"children\":[70,\"% 
+off\"]}],[[\"$\",\"p\",null,{\"className\":\"flex flex-wrap items-baseline gap-x-2 
+gap-y-0.5\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-xl font-bold tabular-nums tracking-tight 
+text-teal\",\"aria-label\":\"Current price 
+₹2,999\",\"children\":\"₹2,999\"}],[\"$\",\"span\",null,{\"className\":\"text-sm font-medium text-text-muted 
+line-through decoration-2\",\"aria-label\":\"List price 
+₹9,999\",\"children\":\"₹9,999\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-[11px] 
+text-text-secondary\",\"children\":[\"Introductory offer\",\" · You save 
+\",\"₹7,000\"]}]]]}]}],false,false]}],[\"$\",\"div\",null,{\"className\":\"flex flex-col sm:flex-row gap-3 shrink-0\"
+,\"children\":[[\"$\",\"$L20\",null,{\"href\":\"/free-session?audience=students\",\"children\":[\"$\",\"$L21\",null,{\"
+size\":\"sm\",\"children\":\"Book Free Session\"}]}],[\"$\",\"$L20\",null,{\"href\":\"#enroll\",\"children\":[\"$\",\"$
+L21\",null,{\"size\":\"sm\",\"variant\":\"secondary\",\"children\":\"Enroll\"}]}]]}]]}]]}],[\"$\",\"section\",null,{\"i
+d\":\"curriculum\",\"className\":\"pt-10 pb-16 
+scroll-mt-20\",\"children\":[\"$\",\"div\",null,{\"className\":\"mx-auto max-w-7xl px-4 
+md:px-8\",\"children\":[[\"$\",\"div\",null,{\"className\":\"mb-12 flex flex-col gap-4 sm:flex-row sm:items-end 
+sm:justify-between\",\"children\":[[\"$\",\"div\",null,{\"children\":[[\"$\",\"h2\",null,{\"className\":\"text-2xl 
+font-semibold text-foreground\",\"children\":\"8-Day Program Structure\"}],[\"$\",\"p\",null,{\"className\":\"mt-2 
+text-text-secondary max-w-2xl\",\"children\":\"An 8-day student-friendly program that helps school students understand 
+AI, apps, and the digital world through fun analogies, safe tool use, and hands-on mini 
+projects.\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm font-medium text-teal shrink-0\",\"children\":\"8 days · 
+2 phases\"}]]}],[\"$\",\"div\",null,{\"className\":\"space-y-16\",\"children\":[[\"$\",\"div\",\"Phase 1: 
+Understanding the Digital World\",{\"children\":[[\"$\",\"h2\",null,{\"className\":\"text-2xl font-semibold mb-8 
+text-teal\",\"children\":\"Phase 1: Understanding the Digital World\"}],[\"$\",\"div\",null,{\"className\":\"grid 
+gap-6 
+md:grid-cols-2\",\"children\":[[\"$\",\"$L20\",\"1\",{\"href\":\"/sessions/students-day-1\",\"className\":\"block 
+h-full group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":1}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"What is AI, 
+Really?\"}]]}],[\"$\",\"span\",null,{\"className\":\"inline-flex shrink-0 items-center gap-1 rounded-lg bg-teal/10 
+px-2 py-1 text-xs font-medium text-teal\",\"children\":[\"$L23\",\"Recording\"]}]]}],\"$L24\",\"$L25\",\"$L26\"]}]}],\"
+$L27\",\"$L28\",\"$L29\"]}]]}],\"$L2a\"]}]]}]}],\"$L2b\"]\n"])</script><script>self.__next_f.push([1,"2c:I[5014,[\"/_ne
+xt/static/chunks/2x_5boebukexb.js\",\"/_next/static/chunks/0px0x5udpt-i6.js\",\"/_next/static/chunks/14mrh2-p_w84d.js\"
+,\"/_next/static/chunks/14xp3dfwd4j5o.js\",\"/_next/static/chunks/07qi8k1eixj6o.js\"],\"default\"]\n23:[\"$\",\"$L2c\",
+null,{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 
+0-.752-.432L16 10.5\",\"key\":\"ftymec\"}],[\"rect\",{\"x\":\"2\",\"y\":\"6\",\"width\":\"14\",\"height\":\"12\",\"rx\"
+:\"2\",\"key\":\"158x01\"}]],\"className\":\"lucide-video h-3.5 
+w-3.5\"}]\n24:[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Discover what artificial intelligence means using everyday analogies — no scary jargon, just 
+clear mental models.\"}]\n25:[\"$\",\"div\",null,{\"className\":\"space-y-1 
+mb-4\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center justify-between gap-2 text-xs 
+text-text-secondary\",\"children\":[[\"$\",\"span\",null,{\"children\":\"Video 
+progress\"}],[\"$\",\"span\",null,{\"className\":\"font-medium 
+text-teal\",\"children\":[0,\"%\"]}]]}],[\"$\",\"div\",null,{\"className\":\"overflow-hidden rounded-full bg-muted 
+h-1.5\",\"children\":[\"$\",\"div\",null,{\"className\":\"h-full rounded-full bg-teal transition-all duration-500\",\"s
+tyle\":{\"width\":\"0%\"}}]}]]}]\n26:[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,{\"
+className\":\"text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"AI vs 
+human intelligence\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"AI vs human 
+intelligence\"]}],[\"$\",\"li\",\"How machines 'learn' patterns\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"How 
+machines 'learn' patterns\"]}],[\"$\",\"li\",\"Real-world AI you already use\",{\"className\":\"text-sm 
+text-foreground flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Real-world AI you already use\"]}],[\"$\",\"li\",\"Myths vs facts about 
+AI\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Myths vs facts 
+about AI\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity\",\"children\":\"Watch session →\"}]]}]\n"])</script><script>self.__next_f
+.push([1,"27:[\"$\",\"$L20\",\"2\",{\"href\":\"/sessions/students-day-2\",\"className\":\"block h-full 
+group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":2}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"How Apps \u0026 the Internet 
+Work\"}]]}],[\"$\",\"$L2c\",null,{\"ref\":\"$undefined\",\"iconNode\":[[\"path\",{\"d\":\"M9 9.003a1 1 0 0 1 
+1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z\",\"key\":\"kmsa83\"}],[\"circle\",{\"cx\":\"
+12\",\"cy\":\"12\",\"r\":\"10\",\"key\":\"1mglay\"}]],\"className\":\"lucide-circle-play h-5 w-5 shrink-0 
+text-text-secondary/50 group-hover:text-teal transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm 
+text-text-secondary leading-relaxed mb-4\",\"children\":\"Build intuition for how your phone, apps, and the internet 
+connect — explained like a story, not a textbook.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children
+\":[[\"$\",\"p\",null,{\"className\":\"text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"What 
+happens when you tap an app\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"What happens 
+when you tap an app\"]}],[\"$\",\"li\",\"How data travels online\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"How 
+data travels online\"]}],[\"$\",\"li\",\"Cloud storage explained simply\",{\"className\":\"text-sm text-foreground 
+flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Cloud storage explained simply\"]}],[\"$\",\"li\",\"Privacy basics every student 
+should know\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Privacy basics 
+every student should know\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal 
+opacity-0 group-hover:opacity-100 transition-opacity\",\"children\":\"Open session →\"}]]}]]}]}]\n"])</script><script
+>self.__next_f.push([1,"28:[\"$\",\"$L20\",\"3\",{\"href\":\"/sessions/students-day-3\",\"className\":\"block h-full 
+group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":3}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"ChatGPT \u0026 AI Assistants — Safely\"}]]}],[\"$\",\"$L2c\"
+,null,{\"ref\":\"$undefined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"cl
+assName\":\"lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Learn to use AI assistants responsibly for homework help, curiosity, and creativity — with 
+clear do's and don'ts.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,{\"clas
+sName\":\"text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"What 
+ChatGPT can and cannot do\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"What ChatGPT can 
+and cannot do\"]}],[\"$\",\"li\",\"Safe and ethical AI use for students\",{\"className\":\"text-sm text-foreground 
+flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Safe and ethical AI use for students\"]}],[\"$\",\"li\",\"Asking better 
+questions\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Asking better 
+questions\"]}],[\"$\",\"li\",\"When to trust (and not trust) AI answers\",{\"className\":\"text-sm text-foreground 
+flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"When to trust (and not trust) AI 
+answers\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity\",\"children\":\"Open session →\"}]]}]]}]}]\n"])</script><script>self.__ne
+xt_f.push([1,"29:[\"$\",\"$L20\",\"4\",{\"href\":\"/sessions/students-day-4\",\"className\":\"block h-full 
+group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":4}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"Mental Models for Learning Tech\"}]]}],[\"$\",\"$L2c\",null,{\
+"ref\":\"$undefined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"className\
+":\"lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Learn Verlin's clarity-first frameworks so any new technology feels understandable instead of ove
+rwhelming.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,{\"className\":\"te
+xt-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"The 
+Information Pipeline model\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"The Information 
+Pipeline model\"]}],[\"$\",\"li\",\"Breaking big ideas into small pieces\",{\"className\":\"text-sm text-foreground 
+flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Breaking big ideas into small pieces\"]}],[\"$\",\"li\",\"How to learn any tech 
+topic\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"How to learn any 
+tech topic\"]}],[\"$\",\"li\",\"Building your personal tech notebook\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Building your personal tech 
+notebook\"]}]]}],[\"$\",\"span\",null,{\"className\":\"inline-flex items-center rounded-lg px-2.5 py-1 text-xs 
+font-medium mt-4 bg-teal/10 text-teal border-0\",\"children\":[\"Assignment: \",\"Start your AI Explorer 
+Journal\"]}],[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal opacity-0 group-hover:opacity-100 
+transition-opacity\",\"children\":\"Open session 
+→\"}]]}]]}]}]\n"])</script><script>self.__next_f.push([1,"2a:[\"$\",\"div\",\"Phase 2: Create \u0026 
+Explore\",{\"children\":[[\"$\",\"h2\",null,{\"className\":\"text-2xl font-semibold mb-8 
+text-teal\",\"children\":\"Phase 2: Create \u0026 Explore\"}],[\"$\",\"div\",null,{\"className\":\"grid gap-6 
+md:grid-cols-2\",\"children\":[[\"$\",\"$L20\",\"5\",{\"href\":\"/sessions/students-day-5\",\"className\":\"block 
+h-full group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":5}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"Prompting Like a Pro (Beginner)\"}]]}],[\"$\",\"$L2c\",null,{\
+"ref\":\"$undefined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"className\
+":\"lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Practice writing prompts that get helpful, accurate responses — a superpower for school 
+projects and curiosity.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,{\"cla
+ssName\":\"text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"Good 
+vs bad prompts\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Good vs bad 
+prompts\"]}],[\"$\",\"li\",\"Step-by-step prompting\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Step-by-step 
+prompting\"]}],[\"$\",\"li\",\"Using AI for explanations and revision\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Using AI for explanations and revision\"]}],[\"$\",\"li\",\"Creative projects with 
+AI\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Creative 
+projects with AI\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal 
+opacity-0 group-hover:opacity-100 transition-opacity\",\"children\":\"Open session 
+→\"}]]}]]}]}],[\"$\",\"$L20\",\"6\",{\"href\":\"/sessions/students-day-6\",\"className\":\"block h-full 
+group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":6}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"Fun with AI Tools\"}]]}],[\"$\",\"$L2c\",null,{\"ref\":\"$unde
+fined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"className\":\"lucide-cir
+cle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Explore age-appropriate AI tools for learning, creativity, and problem-solving in a guided 
+hands-on session.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,{\"className
+\":\"text-xs font-medium uppercase tracking-wider text-text-secondary 
+mb-2\",\"children\":\"Topics\"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"AI 
+for study and revision\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"AI for study and 
+revision\"]}],[\"$\",\"li\",\"Image and story creation\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Image and story 
+creation\"]}],[\"$\",\"li\",\"Research helpers\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[\"$L2d\",\"Research helpers\"]}],\"$L2e\"]}],\"$undefined\",\"$L2f\"]}]]}]}],\"$L30\",\"$L31\"]}]
+]}]\n"])</script><script>self.__next_f.push([1,"2b:[\"$\",\"section\",null,{\"id\":\"enroll\",\"className\":\"py-16 
+md:py-24 bg-muted/30 scroll-mt-20\",\"children\":[\"$\",\"div\",null,{\"className\":\"mx-auto max-w-lg px-4 md:px-8 
+text-center\",\"children\":[\"$\",\"$L22\",null,{\"className\":\"border-teal ring-2 
+ring-teal/10\",\"children\":[[\"$\",\"p\",null,{\"className\":\"text-sm font-medium text-teal uppercase 
+tracking-wider\",\"children\":\"Full Program\"}],[\"$\",\"div\",null,{\"className\":\"mt-4 flex 
+justify-center\",\"children\":[\"$\",\"div\",null,{\"className\":\"space-y-1 flex flex-col items-center 
+text-center\",\"aria-label\":\"Introductory offer: ₹2,999, list price ₹9,999, 70% 
+off\",\"children\":[[\"$\",\"p\",null,{\"className\":\"inline-flex rounded-md bg-cta-amber font-bold uppercase 
+tracking-wide text-white shadow-sm text-xs px-3 py-1\",\"children\":[70,\"% 
+off\"]}],[[\"$\",\"p\",null,{\"className\":\"text-4xl font-bold tabular-nums tracking-tight 
+text-teal\",\"aria-label\":\"Current price 
+₹2,999\",\"children\":\"₹2,999\"}],[\"$\",\"p\",null,{\"className\":\"text-text-secondary 
+text-sm\",\"children\":[\"List price\",\" \",[\"$\",\"span\",null,{\"className\":\"text-lg font-medium text-text-muted 
+line-through decoration-2\",\"aria-label\":\"List price 
+₹9,999\",\"children\":\"₹9,999\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm 
+text-text-secondary\",\"children\":[\"Introductory offer\",\" · You save 
+\",\"₹7,000\"]}]]]}]}],[\"$\",\"p\",null,{\"className\":\"mt-2 text-text-secondary\",\"children\":\"8 days · 2 
+phases\"}],[\"$\",\"div\",null,{\"className\":\"mt-8 flex flex-col gap-3\",\"children\":[[\"$\",\"$L20\",null,{\"href\"
+:\"/free-session?audience=students\",\"children\":[\"$\",\"$L21\",null,{\"size\":\"lg\",\"className\":\"w-full\",\"chil
+dren\":\"Book Free Session First\"}]}],[\"$\",\"$L20\",null,{\"href\":\"/contact\",\"children\":[\"$\",\"$L21\",null,{\
+"size\":\"lg\",\"variant\":\"secondary\",\"className\":\"w-full\",\"children\":\"Enroll Now — Contact 
+Us\"}]}]]}]]}]}]}]\n"])</script><script>self.__next_f.push([1,"2d:[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}]\n2e:[\"$\",\"li\",\"Tool safety checklist\",{\"className\":\"text-sm text-foreground 
+flex items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Tool safety checklist\"]}]\n2f:[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs 
+font-medium text-teal opacity-0 group-hover:opacity-100 transition-opacity\",\"children\":\"Open session →\"}]\n"])</
+script><script>self.__next_f.push([1,"30:[\"$\",\"$L20\",\"7\",{\"href\":\"/sessions/students-day-7\",\"className\":\"b
+lock h-full group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":7}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"Mini Project — Solve a Real Problem\"}]]}],[\"$\",\"$L2c\",n
+ull,{\"ref\":\"$undefined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"clas
+sName\":\"lucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Apply everything you've learned to a small project — pick a problem you care about and use AI 
++ mental models to explore solutions.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p
+\",null,{\"className\":\"text-xs font-medium uppercase tracking-wider text-text-secondary mb-2\",\"children\":\"Topics\
+"}],[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"Choosing a project 
+topic\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Choosing a 
+project topic\"]}],[\"$\",\"li\",\"Research with AI assistance\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Research with AI assistance\"]}],[\"$\",\"li\",\"Presenting your 
+findings\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Presenting your 
+findings\"]}],[\"$\",\"li\",\"Getting feedback from mentors\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Getting feedback from 
+mentors\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity\",\"children\":\"Open session →\"}]]}]]}]}]\n"])</script><script>self.__ne
+xt_f.push([1,"31:[\"$\",\"$L20\",\"8\",{\"href\":\"/sessions/students-day-8\",\"className\":\"block h-full 
+group\",\"children\":[\"$\",\"$L22\",null,{\"hover\":true,\"className\":\"flex h-full 
+flex-col\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-start justify-between gap-3 
+mb-3\",\"children\":[[\"$\",\"div\",null,{\"className\":\"flex items-center gap-3 
+min-w-0\",\"children\":[[\"$\",\"span\",null,{\"className\":\"flex h-8 w-8 shrink-0 items-center justify-center 
+rounded-lg bg-teal/10 text-teal text-sm 
+font-semibold\",\"children\":8}],[\"$\",\"h3\",null,{\"className\":\"font-semibold text-foreground 
+group-hover:text-teal transition-colors\",\"children\":\"Showcase \u0026 Next Steps\"}]]}],[\"$\",\"$L2c\",null,{\"ref\
+":\"$undefined\",\"iconNode\":\"$27:props:children:props:children:0:props:children:1:props:iconNode\",\"className\":\"l
+ucide-circle-play h-5 w-5 shrink-0 text-text-secondary/50 group-hover:text-teal 
+transition-colors\"}]]}],[\"$\",\"p\",null,{\"className\":\"text-sm text-text-secondary leading-relaxed 
+mb-4\",\"children\":\"Present your project, celebrate what you've learned, and get a personalized roadmap for 
+continuing your tech journey.\"}],false,[\"$\",\"div\",null,{\"className\":\"mt-auto\",\"children\":[[\"$\",\"p\",null,
+{\"className\":\"text-xs font-medium uppercase tracking-wider text-text-secondary mb-2\",\"children\":\"Activities\"}],
+[\"$\",\"ul\",null,{\"className\":\"space-y-1.5\",\"children\":[[\"$\",\"li\",\"Project 
+showcase\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Project 
+showcase\"]}],[\"$\",\"li\",\"Peer presentations\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Peer 
+presentations\"]}],[\"$\",\"li\",\"Mentor feedback\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Mentor 
+feedback\"]}],[\"$\",\"li\",\"Certificate ceremony\",{\"className\":\"text-sm text-foreground flex items-start 
+gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal mt-1\",\"children\":\"•\"}],\"Certificate 
+ceremony\"]}],[\"$\",\"li\",\"Personalized learning roadmap\",{\"className\":\"text-sm text-foreground flex 
+items-start gap-2\",\"children\":[[\"$\",\"span\",null,{\"className\":\"text-teal 
+mt-1\",\"children\":\"•\"}],\"Personalized learning 
+roadmap\"]}]]}],\"$undefined\",[\"$\",\"p\",null,{\"className\":\"mt-4 text-xs font-medium text-teal opacity-0 
+group-hover:opacity-100 transition-opacity\",\"children\":\"Open session →\"}]]}]]}]}]\n"])</script></body></html>
+Redirecting...
+
+

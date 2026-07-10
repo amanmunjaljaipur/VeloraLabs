@@ -1,1 +1,15 @@
-{}
+{
+  "students-day-1": [
+    {
+      "id": "100c6346-a26e-4fd9-a433-dc5d1d4c4cf3",
+      "title": "Verlin_Labs_Session1_What_is_AI",
+      "adminUrl": "https://drive.google.com/file/d/19DPV7Tjd5AAvBUMsesIBgQ8aFKUxPVxMfiWVMuPtFuQ/view?pli=1",
+      "learnerUrl": "https://drive.google.com/file/d/19DPV7Tjd5AAvBUMsesIBgQ8aFKUxPVxMfiWVMuPtFuQ/view",
+      "type": "pdf",
+      "summary": "Training resource: Verlin_Labs_Session1_What_is_AI. Review this material to prepare for the session and reinforce key concepts afterward.",
+      "visibleToLearners": true,
+      "updatedAt": "2026-07-08T20:28:37.458Z",
+      "updatedBy": "amanmunjal.jaipur@gmail.com"
+    }
+  ]
+}

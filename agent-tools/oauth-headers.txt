@@ -1,0 +1,17 @@
+HTTP/1.1 302 Found
+Cache-Control: public, max-age=0, must-revalidate
+Content-Length: 0
+Date: Fri, 03 Jul 2026 12:52:53 GMT
+Location: https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=469433742409-osngms7lj99ud8dlbbvjama1dg2kkio6.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fwww.verlinlabs.com%2Fapi%2Fauth%2Fcallback%2Fgoogle&code_challenge=1Roz4FUQU33OdqD-wx_8MQSRj0kNLBvrgHkxSo816yQ&code_challenge_method=S256&scope=openid+profile+email
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Referrer-Policy: strict-origin-when-cross-origin
+Server: Vercel
+Set-Cookie: __Secure-authjs.callback-url=https%3A%2F%2Fwww.verlinlabs.com%2F; Path=/; HttpOnly; Secure; SameSite=Lax
+Set-Cookie: __Secure-authjs.pkce.code_verifier=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiQ04tMTZfVHAwS3NPUmRVYi0tdGdGQjVDdnRPUG0wYUdCYTBfY09jdnBzdVFCc1lLTlN1UDQ4TzJBUDJIb3NCX1pIRmlvN1lESmxsQ2ZQTF9pVmo0TkEifQ..RAYBklziRh2j29Vm3X8cbA.Sny-vPB4Ht2aUqKwA2XVFDAt4k3L6grxduL1Yu1Se7UemeD0qkiMhrL3hEg7I1QqVlSvLaqWnVD-h8eIlfNdKKlUa9DLHWJxEpIFYyo8kjyXEXWU8AewV5EhwmpEF-HartqRHyjlf4TF-XZppkVD8n5c_obdXx_usT72Q9E2VMs6xrTjLQqin9c6MnZTS43L.9ljaOuot5RAN1UlF_fbgZkpReEsU8sPIhxZDOMzHxew; Max-Age=900; Path=/; Expires=Fri, 03 Jul 2026 13:07:53 GMT; HttpOnly; Secure; SameSite=Lax
+Strict-Transport-Security: max-age=63072000
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Matched-Path: /api/auth/[...nextauth]
+X-Vercel-Cache: MISS
+X-Vercel-Id: bom1::iad1::nhb5l-1783083172823-cd30106ec818
+

@@ -1,0 +1,188 @@
+
+<!DOCTYPE html><html lang="en" class="inter_e67aa095-module__EFEWba__variable h-full"><head><meta 
+charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" 
+imageSrcSet="/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=384&amp;q=75 384w, 
+/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=640&amp;q=75 640w, 
+/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=750&amp;q=75 750w, 
+/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=828&amp;q=75 828w, 
+/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=1080&amp;q=75 1080w, 
+/_next/image?url=%2Fimages%2Fhero-home-visual.jpg&amp;w=1200&amp;q=75 1200w" imageSizes="(min-width: 1024px) 50vw, 
+0px" fetchPriority="high"/><link rel="stylesheet" href="/_next/static/chunks/210j2zn_ca1he.css" 
+data-precedence="next"/><link rel="stylesheet" href="/_next/static/chunks/2667r854i87li.css" 
+data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" 
+href="/_next/static/chunks/37v5ulr6qjozi.js"/><script src="/_next/static/chunks/2nd1fhs22ot-e.js" 
+async=""></script><script src="/_next/static/chunks/1wpi-_59dw0su.js" async=""></script><script 
+src="/_next/static/chunks/1ew5itmqsd581.js" async=""></script><script src="/_next/static/chunks/3nc6x0_y5iwnk.js" 
+async=""></script><script src="/_next/static/chunks/turbopack-1quizhc2-1rqt.js" async=""></script><script 
+src="/_next/static/chunks/2eol-y5vog7km.js" async=""></script><script src="/_next/static/chunks/0-3neo0141eru.js" 
+async=""></script><script src="/_next/static/chunks/0-8ym9d3_wu2g.js" async=""></script><script 
+src="/_next/static/chunks/1ntn7efqc-iiw.js" async=""></script><script src="/_next/static/chunks/1ps4d4zwv916e.js" 
+async=""></script><script src="/_next/static/chunks/3s_u4mv2yfjug.js" async=""></script><script 
+src="/_next/static/chunks/0oq5459-vlrjj.js" async=""></script><link rel="sitemap" type="application/xml" 
+title="Sitemap" href="https://www.verlinlabs.com/sitemap.xml"/><meta name="next-size-adjust" content=""/><title>Verlin 
+Labs - AI Training &amp; Mental Models for Students, Engineers &amp; PMs</title><meta name="description" 
+content="Verlin Labs - clarity-first AI training in India. Free 2-hour session, mental models, and live programs for 
+students, engineers, and product managers."/><meta name="application-name" content="Verlin Labs"/><link rel="manifest" 
+href="/manifest.webmanifest"/><meta name="keywords" content="AI training India,AI course for students,AI training for 
+product managers,mental models AI,Verlin Labs"/><meta name="robots" content="index, follow"/><meta name="googlebot" 
+content="index, follow, max-image-preview:large"/><link rel="canonical" href="https://www.verlinlabs.com"/><meta 
+name="google-site-verification" content="LBU_gLBT9-XCFt9vPGf5t8K6UUT3ZsKsd2KTe5xcRrA"/><meta property="og:title" 
+content="Verlin Labs - AI Training &amp; Mental Models for Students, Engineers &amp; PMs"/><meta 
+property="og:description" content="Verlin Labs - clarity-first AI training in India. Free 2-hour session, mental 
+models, and live programs for students, engineers, and product managers."/><meta property="og:url" 
+content="https://www.verlinlabs.com"/><meta property="og:site_name" content="Verlin Labs"/><meta property="og:locale" 
+content="en_IN"/><meta property="og:image" content="https://www.verlinlabs.com/images/hero-home-visual.jpg"/><meta 
+property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta 
+property="og:image:alt" content="Verlin Labs - AI Training &amp; Mental Models for Students, Engineers &amp; PMs - 
+Verlin Labs"/><meta property="og:type" content="website"/><meta name="twitter:card" 
+content="summary_large_image"/><meta name="twitter:title" content="Verlin Labs - AI Training &amp; Mental Models for 
+Students, Engineers &amp; PMs"/><meta name="twitter:description" content="Verlin Labs - clarity-first AI training in 
+India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers."/><meta 
+name="twitter:image" content="https://www.verlinlabs.com/images/hero-home-visual.jpg"/><link rel="shortcut icon" 
+href="/favicon.ico"/><link rel="icon" href="/favicon.ico?favicon.189h7nf-z_ngs.ico" sizes="256x256" 
+type="image/x-icon"/><link rel="icon" href="/favicon.ico"/><script type="application/ld+json">{"@context":"https://sche
+ma.org","@type":["Organization","EducationalOrganization"],"name":"Verlin Labs","url":"https://www.verlinlabs.com","log
+o":"https://www.verlinlabs.com/images/hero-side.jpg","description":"Clarity-first AI training in India - mental 
+models, live sessions, and hands-on programs for students, engineers, and product 
+managers.","email":"contact@verlinlabs.com","areaServed":"IN","founder":{"@type":"Person","name":"Aman 
+Munjal","jobTitle":"Founder & Lead Instructor","url":"https://www.linkedin.com/in/aman-munjal-52745469/"},"contactPoint
+":{"@type":"ContactPoint","email":"contact@verlinlabs.com","contactType":"customer support","areaServed":"IN","availabl
+eLanguage":"English"},"sameAs":["https://www.linkedin.com/company/verlin-labs/","https://youtube.com/@verlinlabs","http
+s://www.verlinlabs.com/testimonials","https://www.verlinlabs.com/newsletter"],"knowsAbout":["Artificial intelligence 
+training","Mental models for technology","Product management and AI","Large language models"]}</script><script 
+type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Verlin 
+Labs","alternateName":["Verlin Labs AI Education","Verlin Labs 
+India"],"url":"https://www.verlinlabs.com","description":"Clarity-first learning for AI and technology - mental 
+models, free sessions, and programs for students, engineers, and product 
+managers.","inLanguage":"en-IN","publisher":{"@type":"Organization","name":"Verlin Labs","url":"https://www.verlinlabs.
+com"},"sameAs":["https://www.linkedin.com/company/verlin-labs/","https://youtube.com/@verlinlabs"]}</script><script 
+src="/_next/static/chunks/0cz1d0mv5g_q7.js" noModule=""></script></head><body class="min-h-full flex flex-col 
+antialiased"><div hidden=""><!--$--><!--/$--></div><script>((a,b,c,d,e,f,g,h)=>{let 
+i=document.documentElement,j=["light","dark"];function k(b){var c;(Array.isArray(a)?a:[a]).forEach(a=>{let c="class"===
+a,d=c&&f?e.map(a=>f[a]||a):e;c?(i.classList.remove(...d),i.classList.add(f&&f[b]?f[b]:b)):i.setAttribute(a,b)}),c=b,h&&
+j.includes(c)&&(i.style.colorScheme=c)}if(d)k(d);else try{let 
+a=localStorage.getItem(b)||c,d=g&&"system"===a?window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"
+:a;k(d)}catch(a){}})("class","theme","light",null,["light","dark"],null,true,true)</script><a href="#main" 
+class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl 
+focus:bg-deep-teal focus:px-4 focus:py-2 focus:text-white">Skip to content</a><header class="sticky top-0 z-50 w-full 
+transition-all duration-200 ease-out border-b border-transparent bg-background/90 backdrop-blur-sm"><nav 
+class="container-verlin-nav flex h-16 items-center gap-3 md:h-[4.25rem] lg:gap-4" aria-label="Main navigation"><a 
+class="group inline-flex items-center gap-2.5 transition-opacity hover:opacity-90 sm:gap-3 mr-1 shrink-0 sm:mr-2" 
+href="/"><span class="sr-only">Verlin Labs</span><svg viewBox="0 0 48 48" fill="none" 
+xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="h-9 w-9 shrink-0 sm:h-10 sm:w-10 transition-transform 
+duration-200 group-hover:scale-[1.02]"><defs><linearGradient id="verlin-v-_R_2a9lb_" x1="8" y1="40" x2="40" y2="8" 
+gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="var(--teal)"></stop><stop offset="50%" 
+stop-color="var(--accent-teal)"></stop><stop offset="100%" 
+stop-color="var(--accent-teal-light)"></stop></linearGradient></defs><path d="M8.5 7.2c-1 .6-1.4 1.9-.9 3 3.2 8.2 7 
+16.8 12.2 25.2.9.2 1.7.2 2.5 0-4.8-8-8.2-16-10.8-24-.4-1.1 0-2.2.9-2.8.1-.1.3-.2.5-.2.1 0 .4.1.6.1Z" 
+fill="url(#verlin-v-_R_2a9lb_)"></path><path d="M39.5 7.2c1 .6 1.4 1.9.9 3-3.2 8.2-7 16.8-12.2 25.2-.9.2-1.7.2-2.5 0 
+4.8-8 8.2-16 10.8-24 .4-1.1 0-2.2-.9-2.8-.1-.1-.3-.2-.5-.2-.1 0-.4.1-.6.1Z" fill="url(#verlin-v-_R_2a9lb_)" 
+opacity="0.9"></path><path d="M22.2 36.8c1.4-4.8 2.2-9.6 2.2-14.4 0-3.6-.4-7.2-1.6-10.6 1.2 3.2 1.8 6.6 1.8 10.6 0 
+5-.8 9.8-2.4 14.4Z" fill="var(--accent-teal-light)" opacity="0.35"></path></svg><span aria-hidden="true" 
+class="inline-flex items-baseline font-extrabold lowercase tracking-[-0.045em] text-[clamp(1.25rem,2.5vw,1.6rem)]" 
+style="font-family:var(--font-inter), Inter, system-ui, sans-serif"><span 
+class="text-[var(--logo-verlin)]">verlin</span><span class="text-gradient-teal">labs</span></span></a><div 
+class="hidden flex-1 items-center justify-center gap-x-4 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-6 
+2xl:gap-x-7"><a class="group relative whitespace-nowrap text-sm font-medium transition-colors duration-150 
+text-foreground/75 hover:text-foreground" href="/free-session">Free Session<span class="absolute -bottom-1 left-0 
+h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-medium transition-colors 
+duration-150 text-foreground/75 hover:text-foreground" href="/courses">Courses<span class="absolute -bottom-1 left-0 
+h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-medium transition-colors 
+duration-150 text-foreground/75 hover:text-foreground" href="/mental-models">Mental Models<span class="absolute 
+-bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out w-0 group-hover:w-full" 
+aria-hidden="true"></span></a><a class="group relative whitespace-nowrap text-sm font-
+
+... (output truncated) ...
+
+anagers. Bring 
+curiosity; we handle the structure.\"},{\"question\":\"How is this different from YouTube or 
+courses?\",\"answer\":\"Most content dumps information. Verlin Labs teaches through live mental models, 
+audience-tailored pacing, hands-on exercises, and mentor Q\u0026A - so understanding sticks and you know what to do 
+next.\"},{\"question\":\"Can I join if I'm a complete beginner?\",\"answer\":\"Absolutely. The student track and free 
+session are designed for first exposure to AI. We use plain language, visual frameworks, and no jargon until the idea 
+itself is clear.\"},{\"question\":\"What happens after the free session?\",\"answer\":\"You'll receive a summary, 
+resource starter pack, and optional next steps. If the full program fits your goals, we'll share enrollment details - 
+no pressure and no hard sell.\"},{\"question\":\"Who is this for?\",\"answer\":\"School students (Classes 6-12), 
+college engineers, and product managers. When you book, you select your track so examples and pace match your 
+background.\"},{\"question\":\"Can I reschedule my session?\",\"answer\":\"Yes. Use the link in your confirmation 
+email to reschedule up to 24 hours before your 
+session.\"}],\"defaultOpenIndex\":0}]}],[\"$\",\"div\",null,{\"className\":\"mt-8 text-center\",\"children\":[\"$\",\"$
+L33\",null,{\"href\":\"/faq\",\"children\":[\"$\",\"$L47\",null,{\"variant\":\"secondary\",\"children\":\"View all FAQs
+\"}]}]}]]}]}]\n"])</script><script>self.__next_f.push([1,"40:[\"$\",\"$L48\",null,{\"testimonials\":[{\"id\":\"1\",\"qu
+ote\":\"Before this, AI felt like magic I was supposed to already understand. The mental models broke it into pieces I 
+could actually think through - and explain to my friends without sounding like I was reading from a 
+textbook.\",\"name\":\"Priya Sharma\",\"role\":\"Class 10 
+Student\",\"audience\":\"students\"},{\"id\":\"2\",\"quote\":\"I'd sat through plenty of ML lectures that jumped 
+straight to formulas. The free session was different - we talked through how things work, asked messy questions, and 
+left with frameworks I still use when I'm reading papers or debugging code.\",\"name\":\"Arjun Mehta\",\"role\":\"CS 
+Engineering Student\",\"audience\":\"engineers\"},{\"id\":\"3\",\"quote\":\"Vendor demos all sound the same until you 
+know what questions to ask. Verlin Labs gave me a way to evaluate AI features honestly - what they can do, where they 
+break, and what my team actually needs - without pretending I have a PhD.\",\"name\":\"Sarah Chen\",\"role\":\"Senior 
+Product Manager\",\"audience\":\"professionals\"},{\"id\":\"4\",\"quote\":\"My daughter used to nod along when people 
+talked about AI. Now she pushes back thoughtfully - she asks why something works, not just whether it works. That 
+shift in how she thinks is what I cared about most.\",\"name\":\"Rajesh Kumar\",\"role\":\"Parent of Class 8 
+Student\",\"audience\":\"students\"},{\"id\":\"5\",\"quote\":\"I'm an EE student, not a CS major, so I expected to 
+feel behind. Instead, the focus on intuition and clear structure helped me reason about transformers and LLMs in a way 
+that finally stuck - not just for an exam, but for actual projects.\",\"name\":\"David Okonkwo\",\"role\":\"Final Year 
+EE Student\",\"audience\":\"engineers\"},{\"id\":\"6\",\"quote\":\"I came to the free session skeptical - another AI 
+workshop, I assumed. I left with a plain-language map of what my team should learn first, what to ignore for now, and 
+how to talk about risk without shutting down good ideas.\",\"name\":\"Maria Gonzalez\",\"role\":\"Engineering Director\
+",\"audience\":\"professionals\"}]}]\n"])</script><script>self.__next_f.push([1,"41:[\"$\",\"$L49\",null,{\"title\":\"S
+tay sharp on AI and technology\",\"description\":\"Weekly mental models, frameworks, and clarity-first insights - no no
+ise.\",\"cta\":\"Subscribe\",\"linkToPage\":true}]\n25:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",
+\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, 
+initial-scale=1\"}]]\n"])</script><script>self.__next_f.push([1,"28:[[\"$\",\"title\",\"0\",{\"children\":\"Verlin 
+Labs - AI Training \u0026 Mental Models for Students, Engineers \u0026 
+PMs\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Verlin Labs - clarity-first AI training in 
+India. Free 2-hour session, mental models, and live programs for students, engineers, and product 
+managers.\"}],[\"$\",\"meta\",\"2\",{\"name\":\"application-name\",\"content\":\"Verlin Labs\"}],[\"$\",\"link\",\"3\",
+{\"rel\":\"manifest\",\"href\":\"/manifest.webmanifest\",\"crossOrigin\":\"$undefined\"}],[\"$\",\"meta\",\"4\",{\"name
+\":\"keywords\",\"content\":\"AI training India,AI course for students,AI training for product managers,mental models 
+AI,Verlin Labs\"}],[\"$\",\"meta\",\"5\",{\"name\":\"robots\",\"content\":\"index, 
+follow\"}],[\"$\",\"meta\",\"6\",{\"name\":\"googlebot\",\"content\":\"index, follow, max-image-preview:large\"}],[\"$\
+",\"link\",\"7\",{\"rel\":\"canonical\",\"href\":\"https://www.verlinlabs.com\"}],[\"$\",\"meta\",\"8\",{\"name\":\"goo
+gle-site-verification\",\"content\":\"LBU_gLBT9-XCFt9vPGf5t8K6UUT3ZsKsd2KTe5xcRrA\"}],[\"$\",\"meta\",\"9\",{\"property
+\":\"og:title\",\"content\":\"Verlin Labs - AI Training \u0026 Mental Models for Students, Engineers \u0026 
+PMs\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:description\",\"content\":\"Verlin Labs - clarity-first AI training 
+in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.\"}],[\"$
+\",\"meta\",\"11\",{\"property\":\"og:url\",\"content\":\"https://www.verlinlabs.com\"}],[\"$\",\"meta\",\"12\",{\"prop
+erty\":\"og:site_name\",\"content\":\"Verlin Labs\"}],[\"$\",\"meta\",\"13\",{\"property\":\"og:locale\",\"content\":\"
+en_IN\"}],[\"$\",\"meta\",\"14\",{\"property\":\"og:image\",\"content\":\"https://www.verlinlabs.com/images/hero-home-v
+isual.jpg\"}],[\"$\",\"meta\",\"15\",{\"property\":\"og:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"16\",{\"
+property\":\"og:image:height\",\"content\":\"630\"}],[\"$\",\"meta\",\"17\",{\"property\":\"og:image:alt\",\"content\":
+\"Verlin Labs - AI Training \u0026 Mental Models for Students, Engineers \u0026 PMs - Verlin Labs\"}],[\"$\",\"meta\",\
+"18\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"19\",{\"name\":\"twitter:card\",\"content\"
+:\"summary_large_image\"}],[\"$\",\"meta\",\"20\",{\"name\":\"twitter:title\",\"content\":\"Verlin Labs - AI Training 
+\u0026 Mental Models for Students, Engineers \u0026 
+PMs\"}],[\"$\",\"meta\",\"21\",{\"name\":\"twitter:description\",\"content\":\"Verlin Labs - clarity-first AI training 
+in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.\"}],[\"$
+\",\"meta\",\"22\",{\"name\":\"twitter:image\",\"content\":\"https://www.verlinlabs.com/images/hero-home-visual.jpg\"}]
+,[\"$\",\"link\",\"23\",{\"rel\":\"shortcut icon\",\"href\":\"/favicon.ico\"}],[\"$\",\"link\",\"24\",{\"rel\":\"icon\"
+,\"href\":\"/favicon.ico?favicon.189h7nf-z_ngs.ico\",\"sizes\":\"256x256\",\"type\":\"image/x-icon\"}],[\"$\",\"link\",
+\"25\",{\"rel\":\"icon\",\"href\":\"/favicon.ico\"}],[\"$\",\"$L4a\",\"26\",{}]]\n"])</script><script>self.__next_f.pus
+h([1,"43:null\n"])</script><script>self.__next_f.push([1,"4b:I[339756,[\"/_next/static/chunks/2eol-y5vog7km.js\",\"/_ne
+xt/static/chunks/0-3neo0141eru.js\",\"/_next/static/chunks/0-8ym9d3_wu2g.js\",\"/_next/static/chunks/1ntn7efqc-iiw.js\"
+,\"/_next/static/chunks/1ps4d4zwv916e.js\"],\"default\"]\n4c:I[758298,[\"/_next/static/chunks/2eol-y5vog7km.js\",\"/_ne
+xt/static/chunks/0-3neo0141eru.js\",\"/_next/static/chunks/0-8ym9d3_wu2g.js\",\"/_next/static/chunks/1ntn7efqc-iiw.js\"
+,\"/_next/static/chunks/1ps4d4zwv916e.js\",\"/_next/static/chunks/0oq5459-vlrjj.js\"],\"default\"]\n4d:I[837457,[\"/_ne
+xt/static/chunks/2eol-y5vog7km.js\",\"/_next/static/chunks/0-3neo0141eru.js\",\"/_next/static/chunks/0-8ym9d3_wu2g.js\"
+,\"/_next/static/chunks/1ntn7efqc-iiw.js\",\"/_next/static/chunks/1ps4d4zwv916e.js\"],\"default\"]\n"])</script><script
+>self.__next_f.push([1,"7:[\"$\",\"main\",null,{\"id\":\"main\",\"className\":\"flex-1\",\"children\":[\"$\",\"$L4b\",n
+ull,{\"parallelRouterKey\":\"children\",\"error\":\"$4c\",\"errorStyles\":[],\"errorScripts\":[[\"$\",\"script\",\"scri
+pt-0\",{\"src\":\"/_next/static/chunks/0oq5459-vlrjj.js\",\"async\":true}]],\"template\":[\"$\",\"$L4d\",null,{}],\"tem
+plateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"40
+4: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe 
+UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"text
+Align\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"cen
+ter\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\
+"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media 
+(prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}
+}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 
+0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},
+\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"sty
+le\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be 
+found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]\n"])</script></body></html>
+
+

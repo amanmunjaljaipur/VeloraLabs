@@ -8,6 +8,7 @@ import type {
   AppCrmContact,
   AppCrmSource,
   AppCrmStage,
+  AppDataRecord,
   AppInquiry,
   AppOrder,
   AppRoleDefinition,
@@ -15,7 +16,7 @@ import type {
   AppTenantMember,
   AppTenantStore,
 } from "@/lib/app-builder/tenant-types";
-import type { AppProject } from "@/lib/app-builder/types";
+import type { AppDataModelSpec, AppProject } from "@/lib/app-builder/types";
 import bcrypt from "bcryptjs";
 
 const FILE = "app-builder-tenants.json";
@@ -70,6 +71,7 @@ function normalizeTenant(t: AppTenant): AppTenant {
     orders: Array.isArray(t.orders) ? t.orders : [],
     inquiries: Array.isArray(t.inquiries) ? t.inquiries : [],
     crmContacts: Array.isArray(t.crmContacts) ? t.crmContacts : [],
+    records: t.records && typeof t.records === "object" ? t.records : {},
   };
 }
 
@@ -346,6 +348,165 @@ export async function addInquiry(
     // non-fatal
   }
   return row;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Generic entity records — CRUD for non-ecommerce Forge data models      */
+/* (booking, tracker, CRM, internal-tool, etc). Records live per tenant,  */
+/* keyed by data model id: tenant.records[modelId] = AppDataRecord[]      */
+/* ---------------------------------------------------------------------- */
+
+export async function listRecords(slug: string, modelId: string): Promise<AppDataRecord[]> {
+  const tenant = await getTenant(slug);
+  if (!tenant) return [];
+  return tenant.records?.[modelId] ?? [];
+}
+
+export async function getRecord(
+  slug: string,
+  modelId: string,
+  recordId: string
+): Promise<AppDataRecord | null> {
+  const rows = await listRecords(slug, modelId);
+  return rows.find((r) => r.id === recordId) ?? null;
+}
+
+export async function createRecord(
+  slug: string,
+  modelId: string,
+  fields: Record<string, unknown>,
+  createdBy?: string
+): Promise<AppDataRecord> {
+  const tenant = await getTenant(slug);
+  if (!tenant) throw new Error("Tenant not found");
+  if (!tenant.records || typeof tenant.records !== "object") tenant.records = {};
+  if (!Array.isArray(tenant.records[modelId])) tenant.records[modelId] = [];
+
+  const now = new Date().toISOString();
+  const row: AppDataRecord = {
+    id: `rec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    fields,
+    createdAt: now,
+    updatedAt: now,
+    createdBy,
+  };
+  tenant.records[modelId].unshift(row);
+  await saveTenant(tenant);
+  return row;
+}
+
+export async function updateRecord(
+  slug: string,
+  modelId: string,
+  recordId: string,
+  fields: Record<string, unknown>
+): Promise<AppDataRecord | null> {
+  const tenant = await getTenant(slug);
+  if (!tenant) return null;
+  const rows = tenant.records?.[modelId];
+  if (!rows) return null;
+  const row = rows.find((r) => r.id === recordId);
+  if (!row) return null;
+  row.fields = { ...row.fields, ...fields };
+  row.updatedAt = new Date().toISOString();
+  await saveTenant(tenant);
+  return row;
+}
+
+export async function deleteRecord(
+  slug: string,
+  modelId: string,
+  recordId: string
+): Promise<boolean> {
+  const tenant = await getTenant(slug);
+  if (!tenant) return false;
+  const rows = tenant.records?.[modelId];
+  if (!rows) return false;
+  const next = rows.filter((r) => r.id !== recordId);
+  if (next.length === rows.length) return false;
+  tenant.records![modelId] = next;
+  await saveTenant(tenant);
+  return true;
+}
+
+/** Small heuristic sample-value generator, keyed off ForgeDataField/AppDataFieldSpec type. */
+function sampleValueForField(fieldType: string, fieldName: string, i: number): unknown {
+  const name = fieldName.toLowerCase();
+  switch (fieldType) {
+    case "number":
+    case "money":
+      return Math.round((i + 1) * 42.5 * 100) / 100;
+    case "boolean":
+      return i % 2 === 0;
+    case "date":
+      return new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    case "datetime":
+      return new Date(Date.now() - i * 3_600_000).toISOString();
+    case "email":
+      return `sample${i + 1}@example.com`;
+    case "phone":
+      return `+1 555 010${i}`;
+    case "url":
+      return `https://example.com/${name}-${i + 1}`;
+    case "image":
+      return "";
+    case "enum":
+      return ["new", "active", "pending"][i % 3];
+    case "relation":
+      return "";
+    case "json":
+      return {};
+    case "text":
+      return `Sample ${name} description for entry ${i + 1}. Replace with real content.`;
+    case "string":
+    default:
+      if (name.includes("name") || name.includes("title")) {
+        return `Sample ${fieldName} ${i + 1}`;
+      }
+      if (name.includes("status") || name.includes("stage")) {
+        return ["new", "in progress", "done"][i % 3];
+      }
+      return `${fieldName} ${i + 1}`;
+  }
+}
+
+/**
+ * Seed 3–5 sample records per data model right after a Forge build, so the
+ * generated app's admin/dashboard has real content to show instead of an
+ * empty state. Non-fatal: build should still succeed if seeding fails.
+ */
+export async function seedGenericRecords(
+  slug: string,
+  dataModels: AppDataModelSpec[]
+): Promise<void> {
+  if (!dataModels?.length) return;
+  const tenant = await getTenant(slug);
+  if (!tenant) return;
+  if (!tenant.records || typeof tenant.records !== "object") tenant.records = {};
+
+  for (const model of dataModels) {
+    if (Array.isArray(tenant.records[model.id]) && tenant.records[model.id].length) continue;
+    const count = 3 + (model.fields.length % 3); // 3–5 rows
+    const rows: AppDataRecord[] = [];
+    for (let i = 0; i < count; i++) {
+      const now = new Date().toISOString();
+      const fields: Record<string, unknown> = {};
+      for (const f of model.fields) {
+        if (f.type === "relation") continue; // leave relations empty for seed data
+        fields[f.name] = sampleValueForField(f.type, f.name, i);
+      }
+      rows.push({
+        id: `rec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}-${i}`,
+        fields,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: "seed",
+      });
+    }
+    tenant.records[model.id] = rows;
+  }
+
+  await saveTenant(tenant);
 }
 
 export async function deleteTenant(slug: string): Promise<void> {

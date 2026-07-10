@@ -9,8 +9,9 @@ import {
 } from "@/components/app-builder/AppGuidedTour";
 import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
 import { GenericAppRuntime } from "@/components/app-builder/GenericAppRuntime";
+import { GenericDataAdmin } from "@/components/app-builder/GenericDataAdmin";
 import { resolveShopTheme, withAlpha } from "@/lib/app-builder/shop-theme";
-import type { AppExtensionContent, EcomLocalShopContent } from "@/lib/app-builder/types";
+import type { AppDataModelSpec, AppExtensionContent, EcomLocalShopContent } from "@/lib/app-builder/types";
 import { isEcomContent, isGenericContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
@@ -139,11 +140,13 @@ export function StandaloneAppRuntime({
   basePath,
   slug,
   pathSegments = [],
+  dataModels,
 }: {
   content: AppExtensionContent;
   basePath: string;
   slug: string;
   pathSegments?: string[];
+  dataModels?: AppDataModelSpec[];
 }) {
   const [route, setRoute] = useState<AppRoute>(() => parseRoute(pathSegments));
   const [publicPage, setPublicPage] = useState(() => parsePublicPage(pathSegments));
@@ -526,21 +529,23 @@ export function StandaloneAppRuntime({
       ) : null}
 
       {isAdminRoute && user?.isAdmin && isGenericContent(content) ? (
-        <div className="mx-auto max-w-lg px-4 py-16 text-center">
-          <p className="text-lg font-semibold">Dashboard for this product</p>
-          <p className="mt-2 text-sm text-text-secondary">
-            Full CMS for non-shop apps is rolling out. Use Site wording improvements from the builder
-            for now, or edit after export. Your live app is available via the top menu.
-          </p>
-          <button
-            type="button"
-            onClick={() => go("home")}
-            className="mt-6 rounded-xl px-4 py-2 text-sm font-semibold text-white"
-            style={{ background: accent }}
-          >
-            Back to app
-          </button>
-        </div>
+        <GenericDataAdmin
+          slug={slug}
+          dataModels={dataModels || []}
+          accent={accent}
+          canManage
+          onBack={() => go("home")}
+        />
+      ) : null}
+
+      {isAdminRoute && user && !user.isAdmin && user.isStaff && isGenericContent(content) ? (
+        <GenericDataAdmin
+          slug={slug}
+          dataModels={dataModels || []}
+          accent={accent}
+          canManage
+          onBack={() => go("home")}
+        />
       ) : null}
 
       {isAdminRoute && !user?.isAdmin && !user?.isStaff ? (

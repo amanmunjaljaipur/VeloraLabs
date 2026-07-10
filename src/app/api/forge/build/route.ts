@@ -4,7 +4,7 @@ import { generateExtensionContent } from "@/lib/app-builder/generate";
 import { packageAppProject } from "@/lib/app-builder/packager";
 import { resolveAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import { saveAppProject, uniqueAppSlug } from "@/lib/app-builder/store";
-import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
+import { ensureTenantForProject, seedGenericRecords } from "@/lib/app-builder/tenant-store";
 import type { AppProject, LlmProviderKind } from "@/lib/app-builder/types";
 import {
   forgeAnswersToInterview,
@@ -112,6 +112,7 @@ export async function POST(request: Request) {
       baseUrl: secrets.baseUrl,
     },
     content: null,
+    dataModels: plan.dataModels,
     publicPath: `/apps/${slug}`,
     createdAt: now,
     updatedAt: now,
@@ -141,6 +142,13 @@ export async function POST(request: Request) {
 
     await saveAppProject(live);
     await ensureTenantForProject(live);
+    if (plan.dataModels?.length) {
+      try {
+        await seedGenericRecords(slug, plan.dataModels);
+      } catch (seedErr) {
+        console.warn("[forge/build] seed warning", seedErr);
+      }
+    }
     try {
       await packageAppProject(live);
     } catch (packErr) {

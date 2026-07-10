@@ -16,7 +16,9 @@ export type AppCapability =
   | "shop.browse"
   | "orders.own"
   | "profile.edit"
-  | "inquiries.manage";
+  | "inquiries.manage"
+  | "data.view"
+  | "data.manage";
 
 export interface AppRoleDefinition {
   id: string;
@@ -82,6 +84,16 @@ export interface AppCrmContact {
   createdAt: string;
 }
 
+/** Generic CRUD record for non-ecommerce Forge data models (booking, tracker, CRM, etc.) */
+export interface AppDataRecord {
+  id: string;
+  /** Arbitrary fields matching the ForgeDataModel field definitions */
+  fields: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+}
+
 export interface AppTenant {
   slug: string;
   projectId: string;
@@ -96,6 +108,8 @@ export interface AppTenant {
   inquiries: AppInquiry[];
   /** Customer CRM ledger for this app only */
   crmContacts: AppCrmContact[];
+  /** Generic entity records for non-ecommerce Forge apps, keyed by data model id */
+  records?: Record<string, AppDataRecord[]>;
   createdAt: string;
   updatedAt: string;
 }

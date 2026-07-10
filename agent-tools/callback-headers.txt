@@ -1,0 +1,16 @@
+HTTP/1.1 302 Found
+Age: 0
+Cache-Control: public, max-age=0, must-revalidate
+Content-Length: 0
+Date: Fri, 03 Jul 2026 12:53:05 GMT
+Location: https://www.verlinlabs.com/login?error=Configuration
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Referrer-Policy: strict-origin-when-cross-origin
+Server: Vercel
+Strict-Transport-Security: max-age=63072000
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Matched-Path: /api/auth/[...nextauth]
+X-Vercel-Cache: MISS
+X-Vercel-Id: bom1::iad1::9zz9t-1783083185818-02a91fc23b94
+
