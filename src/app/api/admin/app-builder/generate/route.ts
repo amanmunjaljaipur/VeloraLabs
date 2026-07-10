@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     baseUrl?: string;
     publish?: boolean;
     usePlatformKey?: boolean;
+    productPlan?: import("@/lib/app-builder/product-plan-types").ProductPlan;
   };
 
   try {
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
       answers: project.answers,
       customPoints: project.customPoints,
       secrets,
+      productPlan: body.productPlan || null,
     });
 
     const now = new Date().toISOString();

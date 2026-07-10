@@ -10,6 +10,8 @@ import {
   resolveLogoChoice,
 } from "@/lib/app-builder/images";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
+import { productPlanToGenericContent } from "@/lib/app-builder/plan-to-content";
+import type { ProductPlan } from "@/lib/app-builder/product-plan-types";
 import type {
   AppExtensionContent,
   AppExtensionId,
@@ -278,6 +280,8 @@ export async function generateExtensionContent(input: {
   answers: AppInterviewAnswer[];
   customPoints?: string[];
   secrets: AppLlmSecrets;
+  /** User-approved product plan — preferred for non-ecom complete builds */
+  productPlan?: ProductPlan | null;
 }): Promise<{ content: AppExtensionContent; generatedBy: string }> {
   const detected = detectVerticalFromPrompt(input.prompt);
   let extensionId = (input.extensionId || detected.extensionId) as AppExtensionId;
@@ -290,10 +294,27 @@ export async function generateExtensionContent(input: {
     extensionId = detected.extensionId;
   }
 
+  // Approved plan → full IA/modules site (banking, insurance, resume, custom)
+  if (input.productPlan && extensionId !== "ecom-local-shop") {
+    const fromPlan = productPlanToGenericContent(input.productPlan);
+    // Optional LLM polish of page copy only (plan structure already fixed)
+    try {
+      return await generateGenericAppContent({
+        ...input,
+        extensionId,
+        productPlan: input.productPlan,
+        seedContent: fromPlan,
+      });
+    } catch {
+      return { content: fromPlan, generatedBy: "plan-only" };
+    }
+  }
+
   if (extensionId !== "ecom-local-shop") {
     return generateGenericAppContent({
       ...input,
       extensionId,
+      productPlan: input.productPlan || undefined,
     });
   }
 

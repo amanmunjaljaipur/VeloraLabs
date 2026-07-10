@@ -36,7 +36,46 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Step = "idea" | "guide" | "extras" | "ai" | "result";
+type Step = "idea" | "guide" | "extras" | "plan" | "ai" | "result";
+
+type ProductPlanView = {
+  brandName: string;
+  tagline: string;
+  businessModel: string;
+  businessModelDetail: string;
+  region: string;
+  audience: string[];
+  valueProp: string;
+  extensionId: string;
+  appKind: string;
+  summary: string;
+  publicPages: Array<{
+    path: string;
+    title: string;
+    purpose: string;
+    sections: string[];
+    zone: string;
+  }>;
+  modules: Array<{
+    id: string;
+    title: string;
+    purpose: string;
+    states: string[];
+    behaviors: string[];
+    zone: string;
+  }>;
+  personas: Array<{ name: string; goal: string; journey: string[] }>;
+  features: Array<{
+    id: string;
+    title: string;
+    description: string;
+    priority: string;
+  }>;
+  trustCompliance: string[];
+  assumptions: string[];
+  outOfScope: string[];
+  researchSource?: string;
+};
 
 interface LlmProviderOption {
   id: LlmProviderKind;
@@ -83,6 +122,9 @@ export function AppBuilderStudio() {
   const [customDraft, setCustomDraft] = useState("");
   const [customPoints, setCustomPoints] = useState<string[]>([]);
   const [extraDraft, setExtraDraft] = useState("");
+  const [productPlan, setProductPlan] = useState<ProductPlanView | null>(null);
+  const [researchingPlan, setResearchingPlan] = useState(false);
+  const [planSource, setPlanSource] = useState("");
 
   const [provider, setProvider] = useState<LlmProviderKind>("xai");
   const [model, setModel] = useState("grok-3-mini");
@@ -321,7 +363,53 @@ export function AppBuilderStudio() {
   function skipAllQuestions() {
     setCustomDraft("");
     setStep("extras");
-    toast("Skipped remaining questions — we will use your original idea.", "success");
+    toast("Skipped remaining questions — next we research a full plan before building.", "success");
+  }
+
+  /** After Q&A: research complete plan (business model + IA + modules) for user approval */
+  async function researchPlanAndShow(): Promise<boolean> {
+    if (!prompt.trim()) {
+      toast("Describe your product idea first.", "error");
+      return false;
+    }
+    setResearchingPlan(true);
+    try {
+      const res = await fetch("/api/admin/app-builder/research-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          answers: buildAnswerList(),
+          customPoints,
+          apiKey: apiKey.trim() || undefined,
+          provider,
+          model,
+          baseUrl: provider === "custom" ? baseUrl : undefined,
+        }),
+      });
+      const data = (await res.json()) as {
+        plan?: ProductPlanView;
+        source?: string;
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok || !data.plan) {
+        toast(data.error || "Could not research product plan", "error");
+        return false;
+      }
+      setProductPlan(data.plan);
+      setPlanSource(data.source || "");
+      if (data.plan.extensionId) setExtensionId(data.plan.extensionId);
+      if (data.plan.businessModel) setDetectedLabel(data.plan.businessModel);
+      setStep("plan");
+      toast("Review the plan — we only build after you approve.", "success");
+      return true;
+    } catch {
+      toast("Plan research failed. Try again.", "error");
+      return false;
+    } finally {
+      setResearchingPlan(false);
+    }
   }
 
   function goPrevQuestion() {
@@ -339,16 +427,14 @@ export function AppBuilderStudio() {
       setStep("idea");
       return;
     }
-    if (!extension) {
-      // still allow build with generic-app
-      setExtensionId("generic-app");
-    }
-    if (questions.length === 0) {
-      toast("We need to design questions from your idea first (you can skip them all).", "error");
-      setStep("idea");
+    if (!productPlan) {
+      toast("Research and approve a product plan before building.", "error");
+      setStep("extras");
       return;
     }
-    // Required answers no longer block build — prompt is enough
+    if (!extension) {
+      setExtensionId(productPlan.extensionId || "generic-app");
+    }
     if (!apiKey.trim() && !usePlatformKeyByDefault && !platformGrokReady) {
       toast("Paste your AI helper key so we can write the pages for you.", "error");
       setStep("ai");
@@ -362,7 +448,7 @@ export function AppBuilderStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: prompt.trim(),
-          extensionId,
+          extensionId: productPlan.extensionId || extensionId,
           answers: buildAnswerList(),
           customPoints,
           llm: {
@@ -374,7 +460,7 @@ export function AppBuilderStudio() {
       });
       const createData = (await createRes.json()) as { project?: AppProject; error?: string };
       if (!createRes.ok || !createData.project) {
-        toast(createData.error || "Could not start your shop project", "error");
+        toast(createData.error || "Could not start your project", "error");
         return;
       }
 
@@ -383,13 +469,13 @@ export function AppBuilderStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId: createData.project.id,
-          // Super admin: omit key → server uses XAI_API_KEY
           apiKey: apiKey.trim() || undefined,
           provider,
           model,
           baseUrl: provider === "custom" ? baseUrl : undefined,
           publish: true,
           usePlatformKey: !apiKey.trim(),
+          productPlan,
         }),
       });
       const genData = (await genRes.json()) as {
@@ -398,7 +484,7 @@ export function AppBuilderStudio() {
         error?: string;
       };
       if (!genRes.ok || !genData.project) {
-        toast(genData.error || "Could not finish building the shop", "error");
+        toast(genData.error || "Could not finish building the app", "error");
         await load();
         return;
       }
@@ -406,7 +492,7 @@ export function AppBuilderStudio() {
       setActiveProject(genData.project);
       setStep("result");
       setApiKey("");
-      toast("Your app is ready!", "success");
+      toast("Your app is ready from the approved plan!", "success");
       await load();
     } catch {
       toast("Something went wrong. Please try again.", "error");
@@ -512,9 +598,9 @@ export function AppBuilderStudio() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">App Builder</h1>
             <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-              Describe your idea once. A product manager (AI) invents simple questions for{" "}
-              <strong>that</strong> idea — with tap suggestions and room for your own words — then
-              builds a full shop with city-based logo colours.
+              Describe any product (shop, digital bank, insurance, resume tool…). We ask optional
+              questions, then <strong>research a full plan</strong> you approve — only then we
+              build. That keeps banking sites complete, not empty brochures.
             </p>
           </div>
         </div>
@@ -547,11 +633,12 @@ export function AppBuilderStudio() {
           <div className="flex flex-wrap gap-2 text-xs font-medium">
             {(
               [
-                ["idea", "1. Your idea"],
-                ["guide", "2. Guided questions"],
-                ["extras", "3. Your own points"],
-                ["ai", "4. AI helper"],
-                ["result", "5. Live shop"],
+                ["idea", "1. Idea"],
+                ["guide", "2. Questions"],
+                ["extras", "3. Extra notes"],
+                ["plan", "4. Research plan"],
+                ["ai", "5. Build"],
+                ["result", "6. Live app"],
               ] as const
             ).map(([id, label]) => (
               <span
@@ -866,8 +953,8 @@ export function AppBuilderStudio() {
                 </button>
               </div>
               <p className="text-sm text-text-secondary">
-                Anything else that matters to you — even if it feels small. These show up on your
-                shop as “Why shop with us”. No tech words needed.
+                Optional notes. Next we run product research and show a full plan (pages, modules,
+                journeys) before any website is generated.
               </p>
 
               <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
@@ -972,20 +1059,31 @@ export function AppBuilderStudio() {
                 <p className="text-xs text-text-muted">Optional — you can skip if you already said enough.</p>
               )}
 
-              <Button type="button" onClick={() => setStep("ai")}>
-                Continue to AI helper
+              <Button
+                type="button"
+                loading={researchingPlan}
+                disabled={researchingPlan}
+                onClick={() => void researchPlanAndShow()}
+              >
+                {researchingPlan
+                  ? "Researching complete product plan…"
+                  : "Research plan (required before build)"}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
           )}
 
-          {/* STEP: AI KEY (plain language) */}
-          {step === "ai" && (
+          {/* STEP: PRODUCT PLAN REVIEW */}
+          {step === "plan" && productPlan && (
             <Card className="space-y-5 p-5 md:p-6">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <KeyRound className="h-5 w-5 text-accent-teal" />
-                  <h2 className="text-lg font-semibold">Connect your AI helper</h2>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-semibold">Product plan — approve before build</h2>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    Research complete ({planSource || "scaffold"}). This is what we will build —
+                    business model, pages, and functional modules. Hollow 3-page sites are not
+                    allowed for banking/insurance/career tools.
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -996,6 +1094,164 @@ export function AppBuilderStudio() {
                   Back
                 </button>
               </div>
+
+              <div className="rounded-2xl border border-accent-teal/30 bg-accent-teal/5 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
+                  {productPlan.businessModel}
+                </p>
+                <h3 className="mt-1 text-xl font-semibold">{productPlan.brandName}</h3>
+                <p className="mt-1 text-sm text-text-secondary">{productPlan.tagline}</p>
+                <p className="mt-3 text-sm">{productPlan.summary}</p>
+                <p className="mt-2 text-xs text-text-muted">
+                  Region: {productPlan.region} · Audience: {productPlan.audience?.join(", ")}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold">Business model</h3>
+                <p className="mt-1 text-sm text-text-secondary">{productPlan.businessModelDetail}</p>
+                <p className="mt-2 text-sm">
+                  <strong>Value:</strong> {productPlan.valueProp}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold">
+                  Pages & screens ({productPlan.publicPages?.length || 0})
+                </h3>
+                <div className="mt-2 max-h-64 overflow-y-auto rounded-xl border border-border">
+                  <table className="w-full text-left text-xs">
+                    <thead className="sticky top-0 bg-muted/80">
+                      <tr>
+                        <th className="px-3 py-2">Page</th>
+                        <th className="px-3 py-2">Zone</th>
+                        <th className="px-3 py-2">Purpose</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productPlan.publicPages?.map((p) => (
+                        <tr key={p.path} className="border-t border-border/60">
+                          <td className="px-3 py-2 font-medium">{p.title}</td>
+                          <td className="px-3 py-2 capitalize text-text-muted">{p.zone}</td>
+                          <td className="px-3 py-2 text-text-secondary">{p.purpose}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold">
+                  Functional modules ({productPlan.modules?.length || 0})
+                </h3>
+                <ul className="mt-2 space-y-2">
+                  {productPlan.modules?.map((m) => (
+                    <li
+                      key={m.id}
+                      className="rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                    >
+                      <p className="font-medium">{m.title}</p>
+                      <p className="text-xs text-text-secondary">{m.purpose}</p>
+                      <p className="mt-1 text-[11px] text-text-muted">
+                        States: {m.states?.join(", ")} · Does: {m.behaviors?.join(", ")}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-semibold">Must-have features</h3>
+                  <ul className="mt-2 list-inside list-disc text-xs text-text-secondary">
+                    {productPlan.features
+                      ?.filter((f) => f.priority === "must")
+                      .map((f) => (
+                        <li key={f.id}>
+                          <strong>{f.title}</strong> — {f.description}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Personas & journeys</h3>
+                  <ul className="mt-2 space-y-2 text-xs text-text-secondary">
+                    {productPlan.personas?.map((p) => (
+                      <li key={p.name}>
+                        <strong>{p.name}</strong>: {p.goal}
+                        <br />
+                        <span className="text-text-muted">{p.journey?.join(" → ")}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="grid gap-3 text-xs sm:grid-cols-2">
+                <div className="rounded-xl border border-border p-3">
+                  <p className="font-semibold">Trust & compliance</p>
+                  <ul className="mt-1 list-inside list-disc text-text-secondary">
+                    {productPlan.trustCompliance?.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-border p-3">
+                  <p className="font-semibold">Out of scope (v1)</p>
+                  <ul className="mt-1 list-inside list-disc text-text-secondary">
+                    {productPlan.outOfScope?.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  loading={researchingPlan}
+                  variant="secondary"
+                  onClick={() => void researchPlanAndShow()}
+                >
+                  Re-run research
+                </Button>
+                <Button type="button" onClick={() => setStep("ai")}>
+                  Approve plan & continue to build
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* STEP: AI KEY (plain language) */}
+          {step === "ai" && (
+            <Card className="space-y-5 p-5 md:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="h-5 w-5 text-accent-teal" />
+                  <h2 className="text-lg font-semibold">Build from approved plan</h2>
+                </div>
+                <button
+                  type="button"
+                  className="text-sm text-text-secondary hover:text-foreground"
+                  onClick={() => setStep("plan")}
+                >
+                  <ArrowLeft className="mr-1 inline h-4 w-4" />
+                  Back to plan
+                </button>
+              </div>
+              {productPlan ? (
+                <p className="rounded-xl border border-border bg-muted/30 px-3 py-2 text-xs text-text-secondary">
+                  Building <strong>{productPlan.brandName}</strong> with{" "}
+                  {productPlan.publicPages?.length || 0} pages and{" "}
+                  {productPlan.modules?.length || 0} modules from your approved plan.
+                </p>
+              ) : (
+                <p className="text-sm text-amber-700">
+                  No plan yet — go back and research a plan first.
+                </p>
+              )}
               {usePlatformKeyByDefault || platformGrokReady ? (
                 <div className="rounded-xl border border-accent-teal/25 bg-accent-teal/5 p-3 text-sm text-text-secondary">
                   <p className="font-semibold text-foreground">Platform Grok is ready</p>

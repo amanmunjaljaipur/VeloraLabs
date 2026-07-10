@@ -7,6 +7,8 @@ import { detectVerticalFromPrompt } from "@/lib/app-builder/detect-vertical";
 import { heroImageUrl } from "@/lib/app-builder/images";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import { sanitizeShopHtml } from "@/lib/app-builder/security";
+import { productPlanToGenericContent } from "@/lib/app-builder/plan-to-content";
+import type { ProductPlan } from "@/lib/app-builder/product-plan-types";
 import type {
   AppExtensionId,
   AppInterviewAnswer,
@@ -177,11 +179,18 @@ export async function generateGenericAppContent(input: {
   answers: AppInterviewAnswer[];
   customPoints?: string[];
   secrets: AppLlmSecrets;
+  productPlan?: ProductPlan;
+  seedContent?: GenericAppContent;
 }): Promise<{ content: GenericAppContent; generatedBy: string }> {
   const customPoints = input.customPoints || [];
   const detected = detectVerticalFromPrompt(input.prompt);
   const extensionId =
     input.extensionId === "ecom-local-shop" ? "generic-app" : input.extensionId;
+
+  // Prefer approved plan structure as the source of pages/modules
+  const planSeed = input.productPlan
+    ? productPlanToGenericContent(input.productPlan)
+    : input.seedContent;
 
   const qa = input.answers
     .filter((a) => a.answer.trim())
@@ -192,62 +201,63 @@ export async function generateGenericAppContent(input: {
     : "";
 
   try {
+    const pageList =
+      planSeed?.pages.map((p) => `${p.path}: ${p.title}`).join(", ") ||
+      "home, features, about, faq, contact, plus all plan pages";
     const raw = await callUserLlm({
       secrets: input.secrets,
-      temperature: 0.4,
-      maxTokens: 4500,
+      temperature: 0.35,
+      maxTokens: 5500,
       timeoutMs: 90_000,
       messages: [
         {
           role: "system",
-          content: `You build product website content for Verlin Labs App Builder.
-The product is NOT necessarily a shop. Detected kind: ${detected.label} (${detected.appKind}).
-Match banking / insurance / resume / booking / portfolio / custom as appropriate.
-Class-8 English, India-friendly when relevant. No fake compliance claims for banking/insurance.
-Return ONLY JSON:
-{
-  "brandName": string,
-  "tagline": string,
-  "description": string,
-  "primaryColor": "#hex",
-  "secondaryColor": "#hex",
-  "city": string,
-  "contactEmail": string,
-  "contactPhone": string,
-  "heroHeadline": string,
-  "heroSubheadline": string,
-  "ctaLabel": string,
-  "secondaryCtaLabel": string,
-  "aboutHtml": string,
-  "nav": [{"path":"home","label":"Home"},...],
-  "pages": [{"id":"home","path":"home","title":"Home","headline":"...","bodyHtml":"<p>...</p>","ctaLabel":"..."}],
-  "features": [{"id":"f1","title":"...","body":"...","icon":"✨"}],
-  "faqs": [{"question":"...","answer":"..."}],
-  "trustBadges": string[],
-  "footerNote": string,
-  "customBlocks": [{"title":"...","body":"..."}]
-}
-Rules: 4–7 pages (home, features/product, about, faq, contact minimum). bodyHtml simple <p>/<ul> only. 4–8 features. 3–6 FAQs.`,
+          content: `You build COMPLETE product website content for Verlin Labs App Builder.
+Detected kind: ${detected.label} (${detected.appKind}).
+You MUST implement the APPROVED PRODUCT PLAN pages — do not collapse to 3 marketing pages.
+For banking: include public product/rates/security/apply AND demo dashboard, transactions, transfer (with review/2FA copy), cards, statements, profile.
+For insurance: plans, quote, claims, policy demo.
+For resume: workspace, linkedin, export, templates.
+Class-8 English. No fake licence numbers. bodyHtml uses only <p>/<ul>/<li>/<strong>/<em>.
+Return ONLY JSON with ALL pages from the plan (same paths), filled with real section copy:
+brandName, tagline, description, primaryColor, secondaryColor, city, contactEmail, contactPhone,
+heroHeadline, heroSubheadline, ctaLabel, secondaryCtaLabel, aboutHtml,
+nav, pages[{id,path,title,headline,bodyHtml,ctaLabel}], features, faqs, trustBadges, footerNote, customBlocks
+Rules: pages array MUST include every path from the plan list. features 6–12. faqs 5–8.`,
         },
         {
           role: "user",
-          content: `Product idea:\n${input.prompt}\n\nInterview (skipped answers may be empty — invent carefully only for gaps):\n${qa || "(all skipped — invent sensible defaults from idea)"}${customBlock}\n\nBuild the full content pack for this product.`,
+          content: `Product idea:\n${input.prompt}\n\nApproved plan (MUST implement):\n${JSON.stringify(
+            input.productPlan
+              ? {
+                  brandName: input.productPlan.brandName,
+                  businessModel: input.productPlan.businessModel,
+                  pages: input.productPlan.publicPages,
+                  modules: input.productPlan.modules,
+                  features: input.productPlan.features,
+                  trust: input.productPlan.trustCompliance,
+                }
+              : { pages: pageList }
+          )}\n\nInterview:\n${qa || "(thin answers — still fill every plan page)"}${customBlock}\n\nRequired page paths: ${pageList}`,
         },
       ],
     });
 
     const parsed = parseJsonObject<Partial<GenericAppContent> & { brandName?: string }>(raw);
-    if (!parsed.brandName) throw new Error("No brandName");
+    if (!parsed.brandName && !planSeed?.brandName) throw new Error("No brandName");
 
-    const city = parsed.city || answerMap(input.answers).city || "India";
-    const brandName = parsed.brandName;
+    const city = parsed.city || answerMap(input.answers).city || planSeed?.city || "India";
+    const brandName = parsed.brandName || planSeed?.brandName || "App";
     const logo = makeLogo(brandName, city);
-    const base = fallbackGeneric(input.prompt, input.answers, customPoints, extensionId);
+    const base =
+      planSeed ||
+      fallbackGeneric(input.prompt, input.answers, customPoints, extensionId);
 
+    // Prefer LLM pages if they cover enough; else keep plan seed pages
+    const llmPages = Array.isArray(parsed.pages) ? parsed.pages : [];
+    const useLlmPages = llmPages.length >= Math.min(6, base.pages.length);
     const pages = (
-      Array.isArray(parsed.pages) && parsed.pages.length
-        ? parsed.pages
-        : base.pages
+      useLlmPages ? llmPages : base.pages
     ).map((p, i) => ({
       id: String(p.id || `p${i}`).slice(0, 40),
       path: String(p.path || p.id || `page-${i}`)
@@ -336,6 +346,9 @@ Rules: 4–7 pages (home, features/product, about, faq, contact minimum). bodyHt
     };
   } catch (e) {
     console.error("[app-builder] generic generate failed:", e);
+    if (planSeed) {
+      return { content: planSeed, generatedBy: "fallback-plan-seed" };
+    }
     return {
       content: fallbackGeneric(input.prompt, input.answers, customPoints, extensionId),
       generatedBy: "fallback-generic",
