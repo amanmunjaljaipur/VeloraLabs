@@ -1,9 +1,11 @@
 "use client";
 
 import type { AppRoute, AppUserView } from "@/components/app-builder/StandaloneAppRuntime";
+import { buildLaunchChecklist } from "@/lib/app-builder/launch-checklist";
 import type { EcomLocalShopContent, EcomProduct } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Contact,
@@ -468,7 +470,8 @@ export function AppAdminPanel({
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Overview</h1>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Admin home for {content.brandName} — same menu style as Verlin Labs.
+                  Admin home for {content.brandName} — same menu style as Verlin Labs. Launch steps
+                  follow Shopify / Dukaan style checklists.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -476,6 +479,31 @@ export function AppAdminPanel({
                 <Stat label="Orders" value={String(orders.length || crmStats.orders)} />
                 <Stat label="CRM contacts" value={String(crmStats.total)} />
                 <Stat label="New leads" value={String(crmStats.new)} />
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <p className="text-sm font-semibold">Launch checklist</p>
+                <ul className="mt-3 space-y-2">
+                  {buildLaunchChecklist({
+                    brandName: content.brandName,
+                    publicPath: `/apps/${slug}`,
+                    answers: [],
+                    hasProducts: content.products.length > 0,
+                    hasLogo: Boolean(content.logo?.imageUrl || content.logo?.initials),
+                  })
+                    .slice(0, 6)
+                    .map((item) => (
+                      <li key={item.id} className="flex gap-2 text-xs text-text-secondary">
+                        <CheckCircle2
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                          style={{ color: accent }}
+                        />
+                        <span>
+                          <span className="font-medium text-foreground">{item.title}</span>
+                          <span className="mt-0.5 block">{item.detail}</span>
+                        </span>
+                      </li>
+                    ))}
+                </ul>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {nav

@@ -110,14 +110,23 @@ function fallbackEcom(
   const brand = a.brandName || "Local Shop";
   const city = a.city || "Your city";
   const locBrand = buildShopLogo(brand, city);
-  const orderMethods = splitList(a.howToOrder || a.howToReach || a.bookingChannel);
+  const orderMethods = [
+    ...splitList(a.howToOrder || a.howToReach || a.bookingChannel),
+    ...splitList(a.shippingHow),
+  ].filter((v, i, arr) => arr.indexOf(v) === i);
   const shopTypes = splitList(a.shopType || a.serviceType);
   const vibe = splitList(a.vibe || a.tone);
   const mustHave = splitList(a.mustHave);
+  const unique = splitList(a.uniqueSelling);
+  const payments = splitList(a.paymentToday);
+  const channels = splitList(a.sellChannel);
   const ownerHighlights = [
+    ...unique,
     ...mustHave,
     ...customPoints.map((p) => p.trim()).filter(Boolean),
-  ].slice(0, 12);
+  ]
+    .filter((v, i, arr) => v && arr.indexOf(v) === i)
+    .slice(0, 12);
 
   const sellLines = (a.whatYouSell || a.servicesDetail || "")
     .split(/[\n·•]+/)
@@ -150,12 +159,16 @@ function fallbackEcom(
   const base: EcomLocalShopContent = {
     extensionId: "ecom-local-shop",
     brandName: brand,
-    tagline: `Local picks from ${city}`,
+    tagline:
+      unique[0] ||
+      (channels.some((c) => /whatsapp/i.test(c))
+        ? `Order on WhatsApp · Local in ${city}`
+        : `Local picks from ${city}`),
     description:
       a.whatYouSell ||
       `${brand} is a friendly local shop in ${city}${
         shopTypes.length ? ` for ${shopTypes.join(", ")}` : ""
-      }.`,
+      }.${unique.length ? ` Known for: ${unique.slice(0, 3).join(", ")}.` : ""}`,
     primaryColor: locBrand.primaryColor,
     secondaryColor: locBrand.secondaryColor,
     city,
@@ -207,15 +220,20 @@ function fallbackEcom(
     heroTheme: locBrand.heroTheme,
     openingHours: a.hours || "",
     orderMethods: orderMethods.length ? orderMethods : ["WhatsApp message", "Phone call"],
-    paymentMethods: orderMethods.filter((m) => /upi|cash|card|pay/i.test(m)).length
-      ? orderMethods.filter((m) => /upi|cash|card|pay/i.test(m))
-      : ["UPI", "Cash"],
+    paymentMethods: payments.length
+      ? payments
+      : orderMethods.filter((m) => /upi|cash|card|pay/i.test(m)).length
+        ? orderMethods.filter((m) => /upi|cash|card|pay/i.test(m))
+        : ["UPI", "Cash"],
     deliveryNote:
-      orderMethods.find((m) => /deliver|pickup/i.test(m)) || "Ask us about pickup or delivery",
+      splitList(a.shippingHow)[0] ||
+      orderMethods.find((m) => /deliver|pickup/i.test(m)) ||
+      "Ask us about pickup or delivery",
     trustBadges: [
       "Local shop",
-      vibe.includes("Trustworthy family business") ? "Family-run" : "Friendly service",
-      "Simple ordering",
+      unique[0] || (vibe.includes("Trustworthy family business") ? "Family-run" : "Friendly service"),
+      payments.some((p) => /upi/i.test(p)) ? "UPI accepted" : "Simple ordering",
+      channels.some((c) => /whatsapp/i.test(c)) ? "WhatsApp friendly" : "",
     ].filter(Boolean),
     ownerHighlights,
     languageNote: vibe.some((v) => /hindi/i.test(v))
@@ -268,8 +286,14 @@ export async function generateExtensionContent(input: {
           content: `You build complete content for a LOCAL SHOP website for people who are NOT technical (like school students' parents, small shop owners).
 Use simple, warm language. Avoid jargon.
 Interview answers were designed by a product manager from the owner's idea — treat every Q&A as source of truth.
-Pay special attention to OFFLINE workflow answers (normal day, customer steps, busy times, who helps, pains, what they want the website to do first).
-Shape the shop so it matches how they already work (e.g. WhatsApp-first, pickup, evening rush, family-run) — do not invent complex features they did not describe.
+Pay special attention to industry-leader style answers:
+- offline day, customer steps, sell channels (WhatsApp/shop/Instagram)
+- unique selling points → trust badges and about section
+- shippingHow → deliveryNote and FAQ
+- paymentToday → paymentMethods and FAQ
+- appHelpHope / successGoal → hero CTA and subheadline
+- shareWhere → soft hints for launch
+Shape like a clean Shopify/Dukaan mini-store: clear catalogue, trust, WhatsApp order, local delivery — not a bloated SaaS.
 Return ONLY valid JSON:
 {
   "brandName": string,

@@ -136,6 +136,110 @@ const WORKFLOW_DEFAULTS: InterviewQuestion[] = [
     allowCustom: true,
     hint: "Priority outcomes for first version of the app",
   },
+  // --- Industry-leader patterns (Shopify / Wix / Dukaan / Instamojo) ---
+  {
+    id: "sellChannel",
+    label: "Where do you sell today? (pick all that fit)",
+    helpText: "Like Shopify setup: online-only, shop + online, or mainly WhatsApp.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "Physical shop / stall only",
+      "Home / kitchen business",
+      "WhatsApp / phone orders",
+      "Instagram or Facebook",
+      "Already sell on a marketplace",
+      "I want online for the first time",
+    ],
+    allowCustom: true,
+    hint: "Sales channels — shapes CTA and trust copy",
+  },
+  {
+    id: "uniqueSelling",
+    label: "What makes your products or service special?",
+    helpText: "Wix-style: one clear reason customers choose you — keep it simple.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "Handmade / homemade",
+      "Local & fresh",
+      "Better price than nearby shops",
+      "Fast WhatsApp reply",
+      "Trusted family business for years",
+      "Custom / made-to-order",
+      "Quality materials",
+    ],
+    allowCustom: true,
+    multiline: true,
+    hint: "USP for hero, about, and trust badges",
+  },
+  {
+    id: "shippingHow",
+    label: "How do customers get their order?",
+    helpText: "Dukaan / Shopify: pickup, local delivery, or courier — we show this clearly on the site.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "Pickup from shop / home",
+      "I deliver nearby myself",
+      "Delivery boy / partner",
+      "Courier to other cities",
+      "Digital only (no shipping)",
+      "Not sure yet",
+    ],
+    allowCustom: true,
+    hint: "Delivery model for FAQ and order flow",
+  },
+  {
+    id: "paymentToday",
+    label: "How do people pay you today?",
+    helpText: "India-first like Instamojo: UPI, cash, bank transfer — no heavy payment setup required.",
+    required: true,
+    selectMode: "multi",
+    suggestions: [
+      "UPI (GPay / PhonePe / Paytm)",
+      "Cash on delivery or at shop",
+      "Bank transfer",
+      "Card machine at shop",
+      "Pay after trying / on credit for regulars",
+    ],
+    allowCustom: true,
+    hint: "Payment methods for FAQ and trust",
+  },
+  {
+    id: "successGoal",
+    label: "What does success look like in the next 3 months?",
+    helpText: "Shopify-style goal: more enquiries, cleaner catalogue, or fewer phone repeats.",
+    required: false,
+    selectMode: "multi",
+    suggestions: [
+      "More WhatsApp enquiries every week",
+      "Customers can see prices without asking",
+      "Look professional when I share the link",
+      "Fewer “are you open?” messages",
+      "Take 5–10 online orders a week",
+      "Start selling outside my neighbourhood",
+    ],
+    allowCustom: true,
+    hint: "Success metrics for copy tone and CTAs",
+  },
+  {
+    id: "shareWhere",
+    label: "Where will you share your shop link first?",
+    helpText: "Meesho / Instagram sellers grow by sharing — we prepare copy for those places.",
+    required: false,
+    selectMode: "multi",
+    suggestions: [
+      "WhatsApp status / groups",
+      "Instagram bio or reels",
+      "Facebook page",
+      "Printed card / board at shop",
+      "Friends and family first",
+      "Google Business later",
+    ],
+    allowCustom: true,
+    hint: "Distribution channels for launch checklist",
+  },
 ];
 
 function normalizeId(raw: string, index: number): string {
@@ -231,19 +335,25 @@ function ensureCoreQuestions(
     if (!byId.has(wq.id)) byId.set(wq.id, wq);
   }
 
-  // Order: identity → offline workflow → offer → logo → rest
+  // Order inspired by Shopify/Wix: identity → offline → channels → offer → goals → brand
   const preferredOrder = [
     "brandName",
     "city",
+    "sellChannel",
     "offlineDay",
     "customerSteps",
     "busyTimes",
     "whoDoesWhat",
     "offlinePain",
-    "appHelpHope",
+    "uniqueSelling",
     "whatYouSell",
     "shopType",
     "audience",
+    "shippingHow",
+    "paymentToday",
+    "appHelpHope",
+    "successGoal",
+    "shareWhere",
     "contact",
     "howToOrder",
     "logoPreference",
@@ -255,6 +365,10 @@ function ensureCoreQuestions(
     "customerSteps",
     "offlinePain",
     "appHelpHope",
+    "sellChannel",
+    "uniqueSelling",
+    "shippingHow",
+    "paymentToday",
   ]);
   const take = (id: string) => {
     const q = byId.get(id);
@@ -274,7 +388,8 @@ function ensureCoreQuestions(
   }
   for (const q of byId.values()) ordered.push(q);
 
-  return ordered.slice(0, 14);
+  // Keep enough room for identity + workflow + leader-style offer/fulfilment + logo
+  return ordered.slice(0, 16);
 }
 
 /**
@@ -369,39 +484,43 @@ export function fallbackInterviewQuestions(
 }
 
 const PM_SYSTEM = `You are a senior product manager for Verlin Labs App Builder.
-You interview people who are NOT technical (parents, local shop owners, home bakers, tuition teachers in India).
+You design onboarding like industry leaders — but in SIMPLE words for non-tech India owners
+(parents, kirana, home bakers, crafts, tuition).
+
+## Learn from leaders (apply the INTENT, not the jargon)
+- Shopify: sell online/offline, products, shipping, payments, store goals, setup checklist
+- Wix AI: business type, what makes you unique, website goal, look & feel
+- Dukaan / Instamojo: WhatsApp-first, UPI/COD, shareable catalog link, local delivery
+- Square / local retail: who helps, peak hours, how customers order today
 
 ## Your job (in this order)
-1. Understand their OFFLINE business first — a real day, real customer steps, who helps, when busy, what is hard.
-2. Only then ask about name, place, products, contact, logo.
-3. Design questions so WE can build an app that matches how they already work — not a fancy website they will not use.
+1. OFFLINE reality first — day, customer steps, channels, pain.
+2. OFFER — concrete products/services (for photos + catalogue).
+3. FULFILMENT — how they get orders + how they get paid (India-first).
+4. GOALS — 2–3 website jobs + 3-month success.
+5. BRAND — name, city, contact, logo (design vs own link).
 
-## Discovery themes (cover most of these with simple words)
-- A normal offline day / week (open → customers → close)
-- What a customer does step-by-step today (walk-in, call, WhatsApp, notebook)
-- Busy times (festivals, evenings, exam season…)
-- Who runs the work (only me / family / staff)
-- What is painful offline (repeat questions, no photos, missed chats, trust)
-- What 2–3 jobs the website must do first
-- What they sell / offer (concrete names for photos later)
-- Who buys, how they pay or order today
-- Name, city, contact, logo choice
+## Discovery themes (cover most; tailor chips to the idea)
+- sellChannel, offlineDay, customerSteps, busyTimes, whoDoesWhat, offlinePain
+- uniqueSelling, whatYouSell / products, audience
+- shippingHow, paymentToday, appHelpHope, successGoal, shareWhere
+- brandName, city, contact, logoPreference
 
 ## Rules for every question
-- Class-8 English. No jargon: no API, LLM, stack, OAuth, CRM, SKU, deploy, workflow engine.
-- Prefer chips (suggestions). Always allowCustom: true.
-- 9 to 12 questions total. Not more than 14.
-- Mix selectMode: "single" | "multi" | "free". Use multiline free text for "describe your day".
-- required: true for brandName, city, contact, logoPreference, and at least the offline day + customer steps + main pain + hoped app help.
+- Class-8 English. No jargon: no API, LLM, stack, OAuth, CRM, SKU, deploy, omnichannel, conversion.
+- Prefer chips. Always allowCustom: true.
+- 10 to 14 questions. Not more than 14.
+- Mix selectMode single | multi | free. Multiline for "describe your day" and product list.
+- required: true for brandName, city, contact, logoPreference, offline day, customer steps, pain, channels, unique selling, shipping, payment, app help.
 - MUST include exact ids: brandName, city, contact, logoPreference.
-- MUST include workflow-style questions (you may use ids offlineDay, customerSteps, busyTimes, whoDoesWhat, offlinePain, appHelpHope OR invent better ids that fit the idea — but keep the same intent).
-- logoPreference: include "Please design a logo for me" and option to paste a logo link.
-- Tailor chips to THIS product idea (prompt). A pottery shop and a tuition class get different day-in-the-life chips.
-- helpText = friendly coach line (1 sentence), like you are sitting with them at their shop.
+- Prefer stable ids when possible: sellChannel, offlineDay, customerSteps, uniqueSelling, shippingHow, paymentToday, appHelpHope, successGoal, shareWhere.
+- logoPreference: "Please design a logo for me" + paste link option.
+- Product questions must ask for CONCRETE product names (so we can search/build photos).
+- helpText = one friendly coach sentence.
 
 Return ONLY valid JSON:
 {
-  "rationale": "one short sentence: what offline workflow you are trying to learn",
+  "rationale": "one short sentence: which leader pattern you applied + offline insight",
   "questions": [
     {
       "id": "camelOr_snake",
@@ -464,9 +583,9 @@ export async function designInterviewQuestions(
 
 ${extensionHint}
 
-Design the guided interview NOW.
-Priority: first understand how this business works OFFLINE (day, customer steps, busy times, who helps, pains, what success looks like), THEN name/city/products/contact/logo.
-Every chip and question must fit THIS idea. Speak like a product manager sitting with a non-tech owner.`,
+Design the guided interview NOW like Shopify + Wix + Dukaan onboarding in simple Hindi-English friendly words.
+Priority: offline day & customer steps → sell channels → unique selling → products → shipping & payment → goals → name/city/contact/logo.
+Every chip must fit THIS idea. Concrete product names for photos later.`,
         },
       ],
     });

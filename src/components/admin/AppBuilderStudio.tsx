@@ -13,10 +13,12 @@ import type {
   LlmProviderKind,
 } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
+import { buildLaunchChecklist } from "@/lib/app-builder/launch-checklist";
 import {
   AppWindow,
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   Download,
   ExternalLink,
   FolderOpen,
@@ -1121,6 +1123,9 @@ export function AppBuilderStudio() {
                     Open my shop
                   </Button>
                 </Link>
+                <Link href={`${activeProject.publicPath}/admin`} target="_blank">
+                  <Button variant="secondary">Open shop admin</Button>
+                </Link>
                 <Button
                   variant="secondary"
                   type="button"
@@ -1134,6 +1139,37 @@ export function AppBuilderStudio() {
                 <Button variant="secondary" type="button" onClick={resetWizard}>
                   Build another shop
                 </Button>
+              </div>
+
+              {/* Shopify-style launch checklist */}
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-sm font-semibold text-foreground">
+                  Launch checklist (like industry leaders)
+                </p>
+                <p className="mt-1 text-xs text-text-secondary">
+                  Do these next so your shop works like a real online store — share, photos, WhatsApp,
+                  payments.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {buildLaunchChecklist({
+                    brandName: activeProject.name,
+                    publicPath: activeProject.publicPath,
+                    answers: activeProject.answers || [],
+                    hasProducts: Boolean(activeProject.content?.products?.length),
+                    hasLogo: Boolean(activeProject.content?.logo),
+                  }).map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex gap-2 rounded-lg border border-border/80 bg-muted/20 px-3 py-2 text-xs text-text-secondary"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-teal" />
+                      <span>
+                        <span className="font-semibold text-foreground">{item.title}</span>
+                        <span className="mt-0.5 block">{item.detail}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </Card>
           )}
