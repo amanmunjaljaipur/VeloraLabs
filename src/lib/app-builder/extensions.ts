@@ -3,6 +3,7 @@ import type {
   AppIdeaExample,
   InterviewQuestion,
 } from "@/lib/app-builder/types";
+import { verticalCoreQuestions } from "@/lib/app-builder/vertical-interview-cores";
 
 export interface AppExtensionMeta {
   id: AppExtensionId;
@@ -89,45 +90,20 @@ export const APP_IDEA_EXAMPLES: AppIdeaExample[] = [
   },
 ];
 
-const softCore = (nameWord: string): InterviewQuestion[] => [
-  {
-    id: "brandName",
-    label: `What should we call this ${nameWord}?`,
-    helpText: "Short name at the top of the app. You can skip and we will invent a working name.",
-    required: false,
-    selectMode: "free",
-    allowCustom: true,
-    suggestions: [],
-  },
-  {
-    id: "whoFor",
-    label: "Who is this mainly for?",
-    helpText: "Students, shoppers, patients, job seekers, bank customers… Skip if unsure.",
-    required: false,
-    selectMode: "multi",
-    allowCustom: true,
-    suggestions: ["Everyday customers", "Students", "Parents", "Business owners", "Job seekers"],
-  },
-  {
-    id: "mainJob",
-    label: "What is the #1 job this app must do on day one?",
-    helpText: "One clear outcome. Everything else can wait.",
-    required: false,
-    selectMode: "free",
-    allowCustom: true,
-    multiline: true,
-    suggestions: [],
-  },
-  {
-    id: "contact",
-    label: "How should people reach you?",
-    helpText: "Phone, WhatsApp, or email — optional if you skip.",
-    required: false,
-    selectMode: "free",
-    allowCustom: true,
-    placeholder: "e.g. +91… or hello@…",
-  },
-];
+/** Soft starters — vertical-specific chips (never one shop list for every product) */
+function extensionSoftQuestions(extensionId: string): InterviewQuestion[] {
+  const map: Record<string, ReturnType<typeof verticalCoreQuestions>> = {
+    "ecom-local-shop": verticalCoreQuestions("ecom"),
+    "digital-banking": verticalCoreQuestions("digital-banking"),
+    insurance: verticalCoreQuestions("insurance"),
+    "resume-career": verticalCoreQuestions("resume-career"),
+    "booking-local": verticalCoreQuestions("booking"),
+    "tuition-centre": verticalCoreQuestions("tuition"),
+    portfolio: verticalCoreQuestions("portfolio"),
+    "generic-app": verticalCoreQuestions("generic"),
+  };
+  return map[extensionId] || verticalCoreQuestions("generic");
+}
 
 export const APP_EXTENSIONS: AppExtensionMeta[] = [
   {
@@ -137,7 +113,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     description:
       "Banking, insurance, resume tools, portals, or anything you describe. Questions adapt to your prompt; every question is skippable.",
     pathPrefix: "/apps",
-    questions: softCore("product"),
+    questions: extensionSoftQuestions("generic-app"),
   },
   {
     id: "ecom-local-shop",
@@ -145,7 +121,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Products, prices, WhatsApp order",
     description: "Best when you sell physical or digital products with a catalogue.",
     pathPrefix: "/apps",
-    questions: softCore("shop"),
+    questions: extensionSoftQuestions("ecom-local-shop"),
   },
   {
     id: "booking-local",
@@ -153,7 +129,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Services and simple booking",
     description: "Salon, clinic, consultancy — services and contact to book.",
     pathPrefix: "/apps",
-    questions: softCore("booking site"),
+    questions: extensionSoftQuestions("booking-local"),
   },
   {
     id: "digital-banking",
@@ -161,7 +137,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Wallet, savings, trust pages",
     description: "Product marketing site for a bank / neobank style offering.",
     pathPrefix: "/apps",
-    questions: softCore("banking product"),
+    questions: extensionSoftQuestions("digital-banking"),
   },
   {
     id: "insurance",
@@ -169,7 +145,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Plans, benefits, claims FAQ",
     description: "Explain plans simply and collect quote / contact leads.",
     pathPrefix: "/apps",
-    questions: softCore("insurance product"),
+    questions: extensionSoftQuestions("insurance"),
   },
   {
     id: "resume-career",
@@ -177,7 +153,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Resume help and career tools",
     description: "Job-seeker tools, tips, and a clear call to action.",
     pathPrefix: "/apps",
-    questions: softCore("career app"),
+    questions: extensionSoftQuestions("resume-career"),
   },
   {
     id: "portfolio",
@@ -185,7 +161,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Work showcase",
     description: "Projects, about, contact for freelancers and creators.",
     pathPrefix: "/apps",
-    questions: softCore("portfolio"),
+    questions: extensionSoftQuestions("portfolio"),
   },
   {
     id: "tuition-centre",
@@ -193,7 +169,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     plainLabel: "Batches, fees, enquiry",
     description: "Education centre site for parents and students.",
     pathPrefix: "/apps",
-    questions: softCore("tuition centre"),
+    questions: extensionSoftQuestions("tuition-centre"),
   },
 ];
 
