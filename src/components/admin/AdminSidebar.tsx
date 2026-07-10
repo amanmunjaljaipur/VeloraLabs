@@ -4,7 +4,6 @@ import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/roles";
 import {
-  AppWindow,
   BarChart3,
   Bot,
   Flame,
@@ -40,7 +39,6 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/agents": Shield,
   "/admin/blog": PenLine,
   "/admin/forge": Flame,
-  "/admin/app-builder": AppWindow,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
 };

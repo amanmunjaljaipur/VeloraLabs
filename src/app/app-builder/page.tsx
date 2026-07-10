@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
 /**
- * Public URL retired — App Builder Lab vision is admin-only at /admin/app-builder.
+ * Public App Builder URL retired.
+ * Admin product builder is Forge at /admin/forge.
  */
 export default function PublicAppBuilderRemoved() {
   notFound();

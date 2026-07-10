@@ -3,11 +3,11 @@ import { getAdminMenuLinks } from "@/lib/admin-nav";
 import { ROLE_LABELS } from "@/types/roles";
 import type { UserRole } from "@/types/roles";
 import {
-  AppWindow,
   BarChart3,
   Bot,
   Contact,
   FileText,
+  Flame,
   LayoutDashboard,
   LayoutGrid,
   Newspaper,
@@ -36,7 +36,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/sessions": Video,
   "/admin/chatbot-training": Bot,
   "/admin/blog": PenLine,
-  "/admin/app-builder": AppWindow,
+  "/admin/forge": Flame,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
 };
