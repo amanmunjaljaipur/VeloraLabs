@@ -15,6 +15,20 @@ export function RolePendingNotice() {
     return null;
   }
 
+  // Admins / super admins should never see "role pending"
+  const role = session.user.role;
+  if (role === "admin" || role === "super_admin") {
+    return null;
+  }
+  const email = session.user.email?.toLowerCase().trim();
+  if (
+    email === "amanmunjal.jaipur@gmail.com" ||
+    email === "amaanmunjal.jaipur@gmail.com" ||
+    email === "aman@gmail.com"
+  ) {
+    return null;
+  }
+
   if (HIDE_ON_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return null;
   }

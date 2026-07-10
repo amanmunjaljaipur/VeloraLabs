@@ -1,13 +1,32 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { getAdminMenuLinks } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
-import { ROLE_LABELS, ROLE_PENDING_LABEL } from "@/types/roles";
+import { ROLE_LABELS, ROLE_PENDING_LABEL, type UserRole } from "@/types/roles";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+/** Hardcoded owners always treated as super_admin on the client if session role is empty. */
+const HARDCODED_SUPER_ADMINS = new Set([
+  "amanmunjal.jaipur@gmail.com",
+  "amaanmunjal.jaipur@gmail.com",
+  "aman@gmail.com",
+]);
+
+function resolveClientRole(
+  email: string | null | undefined,
+  role: UserRole | null | undefined
+): UserRole | null {
+  if (role === "admin" || role === "super_admin") return role;
+  if (email && HARDCODED_SUPER_ADMINS.has(email.toLowerCase().trim())) {
+    return "super_admin";
+  }
+  return role ?? null;
+}
 
 export function AuthButton({
   className,
@@ -19,7 +38,17 @@ export function AuthButton({
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const role = session?.user?.role;
+
+  const role = useMemo(
+    () => resolveClientRole(session?.user?.email, session?.user?.role),
+    [session?.user?.email, session?.user?.role]
+  );
+
+  const isAdmin = role === "admin" || role === "super_admin";
+  const adminLinks = useMemo(
+    () => (isAdmin ? getAdminMenuLinks(role ?? undefined).filter((l) => l.href !== "/admin") : []),
+    [isAdmin, role]
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -54,7 +83,7 @@ export function AuthButton({
     const displayName = session.user.name || session.user.email || "User";
     const navName =
       displayName.split(" ")[0]?.replace(/^\w/, (char) => char.toUpperCase()) || displayName;
-    const roleLabel = session.user.rolePending
+    const roleLabel = session.user.rolePending && !isAdmin
       ? ROLE_PENDING_LABEL
       : role
         ? ROLE_LABELS[role]
@@ -100,7 +129,7 @@ export function AuthButton({
         {open && (
           <div
             role="menu"
-            className="absolute right-0 top-full z-[60] mt-2 w-64 overflow-hidden rounded-xl border border-border bg-card shadow-xl"
+            className="absolute right-0 top-full z-[60] mt-2 max-h-[min(70vh,28rem)] w-72 overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-card shadow-xl"
           >
             <div className="border-b border-border px-4 py-3">
               <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
@@ -117,7 +146,7 @@ export function AuthButton({
                 <p
                   className={cn(
                     "mt-1 text-sm font-medium",
-                    session.user.rolePending
+                    session.user.rolePending && !isAdmin
                       ? "text-amber-700 dark:text-amber-300"
                       : "text-foreground"
                   )}
@@ -127,15 +156,34 @@ export function AuthButton({
               </div>
             )}
 
-            {role === "admin" || role === "super_admin" ? (
-              <Link
-                href="/admin/sessions"
-                role="menuitem"
-                onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                Admin dashboard
-              </Link>
+            {isAdmin ? (
+              <>
+                <Link
+                  href="/admin"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center gap-2 border-b border-border bg-accent-teal/5 px-4 py-3 text-sm font-semibold text-accent-teal transition-colors hover:bg-accent-teal/10"
+                >
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
+                  Admin home — all dashboards
+                </Link>
+                <div className="border-b border-border py-1">
+                  <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                    Quick open
+                  </p>
+                  {adminLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      role="menuitem"
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </>
             ) : null}
 
             {session.user.enrolledLearner && (
