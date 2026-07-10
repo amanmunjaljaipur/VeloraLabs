@@ -52,6 +52,7 @@ function friendlyLlmError(err: unknown): StudioLlmError {
 function listEnvSecrets(): AppLlmSecrets[] {
   const list: AppLlmSecrets[] = [];
 
+  // Prefer Groq first (free, reliable for App Studio)
   const groq = process.env.GROQ_API_KEY?.trim();
   if (groq) {
     list.push({
@@ -284,21 +285,30 @@ function heuristicResearch(prompt: string): StudioResearchPack {
   };
 }
 
-const GEN_SYSTEM = `You are an elite full-stack engineer generating a Vite + React + TypeScript SPA that runs in Sandpack / browser.
+const GEN_SYSTEM = `You generate a React + TypeScript SPA for Sandpack preview.
+
+CRITICAL OUTPUT FORMAT — return ONLY valid JSON (no markdown fences, no commentary):
+{"summary":"one sentence","files":{"/src/App.tsx":"...full file...","/src/styles.css":"...","/src/main.tsx":"...","/index.html":"...","/package.json":"..."}}
 
 Rules:
-1. Output ONLY JSON: { "summary": "what you built", "files": { "/path": "full file content" } }
-2. Always include these paths when generating a full app:
-   /package.json, /index.html, /vite.config.ts, /src/main.tsx, /src/App.tsx, /src/styles.css
-   and any extra components under /src/
-3. Use Tailwind via CDN in index.html: <script src="https://cdn.tailwindcss.com"></script>
-4. package.json must list react, react-dom, lucide-react, clsx; vite + @vitejs/plugin-react as devDeps.
-5. For UPDATES (when previous files are provided): only return files you changed (full content of each changed file). Unchanged files can be omitted.
-6. Build complete, beautiful, working UI matching the research workflows and screens — not placeholders.
-7. No external API keys in generated code. Mock data is fine.
-8. Single-page app is OK; use React useState for multi-screen navigation if needed.
-9. Accessible, modern, clean design. Mobile-friendly.
-10. File paths must start with /.`;
+- files values MUST be complete source strings (escape newlines as \\n inside JSON strings properly, or use real newlines if the whole response is pure JSON).
+- Always include at least /src/App.tsx with a default export App component.
+- Prefer a single polished /src/App.tsx (import React) + /src/styles.css rather than many files.
+- Use Tailwind utility classes in className (CDN is loaded by the preview host).
+- Working UI with useState — match the product idea and research workflows.
+- No API keys, no fetch to external backends. Mock data only.
+- Keep total response under ~6000 tokens so JSON is not truncated.`;
+
+const GEN_SYSTEM_XML = `You generate React code for a Sandpack preview.
+Output ONLY XML file tags, no JSON, no markdown:
+<file path="/src/App.tsx">
+...full source...
+</file>
+<file path="/src/styles.css">
+...css...
+</file>
+Always include /src/App.tsx with export default function App.
+Use Tailwind className utilities. Mock data only. One solid interactive screen is enough.`;
 
 export async function generateStudioApp(input: {
   prompt: string;
@@ -354,34 +364,65 @@ export async function generateStudioApp(input: {
   };
 
   try {
+    const compactUser = JSON.stringify({
+      task: userPayload.task,
+      prompt: input.prompt.slice(0, 800),
+      researchSummary: input.research?.summary?.slice(0, 400),
+      workflows: input.research?.coreWorkflows?.slice(0, 2),
+      screens: input.research?.screens?.slice(0, 6),
+      isUpdate,
+      // Don't dump huge previous trees — Groq truncates JSON
+      previousAppSnippet: isUpdate
+        ? (input.currentFiles?.["/src/App.tsx"] || "").slice(0, 2500)
+        : null,
+    });
+
     const { text: raw, used } = await callWithFallback(secretsList, {
       system: GEN_SYSTEM,
-      user: JSON.stringify(userPayload),
-      history: input.history,
-      maxTokens: 8000,
-      temperature: 0.35,
+      user: compactUser,
+      history: input.history?.slice(-4),
+      maxTokens: 6000,
+      temperature: 0.3,
     });
 
     let files = parseStudioFiles(raw);
+    let summary = "Updated application";
+    try {
+      const obj = parseJsonObject<{ summary?: string }>(raw);
+      if (obj.summary) summary = obj.summary;
+    } catch {
+      /* keep */
+    }
+
+    // Retry once with simpler XML format if JSON parse failed
     if (!Object.keys(files).length) {
+      console.warn("[app-studio] JSON parse empty, retrying XML format…");
       try {
-        const obj = parseJsonObject<{ files?: StudioFileMap; summary?: string }>(raw);
-        if (obj.files) files = obj.files;
-      } catch {
-        /* empty */
+        const retry = await callWithFallback(secretsList, {
+          system: GEN_SYSTEM_XML,
+          user: `Product: ${input.prompt.slice(0, 600)}\nResearch: ${input.research?.summary?.slice(0, 300) || "n/a"}\nBuild a complete interactive UI in /src/App.tsx`,
+          maxTokens: 5000,
+          temperature: 0.25,
+        });
+        files = parseStudioFiles(retry.text);
+        if (Object.keys(files).length) {
+          summary = "Generated app (XML format retry)";
+        }
+      } catch (retryErr) {
+        console.warn("[app-studio] XML retry failed", retryErr);
       }
     }
 
     if (!Object.keys(files).length) {
-      if (input.strict) {
-        throw new StudioLlmError("parse", "AI returned no parseable files. Try again with a shorter prompt.");
-      }
+      // Soft success: domain template so UI still works (research already succeeded)
+      const offline = offlineAppFromPrompt(input.prompt, base);
       return {
-        files: offlineAppFromPrompt(input.prompt, base),
-        summary: "Could not parse model files — used template fallback.",
+        files: offline,
+        summary:
+          "AI response was truncated or unparseable. Loaded a working starter matching your idea — try Build again or shorten the prompt for a full custom gen.",
         research: input.research || null,
-        designedBy: "parse-fallback",
-        errorCode: "parse",
+        designedBy: `${used.provider}-parse-fallback`,
+        errorCode: undefined, // do not hard-fail the UI
       };
     }
 
@@ -395,20 +436,15 @@ export async function generateStudioApp(input: {
       ? mergeFiles(base, normalized)
       : mergeFiles(createBaseScaffold(), normalized);
 
-    if (!merged["/src/main.tsx"]) {
-      merged["/src/main.tsx"] = createBaseScaffold()["/src/main.tsx"];
+    // Ensure Sandpack-critical entry files
+    const scaffold = createBaseScaffold();
+    if (!merged["/src/App.tsx"] && !merged["/App.tsx"]) {
+      merged["/src/App.tsx"] = scaffold["/src/App.tsx"];
     }
-    if (!merged["/index.html"]) {
-      merged["/index.html"] = createBaseScaffold()["/index.html"];
-    }
-
-    let summary = "Updated application";
-    try {
-      const obj = parseJsonObject<{ summary?: string }>(raw);
-      if (obj.summary) summary = obj.summary;
-    } catch {
-      /* keep */
-    }
+    if (!merged["/src/main.tsx"]) merged["/src/main.tsx"] = scaffold["/src/main.tsx"];
+    if (!merged["/index.html"]) merged["/index.html"] = scaffold["/index.html"];
+    if (!merged["/package.json"]) merged["/package.json"] = scaffold["/package.json"];
+    if (!merged["/src/styles.css"]) merged["/src/styles.css"] = scaffold["/src/styles.css"];
 
     return {
       files: merged,
@@ -423,13 +459,13 @@ export async function generateStudioApp(input: {
   } catch (e) {
     console.error("[app-studio/generate]", e);
     const fe = e instanceof StudioLlmError ? e : friendlyLlmError(e);
-    if (input.strict) throw fe;
+    // Always return a usable app so Sandpack can render
     return {
       files: offlineAppFromPrompt(input.prompt, base),
-      summary: `${fe.message} Showing a starter template instead.`,
+      summary: `${fe.message} Showing a working starter template — fix the AI key or retry.`,
       research: input.research || null,
       designedBy: "error-fallback",
-      errorCode: fe.code,
+      errorCode: fe.code === "parse" ? undefined : fe.code,
     };
   }
 }

@@ -103,17 +103,33 @@ export async function POST(request: Request) {
       strict: !allowTemplate,
     });
 
-    // Soft-fail path returned template with errorCode
-    if (result.errorCode && result.errorCode !== "parse") {
+    // Always return files when present so the UI can render Sandpack
+    if (result.files && Object.keys(result.files).length > 0) {
+      return NextResponse.json({
+        files: result.files,
+        summary: result.summary,
+        research: result.research || research,
+        designedBy: result.designedBy,
+        warning: result.errorCode ? result.summary : undefined,
+      });
+    }
+
+    if (result.errorCode) {
       return NextResponse.json(
         {
           error: result.summary,
           code: result.errorCode,
-          files: allowTemplate ? result.files : undefined,
           research: result.research || research,
           designedBy: result.designedBy,
         },
-        { status: result.errorCode === "credits" || result.errorCode === "auth" ? 402 : 502 }
+        {
+          status:
+            result.errorCode === "credits" ||
+            result.errorCode === "auth" ||
+            result.errorCode === "no_key"
+              ? 402
+              : 502,
+        }
       );
     }
 
@@ -129,36 +145,21 @@ export async function POST(request: Request) {
         ? e
         : new StudioLlmError("upstream", e instanceof Error ? e.message : "Generation failed");
 
-    // Optional: still return a yoga-quality template when user allows fallback
-    if (allowTemplate) {
-      const soft = await generateStudioApp({
-        prompt,
-        currentFiles: body.currentFiles || null,
-        research,
-        secrets: null,
-        strict: false,
-      });
-      return NextResponse.json({
-        files: soft.files,
-        summary: `${fe.message} Showing starter template.`,
-        research: research || soft.research,
-        designedBy: "error-fallback",
-        code: fe.code,
-        warning: fe.message,
-      });
-    }
-
-    return NextResponse.json(
-      {
-        error: fe.message,
-        code: fe.code,
-        research,
-        hint:
-          fe.code === "credits"
-            ? "Platform xAI team has no credits. Set GEMINI_API_KEY (or GROQ_API_KEY) on the server, or paste a Gemini/Groq key in App Studio → AI key."
-            : undefined,
-      },
-      { status: fe.code === "credits" || fe.code === "auth" || fe.code === "no_key" ? 402 : 502 }
-    );
+    // Always soft-return a starter so preview is not blank
+    const soft = await generateStudioApp({
+      prompt,
+      currentFiles: body.currentFiles || null,
+      research,
+      secrets: null,
+      strict: false,
+    });
+    return NextResponse.json({
+      files: soft.files,
+      summary: `${fe.message} Showing starter template.`,
+      research: research || soft.research,
+      designedBy: "error-fallback",
+      code: fe.code,
+      warning: fe.message,
+    });
   }
 }

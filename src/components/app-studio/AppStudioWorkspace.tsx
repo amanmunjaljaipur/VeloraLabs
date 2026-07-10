@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { createBaseScaffold, listFilePaths } from "@/lib/app-studio/scaffold";
+import { toSandpackReactTsFiles } from "@/lib/app-studio/parse-files";
 import type {
   StudioChatMessage,
   StudioFileMap,
@@ -10,11 +11,7 @@ import type {
   StudioVersion,
 } from "@/lib/app-studio/types";
 import { cn } from "@/lib/utils";
-import {
-  SandpackPreview,
-  SandpackProvider,
-  SandpackLayout,
-} from "@codesandbox/sandpack-react";
+import { SandpackPreview, SandpackProvider } from "@codesandbox/sandpack-react";
 import Editor from "@monaco-editor/react";
 import JSZip from "jszip";
 import {
@@ -48,19 +45,7 @@ function uid() {
   return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function sandpackFiles(files: StudioFileMap): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [path, code] of Object.entries(files)) {
-    // Sandpack paths without leading slash for some templates; keep both styles safe
-    const key = path.startsWith("/") ? path.slice(1) : path;
-    out[`/${key.replace(/^\//, "")}`] = code;
-  }
-  // Ensure package.json present
-  if (!out["/package.json"] && files["/package.json"]) {
-    out["/package.json"] = files["/package.json"];
-  }
-  return files;
-}
+
 
 export function AppStudioWorkspace() {
   const { toast } = useToast();
@@ -86,8 +71,10 @@ export function AppStudioWorkspace() {
   );
   const [aiKey, setAiKey] = useState("");
   const [aiModel, setAiModel] = useState("");
+  const [previewKey, setPreviewKey] = useState(0);
 
   const paths = useMemo(() => listFilePaths(files), [files]);
+  const spFiles = useMemo(() => toSandpackReactTsFiles(files), [files]);
 
   const pushVersion = useCallback(
     (label: string, nextFiles: StudioFileMap, userPrompt: string) => {
@@ -203,6 +190,7 @@ export function AppStudioWorkspace() {
       }
 
       setFiles(data.files);
+      setPreviewKey((k) => k + 1);
       if (data.research) setResearch(data.research);
       pushVersion(
         isFirst ? "Initial build" : userText.trim().slice(0, 60),
@@ -210,7 +198,11 @@ export function AppStudioWorkspace() {
         userText.trim()
       );
       setActiveFile(
-        data.files["/src/App.tsx"] ? "/src/App.tsx" : Object.keys(data.files)[0]
+        data.files["/src/App.tsx"]
+          ? "/src/App.tsx"
+          : data.files["/App.tsx"]
+            ? "/App.tsx"
+            : Object.keys(data.files)[0]
       );
       setCanvasTab("preview");
       setImageDataUrl(null);
@@ -283,8 +275,6 @@ export function AppStudioWorkspace() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   }
-
-  const spFiles = sandpackFiles(files);
 
   return (
     <div className="flex h-[calc(100vh-5.5rem)] min-h-[560px] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
@@ -595,32 +585,35 @@ export function AppStudioWorkspace() {
             <div className="flex min-h-0 flex-1 flex-col bg-slate-100 dark:bg-slate-900">
               <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                localhost:preview · Sandpack Vite
+                Live preview · Sandpack React
               </div>
-              <div className="min-h-0 flex-1">
+              <div className="min-h-0 flex-1" style={{ minHeight: 420 }}>
                 <SandpackProvider
-                  template="vite-react-ts"
+                  key={`sp-${previewKey}`}
+                  template="react-ts"
                   theme="light"
                   files={spFiles}
                   options={{
                     externalResources: ["https://cdn.tailwindcss.com"],
-                    recompileMode: "immediate",
-                    recompileDelay: 400,
+                    recompileMode: "delayed",
+                    recompileDelay: 500,
+                    autorun: true,
+                    autoReload: true,
                   }}
                   customSetup={{
                     dependencies: {
-                      "lucide-react": "latest",
-                      clsx: "latest",
+                      "lucide-react": "^0.454.0",
+                      clsx: "^2.1.1",
                     },
                   }}
+                  style={{ height: "100%" }}
                 >
-                  <SandpackLayout style={{ height: "100%", border: "none" }}>
-                    <SandpackPreview
-                      showOpenInCodeSandbox={false}
-                      showRefreshButton
-                      style={{ height: "100%" }}
-                    />
-                  </SandpackLayout>
+                  <SandpackPreview
+                    showOpenInCodeSandbox={false}
+                    showRefreshButton
+                    showNavigator={false}
+                    style={{ height: "100%", minHeight: 420, border: "none" }}
+                  />
                 </SandpackProvider>
               </div>
             </div>
