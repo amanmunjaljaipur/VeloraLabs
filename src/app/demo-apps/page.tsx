@@ -46,21 +46,22 @@ export default function DemoAppsIndexPage() {
       <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 pb-20 md:px-6">
         <section className="max-w-3xl space-y-3">
           <p className="text-sm font-semibold uppercase tracking-wide text-accent-teal">
-            Educational product demos
+            Production-style product demos
           </p>
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Same clarity as Verlin Labs courses — applied to 50 product types
+            Industry-standard navigation, footers, and content — 50 serious apps
           </h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Every demo is written like a learning track: who it is for, what you will practice, how
-            the flow works, and honest FAQ. Inside each app you get multi-role jobs (switch
-            top-right), modules, create/list/board workflows, validation, and mock API happy/fail
-            paths — not empty shells or marketing fluff.
+            Each demo is built like a real product review build: market-standard information
+            architecture (bottom tabs, sidebars, hybrid banking patterns), multi-column footers with
+            legal/support/compliance, educational outcomes, FAQs, and multi-role workflows. Not a
+            joke UI — content and chrome match industry benchmarks (banking, marketplace, edtech,
+            health, travel, workplace).
           </p>
           <ul className="list-inside list-disc text-sm text-muted-foreground">
-            <li>Class-8 English, concrete outcomes, India-aware examples where they fit</li>
-            <li>Banking and resume verticals use specialized product UIs</li>
-            <li>All others use the multi-module Verlin runtime with full educational home</li>
+            <li>Nav IA from Material + vertical leaders (PhonePe, Swiggy, Duolingo, Slack, etc.)</li>
+            <li>Footers: Product, Support, Legal, industry columns + disclaimers</li>
+            <li>Happy/fail mock APIs, role switcher, production-style empty states</li>
           </ul>
         </section>
 

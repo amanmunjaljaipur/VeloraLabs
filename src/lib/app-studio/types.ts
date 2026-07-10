@@ -128,6 +128,64 @@ export type StudioLearningContent = {
   faqs: Array<{ question: string; answer: string }>;
 };
 
+/**
+ * Industry-standard product chrome (IA researched from market leaders).
+ * Drives primary nav, mobile bottom tabs, utility menu, and production footer.
+ */
+export type StudioNavItem = {
+  id: string;
+  label: string;
+  /** Maps to a screen id when possible */
+  screenId?: string;
+  /** lucide icon key */
+  icon?: string;
+  /** Role filter; empty = all */
+  roleIds?: string[];
+  /** Section header in sidebar */
+  section?: string;
+  /** Opens footer/legal/help panel instead of a screen */
+  panel?: "help" | "legal" | "privacy" | "terms" | "security" | "about" | "support";
+};
+
+export type StudioFooterColumn = {
+  title: string;
+  links: Array<{
+    label: string;
+    screenId?: string;
+    panel?: StudioNavItem["panel"];
+    /** Display-only external-style link */
+    hrefLabel?: string;
+  }>;
+};
+
+export type StudioProductShell = {
+  /** Market-standard layout pattern for this vertical */
+  navPattern: "bottom-tabs" | "sidebar" | "top-tabs" | "hybrid";
+  /** Benchmark products this IA is modeled on */
+  marketBenchmarks: string[];
+  /** IA research notes (short) */
+  iaRationale: string;
+  /** Primary destinations (≤5 for bottom tabs; more OK for sidebar) */
+  primaryNav: StudioNavItem[];
+  /** Overflow / “More” destinations */
+  moreNav: StudioNavItem[];
+  /** Desktop utility links (header right / sidebar bottom) */
+  utilityNav: StudioNavItem[];
+  footer: {
+    columns: StudioFooterColumn[];
+    copyright: string;
+    /** Regulatory / industry disclaimers */
+    disclaimers: string[];
+    /** Trust badges e.g. “Bank-grade encryption (demo)” */
+    trustBadges: string[];
+    supportLine: string;
+  };
+  /** Empty-state copy keyed by screen type or id */
+  emptyStates?: Record<string, string>;
+  /** Primary CTA labels */
+  ctaLabels?: Record<string, string>;
+};
+
 /** Full interactive app definition — drives the working runtime */
 export type StudioAppSpec = {
   version: 1;
@@ -146,6 +204,8 @@ export type StudioAppSpec = {
   research?: StudioResearchPack;
   /** Verlin-style educational content for dashboards & settings */
   learning?: StudioLearningContent;
+  /** Production-grade nav + footer chrome */
+  shell?: StudioProductShell;
 };
 
 export type StudioGenerateResult = {

@@ -1771,9 +1771,46 @@ export function BankingProductApp({
         )}
       </main>
 
-      <footer className="border-t border-border px-4 py-2 text-center text-[10px] text-muted-foreground">
-        {spec.brandName} · Fictional demo bank · Not a real financial product ·{" "}
-        {visibleModules.length} modules
+      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-5">
+        {spec.shell?.footer ? (
+          <div className="mx-auto max-w-7xl space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {spec.shell.footer.columns.map((col) => (
+                <div key={col.title}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide">{col.title}</p>
+                  <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+                    {col.links.map((l) => (
+                      <li key={l.label}>{l.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {spec.shell.footer.trustBadges.map((b) => (
+                <span
+                  key={b}
+                  className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
+            {spec.shell.footer.disclaimers.map((d) => (
+              <p key={d} className="text-[11px] text-muted-foreground">
+                {d}
+              </p>
+            ))}
+            <p className="text-[11px] font-medium text-foreground/80">
+              {spec.shell.footer.copyright}
+            </p>
+          </div>
+        ) : (
+          <p className="text-center text-[10px] text-muted-foreground">
+            {spec.brandName} · Fictional demo bank · Not a real financial product ·{" "}
+            {visibleModules.length} modules
+          </p>
+        )}
       </footer>
     </div>
   );

@@ -2,39 +2,40 @@
 
 Interactive multi-role product demos at `/demo-apps` and `/demo-apps/[slug]`.
 
-## Content quality (Verlin Labs educational voice)
+These are **production-style product shells**, not jokes: industry navigation, multi-column footers, compliance disclaimers, and Verlin educational content.
 
-Every category is **premiumized** before it becomes a `StudioAppSpec`:
+## Layers
 
 | Layer | Path |
 |-------|------|
-| Handcrafted packs (all 50) | `learning-content.ts` |
+| Industry nav + footer IA | `industry-shells.ts` (group baselines + slug overrides) |
+| Educational content packs | `learning-content.ts` |
 | Thin-copy upgrades | `premiumize.ts` |
-| Spec builder | `build-demo-spec.ts` |
-| Catalog export | `index.ts` → `DEMO_CATEGORIES` (already premiumized) |
+| Spec builder | `build-demo-spec.ts` → `StudioAppSpec.shell` + `.learning` |
+| Runtime chrome | `MultiModuleProductApp` (sidebar / top tabs / bottom tabs + footer) |
 
-Each pack includes: outcome-led tagline, 2–3 sentence description, hero, who it’s for, outcomes, how-it-works, trust lines, FAQs, role/module copy, and richer seed rows.
+## Navigation patterns (researched)
 
-**Voice rules** (same as App Content Agent / courses):
+| Pattern | Verticals | Benchmarks |
+|---------|-----------|------------|
+| `bottom-tabs` | social, ecom, education, health, travel, media, utilities | Material 3–5 destinations |
+| `sidebar` | productivity / workplace | Slack, Asana, Notion |
+| `hybrid` | fintech | PhonePe, bank apps, Revolut |
 
-- Class-8 English, short sentences  
-- Concrete jobs and finish lines — no “world-class” fluff  
-- India-aware examples where natural  
-- Honest demo limits (mock APIs, no real money/health claims)  
+## Footer standard
 
-## Layout
+Columns: **Product · Support · Legal · industry-specific** (Banking, Safety, Sell with us, Care, etc.)  
+Always includes copyright, disclaimers, trust badges, support line.
 
-```
-types.ts
-learning-content.ts
-premiumize.ts
-build-demo-spec.ts
-groups/<domain>/index.ts   ← structure + base seeds
-index.ts
-```
+## Content voice
+
+- Class-8 English, concrete jobs, finish lines  
+- India-aware where natural  
+- Honest limits (no real money, medical, or licensed content claims)  
 
 ## Adding a category
 
-1. Add blueprint to the right `groups/<domain>/index.ts`  
-2. Add a full pack in `learning-content.ts` under the same `slug`  
-3. Run `assertFiftyCategories` via build / `npm run build`  
+1. Blueprint in `groups/<domain>/index.ts`  
+2. Learning pack in `learning-content.ts`  
+3. Optional slug IA override in `industry-shells.ts`  
+4. `npm run build`  

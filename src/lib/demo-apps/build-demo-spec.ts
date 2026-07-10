@@ -17,9 +17,11 @@ import {
   type DemoCategoryDef,
 } from "@/lib/demo-apps";
 import { premiumizeDemoCategory } from "@/lib/demo-apps/premiumize";
+import { resolveIndustryShell } from "@/lib/demo-apps/industry-shells";
 
 export function buildDemoAppSpec(raw: DemoCategoryDef): StudioAppSpec {
   const def = premiumizeDemoCategory(raw);
+  const shell = resolveIndustryShell(def);
 
   const roles: StudioRole[] = def.roles.map((r, i) => ({
     id: r.id,
@@ -118,6 +120,18 @@ HOW IT WORKS
 ${learning.howItWorks.map((h) => `- ${h.step}: ${h.detail}`).join("\n")}
 
 EXAMPLES IN MARKET: ${def.examples.join(", ")}
+IA BENCHMARKS: ${shell.marketBenchmarks.join(", ")}
+NAV PATTERN: ${shell.navPattern}
+IA RATIONALE: ${shell.iaRationale}
+
+PRIMARY NAV
+${shell.primaryNav.map((n) => `- ${n.label} → ${n.screenId || n.panel || n.id}`).join("\n")}
+
+FOOTER COLUMNS
+${shell.footer.columns.map((c) => `${c.title}: ${c.links.map((l) => l.label).join(", ")}`).join("\n")}
+
+DISCLAIMERS
+${shell.footer.disclaimers.map((d) => `- ${d}`).join("\n")}
 
 ROLES
 ${roles.map((r, i) => `${i + 1}) ${r.label} (${r.id}) — ${r.description}`).join("\n")}
@@ -135,9 +149,9 @@ FAQS
 ${learning.faqs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n")}
 
 SUCCESS
-Role selector top-right changes modules. Create records, move board statuses, complete happy and fail paths.
-Content quality matches Verlin Labs educational pages: clear jobs, concrete outcomes, Class-8 English.
-Not a marketing brochure.`;
+Production-style chrome: industry nav, multi-column footer, legal panels.
+Role selector changes modules. Create records, move board statuses, happy/fail paths.
+Content matches industry + Verlin educational standards. Not a joke shell.`;
 
   return {
     version: 1,
@@ -152,13 +166,14 @@ Not a marketing brochure.`;
     entities,
     screens,
     workflows,
+    shell,
     learning: {
       heroHeadline: learning.heroHeadline,
       heroSub: learning.heroSub,
       whoItsFor: learning.whoItsFor,
       outcomes: learning.outcomes,
       howItWorks: learning.howItWorks,
-      trustLines: learning.trustLines,
+      trustLines: [...(learning.trustLines || []), ...shell.footer.trustBadges.slice(0, 2)],
       faqs: learning.faqs,
     },
     research: {
@@ -169,14 +184,21 @@ Not a marketing brochure.`;
       dataEntities: entities.map((e) => e.name),
       techNotes: [
         "Verlin UI",
-        "Studio multi-module runtime",
-        "Mock local state",
-        "Educational content pack (Verlin voice)",
+        "Industry-standard product shell (nav + footer)",
+        `Nav pattern: ${shell.navPattern}`,
+        `Benchmarks: ${shell.marketBenchmarks.join(", ")}`,
+        "Mock local state + educational content pack",
       ],
-      competitors: def.examples.map((name) => ({
-        name,
-        takeaway: `Parity module inspired by ${name} — content teaches the job, not hype`,
-      })),
+      competitors: [
+        ...def.examples.map((name) => ({
+          name,
+          takeaway: `Parity module inspired by ${name}`,
+        })),
+        ...shell.marketBenchmarks.map((name) => ({
+          name,
+          takeaway: `IA / navigation benchmark for ${shell.navPattern}`,
+        })),
+      ],
       rewrittenPrompt,
     },
   };
