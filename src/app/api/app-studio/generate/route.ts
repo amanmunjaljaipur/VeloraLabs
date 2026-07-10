@@ -1,5 +1,9 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
-import { generateStudioApp, researchStudioIdea } from "@/lib/app-studio/generate";
+import {
+  generateStudioApp,
+  researchStudioIdea,
+  StudioLlmError,
+} from "@/lib/app-studio/generate";
 import type { StudioFileMap, StudioResearchPack } from "@/lib/app-studio/types";
 import type { LlmProviderKind } from "@/lib/app-builder/types";
 import { NextResponse } from "next/server";
@@ -7,12 +11,38 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-/**
- * App Studio generate / iterate.
- * 1) Optional research (workflows + competitors)
- * 2) Full app or file diffs from LLM
- * Keys are request-scoped or from server env — never stored.
- */
+function secretsFromBody(body: {
+  apiKey?: string;
+  provider?: LlmProviderKind | "anthropic" | "openai";
+  model?: string;
+}) {
+  if (!body.apiKey?.trim()) return null;
+  const key = body.apiKey.trim();
+  if (body.provider === "anthropic") {
+    return {
+      provider: "custom" as const,
+      apiKey: key,
+      model: body.model || "claude-sonnet-4-20250514",
+      baseUrl: "https://api.anthropic.com/v1",
+    };
+  }
+  if (body.provider === "openai") {
+    return {
+      provider: "custom" as const,
+      apiKey: key,
+      model: body.model || "gpt-4o-mini",
+      baseUrl: "https://api.openai.com/v1",
+    };
+  }
+  return {
+    provider: (body.provider as LlmProviderKind) || ("groq" as const),
+    apiKey: key,
+    model:
+      body.model ||
+      (body.provider === "xai" ? "grok-3-mini" : "llama-3.3-70b-versatile"),
+  };
+}
+
 export async function POST(request: Request) {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -25,8 +55,10 @@ export async function POST(request: Request) {
     runResearch?: boolean;
     imageDataUrl?: string;
     apiKey?: string;
-    provider?: LlmProviderKind | "anthropic";
+    provider?: LlmProviderKind | "anthropic" | "openai";
     model?: string;
+    /** Prefer real AI; only fall back to template if explicitly allowed */
+    allowTemplateFallback?: boolean;
   };
 
   try {
@@ -40,20 +72,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
   }
 
-  const secrets = body.apiKey?.trim()
-    ? body.provider === "anthropic"
-      ? {
-          provider: "custom" as const,
-          apiKey: body.apiKey.trim(),
-          model: body.model || "claude-sonnet-4-20250514",
-          baseUrl: "https://api.anthropic.com/v1",
-        }
-      : {
-          provider: (body.provider as LlmProviderKind) || ("xai" as const),
-          apiKey: body.apiKey.trim(),
-          model: body.model || "grok-3-mini",
-        }
-    : null;
+  const secrets = secretsFromBody(body);
+  const allowTemplate = body.allowTemplateFallback === true;
 
   let research = body.research || null;
   if (body.runResearch !== false && !research) {
@@ -64,19 +84,73 @@ export async function POST(request: Request) {
     ? "User attached a UI reference image. Match layout, colors, and hierarchy as closely as possible."
     : null;
 
-  const result = await generateStudioApp({
-    prompt,
-    history: body.history,
-    currentFiles: body.currentFiles || null,
-    research,
-    imageDescription,
-    secrets,
-  });
+  try {
+    const result = await generateStudioApp({
+      prompt,
+      history: body.history,
+      currentFiles: body.currentFiles || null,
+      research,
+      imageDescription,
+      secrets,
+      strict: !allowTemplate,
+    });
 
-  return NextResponse.json({
-    files: result.files,
-    summary: result.summary,
-    research: result.research || research,
-    designedBy: result.designedBy,
-  });
+    // Soft-fail path returned template with errorCode
+    if (result.errorCode && result.errorCode !== "parse") {
+      return NextResponse.json(
+        {
+          error: result.summary,
+          code: result.errorCode,
+          files: allowTemplate ? result.files : undefined,
+          research: result.research || research,
+          designedBy: result.designedBy,
+        },
+        { status: result.errorCode === "credits" || result.errorCode === "auth" ? 402 : 502 }
+      );
+    }
+
+    return NextResponse.json({
+      files: result.files,
+      summary: result.summary,
+      research: result.research || research,
+      designedBy: result.designedBy,
+    });
+  } catch (e) {
+    const fe =
+      e instanceof StudioLlmError
+        ? e
+        : new StudioLlmError("upstream", e instanceof Error ? e.message : "Generation failed");
+
+    // Optional: still return a yoga-quality template when user allows fallback
+    if (allowTemplate) {
+      const soft = await generateStudioApp({
+        prompt,
+        currentFiles: body.currentFiles || null,
+        research,
+        secrets: null,
+        strict: false,
+      });
+      return NextResponse.json({
+        files: soft.files,
+        summary: `${fe.message} Showing starter template.`,
+        research: research || soft.research,
+        designedBy: "error-fallback",
+        code: fe.code,
+        warning: fe.message,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        error: fe.message,
+        code: fe.code,
+        research,
+        hint:
+          fe.code === "credits"
+            ? "Platform xAI team has no credits. Paste a free Groq key (console.groq.com) in App Studio → AI key, or set GROQ_API_KEY / ANTHROPIC_API_KEY on Vercel."
+            : undefined,
+      },
+      { status: fe.code === "credits" || fe.code === "auth" || fe.code === "no_key" ? 402 : 502 }
+    );
+  }
 }

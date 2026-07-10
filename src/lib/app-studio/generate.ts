@@ -1,6 +1,6 @@
 /**
  * App Studio AI generation — research workflows then emit/patch a Vite React app.
- * Uses platform Grok (XAI_API_KEY) or optional ANTHROPIC / request key. Keys never persisted.
+ * Uses request-scoped keys or server env (XAI / Anthropic / Groq). Keys never persisted.
  */
 
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
@@ -13,77 +13,157 @@ import type {
   StudioResearchPack,
 } from "@/lib/app-studio/types";
 
-function resolveStudioSecrets(override?: AppLlmSecrets | null): AppLlmSecrets | null {
-  if (override?.apiKey?.trim()) return override;
+export class StudioLlmError extends Error {
+  code: "no_key" | "credits" | "auth" | "upstream" | "parse";
+  constructor(code: StudioLlmError["code"], message: string) {
+    super(message);
+    this.code = code;
+    this.name = "StudioLlmError";
+  }
+}
+
+function friendlyLlmError(err: unknown): StudioLlmError {
+  const msg = err instanceof Error ? err.message : String(err);
+  const lower = msg.toLowerCase();
+  if (
+    lower.includes("permission-denied") ||
+    lower.includes("credits") ||
+    lower.includes("licenses") ||
+    lower.includes("billing") ||
+    lower.includes("quota") ||
+    lower.includes("insufficient")
+  ) {
+    return new StudioLlmError(
+      "credits",
+      "AI provider has no credits/license on this team (xAI 403). Add billing at console.x.ai, or paste a Groq/Anthropic/OpenAI-compatible key in App Studio → AI key."
+    );
+  }
+  if (lower.includes("401") || lower.includes("invalid api") || lower.includes("unauthorized")) {
+    return new StudioLlmError(
+      "auth",
+      "API key rejected. Check the key in App Studio → AI key, or update XAI_API_KEY / GROQ_API_KEY / ANTHROPIC_API_KEY on the server."
+    );
+  }
+  return new StudioLlmError("upstream", msg.slice(0, 280));
+}
+
+/** Ordered list of server-side keys to try when the client did not pass one. */
+function listEnvSecrets(): AppLlmSecrets[] {
+  const list: AppLlmSecrets[] = [];
+
+  const groq = process.env.GROQ_API_KEY?.trim();
+  if (groq) {
+    list.push({
+      provider: "groq",
+      apiKey: groq,
+      model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
+    });
+  }
 
   const anthropic = process.env.ANTHROPIC_API_KEY?.trim();
   if (anthropic) {
-    return {
+    list.push({
       provider: "custom",
       apiKey: anthropic,
       model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-20250514",
       baseUrl: process.env.ANTHROPIC_BASE_URL?.trim() || "https://api.anthropic.com/v1",
-    };
+    });
   }
 
   const xai = process.env.XAI_API_KEY?.trim();
   if (xai) {
-    return {
+    list.push({
       provider: "xai",
       apiKey: xai,
       model: process.env.XAI_MODEL?.trim() || "grok-3-mini",
-    };
+    });
   }
 
-  const groq = process.env.GROQ_API_KEY?.trim();
-  if (groq) {
-    return {
-      provider: "groq",
-      apiKey: groq,
-      model: "llama-3.3-70b-versatile",
-    };
+  const openai = process.env.OPENAI_API_KEY?.trim();
+  if (openai) {
+    list.push({
+      provider: "custom",
+      apiKey: openai,
+      model: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
+      baseUrl: process.env.OPENAI_BASE_URL?.trim() || "https://api.openai.com/v1",
+    });
   }
 
-  return null;
+  return list;
 }
 
-export async function researchStudioIdea(input: {
-  prompt: string;
-  secrets?: AppLlmSecrets | null;
-}): Promise<StudioResearchPack> {
-  const secrets = resolveStudioSecrets(input.secrets);
-  const fallback: StudioResearchPack = {
-    summary: input.prompt.slice(0, 240),
-    targetUsers: ["Primary users of this product"],
-    coreWorkflows: [
-      {
-        name: "Happy path",
-        steps: ["Land", "Sign up or start", "Complete main job", "See result"],
-      },
+function resolveStudioSecrets(override?: AppLlmSecrets | null): AppLlmSecrets[] {
+  if (override?.apiKey?.trim()) {
+    return [override];
+  }
+  return listEnvSecrets();
+}
+
+async function callAnyLlm(
+  secrets: AppLlmSecrets,
+  input: {
+    system: string;
+    user: string;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+    maxTokens?: number;
+    temperature?: number;
+  }
+): Promise<string> {
+  if (secrets.provider === "custom" && secrets.baseUrl?.includes("anthropic.com")) {
+    return generateWithAnthropic(secrets, input.system, input.user, input.maxTokens ?? 8000);
+  }
+  return callUserLlm({
+    secrets,
+    temperature: input.temperature ?? 0.35,
+    maxTokens: input.maxTokens ?? 8000,
+    timeoutMs: 120_000,
+    messages: [
+      { role: "system", content: input.system },
+      ...(input.history || []).slice(-6),
+      { role: "user", content: input.user },
     ],
-    screens: ["Home", "Main workspace", "Settings"],
-    dataEntities: ["User", "Item"],
-    techNotes: ["React + Vite + Tailwind CDN for preview"],
-    competitors: [],
-  };
+  });
+}
 
-  if (!secrets) return fallback;
+/** Try each secret until one works; surface credit/auth errors clearly. */
+async function callWithFallback(
+  secretsList: AppLlmSecrets[],
+  input: {
+    system: string;
+    user: string;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+    maxTokens?: number;
+    temperature?: number;
+  }
+): Promise<{ text: string; used: AppLlmSecrets }> {
+  if (!secretsList.length) {
+    throw new StudioLlmError(
+      "no_key",
+      "No AI key configured. Paste a Groq / Anthropic / xAI key in App Studio → AI key, or set GROQ_API_KEY / ANTHROPIC_API_KEY / XAI_API_KEY on the server."
+    );
+  }
 
-  try {
-    // Anthropic Messages API is not OpenAI-compatible path — use xAI/Groq OpenAI style primarily
-    if (secrets.provider === "custom" && secrets.baseUrl?.includes("anthropic.com")) {
-      return await researchWithAnthropic(input.prompt, secrets);
+  const errors: string[] = [];
+  for (const secrets of secretsList) {
+    try {
+      const text = await callAnyLlm(secrets, input);
+      return { text, used: secrets };
+    } catch (e) {
+      const fe = friendlyLlmError(e);
+      console.warn(`[app-studio] provider ${secrets.provider} failed:`, fe.message);
+      errors.push(`${secrets.provider}: ${fe.message}`);
+      // try next provider
     }
+  }
 
-    const raw = await callUserLlm({
-      secrets,
-      temperature: 0.35,
-      maxTokens: 2500,
-      timeoutMs: 60_000,
-      messages: [
-        {
-          role: "system",
-          content: `You are a product researcher for an AI app builder (like Lovable).
+  const joined = errors.join(" | ");
+  if (joined.toLowerCase().includes("credit") || joined.toLowerCase().includes("license")) {
+    throw new StudioLlmError("credits", errors[errors.length - 1] || joined);
+  }
+  throw new StudioLlmError("upstream", errors[errors.length - 1] || joined);
+}
+
+const RESEARCH_SYSTEM = `You are a product researcher for an AI app builder (like Lovable).
 Given a product idea, return ONLY JSON:
 {
   "summary": "one paragraph product summary",
@@ -94,15 +174,24 @@ Given a product idea, return ONLY JSON:
   "techNotes": string[],
   "competitors": [{ "name": string, "takeaway": string }]
 }
-Use real competitor names when you know them; otherwise empty array. Class-8 English. Keep workflows concrete (3-6 steps).`,
-        },
-        {
-          role: "user",
-          content: input.prompt,
-        },
-      ],
+Use real competitor names when you know them; otherwise empty array. Class-8 English. Keep workflows concrete (3-6 steps).`;
+
+export async function researchStudioIdea(input: {
+  prompt: string;
+  secrets?: AppLlmSecrets | null;
+}): Promise<StudioResearchPack> {
+  const fallback: StudioResearchPack = heuristicResearch(input.prompt);
+  const list = resolveStudioSecrets(input.secrets);
+  if (!list.length) return fallback;
+
+  try {
+    const { text } = await callWithFallback(list, {
+      system: RESEARCH_SYSTEM,
+      user: input.prompt,
+      maxTokens: 2500,
+      temperature: 0.35,
     });
-    const parsed = parseJsonObject<Partial<StudioResearchPack>>(raw);
+    const parsed = parseJsonObject<Partial<StudioResearchPack>>(text);
     return {
       summary: parsed.summary || fallback.summary,
       targetUsers: Array.isArray(parsed.targetUsers) ? parsed.targetUsers : fallback.targetUsers,
@@ -122,35 +211,52 @@ Use real competitor names when you know them; otherwise empty array. Class-8 Eng
   }
 }
 
-async function researchWithAnthropic(
-  prompt: string,
-  secrets: AppLlmSecrets
-): Promise<StudioResearchPack> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": secrets.apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: secrets.model || "claude-sonnet-4-20250514",
-      max_tokens: 2500,
-      messages: [
+function heuristicResearch(prompt: string): StudioResearchPack {
+  const p = prompt.toLowerCase();
+  if (/\byoga|studio|class|booking|appointment\b/.test(p)) {
+    return {
+      summary:
+        "A yoga studio booking app: members browse classes, book spots, and manage membership vs drop-in.",
+      targetUsers: ["Studio members", "Drop-in guests", "Studio owner / front desk"],
+      coreWorkflows: [
         {
-          role: "user",
-          content: `Research this product idea for an AI app builder. Return ONLY JSON with keys summary, targetUsers, coreWorkflows[{name,steps}], screens, dataEntities, techNotes, competitors[{name,takeaway}].\n\nIdea: ${prompt}`,
+          name: "Book a class",
+          steps: [
+            "Browse schedule",
+            "Pick class",
+            "Choose membership or drop-in",
+            "Confirm booking",
+            "Get confirmation",
+          ],
+        },
+        {
+          name: "Owner manages schedule",
+          steps: ["Add class", "Set capacity", "Assign instructor", "See roster"],
         },
       ],
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
+      screens: ["Home", "Schedule", "Class detail", "My bookings", "Membership", "Owner admin"],
+      dataEntities: ["Class", "Booking", "Member", "Instructor", "MembershipPlan"],
+      techNotes: ["React SPA", "Local mock state", "Tailwind UI"],
+      competitors: [
+        { name: "Mindbody", takeaway: "Heavy for small studios — keep booking simple" },
+        { name: "Momence", takeaway: "Clean class schedule + packs" },
+      ],
+    };
+  }
+  return {
+    summary: prompt.slice(0, 240),
+    targetUsers: ["Primary users of this product"],
+    coreWorkflows: [
+      {
+        name: "Happy path",
+        steps: ["Land", "Sign up or start", "Complete main job", "See result"],
+      },
+    ],
+    screens: ["Home", "Main workspace", "Settings"],
+    dataEntities: ["User", "Item"],
+    techNotes: ["React + Vite + Tailwind CDN for preview"],
+    competitors: [],
   };
-  const text = data.content?.find((c) => c.type === "text")?.text || "";
-  return parseJsonObject<StudioResearchPack>(text);
 }
 
 const GEN_SYSTEM = `You are an elite full-stack engineer generating a Vite + React + TypeScript SPA that runs in Sandpack / browser.
@@ -171,26 +277,33 @@ Rules:
 
 export async function generateStudioApp(input: {
   prompt: string;
-  /** Conversation history for iteration */
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   currentFiles?: StudioFileMap | null;
   research?: StudioResearchPack | null;
   imageDescription?: string | null;
   secrets?: AppLlmSecrets | null;
-}): Promise<StudioGenerateResult> {
-  const secrets = resolveStudioSecrets(input.secrets);
+  /** When true, throw instead of silent template on LLM failure */
+  strict?: boolean;
+}): Promise<StudioGenerateResult & { errorCode?: string }> {
+  const secretsList = resolveStudioSecrets(input.secrets);
   const base = input.currentFiles?.["/src/App.tsx"]
     ? input.currentFiles
     : createBaseScaffold();
 
-  if (!secrets) {
-    // Offline template fallback tailored lightly to prompt
-    const offline = offlineAppFromPrompt(input.prompt, base);
+  if (!secretsList.length) {
+    if (input.strict) {
+      throw new StudioLlmError(
+        "no_key",
+        "No AI key configured. Open AI key settings and paste a Groq or Anthropic key (xAI team has no credits)."
+      );
+    }
     return {
-      files: offline,
-      summary: "Template scaffold (no LLM key configured). Set XAI_API_KEY or ANTHROPIC_API_KEY.",
+      files: offlineAppFromPrompt(input.prompt, base),
+      summary:
+        "Template only — no AI key. Paste a key under AI key (recommended: free Groq key), or add GROQ_API_KEY on the server.",
       research: input.research || null,
       designedBy: "scaffold",
+      errorCode: "no_key",
     };
   }
 
@@ -216,29 +329,16 @@ export async function generateStudioApp(input: {
   };
 
   try {
-    let raw: string;
-    if (secrets.provider === "custom" && secrets.baseUrl?.includes("anthropic.com")) {
-      raw = await generateWithAnthropic(secrets, GEN_SYSTEM, JSON.stringify(userPayload));
-    } else {
-      raw = await callUserLlm({
-        secrets,
-        temperature: 0.35,
-        maxTokens: 8000,
-        timeoutMs: 120_000,
-        messages: [
-          { role: "system", content: GEN_SYSTEM },
-          ...(input.history || []).slice(-6).map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })),
-          { role: "user", content: JSON.stringify(userPayload) },
-        ],
-      });
-    }
+    const { text: raw, used } = await callWithFallback(secretsList, {
+      system: GEN_SYSTEM,
+      user: JSON.stringify(userPayload),
+      history: input.history,
+      maxTokens: 8000,
+      temperature: 0.35,
+    });
 
     let files = parseStudioFiles(raw);
     if (!Object.keys(files).length) {
-      // try parse as { files }
       try {
         const obj = parseJsonObject<{ files?: StudioFileMap; summary?: string }>(raw);
         if (obj.files) files = obj.files;
@@ -248,24 +348,28 @@ export async function generateStudioApp(input: {
     }
 
     if (!Object.keys(files).length) {
+      if (input.strict) {
+        throw new StudioLlmError("parse", "AI returned no parseable files. Try again with a shorter prompt.");
+      }
       return {
         files: offlineAppFromPrompt(input.prompt, base),
         summary: "Could not parse model files — used template fallback.",
         research: input.research || null,
         designedBy: "parse-fallback",
+        errorCode: "parse",
       };
     }
 
-    // Normalize paths
     const normalized: StudioFileMap = {};
     for (const [k, v] of Object.entries(files)) {
       const path = k.startsWith("/") ? k : `/${k}`;
       normalized[path] = v;
     }
 
-    const merged = isUpdate ? mergeFiles(base, normalized) : mergeFiles(createBaseScaffold(), normalized);
+    const merged = isUpdate
+      ? mergeFiles(base, normalized)
+      : mergeFiles(createBaseScaffold(), normalized);
 
-    // Ensure entry points exist
     if (!merged["/src/main.tsx"]) {
       merged["/src/main.tsx"] = createBaseScaffold()["/src/main.tsx"];
     }
@@ -278,22 +382,25 @@ export async function generateStudioApp(input: {
       const obj = parseJsonObject<{ summary?: string }>(raw);
       if (obj.summary) summary = obj.summary;
     } catch {
-      /* keep default */
+      /* keep */
     }
 
     return {
       files: merged,
       summary,
       research: input.research || null,
-      designedBy: secrets.provider,
+      designedBy: used.provider === "custom" ? used.model || "custom" : used.provider,
     };
   } catch (e) {
     console.error("[app-studio/generate]", e);
+    const fe = e instanceof StudioLlmError ? e : friendlyLlmError(e);
+    if (input.strict) throw fe;
     return {
       files: offlineAppFromPrompt(input.prompt, base),
-      summary: `Generation failed: ${e instanceof Error ? e.message.slice(0, 120) : "error"}. Showing template.`,
+      summary: `${fe.message} Showing a starter template instead.`,
       research: input.research || null,
       designedBy: "error-fallback",
+      errorCode: fe.code,
     };
   }
 }
@@ -301,7 +408,8 @@ export async function generateStudioApp(input: {
 async function generateWithAnthropic(
   secrets: AppLlmSecrets,
   system: string,
-  user: string
+  user: string,
+  maxTokens = 8000
 ): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -312,7 +420,7 @@ async function generateWithAnthropic(
     },
     body: JSON.stringify({
       model: secrets.model || "claude-sonnet-4-20250514",
-      max_tokens: 8000,
+      max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -329,10 +437,18 @@ async function generateWithAnthropic(
 }
 
 function offlineAppFromPrompt(prompt: string, base: StudioFileMap): StudioFileMap {
+  const isYoga = /\byoga|studio|class|booking\b/i.test(prompt);
   const title =
     prompt.match(/(?:called|named)\s+["']?([A-Za-z0-9 &-]{2,40})/i)?.[1] ||
-    "Studio App";
-  const app = `export default function App() {
+    (isYoga ? "ZenFlow Studio" : "Studio App");
+
+  if (isYoga) {
+    return yogaBookingApp(title, prompt, base);
+  }
+
+  const app = `import React from "react";
+
+export default function App() {
   const [tab, setTab] = React.useState("home");
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 text-slate-900">
@@ -341,12 +457,8 @@ function offlineAppFromPrompt(prompt: string, base: StudioFileMap): StudioFileMa
           <div className="font-bold text-lg">${title.replace(/"/g, "")}</div>
           <nav className="flex gap-2 text-sm">
             {["home", "app", "about"].map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={\`px-3 py-1.5 rounded-lg capitalize \${tab === t ? "bg-teal-600 text-white" : "hover:bg-slate-100"}\`}
-              >
+              <button key={t} type="button" onClick={() => setTab(t)}
+                className={\`px-3 py-1.5 rounded-lg capitalize \${tab === t ? "bg-teal-600 text-white" : "hover:bg-slate-100"}\`}>
                 {t}
               </button>
             ))}
@@ -356,35 +468,180 @@ function offlineAppFromPrompt(prompt: string, base: StudioFileMap): StudioFileMa
       <main className="max-w-5xl mx-auto px-4 py-10">
         {tab === "home" && (
           <section className="space-y-6">
-            <h1 className="text-4xl font-bold tracking-tight">Build faster with ${title.replace(/"/g, "")}</h1>
+            <h1 className="text-4xl font-bold tracking-tight">${title.replace(/"/g, "")}</h1>
             <p className="text-lg text-slate-600 max-w-2xl">${prompt.slice(0, 280).replace(/`/g, "'").replace(/"/g, "'")}</p>
-            <button
-              type="button"
-              onClick={() => setTab("app")}
-              className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-3 text-white font-semibold shadow hover:bg-teal-700"
-            >
+            <button type="button" onClick={() => setTab("app")}
+              className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-3 text-white font-semibold shadow hover:bg-teal-700">
               Open workspace
             </button>
           </section>
         )}
         {tab === "app" && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Main workspace</h2>
-            <p className="text-slate-600">Sample interactive board. Ask the AI to customize this fully.</p>
-            <div className="grid sm:grid-cols-3 gap-3">
-              {["Todo", "In progress", "Done"].map((col) => (
-                <div key={col} className="rounded-xl bg-slate-50 border border-slate-200 p-3 min-h-[140px]">
-                  <div className="text-xs font-semibold uppercase text-slate-500 mb-2">{col}</div>
-                  <div className="rounded-lg bg-white border border-slate-200 p-2 text-sm shadow-sm">Example card</div>
-                </div>
+            <p className="text-slate-600 mt-2">Starter UI — connect a working AI key for a full custom build.</p>
+          </section>
+        )}
+        {tab === "about" && <p className="text-slate-600">Generated by Verlin Labs App Studio.</p>}
+      </main>
+    </div>
+  );
+}
+`;
+
+  return {
+    ...base,
+    "/src/App.tsx": app,
+    "/index.html": createBaseScaffold(title)["/index.html"],
+  };
+}
+
+function yogaBookingApp(title: string, prompt: string, base: StudioFileMap): StudioFileMap {
+  const safeTitle = title.replace(/"/g, "");
+  const app = `import React from "react";
+
+const CLASSES = [
+  { id: "c1", name: "Sunrise Vinyasa", time: "Today · 7:00 AM", instructor: "Asha", spots: 4, level: "All levels" },
+  { id: "c2", name: "Power Flow", time: "Today · 6:30 PM", instructor: "Rohan", spots: 2, level: "Intermediate" },
+  { id: "c3", name: "Yin & Restore", time: "Tomorrow · 8:00 AM", instructor: "Meera", spots: 8, level: "Beginner" },
+  { id: "c4", name: "Prenatal Yoga", time: "Sat · 10:00 AM", instructor: "Asha", spots: 5, level: "All levels" },
+];
+
+export default function App() {
+  const [tab, setTab] = React.useState("schedule");
+  const [bookings, setBookings] = React.useState([]);
+  const [selected, setSelected] = React.useState(null);
+  const [name, setName] = React.useState("");
+  const [plan, setPlan] = React.useState("dropin");
+  const [toast, setToast] = React.useState(null);
+
+  function book() {
+    if (!selected || !name.trim()) {
+      setToast("Enter your name to book");
+      return;
+    }
+    setBookings((b) => [
+      { id: Date.now(), classId: selected.id, className: selected.name, time: selected.time, name, plan },
+      ...b,
+    ]);
+    setToast(\`Booked \${selected.name} for \${name}\`);
+    setSelected(null);
+    setName("");
+    setTab("mine");
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-teal-50 text-slate-900">
+      <header className="sticky top-0 z-10 border-b border-emerald-100 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+          <div>
+            <p className="text-lg font-bold text-emerald-900">${safeTitle}</p>
+            <p className="text-xs text-emerald-700/80">Book classes · memberships · drop-ins</p>
+          </div>
+          <nav className="flex gap-1 text-sm">
+            {[
+              ["schedule", "Schedule"],
+              ["mine", "My bookings"],
+              ["membership", "Plans"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={\`rounded-full px-3 py-1.5 \${tab === id ? "bg-emerald-700 text-white" : "text-emerald-900 hover:bg-emerald-50"}\`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-4 py-6 space-y-4">
+        {toast && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 flex justify-between">
+            <span>{toast}</span>
+            <button type="button" onClick={() => setToast(null)}>×</button>
+          </div>
+        )}
+
+        {tab === "schedule" && (
+          <>
+            <section className="rounded-2xl bg-emerald-900 text-white p-5 shadow-lg">
+              <h1 className="text-2xl font-bold">Find your class</h1>
+              <p className="mt-1 text-emerald-100 text-sm">${prompt.slice(0, 160).replace(/`/g, "'").replace(/"/g, "'")}</p>
+            </section>
+            <div className="space-y-3">
+              {CLASSES.map((c) => (
+                <article key={c.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-lg">{c.name}</h2>
+                    <p className="text-sm text-slate-600">{c.time} · {c.instructor} · {c.level}</p>
+                    <p className="text-xs text-emerald-700 mt-1">{c.spots} spots left</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelected(c); setTab("book"); }}
+                    className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+                  >
+                    Book
+                  </button>
+                </article>
               ))}
+            </div>
+          </>
+        )}
+
+        {tab === "book" && selected && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <h2 className="text-xl font-bold">Book {selected.name}</h2>
+            <p className="text-sm text-slate-600">{selected.time} with {selected.instructor}</p>
+            <label className="block text-sm">
+              Your name
+              <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="e.g. Priya" />
+            </label>
+            <label className="block text-sm">
+              Payment
+              <select value={plan} onChange={(e) => setPlan(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+                <option value="dropin">Drop-in · ₹500</option>
+                <option value="member">Membership class · included</option>
+                <option value="pack">Class pack · 1 credit</option>
+              </select>
+            </label>
+            <div className="flex gap-2">
+              <button type="button" onClick={book} className="rounded-xl bg-emerald-700 px-4 py-2 text-white font-semibold">Confirm</button>
+              <button type="button" onClick={() => setTab("schedule")} className="rounded-xl border border-slate-300 px-4 py-2">Back</button>
             </div>
           </section>
         )}
-        {tab === "about" && (
-          <section className="prose prose-slate">
-            <h2>About</h2>
-            <p>Generated by Verlin Labs App Studio as a starting template.</p>
+
+        {tab === "mine" && (
+          <section className="space-y-3">
+            <h2 className="text-xl font-bold">My bookings</h2>
+            {bookings.length === 0 && <p className="text-slate-600 text-sm">No bookings yet. Pick a class from Schedule.</p>}
+            {bookings.map((b) => (
+              <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="font-semibold">{b.className}</p>
+                <p className="text-sm text-slate-600">{b.time} · {b.name} · {b.plan}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {tab === "membership" && (
+          <section className="grid sm:grid-cols-2 gap-3">
+            {[
+              { name: "Drop-in", price: "₹500", desc: "Single class, no commitment" },
+              { name: "10-class pack", price: "₹4,200", desc: "Save on regular practice" },
+              { name: "Monthly unlimited", price: "₹3,999", desc: "Best for 3+ classes / week" },
+              { name: "Private session", price: "₹2,500", desc: "1:1 with instructor" },
+            ].map((p) => (
+              <div key={p.name} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+                <p className="font-semibold">{p.name}</p>
+                <p className="text-2xl font-bold text-emerald-800 mt-1">{p.price}</p>
+                <p className="text-sm text-slate-600 mt-1">{p.desc}</p>
+              </div>
+            ))}
           </section>
         )}
       </main>
@@ -393,14 +650,11 @@ function offlineAppFromPrompt(prompt: string, base: StudioFileMap): StudioFileMa
 }
 `;
 
-  // Need React in scope for offline template
-  const withReact = `import React from "react";\n\n${app}`;
-
   return {
     ...base,
-    "/src/App.tsx": withReact,
-    "/index.html": createBaseScaffold(title)["/index.html"],
+    "/src/App.tsx": app,
+    "/index.html": createBaseScaffold(safeTitle)["/index.html"],
   };
 }
 
-export { resolveStudioSecrets };
+export { resolveStudioSecrets, listEnvSecrets };

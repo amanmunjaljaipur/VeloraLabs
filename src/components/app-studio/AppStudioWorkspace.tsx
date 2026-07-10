@@ -79,6 +79,11 @@ export function AppStudioWorkspace() {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [splitPct, setSplitPct] = useState(38);
   const dragRef = useRef<{ startX: number; startPct: number } | null>(null);
+  /** Session-only — never sent to disk; used when platform xAI has no credits */
+  const [showKeyPanel, setShowKeyPanel] = useState(false);
+  const [aiProvider, setAiProvider] = useState<"groq" | "xai" | "anthropic" | "openai">("groq");
+  const [aiKey, setAiKey] = useState("");
+  const [aiModel, setAiModel] = useState("");
 
   const paths = useMemo(() => listFilePaths(files), [files]);
 
@@ -152,6 +157,11 @@ export function AppStudioWorkspace() {
             .slice(-8)
             .map((x) => ({ role: x.role as "user" | "assistant", content: x.content })),
           imageDataUrl: imageDataUrl || undefined,
+          // Prefer your pasted key when platform xAI has no credits
+          apiKey: aiKey.trim() || undefined,
+          provider: aiKey.trim() ? aiProvider : undefined,
+          model: aiKey.trim() && aiModel.trim() ? aiModel.trim() : undefined,
+          allowTemplateFallback: false,
         }),
       });
 
@@ -162,19 +172,31 @@ export function AppStudioWorkspace() {
         research?: StudioResearchPack;
         designedBy?: string;
         error?: string;
+        code?: string;
+        hint?: string;
+        warning?: string;
       };
 
       if (!res.ok || !data.files) {
-        toast(data.error || "Generation failed", "error");
+        const msg =
+          data.error ||
+          data.hint ||
+          "Generation failed. Your platform xAI team may have no credits — open AI key and paste a Groq key.";
+        toast(msg.slice(0, 160), "error");
+        if (data.code === "credits" || data.code === "no_key" || data.code === "auth") {
+          setShowKeyPanel(true);
+        }
         setMessages((m) => [
           ...m,
           {
             id: uid(),
             role: "assistant",
-            content: data.error || "Something went wrong. Try again.",
+            content: `${msg}${data.hint ? `\n\n${data.hint}` : ""}\n\n**Fix:** Open **AI key** (top bar), choose **Groq** (free tier at console.groq.com), paste the key, then Build again. Do not use a team xAI key with zero credits.`,
             createdAt: new Date().toISOString(),
           },
         ]);
+        // Still attach research if present
+        if (data.research) setResearch(data.research);
         return;
       }
 
@@ -290,6 +312,14 @@ export function AppStudioWorkspace() {
           >
             <Redo2 className="h-3.5 w-3.5" /> Redo
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => setShowKeyPanel((v) => !v)}
+          >
+            AI key
+          </Button>
           <Button type="button" size="sm" variant="secondary" onClick={() => void downloadZip()}>
             <Download className="h-3.5 w-3.5" /> ZIP
           </Button>
@@ -315,6 +345,61 @@ export function AppStudioWorkspace() {
           </Button>
         </div>
       </header>
+
+      {showKeyPanel && (
+        <div className="border-b border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs space-y-2">
+          <p className="font-medium text-foreground">
+            Platform xAI often fails with “no credits / licenses”. Paste a working key for this browser
+            session only (never saved to the server).
+          </p>
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Provider</span>
+              <select
+                value={aiProvider}
+                onChange={(e) =>
+                  setAiProvider(e.target.value as "groq" | "xai" | "anthropic" | "openai")
+                }
+                className="rounded-lg border border-border bg-background px-2 py-1.5"
+              >
+                <option value="groq">Groq (recommended free)</option>
+                <option value="anthropic">Anthropic Claude</option>
+                <option value="openai">OpenAI</option>
+                <option value="xai">xAI Grok</option>
+              </select>
+            </label>
+            <label className="flex min-w-[14rem] flex-1 flex-col gap-0.5">
+              <span className="text-muted-foreground">API key</span>
+              <input
+                type="password"
+                value={aiKey}
+                onChange={(e) => setAiKey(e.target.value)}
+                placeholder="Paste key — not stored"
+                className="rounded-lg border border-border bg-background px-2 py-1.5 font-mono"
+                autoComplete="off"
+              />
+            </label>
+            <label className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Model (optional)</span>
+              <input
+                value={aiModel}
+                onChange={(e) => setAiModel(e.target.value)}
+                placeholder={
+                  aiProvider === "groq"
+                    ? "llama-3.3-70b-versatile"
+                    : aiProvider === "xai"
+                      ? "grok-3-mini"
+                      : "default"
+                }
+                className="rounded-lg border border-border bg-background px-2 py-1.5 w-44"
+              />
+            </label>
+            <Button type="button" size="sm" variant="secondary" onClick={() => setShowKeyPanel(false)}>
+              Done
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1">
         {/* Left: chat */}
