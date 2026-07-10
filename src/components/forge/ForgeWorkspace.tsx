@@ -102,8 +102,9 @@ export function ForgeWorkspace() {
   );
   const [building, setBuilding] = useState(false);
   const [buildSteps, setBuildSteps] = useState<
-    Array<{ id: string; label: string; status: string }>
+    Array<{ id: string; label: string; status: string; detail?: string }>
   >([]);
+  const [buildElapsedSec, setBuildElapsedSec] = useState(0);
   const [publicUrl, setPublicUrl] = useState<string | undefined>();
   const [appSlug, setAppSlug] = useState<string | undefined>();
   const [iterateNote, setIterateNote] = useState("");
@@ -537,26 +538,28 @@ export function ForgeWorkspace() {
     }
     setStage("build");
     setBuilding(true);
+    setBuildElapsedSec(0);
     setBuildSteps([
-      { id: "roles", label: "User roles & auth", status: "running" },
-      { id: "data", label: "Data models & seed data", status: "pending" },
-      { id: "features", label: "Features & modules", status: "pending" },
-      { id: "screens", label: "Screens & UI", status: "pending" },
-      { id: "publish", label: "Publish live link", status: "pending" },
+      { id: "plan", label: "Setting up your project", status: "running" },
+      { id: "content", label: "Writing real content for every page", status: "pending" },
+      { id: "roles", label: "Setting up accounts & permissions", status: "pending" },
+      { id: "data", label: "Adding sample data", status: "pending" },
+      { id: "publish", label: "Publishing your live link", status: "pending" },
     ]);
 
-    // Animate steps while request runs
-    const timers = [400, 900, 1400, 1900].map((ms, i) =>
-      setTimeout(() => {
-        setBuildSteps((steps) =>
-          steps.map((s, idx) =>
-            idx <= i
-              ? { ...s, status: idx === i ? "running" : "done" }
-              : s
-          )
-        );
-      }, ms)
-    );
+    const elapsedTimer = setInterval(() => {
+      setBuildElapsedSec((s) => s + 1);
+    }, 1000);
+
+    type StreamEvent =
+      | { type: "progress"; id: string; label: string; status: string; detail?: string }
+      | {
+          type: "done";
+          project: { slug: string; publicPath: string; name: string };
+          publicUrl: string;
+          buildSteps: Array<{ id: string; label: string; status: string }>;
+        }
+      | { type: "error"; error: string };
 
     try {
       const res = await fetch("/api/forge/build", {
@@ -564,30 +567,69 @@ export function ForgeWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, plan, answers }),
       });
-      const data = (await res.json()) as {
-        project?: { slug: string; publicPath: string; name: string };
-        publicUrl?: string;
-        buildSteps?: Array<{ id: string; label: string; status: string }>;
-        error?: string;
-      };
-      timers.forEach(clearTimeout);
-      if (!res.ok || !data.project) {
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({ error: "Build failed" }));
         toast(data.error || "Build failed", "error");
         setStage("plan");
         return;
       }
-      setBuildSteps(
-        (data.buildSteps || []).map((s) => ({ ...s, status: "done" }))
-      );
-      setPublicUrl(data.publicUrl || data.project.publicPath);
-      setAppSlug(data.project.slug);
-      setStage("preview");
-      toast(`${data.project.name} is live!`, "success");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let finished = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          let evt: StreamEvent;
+          try {
+            evt = JSON.parse(line);
+          } catch {
+            continue;
+          }
+
+          if (evt.type === "progress") {
+            setBuildSteps((steps) =>
+              steps.map((s) =>
+                s.id === evt.id
+                  ? { ...s, status: evt.status, detail: evt.detail }
+                  : s
+              )
+            );
+          } else if (evt.type === "done") {
+            finished = true;
+            setBuildSteps(
+              evt.buildSteps.map((s) => ({ ...s, status: "done" }))
+            );
+            setPublicUrl(evt.publicUrl || evt.project.publicPath);
+            setAppSlug(evt.project.slug);
+            setStage("preview");
+            toast(`${evt.project.name} is live!`, "success");
+          } else if (evt.type === "error") {
+            finished = true;
+            toast(evt.error || "Build failed", "error");
+            setStage("plan");
+          }
+        }
+      }
+
+      if (!finished) {
+        toast("Build ended unexpectedly. Try again.", "error");
+        setStage("plan");
+      }
     } catch {
-      timers.forEach(clearTimeout);
       toast("Build failed. Try again.", "error");
       setStage("plan");
     } finally {
+      clearInterval(elapsedTimer);
       setBuilding(false);
     }
   }
@@ -974,19 +1016,27 @@ export function ForgeWorkspace() {
           {/* Build steps */}
           {stage === "build" && (
             <div className="space-y-2 border-t border-border p-4">
+              {building ? (
+                <p className="text-xs text-text-muted">
+                  Building for real — this writes actual content for every page, so it can take
+                  a minute or two. {buildElapsedSec > 0 ? `(${buildElapsedSec}s elapsed)` : ""}
+                </p>
+              ) : null}
               {buildSteps.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center gap-2 text-sm text-foreground"
-                >
-                  {s.status === "done" ? (
-                    <Check className="h-4 w-4 text-accent-teal" />
-                  ) : s.status === "running" ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-accent-teal" />
-                  ) : (
-                    <span className="h-4 w-4 rounded-full border border-border" />
-                  )}
-                  {s.label}
+                <div key={s.id} className="text-sm text-foreground">
+                  <div className="flex items-center gap-2">
+                    {s.status === "done" ? (
+                      <Check className="h-4 w-4 text-accent-teal" />
+                    ) : s.status === "running" ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-accent-teal" />
+                    ) : (
+                      <span className="h-4 w-4 rounded-full border border-border" />
+                    )}
+                    {s.label}
+                  </div>
+                  {s.detail ? (
+                    <p className="ml-6 mt-0.5 text-xs text-text-muted">{s.detail}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -1042,6 +1092,7 @@ export function ForgeWorkspace() {
               <Sparkles className="h-3.5 w-3.5" />
               {stage === "preview" ? "Live preview" : "Plan canvas"}
             </p>
+          
             {stage === "preview" && appSlug && (
               <span className="text-[11px] text-muted-foreground">
                 /apps/{appSlug}

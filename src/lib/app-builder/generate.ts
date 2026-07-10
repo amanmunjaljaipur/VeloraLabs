@@ -1,7 +1,7 @@
 import { buildShopLogo, getLocationBrand, productEmoji } from "@/lib/app-builder/branding";
 import { detectVerticalFromPrompt } from "@/lib/app-builder/detect-vertical";
 import { getExtension } from "@/lib/app-builder/extensions";
-import { generateGenericAppContent } from "@/lib/app-builder/generate-generic";
+import { generateGenericAppContent, type BuildProgressFn } from "@/lib/app-builder/generate-generic";
 import {
   aboutImageUrl,
   applyLogoImage,
@@ -282,6 +282,7 @@ export async function generateExtensionContent(input: {
   secrets: AppLlmSecrets;
   /** User-approved product plan — preferred for non-ecom complete builds */
   productPlan?: ProductPlan | null;
+  onProgress?: BuildProgressFn;
 }): Promise<{ content: AppExtensionContent; generatedBy: string }> {
   const detected = detectVerticalFromPrompt(input.prompt);
   let extensionId = (input.extensionId || detected.extensionId) as AppExtensionId;

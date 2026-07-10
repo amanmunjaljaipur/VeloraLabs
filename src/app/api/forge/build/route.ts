@@ -1,6 +1,7 @@
 import { assertAgentActive } from "@/lib/agents/controls";
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { generateExtensionContent } from "@/lib/app-builder/generate";
+import type { BuildProgressEvent } from "@/lib/app-builder/generate-generic";
 import { packageAppProject } from "@/lib/app-builder/packager";
 import { resolveAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import { saveAppProject, uniqueAppSlug } from "@/lib/app-builder/store";
@@ -17,11 +18,19 @@ import { isSuperAdminRole } from "@/lib/session-access";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 280;
+
+type StreamEvent =
+  | { type: "progress"; id: string; label: string; status: "pending" | "running" | "done"; detail?: string }
+  | { type: "done"; project: AppProject; publicUrl: string; buildSteps: Array<{ id: string; label: string; status: string }> }
+  | { type: "error"; error: string };
 
 /**
  * Build a live product from an approved Forge plan.
- * Creates App Builder project + generates content + publishes.
+ * Streams NDJSON progress events as each real phase completes (content is
+ * written in batches, which takes real time) — the client renders these as
+ * a live loader instead of a fake timer, so the UI never claims "done"
+ * before the work is actually done.
  */
 export async function POST(request: Request) {
   const paused = await assertAgentActive("app-builder-generate");
@@ -119,63 +128,110 @@ export async function POST(request: Request) {
     createdBy: session.user?.email || undefined,
   };
 
-  try {
-    await saveAppProject(project);
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: StreamEvent) => {
+        controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      };
 
-    const { content, generatedBy } = await generateExtensionContent({
-      extensionId: project.extensionId,
-      prompt: project.prompt,
-      answers: project.answers,
-      customPoints: project.customPoints,
-      secrets,
-      productPlan,
-    });
-
-    const live: AppProject = {
-      ...project,
-      content,
-      generatedBy,
-      name: content.brandName || project.name,
-      status: "live",
-      updatedAt: new Date().toISOString(),
-    };
-
-    await saveAppProject(live);
-    await ensureTenantForProject(live);
-    if (plan.dataModels?.length) {
       try {
-        await seedGenericRecords(slug, plan.dataModels);
-      } catch (seedErr) {
-        console.warn("[forge/build] seed warning", seedErr);
-      }
-    }
-    try {
-      await packageAppProject(live);
-    } catch (packErr) {
-      console.warn("[forge/build] package warning", packErr);
-    }
+        send({ type: "progress", id: "plan", label: "Setting up your project", status: "running" });
+        await saveAppProject(project);
+        send({ type: "progress", id: "plan", label: "Setting up your project", status: "done" });
 
-    return NextResponse.json({
-      project: live,
-      publicUrl: live.publicPath,
-      buildSteps: [
-        { id: "roles", label: "User roles & auth", status: "done" },
-        { id: "data", label: "Data models & seed data", status: "done" },
-        { id: "features", label: "Features & modules", status: "done" },
-        { id: "screens", label: "Screens & UI", status: "done" },
-        { id: "publish", label: "Publish live link", status: "done" },
-      ],
-    });
-  } catch (e) {
-    console.error("[forge/build]", e);
-    return NextResponse.json(
-      {
-        error:
-          e instanceof Error
-            ? e.message.slice(0, 200)
-            : "Build failed. Try again in a moment.",
-      },
-      { status: 500 }
-    );
-  }
+        send({ type: "progress", id: "content", label: "Writing real content for every page", status: "running" });
+        const { content, generatedBy } = await generateExtensionContent({
+          extensionId: project.extensionId,
+          prompt: project.prompt,
+          answers: project.answers,
+          customPoints: project.customPoints,
+          secrets,
+          productPlan,
+          onProgress: (evt: BuildProgressEvent) => {
+            send({
+              type: "progress",
+              id: "content",
+              label: "Writing real content for every page",
+              status: "running",
+              detail: evt.message,
+            });
+          },
+        });
+        send({
+          type: "progress",
+          id: "content",
+          label: "Writing real content for every page",
+          status: "done",
+          detail: generatedBy === "fallback-plan-seed" || generatedBy === "fallback-generic"
+            ? "Used safe defaults for a few sections — you can regenerate any page later."
+            : undefined,
+        });
+
+        const live: AppProject = {
+          ...project,
+          content,
+          generatedBy,
+          name: content.brandName || project.name,
+          status: "live",
+          updatedAt: new Date().toISOString(),
+        };
+        await saveAppProject(live);
+
+        send({ type: "progress", id: "roles", label: "Setting up accounts & permissions", status: "running" });
+        await ensureTenantForProject(live);
+        send({ type: "progress", id: "roles", label: "Setting up accounts & permissions", status: "done" });
+
+        if (plan.dataModels?.length) {
+          send({ type: "progress", id: "data", label: "Adding sample data", status: "running" });
+          try {
+            await seedGenericRecords(slug, plan.dataModels);
+          } catch (seedErr) {
+            console.warn("[forge/build] seed warning", seedErr);
+          }
+          send({ type: "progress", id: "data", label: "Adding sample data", status: "done" });
+        }
+
+        send({ type: "progress", id: "publish", label: "Publishing your live link", status: "running" });
+        try {
+          await packageAppProject(live);
+        } catch (packErr) {
+          console.warn("[forge/build] package warning", packErr);
+        }
+        send({ type: "progress", id: "publish", label: "Publishing your live link", status: "done" });
+
+        send({
+          type: "done",
+          project: live,
+          publicUrl: live.publicPath,
+          buildSteps: [
+            { id: "plan", label: "Setting up your project", status: "done" },
+            { id: "content", label: "Writing real content for every page", status: "done" },
+            { id: "roles", label: "Setting up accounts & permissions", status: "done" },
+            { id: "data", label: "Adding sample data", status: "done" },
+            { id: "publish", label: "Publishing your live link", status: "done" },
+          ],
+        });
+      } catch (e) {
+        console.error("[forge/build]", e);
+        send({
+          type: "error",
+          error:
+            e instanceof Error
+              ? e.message.slice(0, 200)
+              : "Build failed. Try again in a moment.",
+        });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }

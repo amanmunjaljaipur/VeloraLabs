@@ -2,6 +2,12 @@
 
 import { AppBuilderFooter } from "@/components/app-builder/AppBuilderFooter";
 import {
+  CardControlsDemo,
+  DashboardDemo,
+  PaymentsFlowDemo,
+  detectBankingModule,
+} from "@/components/app-builder/generic-modules/BankingDemos";
+import {
   logoWithTheme,
   resolveShopTheme,
   shopThemeCssVars,
@@ -65,6 +71,18 @@ export function GenericAppRuntime({
   const nav = content.nav?.length
     ? content.nav
     : content.pages.map((p) => ({ path: p.path, label: p.title }));
+
+  // Known interactive demo modules — real clickable state instead of static
+  // bodyHtml prose, for pages that are supposed to be a working screen
+  // (dashboard, transfer/payments, card controls) rather than marketing copy.
+  const isBanking = content.appKind === "digital-banking";
+  const bankingModule = isBanking && page ? detectBankingModule(page) : null;
+  const paymentsPagePath = isBanking
+    ? content.pages.find((p) => detectBankingModule(p) === "payments")?.path
+    : undefined;
+  const cardsPagePath = isBanking
+    ? content.pages.find((p) => detectBankingModule(p) === "cards")?.path
+    : undefined;
 
   const phone = content.whatsappNumber || content.contactPhone;
   const wa = phone
@@ -282,14 +300,34 @@ export function GenericAppRuntime({
           <h1 className="text-2xl font-semibold" style={{ color: theme.secondary }}>
             {page.headline || page.title}
           </h1>
-          <div
-            className="prose prose-sm mt-6 max-w-none text-text-secondary dark:prose-invert"
-            dangerouslySetInnerHTML={{
-              __html: (page.bodyHtml || "")
-                .replace(/<script\b[\s\S]*?<\/script>/gi, "")
-                .replace(/\son\w+\s*=/gi, " data-x="),
-            }}
-          />
+
+          {bankingModule ? (
+            <div className="mt-6">
+              {bankingModule === "dashboard" ? (
+                <DashboardDemo
+                  theme={theme}
+                  brandName={content.brandName}
+                  onNavigate={go}
+                  paymentsPath={paymentsPagePath}
+                  cardsPath={cardsPagePath}
+                />
+              ) : bankingModule === "payments" ? (
+                <PaymentsFlowDemo theme={theme} />
+              ) : (
+                <CardControlsDemo theme={theme} brandName={content.brandName} />
+              )}
+            </div>
+          ) : (
+            <div
+              className="prose prose-sm mt-6 max-w-none text-text-secondary dark:prose-invert"
+              dangerouslySetInnerHTML={{
+                __html: (page.bodyHtml || "")
+                  .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+                  .replace(/\son\w+\s*=/gi, " data-x="),
+              }}
+            />
+          )}
+
           {page.path === "faq" && content.faqs?.length ? (
             <div className="mt-8 space-y-3">
               {content.faqs.map((f, i) => (
@@ -330,7 +368,7 @@ export function GenericAppRuntime({
               ) : null}
             </ul>
           ) : null}
-          {page.ctaLabel ? (
+          {page.ctaLabel && !bankingModule ? (
             <button
               type="button"
               onClick={() => go("contact")}

@@ -173,6 +173,93 @@ function fallbackGeneric(
   };
 }
 
+export type BuildProgressEvent = {
+  phase: "shell" | "pages" | "done";
+  message: string;
+  completed?: number;
+  total?: number;
+};
+
+export type BuildProgressFn = (event: BuildProgressEvent) => void;
+
+const PAGE_BATCH_SIZE = 4;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+function normalizePage(p: Partial<GenericAppPage> & Record<string, unknown>, i: number): GenericAppPage {
+  return {
+    id: String(p.id || `p${i}`).slice(0, 40),
+    path: String(p.path || p.id || `page-${i}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .slice(0, 32),
+    title: String(p.title || "Page").slice(0, 48),
+    headline: p.headline ? String(p.headline).slice(0, 120) : undefined,
+    bodyHtml: sanitizeShopHtml(String(p.bodyHtml || "<p></p>")),
+    ctaLabel: p.ctaLabel ? String(p.ctaLabel).slice(0, 40) : undefined,
+  };
+}
+
+/**
+ * Write real copy for a small batch of pages (3-4 at a time) instead of asking
+ * the LLM for an entire multi-page site in one completion. Large plans (15-20
+ * pages) blow past a single call's token budget, the JSON gets truncated, and
+ * the whole build used to silently fall back to raw plan-outline placeholder
+ * text. Batching keeps each call comfortably inside its token/time budget and
+ * lets one bad batch fail without dragging the rest of the site down with it.
+ */
+async function generatePageBatch(params: {
+  secrets: AppLlmSecrets;
+  detectedLabel: string;
+  appKind: string;
+  brandName: string;
+  prompt: string;
+  qa: string;
+  customBlock: string;
+  seedPages: GenericAppPage[];
+}): Promise<GenericAppPage[]> {
+  const pageBrief = params.seedPages
+    .map((p) => `- path:"${p.path}" title:"${p.title}" purpose:"${p.headline || p.title}"`)
+    .join("\n");
+
+  const raw = await callUserLlm({
+    secrets: params.secrets,
+    temperature: 0.35,
+    maxTokens: 2200,
+    timeoutMs: 55_000,
+    messages: [
+      {
+        role: "system",
+        content: `You write real page content for a ${params.detectedLabel} (${params.appKind}) product called "${params.brandName}", built by Verlin Labs App Builder.
+Write ONLY the pages listed below — do not add or skip any.
+For banking/fintech authenticated pages (dashboard, transfer, cards, statements, profile): describe a realistic mocked demo screen — actual balances, sample transaction rows, named quick actions — not vague marketing copy.
+For insurance authenticated pages (quote, claims): describe the real step-by-step flow with sample numbers.
+Class-8 English. No fake licence/registration numbers. bodyHtml may ONLY use <p>/<ul>/<li>/<strong>/<em> tags.
+Return ONLY JSON: {"pages":[{"path":"...","id":"...","title":"...","headline":"...","bodyHtml":"...","ctaLabel":"..."}]}
+Every bodyHtml must be substantive: 3-6 sentences or a short list, not a one-liner.`,
+      },
+      {
+        role: "user",
+        content: `Product idea:\n${params.prompt}\n\nPages to write (exactly these, same paths):\n${pageBrief}\n\nInterview notes:\n${params.qa || "(thin answers — write sensible defaults)"}${params.customBlock}`,
+      },
+    ],
+  });
+
+  const parsed = parseJsonObject<{ pages?: Array<Partial<GenericAppPage>> }>(raw);
+  const llmPages = Array.isArray(parsed.pages) ? parsed.pages : [];
+  if (!llmPages.length) throw new Error("Batch returned no pages");
+
+  // Keep original order/paths from the seed batch; match LLM output by path where possible.
+  return params.seedPages.map((seed, i) => {
+    const match = llmPages.find((p) => (p.path || "").toLowerCase() === seed.path) || llmPages[i];
+    return match ? normalizePage(match, i) : seed;
+  });
+}
+
 export async function generateGenericAppContent(input: {
   extensionId: AppExtensionId;
   prompt: string;
@@ -181,11 +268,13 @@ export async function generateGenericAppContent(input: {
   secrets: AppLlmSecrets;
   productPlan?: ProductPlan;
   seedContent?: GenericAppContent;
+  onProgress?: BuildProgressFn;
 }): Promise<{ content: GenericAppContent; generatedBy: string }> {
   const customPoints = input.customPoints || [];
   const detected = detectVerticalFromPrompt(input.prompt);
   const extensionId =
     input.extensionId === "ecom-local-shop" ? "generic-app" : input.extensionId;
+  const emit = input.onProgress || (() => {});
 
   // Prefer approved plan structure as the source of pages/modules
   const planSeed = input.productPlan
@@ -200,75 +289,85 @@ export async function generateGenericAppContent(input: {
     ? `\n\nOwner notes:\n${customPoints.map((p) => `- ${p}`).join("\n")}`
     : "";
 
+  const base =
+    planSeed || fallbackGeneric(input.prompt, input.answers, customPoints, extensionId);
+  let generatedBy = "fallback-plan-seed";
+
   try {
-    const pageList =
-      planSeed?.pages.map((p) => `${p.path}: ${p.title}`).join(", ") ||
-      "home, features, about, faq, contact, plus all plan pages";
-    const raw = await callUserLlm({
+    // 1. Shell: brand identity, hero, nav, features, faqs — small, fast, single call.
+    emit({ phase: "shell", message: "Writing brand identity, hero copy, and navigation…" });
+    const pageList = base.pages.map((p) => `${p.path}: ${p.title}`).join(", ");
+    const shellRaw = await callUserLlm({
       secrets: input.secrets,
-      temperature: 0.35,
-      maxTokens: 5500,
-      timeoutMs: 90_000,
+      temperature: 0.4,
+      maxTokens: 2400,
+      timeoutMs: 45_000,
       messages: [
         {
           role: "system",
-          content: `You build COMPLETE product website content for Verlin Labs App Builder.
-Detected kind: ${detected.label} (${detected.appKind}).
-You MUST implement the APPROVED PRODUCT PLAN pages — do not collapse to 3 marketing pages.
-For banking: include public product/rates/security/apply AND demo dashboard, transactions, transfer (with review/2FA copy), cards, statements, profile.
-For insurance: plans, quote, claims, policy demo.
-For resume: workspace, linkedin, export, templates.
-Class-8 English. No fake licence numbers. bodyHtml uses only <p>/<ul>/<li>/<strong>/<em>.
-Return ONLY JSON with ALL pages from the plan (same paths), filled with real section copy:
-brandName, tagline, description, primaryColor, secondaryColor, city, contactEmail, contactPhone,
-heroHeadline, heroSubheadline, ctaLabel, secondaryCtaLabel, aboutHtml,
-nav, pages[{id,path,title,headline,bodyHtml,ctaLabel}], features, faqs, trustBadges, footerNote, customBlocks
-Rules: pages array MUST include every path from the plan list. features 6–12. faqs 5–8.`,
+          content: `You write the brand shell for a ${detected.label} (${detected.appKind}) product built by Verlin Labs App Builder.
+You MUST reflect the APPROVED PRODUCT PLAN pages in "nav" — do not collapse to 3 marketing pages.
+Class-8 English. No fake licence numbers. aboutHtml may ONLY use <p>/<ul>/<li>/<strong>/<em> tags.
+Return ONLY JSON with: brandName, tagline, description, primaryColor, secondaryColor, city, contactEmail, contactPhone,
+heroHeadline, heroSubheadline, ctaLabel, secondaryCtaLabel, aboutHtml, nav[{path,label}], features[{id,title,body,icon}] (6-12),
+faqs[{question,answer}] (5-8), trustBadges (string array), footerNote, customBlocks[{title,body}].
+Do NOT include a "pages" field — page content is written separately.`,
         },
         {
           role: "user",
-          content: `Product idea:\n${input.prompt}\n\nApproved plan (MUST implement):\n${JSON.stringify(
-            input.productPlan
-              ? {
-                  brandName: input.productPlan.brandName,
-                  businessModel: input.productPlan.businessModel,
-                  pages: input.productPlan.publicPages,
-                  modules: input.productPlan.modules,
-                  features: input.productPlan.features,
-                  trust: input.productPlan.trustCompliance,
-                }
-              : { pages: pageList }
-          )}\n\nInterview:\n${qa || "(thin answers — still fill every plan page)"}${customBlock}\n\nRequired page paths: ${pageList}`,
+          content: `Product idea:\n${input.prompt}\n\nApproved plan pages (reflect in nav):\n${pageList}\n\nInterview:\n${qa || "(thin answers)"}${customBlock}`,
         },
       ],
     });
+    const shell = parseJsonObject<Partial<GenericAppContent>>(shellRaw);
+    if (!shell.brandName && !base.brandName) throw new Error("No brandName");
+    generatedBy = `${input.secrets.provider}:${input.secrets.model || "default"}`;
 
-    const parsed = parseJsonObject<Partial<GenericAppContent> & { brandName?: string }>(raw);
-    if (!parsed.brandName && !planSeed?.brandName) throw new Error("No brandName");
-
-    const city = parsed.city || answerMap(input.answers).city || planSeed?.city || "India";
-    const brandName = parsed.brandName || planSeed?.brandName || "App";
+    const city = shell.city || answerMap(input.answers).city || base.city || "India";
+    const brandName = shell.brandName || base.brandName || "App";
     const logo = makeLogo(brandName, city);
-    const base =
-      planSeed ||
-      fallbackGeneric(input.prompt, input.answers, customPoints, extensionId);
 
-    // Prefer LLM pages if they cover enough; else keep plan seed pages
-    const llmPages = Array.isArray(parsed.pages) ? parsed.pages : [];
-    const useLlmPages = llmPages.length >= Math.min(6, base.pages.length);
-    const pages = (
-      useLlmPages ? llmPages : base.pages
-    ).map((p, i) => ({
-      id: String(p.id || `p${i}`).slice(0, 40),
-      path: String(p.path || p.id || `page-${i}`)
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "")
-        .slice(0, 32),
-      title: String(p.title || "Page").slice(0, 48),
-      headline: p.headline ? String(p.headline).slice(0, 120) : undefined,
-      bodyHtml: sanitizeShopHtml(String(p.bodyHtml || "<p></p>")),
-      ctaLabel: p.ctaLabel ? String(p.ctaLabel).slice(0, 40) : undefined,
-    }));
+    // 2. Pages: batch in small groups so token/time budget is never a cliff-edge.
+    const batches = chunk(base.pages, PAGE_BATCH_SIZE);
+    const pageResults: GenericAppPage[] = [];
+    let anyBatchSucceeded = false;
+    let completed = 0;
+    for (const batch of batches) {
+      emit({
+        phase: "pages",
+        message: `Writing content — ${completed} of ${base.pages.length} pages done…`,
+        completed,
+        total: base.pages.length,
+      });
+      try {
+        const written = await generatePageBatch({
+          secrets: input.secrets,
+          detectedLabel: detected.label,
+          appKind: detected.appKind,
+          brandName,
+          prompt: input.prompt,
+          qa,
+          customBlock,
+          seedPages: batch,
+        });
+        pageResults.push(...written);
+        anyBatchSucceeded = true;
+      } catch (batchErr) {
+        console.error("[app-builder] page batch failed, using plan-seed text for this batch:", batchErr);
+        pageResults.push(...batch);
+      }
+      completed += batch.length;
+    }
+    if (!anyBatchSucceeded) generatedBy = "fallback-plan-seed";
+    emit({
+      phase: "pages",
+      message: `Writing content — ${base.pages.length} of ${base.pages.length} pages done.`,
+      completed: base.pages.length,
+      total: base.pages.length,
+    });
+
+    const parsed = shell;
+    const pages = pageResults;
 
     const content: GenericAppContent = {
       extensionId: extensionId as GenericAppContent["extensionId"],
@@ -340,15 +439,15 @@ Rules: pages array MUST include every path from the plan list. features 6–12. 
         : base.customBlocks,
     };
 
-    return {
-      content,
-      generatedBy: `${input.secrets.provider}:${input.secrets.model || "default"}`,
-    };
+    emit({ phase: "done", message: "Content ready." });
+    return { content, generatedBy };
   } catch (e) {
     console.error("[app-builder] generic generate failed:", e);
     if (planSeed) {
+      emit({ phase: "done", message: "Content ready (used plan defaults)." });
       return { content: planSeed, generatedBy: "fallback-plan-seed" };
     }
+    emit({ phase: "done", message: "Content ready (used defaults)." });
     return {
       content: fallbackGeneric(input.prompt, input.answers, customPoints, extensionId),
       generatedBy: "fallback-generic",
