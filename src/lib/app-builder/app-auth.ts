@@ -61,7 +61,8 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
     await ensureRolesLoaded();
     const vl = await auth();
     const email = vl?.user?.email?.toLowerCase();
-    if (email && isSuperAdminRole(getRoleForEmail(email) ?? vl.user?.role)) {
+    const platformRole = email ? getRoleForEmail(email) ?? vl?.user?.role : null;
+    if (email && isSuperAdminRole(platformRole)) {
       const role =
         tenant.roles.find((r) => r.id === "super_admin") ||
         tenant.roles.find((r) => r.capabilities.includes("*"));
@@ -71,7 +72,7 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
         session: {
           slug,
           email,
-          name: vl.user?.name || "Platform Super Admin",
+          name: vl?.user?.name || "Platform Super Admin",
           roleId: role.id,
           memberId: "platform-super-admin",
           exp: Math.floor(Date.now() / 1000) + 3600,

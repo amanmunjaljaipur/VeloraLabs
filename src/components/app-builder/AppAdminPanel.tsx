@@ -138,14 +138,17 @@ export function AppAdminPanel({
     };
   }, [section, slug, content.products]);
 
-  const nav: Array<{ id: AppRoute; label: string; icon: typeof Package; staff?: boolean }> = [
+  const navAll: Array<{ id: AppRoute; label: string; icon: typeof Package; staff?: boolean }> = [
     { id: "admin", label: "Overview", icon: LayoutDashboard },
     { id: "admin-orders", label: "Orders", icon: ShoppingBag },
     { id: "admin-products", label: "Products", icon: Package, staff: false },
     { id: "admin-customers", label: "Team", icon: Users, staff: false },
     { id: "admin-roles", label: "Roles", icon: Shield, staff: false },
     { id: "admin-settings", label: "Settings", icon: Settings, staff: false },
-  ].filter((n) => !staffOnly || n.staff !== false || n.id === "admin" || n.id === "admin-orders");
+  ];
+  const nav = navAll.filter(
+    (n) => !staffOnly || n.staff !== false || n.id === "admin" || n.id === "admin-orders"
+  );
 
   async function saveProducts() {
     setMsg("");
