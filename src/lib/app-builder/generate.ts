@@ -196,6 +196,7 @@ export async function generateExtensionContent(input: {
           role: "system",
           content: `You build complete content for a LOCAL SHOP website for people who are NOT technical (like school students' parents, small shop owners).
 Use simple, warm language. Avoid jargon.
+Interview answers were designed by a product manager from the owner's idea — treat every Q&A as source of truth.
 Return ONLY valid JSON:
 {
   "brandName": string,

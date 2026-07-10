@@ -70,6 +70,11 @@ export function AppBuilderStudio() {
   const [prompt, setPrompt] = useState("");
   const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
   const [extensionId, setExtensionId] = useState("ecom-local-shop");
+  /** Designed per-prompt by product-manager AI — not a fixed list */
+  const [dynamicQuestions, setDynamicQuestions] = useState<InterviewQuestion[]>([]);
+  const [interviewRationale, setInterviewRationale] = useState("");
+  const [interviewDesignedBy, setInterviewDesignedBy] = useState("");
+  const [designingQuestions, setDesigningQuestions] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [questionIndex, setQuestionIndex] = useState(0);
   const [customDraft, setCustomDraft] = useState("");
@@ -89,7 +94,7 @@ export function AppBuilderStudio() {
     [extensions, extensionId]
   );
 
-  const questions = extension?.questions ?? [];
+  const questions = dynamicQuestions;
   const currentQ: InterviewQuestion | null = questions[questionIndex] ?? null;
   const progressPct =
     questions.length > 0 ? Math.round(((questionIndex + 1) / questions.length) * 100) : 0;
@@ -204,8 +209,7 @@ export function AppBuilderStudio() {
   }
 
   function buildAnswerList(): AppInterviewAnswer[] {
-    if (!extension) return [];
-    return extension.questions.map((q) => ({
+    return questions.map((q) => ({
       id: q.id,
       question: q.label,
       answer: answers[q.id]?.trim() || "",
@@ -218,6 +222,58 @@ export function AppBuilderStudio() {
       return "Please pick a suggestion or write your own answer — we need this to build your shop.";
     }
     return null;
+  }
+
+  /** Product-manager AI designs questions from this prompt (not a fixed checklist). */
+  async function designQuestionsFromPrompt(): Promise<boolean> {
+    if (!prompt.trim()) {
+      toast("First describe your idea in simple words.", "error");
+      return false;
+    }
+    setDesigningQuestions(true);
+    try {
+      const res = await fetch("/api/admin/app-builder/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          extensionId,
+          // Optional: if they already pasted a key, use it for PM design
+          apiKey: apiKey.trim() || undefined,
+          provider,
+          model,
+          baseUrl: provider === "custom" ? baseUrl : undefined,
+        }),
+      });
+      const data = (await res.json()) as {
+        questions?: InterviewQuestion[];
+        designedBy?: string;
+        rationale?: string;
+        error?: string;
+        note?: string;
+      };
+      if (!res.ok || !data.questions?.length) {
+        toast(data.error || "Could not design questions. Try again.", "error");
+        return false;
+      }
+      setDynamicQuestions(data.questions);
+      setInterviewDesignedBy(data.designedBy || "");
+      setInterviewRationale(data.rationale || data.note || "");
+      setAnswers({});
+      setQuestionIndex(0);
+      setCustomDraft("");
+      return true;
+    } catch {
+      toast("Could not design questions. Check your connection.", "error");
+      return false;
+    } finally {
+      setDesigningQuestions(false);
+    }
+  }
+
+  async function startGuidedFromIdea() {
+    const ok = await designQuestionsFromPrompt();
+    if (ok) setStep("guide");
   }
 
   function goNextQuestion() {
@@ -250,11 +306,16 @@ export function AppBuilderStudio() {
       return;
     }
     if (!extension) return;
-    for (const q of extension.questions) {
+    if (questions.length === 0) {
+      toast("We need to design questions from your idea first.", "error");
+      setStep("idea");
+      return;
+    }
+    for (const q of questions) {
       if (q.required && !answers[q.id]?.trim()) {
         toast(`Please answer: ${q.label}`, "error");
         setStep("guide");
-        setQuestionIndex(extension.questions.findIndex((x) => x.id === q.id));
+        setQuestionIndex(questions.findIndex((x) => x.id === q.id));
         return;
       }
     }
@@ -395,6 +456,9 @@ export function AppBuilderStudio() {
     setSelectedIdeaId(null);
     setCustomDraft("");
     setExtraDraft("");
+    setDynamicQuestions([]);
+    setInterviewRationale("");
+    setInterviewDesignedBy("");
   }
 
   if (loading) {
@@ -416,9 +480,9 @@ export function AppBuilderStudio() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">App Builder</h1>
             <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-              Build a real shop website even if you know nothing about technology. We ask simple
-              questions, you tap suggestions (or write your own), and we design logo colours from
-              your city.
+              Describe your idea once. A product manager (AI) invents simple questions for{" "}
+              <strong>that</strong> idea — with tap suggestions and room for your own words — then
+              builds a full shop with city-based logo colours.
             </p>
           </div>
         </div>
@@ -540,22 +604,32 @@ export function AppBuilderStudio() {
                 </p>
               ) : null}
 
+              <p className="text-xs text-text-secondary">
+                Next we ask a product manager (AI) to invent questions that fit{" "}
+                <strong>your</strong> idea — not the same list every time. Simple words only.
+              </p>
+
               <Button
                 type="button"
-                disabled={!prompt.trim()}
-                onClick={() => {
-                  setQuestionIndex(0);
-                  setStep("guide");
-                }}
+                disabled={!prompt.trim() || designingQuestions}
+                loading={designingQuestions}
+                onClick={() => void startGuidedFromIdea()}
               >
-                Start guided questions
+                {designingQuestions ? "Designing your questions…" : "Design questions for my idea"}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
           )}
 
           {/* STEP: GUIDED QUESTIONS (one at a time) */}
-          {step === "guide" && currentQ && (
+          {step === "guide" && designingQuestions ? (
+            <Card className="flex items-center justify-center gap-2 p-12 text-sm text-text-secondary">
+              <Loader2 className="h-5 w-5 animate-spin text-accent-teal" />
+              Product manager is writing questions for your idea…
+            </Card>
+          ) : null}
+
+          {step === "guide" && !designingQuestions && currentQ && (
             <Card className="space-y-5 p-5 md:p-6">
               <div className="flex items-center justify-between gap-2">
                 <button
@@ -570,6 +644,24 @@ export function AppBuilderStudio() {
                   Question {questionIndex + 1} of {questions.length}
                 </span>
               </div>
+
+              {(interviewRationale || interviewDesignedBy) && questionIndex === 0 ? (
+                <div className="rounded-xl border border-accent-teal/20 bg-accent-teal/5 px-3 py-2 text-xs text-text-secondary">
+                  <p className="font-semibold text-foreground">Questions made for your idea</p>
+                  {interviewRationale ? <p className="mt-1">{interviewRationale}</p> : null}
+                  {interviewDesignedBy ? (
+                    <p className="mt-1 text-text-muted">Source: {interviewDesignedBy}</p>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="mt-2 font-medium text-accent-teal underline"
+                    disabled={designingQuestions}
+                    onClick={() => void designQuestionsFromPrompt()}
+                  >
+                    Redesign questions from my idea
+                  </button>
+                </div>
+              ) : null}
 
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div

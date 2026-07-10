@@ -88,12 +88,18 @@ export async function POST(request: Request) {
   }
   if (!ext) return NextResponse.json({ error: "Unknown shop type" }, { status: 400 });
 
+  // Answers come from dynamic product-manager interview (not a fixed extension checklist)
   const answers = Array.isArray(body.answers) ? body.answers : [];
-  for (const q of ext.questions.filter((x) => x.required)) {
-    const a = answers.find((x) => x.id === q.id)?.answer?.trim();
-    if (!a) {
-      return NextResponse.json({ error: `Please answer: ${q.label}` }, { status: 400 });
-    }
+  const filled = answers.filter((a) => a.answer?.trim());
+  if (filled.length === 0) {
+    return NextResponse.json(
+      { error: "Please answer the guided questions for your idea first." },
+      { status: 400 }
+    );
+  }
+  const brandAnswer = answers.find((a) => a.id === "brandName")?.answer?.trim();
+  if (!brandAnswer) {
+    // Soft require: if PM used a different id, keep going with prompt-based name
   }
 
   const customPoints = Array.isArray(body.customPoints)
@@ -101,7 +107,9 @@ export async function POST(request: Request) {
     : [];
 
   const brand =
-    answers.find((a) => a.id === "brandName")?.answer?.trim() ||
+    brandAnswer ||
+    answers.find((a) => /brand|name|shop|title/i.test(a.id) || /name|call/i.test(a.question))
+      ?.answer?.trim() ||
     slugifyAppName(prompt).replace(/-/g, " ") ||
     "My Shop";
   const slug = await uniqueAppSlug(brand);

@@ -27,8 +27,8 @@ Read companion refs as needed:
 
 1. **One vertical first** — never “build anything.” Bound the extension (e.g. `ecom-local-shop`, later `booking-local`, `tuition-centre`).
 2. **Non-tech first** — Class 6–12 parents / local shop owners language. No “LLM”, “OAuth”, “Blob”, “deploy pipeline” in UI copy.
-3. **One prompt starts; interview finishes** — never generate from prompt alone.
-4. **Suggestions + own words** — every question: chips to tap + “add your own.”
+3. **One prompt starts; interview is designed from that prompt** — never a fixed question list every time. Call `/api/admin/app-builder/interview` (Grok as product manager) via `designInterviewQuestions`. Fallback only if no LLM key.
+4. **Suggestions + own words** — every question: chips to tap + "add your own." Language: Class-8 English, no tech jargon.
 5. **Platform hosts by default** — live at `/apps/{slug}` on Verlin Labs. No user Vercel/Google Cloud. Optional static export folder for self-host.
 6. **Request-only AI keys** — never store user API keys; provider + model name only.
 7. **Standalone app chrome** — generated apps hide Verlin navbar, footer, platform admin, chatbot.
@@ -65,10 +65,10 @@ Audience clarity  →  Offer clarity  →  Sitemap/journeys  →  Opinionated st
 
 ```
 1. Idea cards + plain prompt
-2. Guided questions (one-at-a-time, chips + custom)
-3. Owner free-form “extra points”
-4. User AI helper key (Grok / Groq / custom) — not stored
-5. Generate content (LLM → template fallback)
+2. PM AI designs 7–10 questions from THIS prompt (not fixed bank)
+3. User answers one-at-a-time (chips + custom)
+4. Owner free-form extra points
+5. User AI helper key (Grok / Groq / custom) — not stored — generate site
 6. Persist project (await Blob) + init tenant (roles/members)
 7. Package generated-apps/{slug}/ for self-host
 8. Live at /apps/{slug} as standalone shell
