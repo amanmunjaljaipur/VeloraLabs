@@ -15,7 +15,7 @@ export const CATEGORIES: DemoCategoryDef[] = [
     groupLabel: G.ecommerce,
     tagline: "Shop with clarity — fair prices, honest returns",
     description:
-      "Original multi-sided marketplace product (Horizon Market): premium Verlin UI with full commerce jobs — search, category browse, product detail, bag, checkout, order tracking, returns, saved items, addresses, help, seller hub (listings, inventory, fulfilment), and ops desk. Not a third-party brand clone.",
+      "Dual-portal marketplace: Shopper storefront (browse, bag, checkout, track, returns) is separate from Seller Hub (dashboard KPIs, add product, catalog, inventory/pricing, fulfilment queue Placed→Delivered, returns desk, payments & P&L with fees/COGS/net, performance). Ops desk for trust & safety. Switch role to enter the right portal.",
     examples: ["Amazon", "Flipkart", "eBay", "Shopify markets"],
     productKind: "ecommerce",
     brandName: "Horizon Market",
