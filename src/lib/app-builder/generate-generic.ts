@@ -238,9 +238,26 @@ async function generatePageBatch(params: {
 Write ONLY the pages listed below — do not add or skip any.
 For banking/fintech authenticated pages (dashboard, transfer, cards, statements, profile): describe a realistic mocked demo screen — actual balances, sample transaction rows, named quick actions — not vague marketing copy.
 For insurance authenticated pages (quote, claims): describe the real step-by-step flow with sample numbers.
-Class-8 English. No fake licence/registration numbers. bodyHtml may ONLY use <p>/<ul>/<li>/<strong>/<em> tags.
+Class-8 English. No fake licence/registration numbers.
+
+You are encouraged to write interactive UI elements styled with Tailwind classes (e.g. rounded-xl, shadow, p-4, border, bg-card, text-primary, bg-primary, etc.) in the bodyHtml, such as:
+1. Buttons & Links with Actions:
+   - Page Navigation: <button data-action="navigate" data-target="[page-path]" class="...">Navigate</button>
+   - Quick Send (mutates checking balance): <button data-action="quick-send" data-recipient="John" data-amount="500" class="...">Send ₹500 to John</button>
+   - Card Lock Toggle: <button data-action="toggle-card" class="...">Lock/Unlock Card</button>
+2. Forms with Actions:
+   - Money Transfer Form: <form data-action="transfer-form" class="space-y-4"> containing inputs like <input name="recipient" type="text" class="...">, <input name="amount" type="number" class="...">, and a submit button.
+3. State placeholders that are dynamically replaced:
+   - {{balanceChecking}} (renders checking balance, e.g. ₹12,500.50)
+   - {{balanceSavings}} (renders savings balance, e.g. ₹45,000.00)
+   - {{userName}} (user's name)
+   - {{userEmail}} (user's email)
+   - {{userPhone}} (user's phone number)
+   - {{cardStatus}} (Active or Locked)
+   - {{transactionsList}} (HTML list of recent transactions)
+
 Return ONLY JSON: {"pages":[{"path":"...","id":"...","title":"...","headline":"...","bodyHtml":"...","ctaLabel":"..."}]}
-Every bodyHtml must be substantive: 3-6 sentences or a short list, not a one-liner.`,
+Every bodyHtml must be substantive: 3-6 sentences, a styled card layout, or a form, not a one-liner.`,
       },
       {
         role: "user",

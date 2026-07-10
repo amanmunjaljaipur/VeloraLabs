@@ -9,6 +9,7 @@ import type { ProductPlan } from "@/lib/app-builder/product-plan-types";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import { resolveAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
 import type { AppInterviewAnswer, AppLlmSecrets } from "@/lib/app-builder/types";
+import { ensureVerticalResearched } from "@/lib/app-builder/vertical-research";
 
 function answerMap(answers: AppInterviewAnswer[]): Record<string, string> {
   return Object.fromEntries(answers.map((a) => [a.id, a.answer.trim()]).filter(([, v]) => v));
@@ -190,12 +191,39 @@ export async function researchProductPlan(input: {
     ? input.secrets
     : resolveAppBuilderSecrets();
 
+  // Call vertical research agent to scan and extract competitor/workflow insights via xAI Grok
+  let researchPackStr = "";
+  try {
+    const res = await ensureVerticalResearched({
+      verticalId: detected.extensionId,
+      label: detected.label,
+      ideaPrompt: prompt,
+    });
+    if (res?.pack) {
+      researchPackStr = `
+Based on Grok Vertical Research:
+- Reference Competitors/Leaders: ${JSON.stringify(res.pack.leaders)}
+- Visitor workflows: ${JSON.stringify(res.pack.visitorJobs)}
+- Owner workflows: ${JSON.stringify(res.pack.ownerJobs)}
+- Suggested public pages: ${JSON.stringify(res.pack.publicPages)}
+- Suggested admin menus: ${JSON.stringify(res.pack.adminMenus)}
+- Typical communication channels: ${JSON.stringify(res.pack.channels)}
+- Typical payment methods: ${JSON.stringify(res.pack.paymentNorms)}
+- Suggested user roles: ${JSON.stringify(res.pack.roles)}
+- Premium features: ${JSON.stringify(res.pack.premiumization)}
+- Strategic risks to mitigate: ${JSON.stringify(res.pack.risks)}
+`;
+    }
+  } catch (err) {
+    console.warn("Grok vertical research failed, using heuristic scaffold", err);
+  }
+
   if (!secrets) {
     return {
       plan: {
         ...base,
         researchSource: `${base.researchSource}+no-llm`,
-        summary: `${base.summary} (Plan from research scaffolds — approve to build.)`,
+        summary: `${base.summary} (Plan from research scaffolds — approve to build.)${researchPackStr ? `\n\nResearch insights applied:\n${researchPackStr}` : ""}`,
       },
       source: "scaffold",
     };
@@ -253,7 +281,8 @@ Class-8 English for summary and titles.`,
               pageCount: base.publicPages.length,
               moduleCount: base.modules.length,
             },
-            task: "Enrich or rewrite the plan so it is complete and ready for user approval before generation. Prefer more pages/modules over fewer.",
+            researchNotes: researchPackStr,
+            task: "Enrich or rewrite the plan so it is complete and ready for user approval before generation. Prefer more pages/modules over fewer. Use the researchNotes (roles, workflows, competitors, jobs) to structure the pages, roles, and modules properly.",
           }),
         },
       ],

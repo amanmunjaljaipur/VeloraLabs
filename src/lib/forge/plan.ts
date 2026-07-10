@@ -21,6 +21,7 @@ import type {
   ProductArchetype,
 } from "@/lib/forge/types";
 import { forgeAnswersToInterview } from "@/lib/forge/types";
+import { ensureVerticalResearched } from "@/lib/app-builder/vertical-research";
 
 const DEFAULT_STACK: ForgeTechStack = {
   frontend: "Next.js + React (hosted on Verlin Labs)",
@@ -356,6 +357,27 @@ export async function buildForgePlan(input: {
     ? input.secrets
     : resolveAppBuilderSecrets();
 
+  // Call vertical research agent to scan and extract competitor/workflow insights via xAI Grok
+  let researchPackStr = "";
+  try {
+    const res = await ensureVerticalResearched({
+      verticalId: classification.extensionId || "generic-app",
+      label: classification.domain || classification.archetype,
+      ideaPrompt: prompt,
+    });
+    if (res?.pack) {
+      researchPackStr = `
+Based on Grok Vertical Research:
+- Reference Competitors/Leaders: ${JSON.stringify(res.pack.leaders)}
+- Visitor workflows: ${JSON.stringify(res.pack.visitorJobs)}
+- Owner workflows: ${JSON.stringify(res.pack.ownerJobs)}
+- Suggested user roles: ${JSON.stringify(res.pack.roles)}
+`;
+    }
+  } catch (err) {
+    console.warn("buildForgePlan vertical research failed", err);
+  }
+
   if (secrets) {
     try {
       const raw = await callUserLlm({
@@ -388,7 +410,8 @@ Keep models practical for v1. Class-8 English.`,
               summary: productPlan.summary,
               features: productPlan.features,
               answers: interview,
-              task: "Enrich plan sections for roles, data models, features, integrations.",
+              researchNotes: researchPackStr,
+              task: "Enrich plan sections for roles, data models, features, integrations. Ensure roles and data models support the visitor/owner workflows and competitor lessons listed in researchNotes.",
             }),
           },
         ],

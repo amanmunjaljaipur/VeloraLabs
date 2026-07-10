@@ -51,7 +51,7 @@ export function sanitizeShopHtml(html: string, maxLen = 20_000): string {
   let s = String(html || "").slice(0, maxLen);
   s = s.replace(/<script\b[\s\S]*?<\/script>/gi, "");
   s = s.replace(/<style\b[\s\S]*?<\/style>/gi, "");
-  s = s.replace(/<\/?(?:iframe|object|embed|link|meta|base|form|input|button|textarea|select)\b[^>]*>/gi, "");
+  s = s.replace(/<\/?(?:iframe|object|embed|link|meta|base)\b[^>]*>/gi, "");
   s = s.replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
   s = s.replace(/javascript:/gi, "");
   s = s.replace(/vbscript:/gi, "");

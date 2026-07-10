@@ -50,6 +50,126 @@ export function GenericAppRuntime({
     setPageKey(next);
   }, [activePage, pathSegments]);
 
+  const [appState, setAppState] = useState(() => {
+    return {
+      balanceChecking: 12500.50,
+      balanceSavings: 45000.00,
+      transactions: [
+        { id: "tx1", date: "Today", description: "Verlin Coffee", amount: -150.00, status: "completed" },
+        { id: "tx2", date: "Yesterday", description: "Salary Deposit", amount: 3500.00, status: "completed" },
+        { id: "tx3", date: "08 Jul", description: "Electricity Bill", amount: -850.00, status: "completed" },
+      ],
+      userProfile: {
+        name: "Jane Doe",
+        email: "jane.doe@example.com",
+        phone: "+91 98765 43210"
+      },
+      currentCardStatus: "active",
+      alertMessage: null as string | null,
+      successMessage: null as string | null,
+    };
+  });
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    let target = e.target as HTMLElement | null;
+    while (target && target !== e.currentTarget) {
+      const action = target.getAttribute("data-action");
+      if (action) {
+        e.preventDefault();
+        
+        if (action === "navigate") {
+          const targetPage = target.getAttribute("data-target");
+          if (targetPage) go(targetPage);
+        } else if (action === "toggle-card") {
+          setAppState(prev => {
+            const nextStatus = prev.currentCardStatus === "active" ? "locked" : "active";
+            return {
+              ...prev,
+              currentCardStatus: nextStatus,
+              successMessage: `Card is now ${nextStatus === "active" ? "unlocked" : "locked"}!`,
+              alertMessage: null
+            };
+          });
+        } else if (action === "quick-send") {
+          const amount = parseFloat(target.getAttribute("data-amount") || "0");
+          const recipient = target.getAttribute("data-recipient") || "Friend";
+          if (appState.balanceChecking >= amount) {
+            setAppState(prev => ({
+              ...prev,
+              balanceChecking: prev.balanceChecking - amount,
+              transactions: [
+                {
+                  id: `tx_${Date.now()}`,
+                  date: "Today",
+                  description: `Transfer to ${recipient}`,
+                  amount: -amount,
+                  status: "completed"
+                },
+                ...prev.transactions
+              ],
+              successMessage: `Successfully sent ₹${amount.toLocaleString("en-IN")} to ${recipient}!`,
+              alertMessage: null
+            }));
+          } else {
+            setAppState(prev => ({
+              ...prev,
+              alertMessage: "Insufficient balance in checking account!",
+              successMessage: null
+            }));
+          }
+        }
+        break;
+      }
+      target = target.parentElement;
+    }
+  };
+
+  const handleContainerSubmit = (e: React.FormEvent<HTMLDivElement>) => {
+    const form = e.target as HTMLFormElement;
+    const action = form.getAttribute("data-action");
+    if (action) {
+      e.preventDefault();
+      
+      if (action === "transfer-form" || action === "submit-transfer") {
+        const formData = new FormData(form);
+        const amountStr = formData.get("amount") as string;
+        const recipient = (formData.get("recipient") as string) || "External Account";
+        const amount = parseFloat(amountStr);
+        
+        if (isNaN(amount) || amount <= 0) {
+          setAppState(prev => ({ ...prev, alertMessage: "Please enter a valid amount!", successMessage: null }));
+          return;
+        }
+        
+        if (appState.balanceChecking < amount) {
+          setAppState(prev => ({ ...prev, alertMessage: "Insufficient funds in checking account!", successMessage: null }));
+          return;
+        }
+        
+        setAppState(prev => ({
+          ...prev,
+          balanceChecking: prev.balanceChecking - amount,
+          transactions: [
+            {
+              id: `tx_${Date.now()}`,
+              date: "Today",
+              description: `Transfer to ${recipient}`,
+              amount: -amount,
+              status: "completed"
+            },
+            ...prev.transactions
+          ],
+          successMessage: `Successfully sent ₹${amount.toLocaleString("en-IN")} to ${recipient}!`,
+          alertMessage: null
+        }));
+        
+        form.reset();
+        const dashboardPage = content.pages.find(p => p.path === "dashboard" || p.path === "home" || p.path === "app")?.path || "home";
+        go(dashboardPage);
+      }
+    }
+  };
+
   const theme = useMemo(
     () =>
       resolveShopTheme({
@@ -102,6 +222,44 @@ export function GenericAppRuntime({
   }
 
   const isHome = pageKey === "home" || !page || page.path === "home";
+
+  // Interpolate state variables in page bodyHtml
+  const renderedBodyHtml = useMemo(() => {
+    if (!page || !page.bodyHtml) return "";
+    let s = page.bodyHtml;
+
+    s = s
+      .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+      .replace(/\son\w+\s*=/gi, " data-x=");
+
+    s = s
+      .replace(/\{\{balanceChecking\}\}/g, `₹${appState.balanceChecking.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`)
+      .replace(/\{\{balanceSavings\}\}/g, `₹${appState.balanceSavings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`)
+      .replace(/\{\{userName\}\}/g, appState.userProfile.name)
+      .replace(/\{\{userEmail\}\}/g, appState.userProfile.email)
+      .replace(/\{\{userPhone\}\}/g, appState.userProfile.phone)
+      .replace(/\{\{cardStatus\}\}/g, appState.currentCardStatus === "active" ? "Active" : "Locked");
+
+    if (s.includes("{{transactionsList}}")) {
+      const txHtml = appState.transactions
+        .map(
+          (tx) => `
+        <div class="flex items-center justify-between py-2.5 border-b border-border last:border-0 text-sm">
+          <div>
+            <p class="font-semibold text-foreground">${tx.description}</p>
+            <p class="text-xs text-muted-foreground">${tx.date}</p>
+          </div>
+          <span class="font-bold ${tx.amount < 0 ? "text-red-500" : "text-emerald-500"}">
+            ${tx.amount < 0 ? "-" : "+"}${Math.abs(tx.amount).toLocaleString("en-IN", { style: "currency", currency: "INR" })}
+          </span>
+        </div>`
+        )
+        .join("");
+      s = s.replace(/\{\{transactionsList\}\}/g, `<div class="divide-y divide-border">${txHtml}</div>`);
+    }
+
+    return s;
+  }, [page, appState]);
 
   return (
     <div
@@ -301,6 +459,32 @@ export function GenericAppRuntime({
             {page.headline || page.title}
           </h1>
 
+          {/* Dynamic Interactive Banners */}
+          {appState.successMessage && (
+            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900/50 dark:text-emerald-400 rounded-xl text-sm flex items-center justify-between shadow-xs">
+              <span>{appState.successMessage}</span>
+              <button 
+                type="button"
+                onClick={() => setAppState(prev => ({ ...prev, successMessage: null }))}
+                className="text-emerald-600 hover:text-emerald-800 font-bold ml-2 text-base leading-none"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          {appState.alertMessage && (
+            <div className="mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/20 dark:border-rose-900/50 dark:text-rose-400 rounded-xl text-sm flex items-center justify-between shadow-xs">
+              <span>{appState.alertMessage}</span>
+              <button 
+                type="button"
+                onClick={() => setAppState(prev => ({ ...prev, alertMessage: null }))}
+                className="text-rose-600 hover:text-rose-800 font-bold ml-2 text-base leading-none"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {bankingModule ? (
             <div className="mt-6">
               {bankingModule === "dashboard" ? (
@@ -319,11 +503,11 @@ export function GenericAppRuntime({
             </div>
           ) : (
             <div
+              onClick={handleContainerClick}
+              onSubmit={handleContainerSubmit}
               className="prose prose-sm mt-6 max-w-none text-text-secondary dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: (page.bodyHtml || "")
-                  .replace(/<script\b[\s\S]*?<\/script>/gi, "")
-                  .replace(/\son\w+\s*=/gi, " data-x="),
+                __html: renderedBodyHtml,
               }}
             />
           )}
