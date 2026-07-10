@@ -174,9 +174,21 @@ When implementing in this repo:
 - [ ] Required interview answers present  
 - [ ] Contact path exists (phone/WhatsApp/email)  
 - [ ] At least N real offer items (products/services)  
+- [ ] **Logo choice**: owner upload URL **or** generated mark (`logoPreference`)  
+- [ ] **Visuals**: hero image + product images (never emoji-only storefront)  
 - [ ] Owner email known for tenancy  
 - [ ] Draft stays noindex; live has title/description  
 - [ ] Navigation works client-side without losing data  
+
+### H. Visuals (non-negotiable for local shop apps)
+
+Verlin public pages use real photography. Generated apps must not look empty:
+
+1. Ask logo preference in interview (`logoPreference` + optional URL).  
+2. If owner pastes `https://…` → use as logo.  
+3. Else generate logo + hero + product images from brand/city/product names (`src/lib/app-builder/images.ts`).  
+4. UI: hero photo, product cards with images, about photo, gallery strip.  
+5. Fallback to monogram/emoji only if image URL fails to load.  
 
 ---
 

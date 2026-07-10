@@ -33,21 +33,41 @@ function ShopLogoMark({
   brandName: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const dim = size === "lg" ? "h-20 w-20 text-2xl" : size === "sm" ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm";
+  const dim =
+    size === "lg" ? "h-20 w-20 text-2xl" : size === "sm" ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm";
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = Boolean(logo.imageUrl) && !imgFailed;
+
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-2xl font-bold text-white shadow-md",
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl font-bold text-white shadow-md",
         dim
       )}
-      style={{ background: `linear-gradient(145deg, ${logo.bgFrom}, ${logo.bgTo})` }}
-      title={`${brandName} · ${logo.motif}`}
+      style={
+        showImg
+          ? undefined
+          : { background: `linear-gradient(145deg, ${logo.bgFrom}, ${logo.bgTo})` }
+      }
+      title={`${brandName} · ${logo.mode === "upload" ? "Your logo" : logo.motif}`}
       aria-label={`${brandName} logo`}
     >
-      <span className="absolute -right-1 -top-1 text-base drop-shadow" aria-hidden>
-        {logo.emoji}
-      </span>
-      <span className="tracking-tight">{logo.initials}</span>
+      {showImg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logo.imageUrl}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <>
+          <span className="absolute -right-1 -top-1 text-base drop-shadow" aria-hidden>
+            {logo.emoji}
+          </span>
+          <span className="tracking-tight">{logo.initials}</span>
+        </>
+      )}
     </div>
   );
 }
@@ -202,31 +222,33 @@ export function EcomLocalShopApp({
 
       {page === "home" && (
         <>
-          <section
-            className="relative overflow-hidden border-b border-border px-4 py-14 text-white md:py-20"
-            style={{
-              background: `linear-gradient(135deg, ${logo.bgFrom}, ${logo.bgTo})`,
-            }}
-          >
+          <section className="relative overflow-hidden border-b border-border text-white">
+            {content.heroImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={content.heroImageUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
             <div
-              className="pointer-events-none absolute inset-0 opacity-[0.12]"
+              className="absolute inset-0"
               style={{
-                backgroundImage: `radial-gradient(circle at 20% 30%, white 0 2px, transparent 3px),
-                  radial-gradient(circle at 80% 70%, white 0 1.5px, transparent 2px)`,
-                backgroundSize: "48px 48px",
+                background: content.heroImageUrl
+                  ? `linear-gradient(120deg, ${logo.bgFrom}ee 0%, ${logo.bgTo}99 55%, transparent 100%)`
+                  : `linear-gradient(135deg, ${logo.bgFrom}, ${logo.bgTo})`,
               }}
-              aria-hidden
             />
-            <div className="relative mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div className="relative mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14 md:flex-row md:items-center md:justify-between md:py-20">
               <div className="max-w-xl">
-                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/90">
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/90 backdrop-blur">
                   <span aria-hidden>{logo.emoji}</span>
                   {logo.badge || content.city}
                 </p>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">
+                <h1 className="mt-4 text-3xl font-bold tracking-tight drop-shadow md:text-5xl">
                   {content.heroHeadline}
                 </h1>
-                <p className="mt-4 text-base text-white/90 md:text-lg">{content.heroSubheadline}</p>
+                <p className="mt-4 text-base text-white/95 md:text-lg">{content.heroSubheadline}</p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <button
                     type="button"
@@ -250,13 +272,34 @@ export function EcomLocalShopApp({
                 </div>
               </div>
               <div className="flex flex-col items-center gap-3 self-center">
-                <ShopLogoMark logo={logo} brandName={content.brandName} size="lg" />
-                <p className="max-w-[12rem] text-center text-xs text-white/80">
-                  Logo colours inspired by {content.city}
+                <div className="rounded-3xl bg-white/10 p-3 shadow-xl backdrop-blur">
+                  <ShopLogoMark logo={logo} brandName={content.brandName} size="lg" />
+                </div>
+                <p className="max-w-[12rem] text-center text-xs text-white/90">
+                  {logo.mode === "upload"
+                    ? "Your logo"
+                    : `Logo designed for ${content.city}`}
                 </p>
               </div>
             </div>
           </section>
+
+          {content.galleryImageUrls && content.galleryImageUrls.length > 0 ? (
+            <section className="border-b border-border bg-muted/20">
+              <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 px-4 py-4 sm:grid-cols-4">
+                {content.galleryImageUrls.slice(0, 4).map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="aspect-[4/3] w-full rounded-xl object-cover shadow-sm"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {(content.trustBadges?.length || content.orderMethods?.length) && (
             <section className="border-b border-border bg-muted/30">
@@ -390,6 +433,15 @@ export function EcomLocalShopApp({
               <p className="text-sm text-text-muted">{logo.badge}</p>
             </div>
           </div>
+          {content.aboutImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={content.aboutImageUrl}
+              alt=""
+              className="mb-6 aspect-[16/9] w-full rounded-2xl object-cover shadow"
+              loading="lazy"
+            />
+          ) : null}
           <div
             className="prose prose-sm max-w-none text-text-secondary dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: content.aboutHtml }}
@@ -525,15 +577,34 @@ function ProductCard({
   logo: ShopLogo;
   onOrder?: () => void;
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = Boolean(product.image) && !imgFailed;
+
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div
-        className="relative flex h-40 flex-col items-center justify-center gap-1 text-white"
-        style={{ background: `linear-gradient(145deg, ${logo.bgFrom}dd, ${logo.bgTo})` }}
-        aria-hidden
+        className="relative flex h-44 flex-col items-center justify-center gap-1 overflow-hidden text-white"
+        style={
+          showImg
+            ? undefined
+            : { background: `linear-gradient(145deg, ${logo.bgFrom}dd, ${logo.bgTo})` }
+        }
       >
-        <span className="text-5xl drop-shadow-sm">{product.emoji || "🛍️"}</span>
-        <span className="rounded-full bg-black/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+        {showImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image}
+            alt={product.name}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <span className="text-5xl drop-shadow-sm" aria-hidden>
+            {product.emoji || "🛍️"}
+          </span>
+        )}
+        <span className="absolute bottom-2 left-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide backdrop-blur">
           {product.category}
         </span>
       </div>

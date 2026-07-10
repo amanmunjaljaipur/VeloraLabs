@@ -25,7 +25,7 @@ export interface DesignInterviewResult {
   rationale?: string;
 }
 
-const CORE_IDS = ["brandName", "city", "contact"] as const;
+const CORE_IDS = ["brandName", "city", "contact", "logoPreference"] as const;
 
 function normalizeId(raw: string, index: number): string {
   const cleaned = raw
@@ -91,10 +91,27 @@ function ensureCoreQuestions(
   const byId = new Map(questions.map((q) => [q.id, q]));
   const base = getExtension(extensionId)?.questions || [];
 
+  const LOGO_Q: InterviewQuestion = {
+    id: "logoPreference",
+    label: "Do you already have a logo, or should we design one for you?",
+    helpText:
+      "If you have a logo, paste its web link (from Google Drive, Imgur, etc.). Or tap “Please design a logo for me”.",
+    required: true,
+    selectMode: "single",
+    suggestions: [
+      "Please design a logo for me",
+      "I will paste my logo link below",
+      "Use my shop name as a simple logo for now",
+    ],
+    allowCustom: true,
+    placeholder: "Or paste https://… link to your logo image",
+  };
+
   for (const coreId of CORE_IDS) {
     if (!byId.has(coreId)) {
       const fromBase = base.find((q) => q.id === coreId);
       if (fromBase) byId.set(coreId, fromBase);
+      else if (coreId === "logoPreference") byId.set(coreId, LOGO_Q);
     }
   }
 
@@ -181,6 +198,23 @@ export function fallbackInterviewQuestions(
     });
   }
 
+  if (!base.some((q) => q.id === "logoPreference") && !extras.some((q) => q.id === "logoPreference")) {
+    extras.push({
+      id: "logoPreference",
+      label: "Do you already have a logo, or should we design one for you?",
+      helpText: "Paste a logo link, or ask us to design one that matches your city and products.",
+      required: true,
+      selectMode: "single",
+      suggestions: [
+        "Please design a logo for me",
+        "I will paste my logo link below",
+        "Use my shop name as a simple logo for now",
+      ],
+      allowCustom: true,
+      placeholder: "https://… logo image link",
+    });
+  }
+
   // Merge base + extras, unique ids
   const seen = new Set<string>();
   const merged: InterviewQuestion[] = [];
@@ -203,9 +237,11 @@ Rules for every question:
 - 7 to 10 questions total. Not more than 12.
 - Mix selectMode: "single" | "multi" | "free".
 - required: true only for name, place, contact, and the main offer.
-- MUST include questions with ids: brandName, city, contact (use exactly those ids).
+- MUST include questions with ids: brandName, city, contact, logoPreference (use exactly those ids).
+- logoPreference: ask if they want US to design a logo OR they will share a logo link. Suggestions must include "Please design a logo for me" and a paste-link option.
 - Tailor EVERY question and suggestion chip to the user's product idea (prompt). Do not use a generic fixed list.
 - Suggestions must feel local and practical (WhatsApp, UPI, neighbourhood, festivals when relevant).
+- Ask about products/services in a way that helps us create matching photos later (concrete names).
 - helpText is a friendly coach line (1 sentence).
 
 Return ONLY valid JSON:

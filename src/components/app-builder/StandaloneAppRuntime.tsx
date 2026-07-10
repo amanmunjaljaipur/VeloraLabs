@@ -183,14 +183,23 @@ export function StandaloneAppRuntime({
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white"
-              style={{
-                background: `linear-gradient(145deg, ${content.logo?.bgFrom || accent}, ${content.logo?.bgTo || "#0a1628"})`,
-              }}
-            >
-              {content.logo?.initials || content.brandName.slice(0, 2).toUpperCase()}
-            </span>
+            {content.logo?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={content.logo.imageUrl}
+                alt=""
+                className="h-9 w-9 rounded-xl object-cover shadow"
+              />
+            ) : (
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold text-white"
+                style={{
+                  background: `linear-gradient(145deg, ${content.logo?.bgFrom || accent}, ${content.logo?.bgTo || "#0a1628"})`,
+                }}
+              >
+                {content.logo?.initials || content.brandName.slice(0, 2).toUpperCase()}
+              </span>
+            )}
             <span>
               <span className="block text-sm font-semibold" style={{ color: accent }}>
                 {content.brandName}

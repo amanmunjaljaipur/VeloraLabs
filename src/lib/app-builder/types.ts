@@ -23,8 +23,9 @@ export interface EcomProduct {
   description: string;
   price: string;
   category: string;
+  /** Full product photo URL (AI-generated or owner-provided) */
   image?: string;
-  /** Visual emoji / icon for the product card when no photo */
+  /** Visual emoji / icon fallback when image fails */
   emoji?: string;
   featured?: boolean;
 }
@@ -37,6 +38,10 @@ export interface ShopLogo {
   bgTo: string;
   /** Short tag under logo, e.g. "Jaipur · Crafts" */
   badge: string;
+  /** generate = we designed it; upload = owner shared a link */
+  mode?: "generate" | "upload";
+  /** Logo image URL (AI mark or owner's file host link) */
+  imageUrl?: string;
 }
 
 export interface EcomLocalShopContent {
@@ -61,10 +66,16 @@ export interface EcomLocalShopContent {
   faqs: Array<{ question: string; answer: string }>;
   ctaLabel: string;
   footerNote: string;
-  /** Location-aware brand mark */
+  /** Location-aware brand mark (+ optional image) */
   logo: ShopLogo;
   /** Hero visual theme key (desert, metro, coastal, …) */
   heroTheme: string;
+  /** Full-bleed hero photograph */
+  heroImageUrl?: string;
+  /** About-page atmosphere photo */
+  aboutImageUrl?: string;
+  /** Extra gallery images for home strip */
+  galleryImageUrls?: string[];
   openingHours?: string;
   orderMethods: string[];
   paymentMethods: string[];

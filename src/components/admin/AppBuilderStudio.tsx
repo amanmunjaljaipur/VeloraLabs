@@ -840,6 +840,37 @@ export function AppBuilderStudio() {
                 shop as “Why shop with us”. No tech words needed.
               </p>
 
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+                <p className="text-sm font-semibold text-foreground">Logo & pictures</p>
+                <p className="text-xs text-text-secondary">
+                  We already asked about your logo. If you want to add or change a logo link here,
+                  paste it — otherwise we design a logo and product photos from your idea and city.
+                </p>
+                <input
+                  value={answers.logoUrl || answers.logoPreference?.match(/https?:\/\/\S+/i)?.[0] || ""}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    setAnswer("logoUrl", v);
+                    if (v) setAnswer("logoPreference", v.startsWith("http") ? v : answers.logoPreference || "I will paste my logo link below");
+                  }}
+                  placeholder="Optional: https://… link to your logo image"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                />
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    className="rounded-full border border-border px-3 py-1 text-xs font-medium hover:border-accent-teal"
+                    onClick={() => {
+                      setAnswer("logoPreference", "Please design a logo for me");
+                      setAnswer("logoUrl", "");
+                      toast("We will design a logo for your shop", "success");
+                    }}
+                  >
+                    Design logo for me
+                  </button>
+                </div>
+              </div>
+
               <div className="flex flex-wrap gap-2">
                 {[
                   "We pack gifts carefully",

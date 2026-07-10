@@ -1,5 +1,12 @@
 import { buildShopLogo, getLocationBrand, productEmoji } from "@/lib/app-builder/branding";
 import { getExtension } from "@/lib/app-builder/extensions";
+import {
+  aboutImageUrl,
+  applyLogoImage,
+  enrichProductImages,
+  heroImageUrl,
+  resolveLogoChoice,
+} from "@/lib/app-builder/images";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import type {
   AppInterviewAnswer,
@@ -14,11 +21,12 @@ function answerMap(answers: AppInterviewAnswer[]): Record<string, string> {
 }
 
 function splitList(value?: string): string[] {
-  if (!value?.trim()) return [];
   return value
-    .split(/[,;\n|]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+    ? value
+        .split(/[,;\n|]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 }
 
 function extractPhone(contact: string): string {
@@ -29,16 +37,14 @@ function extractEmail(contact: string): string {
   return contact.match(/[\w.+-]+@[\w.-]+\.\w+/)?.[0] || "";
 }
 
-function enrichProducts(
-  products: EcomProduct[],
-  city: string
-): EcomProduct[] {
+function enrichProducts(products: EcomProduct[], city: string, brandName: string): EcomProduct[] {
   const loc = getLocationBrand(city);
-  return products.map((p, i) => ({
+  const withEmoji = products.map((p, i) => ({
     ...p,
     id: p.id || `p${i + 1}`,
     emoji: p.emoji || productEmoji(p.name, p.category, loc, i),
   }));
+  return enrichProductImages(withEmoji, { brandName, city });
 }
 
 function makeLogo(brandName: string, city: string): ShopLogo {
@@ -53,38 +59,86 @@ function makeLogo(brandName: string, city: string): ShopLogo {
   };
 }
 
+function withVisuals(
+  content: EcomLocalShopContent,
+  answers: AppInterviewAnswer[],
+  prompt: string
+): EcomLocalShopContent {
+  const a = answerMap(answers);
+  const choice = resolveLogoChoice(a);
+  const logo = applyLogoImage(
+    content.logo || makeLogo(content.brandName, content.city),
+    choice,
+    content.brandName,
+    content.city
+  );
+  const sell =
+    a.whatYouSell || a.servicesDetail || content.description || prompt.slice(0, 100);
+  const vibe = a.vibe || a.tone || content.tagline;
+
+  const products = enrichProducts(content.products, content.city, content.brandName);
+  const gallery = products
+    .slice(0, 4)
+    .map((p) => p.image)
+    .filter((u): u is string => Boolean(u));
+
+  return {
+    ...content,
+    logo,
+    products,
+    heroImageUrl:
+      content.heroImageUrl ||
+      heroImageUrl({
+        brandName: content.brandName,
+        city: content.city,
+        whatYouSell: sell,
+        vibe,
+      }),
+    aboutImageUrl:
+      content.aboutImageUrl ||
+      aboutImageUrl({ brandName: content.brandName, city: content.city }),
+    galleryImageUrls: content.galleryImageUrls?.length ? content.galleryImageUrls : gallery,
+  };
+}
+
 function fallbackEcom(
   answers: AppInterviewAnswer[],
-  customPoints: string[] = []
+  customPoints: string[] = [],
+  prompt = ""
 ): EcomLocalShopContent {
   const a = answerMap(answers);
   const brand = a.brandName || "Local Shop";
   const city = a.city || "Your city";
   const locBrand = buildShopLogo(brand, city);
-  const orderMethods = splitList(a.howToOrder);
-  const shopTypes = splitList(a.shopType);
-  const vibe = splitList(a.vibe);
+  const orderMethods = splitList(a.howToOrder || a.howToReach || a.bookingChannel);
+  const shopTypes = splitList(a.shopType || a.serviceType);
+  const vibe = splitList(a.vibe || a.tone);
   const mustHave = splitList(a.mustHave);
   const ownerHighlights = [
     ...mustHave,
     ...customPoints.map((p) => p.trim()).filter(Boolean),
   ].slice(0, 12);
 
-  const sellLines = (a.whatYouSell || "")
+  const sellLines = (a.whatYouSell || a.servicesDetail || "")
     .split(/[\n·•]+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const products: EcomProduct[] = (sellLines.length > 0 ? sellLines : ["Signature product", "Everyday pick", "Gift set"])
+  const products: EcomProduct[] = (
+    sellLines.length > 0 ? sellLines : ["Signature product", "Everyday pick", "Gift set"]
+  )
     .slice(0, 8)
     .map((line, i) => {
       const priceMatch = line.match(/₹\s*[\d,]+|Rs\.?\s*[\d,]+|INR\s*[\d,]+/i);
-      const name = line.replace(/[-–—:]?\s*(₹|Rs\.?|INR).*$/i, "").trim() || `Product ${i + 1}`;
+      const name =
+        line.replace(/[-–—:]?\s*(₹|Rs\.?|INR).*$/i, "").trim() || `Product ${i + 1}`;
       return {
         id: `p${i + 1}`,
         name: name.slice(0, 80),
         description: line,
-        price: priceMatch?.[0]?.replace(/\s+/g, "") || (i === 0 ? "₹499" : i === 1 ? "₹299" : "₹799"),
+        price:
+          priceMatch?.[0]?.replace(/\s+/g, "") ||
+          (i === 0 ? "₹499" : i === 1 ? "₹299" : "₹799"),
         category: shopTypes[0] || "Bestsellers",
         featured: i < 2,
       };
@@ -93,13 +147,15 @@ function fallbackEcom(
   const phone = extractPhone(a.contact || "");
   const email = extractEmail(a.contact || "") || "hello@example.com";
 
-  return {
+  const base: EcomLocalShopContent = {
     extensionId: "ecom-local-shop",
     brandName: brand,
     tagline: `Local picks from ${city}`,
     description:
       a.whatYouSell ||
-      `${brand} is a friendly local shop in ${city}${shopTypes.length ? ` for ${shopTypes.join(", ")}` : ""}.`,
+      `${brand} is a friendly local shop in ${city}${
+        shopTypes.length ? ` for ${shopTypes.join(", ")}` : ""
+      }.`,
     primaryColor: locBrand.primaryColor,
     secondaryColor: locBrand.secondaryColor,
     city,
@@ -110,29 +166,38 @@ function fallbackEcom(
     address: a.contact || city,
     heroHeadline: `Welcome to ${brand}`,
     heroSubheadline: a.audience
-      ? `Made for ${splitList(a.audience).slice(0, 2).join(" & ") || a.audience}. ${vibe[0] || "Warm and trustworthy."}`
+      ? `Made for ${splitList(a.audience).slice(0, 2).join(" & ") || a.audience}. ${
+          vibe[0] || "Warm and trustworthy."
+        }`
       : `Quality from ${locBrand.landmarkHint}.`,
-    aboutHtml: `<p>${brand} is a local shop serving ${city}. ${a.whatYouSell || ""}</p><p>${ownerHighlights.join(" · ") || "We focus on quality, fair prices, and friendly service."}</p>`,
-    products: enrichProducts(products, city),
+    aboutHtml: `<p>${brand} is a local shop serving ${city}. ${
+      a.whatYouSell || ""
+    }</p><p>${
+      ownerHighlights.join(" · ") || "We focus on quality, fair prices, and friendly service."
+    }</p>`,
+    products: enrichProducts(products, city, brand),
     categories: [...new Set(products.map((p) => p.category))],
     faqs: [
       {
         question: "How do I place an order?",
         answer: orderMethods.length
-          ? `You can order via: ${orderMethods.join(", ")}. We will confirm everything with you personally.`
+          ? `You can order via: ${orderMethods.join(
+              ", "
+            )}. We will confirm everything with you personally.`
           : "Message us on WhatsApp or call — we will help you step by step.",
       },
       {
         question: "Do you deliver?",
-        answer:
-          orderMethods.some((m) => /deliver/i.test(m))
-            ? "Yes — we deliver in our local area. Ask us for details."
-            : "Pickup at the shop is available. Message us if you need delivery nearby.",
+        answer: orderMethods.some((m) => /deliver/i.test(m))
+          ? "Yes — we deliver in our local area. Ask us for details."
+          : "Pickup at the shop is available. Message us if you need delivery nearby.",
       },
       {
         question: "How do I pay?",
         answer: orderMethods.some((m) => /upi|cash|pay/i.test(m))
-          ? `Payment options include: ${orderMethods.filter((m) => /upi|cash|pay|cod/i.test(m)).join(", ") || "UPI or cash"}.`
+          ? `Payment options include: ${
+              orderMethods.filter((m) => /upi|cash|pay|cod/i.test(m)).join(", ") || "UPI or cash"
+            }.`
           : "UPI and cash are usually fine — we will confirm when you order.",
       },
     ],
@@ -145,7 +210,8 @@ function fallbackEcom(
     paymentMethods: orderMethods.filter((m) => /upi|cash|card|pay/i.test(m)).length
       ? orderMethods.filter((m) => /upi|cash|card|pay/i.test(m))
       : ["UPI", "Cash"],
-    deliveryNote: orderMethods.find((m) => /deliver|pickup/i.test(m)) || "Ask us about pickup or delivery",
+    deliveryNote:
+      orderMethods.find((m) => /deliver|pickup/i.test(m)) || "Ask us about pickup or delivery",
     trustBadges: [
       "Local shop",
       vibe.includes("Trustworthy family business") ? "Family-run" : "Friendly service",
@@ -156,16 +222,21 @@ function fallbackEcom(
       ? "We are happy to chat in simple Hindi or English."
       : undefined,
   };
+
+  return withVisuals(base, answers, prompt);
 }
 
-type LlmShopShape = Omit<EcomLocalShopContent, "extensionId" | "logo" | "heroTheme" | "secondaryColor"> & {
+type LlmShopShape = Omit<
+  EcomLocalShopContent,
+  "extensionId" | "logo" | "heroTheme" | "secondaryColor" | "heroImageUrl" | "aboutImageUrl"
+> & {
   secondaryColor?: string;
   logoEmoji?: string;
 };
 
 /**
  * Generate extension content with the user's LLM, falling back to a solid template.
- * Always applies location-based logo + product emojis.
+ * Always applies location-based logo, product photos, and hero imagery.
  */
 export async function generateExtensionContent(input: {
   extensionId: string;
@@ -228,9 +299,11 @@ Return ONLY valid JSON:
 }
 Rules:
 - 5-10 products with realistic INR prices if India
+- Concrete product names so we can generate matching photos later
 - FAQs in simple words (how to order, pay, deliver)
 - Reflect every interview answer and owner points
-- No fake claims`,
+- No fake claims
+- Do NOT invent image URLs — the system adds photos and logo after`,
         },
         {
           role: "user",
@@ -249,56 +322,69 @@ Rules:
     const logo = makeLogo(brandName, city);
     const loc = buildShopLogo(brandName, city);
 
-    const content: EcomLocalShopContent = {
-      extensionId: "ecom-local-shop",
-      brandName,
-      tagline: parsed.tagline || "Local shop",
-      description: parsed.description || "",
-      primaryColor: parsed.primaryColor || loc.primaryColor,
-      secondaryColor: parsed.secondaryColor || loc.secondaryColor,
-      city,
-      currency: parsed.currency || "INR",
-      contactEmail: parsed.contactEmail || "hello@example.com",
-      contactPhone: parsed.contactPhone || "",
-      whatsappNumber: parsed.whatsappNumber || parsed.contactPhone || "",
-      address: parsed.address || "",
-      heroHeadline: parsed.heroHeadline || brandName,
-      heroSubheadline: parsed.heroSubheadline || parsed.tagline || "",
-      aboutHtml: parsed.aboutHtml || `<p>${parsed.description}</p>`,
-      products: enrichProducts(
-        parsed.products.map((p, i) => ({
-          id: p.id || `p${i + 1}`,
-          name: p.name,
-          description: p.description,
-          price: p.price,
-          category: p.category || "General",
-          emoji: p.emoji,
-          featured: p.featured,
-        })),
-        city
-      ),
-      categories:
-        parsed.categories?.length > 0
-          ? parsed.categories
-          : [...new Set(parsed.products.map((p) => p.category || "General"))],
-      faqs: parsed.faqs?.length
-        ? parsed.faqs
-        : [{ question: "How do I order?", answer: "Message us on WhatsApp — we will help you." }],
-      ctaLabel: parsed.ctaLabel || "See products",
-      footerNote: parsed.footerNote || `© ${brandName}`,
-      logo,
-      heroTheme: loc.heroTheme,
-      openingHours: parsed.openingHours || "",
-      orderMethods: parsed.orderMethods?.length ? parsed.orderMethods : ["WhatsApp message"],
-      paymentMethods: parsed.paymentMethods?.length ? parsed.paymentMethods : ["UPI", "Cash"],
-      deliveryNote: parsed.deliveryNote || "",
-      trustBadges: parsed.trustBadges?.length ? parsed.trustBadges : ["Local shop", "Friendly service"],
-      ownerHighlights: [
-        ...(parsed.ownerHighlights || []),
-        ...customPoints,
-      ].filter((v, i, arr) => v && arr.indexOf(v) === i),
-      languageNote: parsed.languageNote,
-    };
+    const content: EcomLocalShopContent = withVisuals(
+      {
+        extensionId: "ecom-local-shop",
+        brandName,
+        tagline: parsed.tagline || "Local shop",
+        description: parsed.description || "",
+        primaryColor: parsed.primaryColor || loc.primaryColor,
+        secondaryColor: parsed.secondaryColor || loc.secondaryColor,
+        city,
+        currency: parsed.currency || "INR",
+        contactEmail: parsed.contactEmail || "hello@example.com",
+        contactPhone: parsed.contactPhone || "",
+        whatsappNumber: parsed.whatsappNumber || parsed.contactPhone || "",
+        address: parsed.address || "",
+        heroHeadline: parsed.heroHeadline || brandName,
+        heroSubheadline: parsed.heroSubheadline || parsed.tagline || "",
+        aboutHtml: parsed.aboutHtml || `<p>${parsed.description}</p>`,
+        products: enrichProducts(
+          parsed.products.map((p, i) => ({
+            id: p.id || `p${i + 1}`,
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            category: p.category || "General",
+            emoji: p.emoji,
+            featured: p.featured,
+          })),
+          city,
+          brandName
+        ),
+        categories:
+          parsed.categories?.length > 0
+            ? parsed.categories
+            : [...new Set(parsed.products.map((p) => p.category || "General"))],
+        faqs: parsed.faqs?.length
+          ? parsed.faqs
+          : [
+              {
+                question: "How do I order?",
+                answer: "Message us on WhatsApp — we will help you.",
+              },
+            ],
+        ctaLabel: parsed.ctaLabel || "See products",
+        footerNote: parsed.footerNote || `© ${brandName}`,
+        logo,
+        heroTheme: loc.heroTheme,
+        openingHours: parsed.openingHours || "",
+        orderMethods: parsed.orderMethods?.length ? parsed.orderMethods : ["WhatsApp message"],
+        paymentMethods: parsed.paymentMethods?.length
+          ? parsed.paymentMethods
+          : ["UPI", "Cash"],
+        deliveryNote: parsed.deliveryNote || "",
+        trustBadges: parsed.trustBadges?.length
+          ? parsed.trustBadges
+          : ["Local shop", "Friendly service"],
+        ownerHighlights: [...(parsed.ownerHighlights || []), ...customPoints].filter(
+          (v, i, arr) => v && arr.indexOf(v) === i
+        ),
+        languageNote: parsed.languageNote,
+      },
+      input.answers,
+      input.prompt
+    );
 
     return {
       content,
@@ -307,7 +393,7 @@ Rules:
   } catch (error) {
     console.error("[app-builder] LLM generate failed, using template:", error);
     return {
-      content: fallbackEcom(input.answers, customPoints),
+      content: fallbackEcom(input.answers, customPoints, input.prompt),
       generatedBy: "template-fallback",
     };
   }
