@@ -126,7 +126,7 @@ export function ResumeProductApp({
       });
       const data = (await res.json()) as { text?: string; error?: string };
       if (!res.ok || !data.text) {
-        flash(data.error || "AI improve failed — check GROQ_API_KEY on server");
+        flash(data.error || "AI improve failed — Groq unavailable");
         return;
       }
       updateActive({ [field]: data.text } as Partial<ResumeRow>);

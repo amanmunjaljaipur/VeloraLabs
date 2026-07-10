@@ -4,6 +4,7 @@
  * Keys never written to git; prefer GEMINI_API_KEY when XAI fails (no credits).
  */
 
+import { getDefaultGroqSecrets } from "@/lib/ai/default-groq";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import type { AppLlmSecrets } from "@/lib/app-builder/types";
 import { createBaseScaffold } from "@/lib/app-studio/scaffold";
@@ -52,15 +53,9 @@ function friendlyLlmError(err: unknown): StudioLlmError {
 function listEnvSecrets(): AppLlmSecrets[] {
   const list: AppLlmSecrets[] = [];
 
-  // Prefer Groq first (free, reliable for App Studio)
-  const groq = process.env.GROQ_API_KEY?.trim();
-  if (groq) {
-    list.push({
-      provider: "groq",
-      apiKey: groq,
-      model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
-    });
-  }
+  // Groq always first when configured (GROQ_API_KEY / GROQ_FALLBACK_KEY)
+  const groq = getDefaultGroqSecrets();
+  if (groq) list.push(groq);
 
   const anthropic = process.env.ANTHROPIC_API_KEY?.trim();
   if (anthropic) {

@@ -3,6 +3,7 @@
  * Uses server GROQ_API_KEY (or request key) — never logged.
  */
 
+import { getDefaultGroqSecrets } from "@/lib/ai/default-groq";
 import { listEnvSecrets } from "@/lib/app-studio/generate";
 import { callUserLlm } from "@/lib/app-builder/llm";
 import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
@@ -33,7 +34,10 @@ function secretsFromBody(body: {
       },
     ];
   }
-  return listEnvSecrets();
+  const list = listEnvSecrets();
+  if (list.length) return list;
+  const groq = getDefaultGroqSecrets();
+  return groq ? [groq] : [];
 }
 
 function systemFor(action: AssistAction): string {

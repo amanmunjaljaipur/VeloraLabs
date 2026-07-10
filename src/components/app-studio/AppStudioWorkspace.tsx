@@ -89,6 +89,7 @@ export function AppStudioWorkspace() {
   const dragRef = useRef<{ startX: number; startPct: number } | null>(null);
   /** Session-only — never sent to disk */
   const [showKeyPanel, setShowKeyPanel] = useState(false);
+  // Groq is platform default (server uses hardcoded/env key; UI key optional override)
   const [aiProvider, setAiProvider] = useState<"gemini" | "groq" | "xai" | "anthropic" | "openai">(
     "groq"
   );
@@ -523,8 +524,8 @@ export function AppStudioWorkspace() {
       {showKeyPanel && (
         <div className="border-b border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs space-y-2">
           <p className="font-medium text-foreground">
-            Platform xAI often fails with “no credits / licenses”. Paste a working key for this browser
-            session only (never saved to the server).
+            Default AI is <strong>Groq</strong> on the server (research, expand, Improve with AI in apps).
+            Optional: paste another key for this browser session only to override.
           </p>
           <div className="flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-0.5">

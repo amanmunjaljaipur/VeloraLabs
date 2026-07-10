@@ -26,7 +26,9 @@ export interface LlmConfig {
 export function getLlmConfig(): LlmConfig | null {
   const forced = process.env.CHAT_LLM_PROVIDER?.trim().toLowerCase();
 
-  const groqKey = process.env.GROQ_API_KEY?.trim();
+  // Groq first — set GROQ_API_KEY (or GROQ_FALLBACK_KEY) on the server
+  const groqKey =
+    process.env.GROQ_API_KEY?.trim() || process.env.GROQ_FALLBACK_KEY?.trim() || "";
   const geminiKey =
     process.env.GEMINI_API_KEY?.trim() ||
     process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||

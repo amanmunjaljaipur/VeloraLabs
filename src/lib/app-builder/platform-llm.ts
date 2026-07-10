@@ -1,14 +1,14 @@
+import { getDefaultGroqSecrets } from "@/lib/ai/default-groq";
 import { defaultModelForProvider } from "@/lib/app-builder/llm";
 import type { AppLlmSecrets, LlmProviderKind } from "@/lib/app-builder/types";
 
 /**
- * Platform default Grok key for App Builder (interview design + generate).
- * Set via env only — never hardcode in source or commit secrets.
- *
- *   XAI_API_KEY=xai-...
- *   XAI_MODEL=grok-3-mini   (optional)
+ * Platform default LLM for App Builder / Studio: Groq first (GROQ_API_KEY).
  */
 export function getPlatformAppBuilderSecrets(): AppLlmSecrets | null {
+  const groq = getDefaultGroqSecrets();
+  if (groq) return groq;
+
   const xai = process.env.XAI_API_KEY?.trim();
   if (xai) {
     return {
@@ -17,21 +17,11 @@ export function getPlatformAppBuilderSecrets(): AppLlmSecrets | null {
       model: process.env.XAI_MODEL?.trim() || defaultModelForProvider("xai"),
     };
   }
-
-  const groq = process.env.GROQ_API_KEY?.trim();
-  if (groq) {
-    return {
-      provider: "groq",
-      apiKey: groq,
-      model: process.env.GROQ_MODEL?.trim() || defaultModelForProvider("groq"),
-    };
-  }
-
   return null;
 }
 
 export function hasPlatformAppBuilderLlm(): boolean {
-  return Boolean(process.env.XAI_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim());
+  return Boolean(getDefaultGroqSecrets() || process.env.XAI_API_KEY?.trim());
 }
 
 /** Merge optional request secrets over platform default (request key wins). */
