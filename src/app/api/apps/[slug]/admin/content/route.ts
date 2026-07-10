@@ -38,14 +38,19 @@ export async function PATCH(request: Request, context: Ctx) {
     products?: EcomProduct[];
     brandName?: string;
     tagline?: string;
+    description?: string;
     heroHeadline?: string;
     heroSubheadline?: string;
+    ctaLabel?: string;
     contactEmail?: string;
     contactPhone?: string;
     whatsappNumber?: string;
     address?: string;
     openingHours?: string;
     aboutHtml?: string;
+    primaryColor?: string;
+    logoImageUrl?: string;
+    heroImageUrl?: string;
     faqs?: Array<{ question: string; answer: string }>;
   };
   try {
@@ -61,14 +66,25 @@ export async function PATCH(request: Request, context: Ctx) {
   }
   if (body.brandName?.trim()) content.brandName = body.brandName.trim();
   if (body.tagline !== undefined) content.tagline = body.tagline;
+  if (body.description !== undefined) content.description = body.description;
   if (body.heroHeadline !== undefined) content.heroHeadline = body.heroHeadline;
   if (body.heroSubheadline !== undefined) content.heroSubheadline = body.heroSubheadline;
+  if (body.ctaLabel !== undefined) content.ctaLabel = body.ctaLabel;
   if (body.contactEmail !== undefined) content.contactEmail = body.contactEmail;
   if (body.contactPhone !== undefined) content.contactPhone = body.contactPhone;
   if (body.whatsappNumber !== undefined) content.whatsappNumber = body.whatsappNumber;
   if (body.address !== undefined) content.address = body.address;
   if (body.openingHours !== undefined) content.openingHours = body.openingHours;
   if (body.aboutHtml !== undefined) content.aboutHtml = body.aboutHtml;
+  if (body.primaryColor !== undefined) content.primaryColor = body.primaryColor;
+  if (body.heroImageUrl !== undefined) content.heroImageUrl = body.heroImageUrl;
+  if (body.logoImageUrl !== undefined) {
+    content.logo = {
+      ...content.logo,
+      imageUrl: body.logoImageUrl,
+      mode: body.logoImageUrl ? "upload" : content.logo?.mode,
+    };
+  }
   if (body.faqs) content.faqs = body.faqs;
 
   const next = {

@@ -65,6 +65,23 @@ export interface AppInquiry {
   createdAt: string;
 }
 
+/** Per-app CRM contact — always built with the shop (mirrors Verlin CRM idea, simpler). */
+export type AppCrmStage = "new" | "contacted" | "customer" | "inactive";
+export type AppCrmSource = "signup" | "order" | "inquiry" | "manual";
+
+export interface AppCrmContact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  stage: AppCrmStage;
+  source: AppCrmSource;
+  notes?: string;
+  orderCount: number;
+  lastActivityAt: string;
+  createdAt: string;
+}
+
 export interface AppTenant {
   slug: string;
   projectId: string;
@@ -77,6 +94,8 @@ export interface AppTenant {
   members: AppTenantMember[];
   orders: AppOrder[];
   inquiries: AppInquiry[];
+  /** Customer CRM ledger for this app only */
+  crmContacts: AppCrmContact[];
   createdAt: string;
   updatedAt: string;
 }

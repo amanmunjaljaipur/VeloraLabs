@@ -159,6 +159,21 @@ export async function signupAppUser(
     source: isOwner ? "creator" : "signup",
   });
 
+  // Always mirror customers into app CRM (not staff/owner)
+  if (roleId === "customer" || (!isOwner && roleId === (tenant.defaultRoleId || "customer"))) {
+    try {
+      const { upsertCrmContact } = await import("@/lib/app-builder/tenant-store");
+      await upsertCrmContact(slug, {
+        email: member.email,
+        name: member.name,
+        source: "signup",
+        stage: "new",
+      });
+    } catch {
+      // non-fatal
+    }
+  }
+
   await setAppSessionCookie(slug, {
     slug,
     email: member.email,

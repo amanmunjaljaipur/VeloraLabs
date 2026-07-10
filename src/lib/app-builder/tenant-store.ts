@@ -5,6 +5,9 @@ import {
 } from "@/lib/data-store";
 import { DEFAULT_ECOM_ROLES, getDefaultRoleId } from "@/lib/app-builder/default-roles";
 import type {
+  AppCrmContact,
+  AppCrmSource,
+  AppCrmStage,
   AppInquiry,
   AppOrder,
   AppRoleDefinition,
@@ -60,9 +63,20 @@ async function writeStore(store: AppTenantStore): Promise<void> {
   cacheAt = Date.now();
 }
 
+function normalizeTenant(t: AppTenant): AppTenant {
+  return {
+    ...t,
+    members: Array.isArray(t.members) ? t.members : [],
+    orders: Array.isArray(t.orders) ? t.orders : [],
+    inquiries: Array.isArray(t.inquiries) ? t.inquiries : [],
+    crmContacts: Array.isArray(t.crmContacts) ? t.crmContacts : [],
+  };
+}
+
 export async function getTenant(slug: string): Promise<AppTenant | null> {
   const store = await ensureTenantsLoaded();
-  return store.tenants[slug] ?? null;
+  const t = store.tenants[slug];
+  return t ? normalizeTenant(t) : null;
 }
 
 export async function saveTenant(tenant: AppTenant): Promise<AppTenant> {
@@ -114,6 +128,7 @@ export async function ensureTenantForProject(project: AppProject): Promise<AppTe
     members,
     orders: [],
     inquiries: [],
+    crmContacts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -202,6 +217,56 @@ export async function setTenantRoles(
   return saveTenant(tenant);
 }
 
+export async function upsertCrmContact(
+  slug: string,
+  input: {
+    email: string;
+    name: string;
+    phone?: string;
+    source: AppCrmSource;
+    stage?: AppCrmStage;
+    notes?: string;
+    bumpOrder?: boolean;
+  }
+): Promise<AppCrmContact> {
+  const tenant = await getTenant(slug);
+  if (!tenant) throw new Error("Tenant not found");
+  if (!Array.isArray(tenant.crmContacts)) tenant.crmContacts = [];
+
+  const email = input.email.toLowerCase().trim();
+  const now = new Date().toISOString();
+  const existing = tenant.crmContacts.find((c) => c.email === email);
+  if (existing) {
+    existing.name = input.name || existing.name;
+    if (input.phone) existing.phone = input.phone;
+    if (input.notes) existing.notes = input.notes;
+    if (input.stage) existing.stage = input.stage;
+    if (input.bumpOrder) {
+      existing.orderCount = (existing.orderCount || 0) + 1;
+      existing.stage = "customer";
+    }
+    existing.lastActivityAt = now;
+    await saveTenant(tenant);
+    return existing;
+  }
+
+  const contact: AppCrmContact = {
+    id: `crm-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    name: input.name.trim() || email.split("@")[0],
+    email,
+    phone: input.phone,
+    stage: input.stage || (input.bumpOrder ? "customer" : "new"),
+    source: input.source,
+    notes: input.notes,
+    orderCount: input.bumpOrder ? 1 : 0,
+    lastActivityAt: now,
+    createdAt: now,
+  };
+  tenant.crmContacts.unshift(contact);
+  await saveTenant(tenant);
+  return contact;
+}
+
 export async function addOrder(slug: string, order: Omit<AppOrder, "id" | "createdAt" | "updatedAt" | "status"> & { status?: AppOrder["status"] }): Promise<AppOrder> {
   const tenant = await getTenant(slug);
   if (!tenant) throw new Error("Tenant not found");
@@ -215,6 +280,17 @@ export async function addOrder(slug: string, order: Omit<AppOrder, "id" | "creat
   };
   tenant.orders.unshift(row);
   await saveTenant(tenant);
+  try {
+    await upsertCrmContact(slug, {
+      email: order.customerEmail,
+      name: order.customerName,
+      phone: order.customerPhone,
+      source: "order",
+      bumpOrder: true,
+    });
+  } catch {
+    // non-fatal
+  }
   return row;
 }
 
@@ -247,6 +323,17 @@ export async function addInquiry(
   };
   tenant.inquiries.unshift(row);
   await saveTenant(tenant);
+  try {
+    await upsertCrmContact(slug, {
+      email: input.email,
+      name: input.name,
+      phone: input.phone,
+      source: "inquiry",
+      notes: input.message.slice(0, 200),
+    });
+  } catch {
+    // non-fatal
+  }
   return row;
 }
 

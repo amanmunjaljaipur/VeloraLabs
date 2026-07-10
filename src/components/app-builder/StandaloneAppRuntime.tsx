@@ -24,6 +24,12 @@ export type AppRoute =
   | "signup"
   | "account"
   | "admin"
+  | "admin-cms"
+  | "admin-cms-home"
+  | "admin-cms-about"
+  | "admin-cms-contact"
+  | "admin-cms-faq"
+  | "admin-crm"
   | "admin-products"
   | "admin-orders"
   | "admin-customers"
@@ -37,9 +43,11 @@ function parseRoute(segments: string[]): AppRoute {
   if (a === "account") return "account";
   if (a === "admin") {
     const b = segments[1];
+    if (b === "cms") return "admin-cms";
+    if (b === "crm") return "admin-crm";
     if (b === "products") return "admin-products";
     if (b === "orders") return "admin-orders";
-    if (b === "customers") return "admin-customers";
+    if (b === "customers" || b === "team") return "admin-customers";
     if (b === "roles") return "admin-roles";
     if (b === "settings") return "admin-settings";
     return "admin";
@@ -59,9 +67,15 @@ function routeToPath(basePath: string, route: AppRoute): string {
     signup: `${basePath}/signup`,
     account: `${basePath}/account`,
     admin: `${basePath}/admin`,
+    "admin-cms": `${basePath}/admin/cms`,
+    "admin-cms-home": `${basePath}/admin/cms`,
+    "admin-cms-about": `${basePath}/admin/cms`,
+    "admin-cms-contact": `${basePath}/admin/cms`,
+    "admin-cms-faq": `${basePath}/admin/cms`,
+    "admin-crm": `${basePath}/admin/crm`,
     "admin-products": `${basePath}/admin/products`,
     "admin-orders": `${basePath}/admin/orders`,
-    "admin-customers": `${basePath}/admin/customers`,
+    "admin-customers": `${basePath}/admin/team`,
     "admin-roles": `${basePath}/admin/roles`,
     "admin-settings": `${basePath}/admin/settings`,
   };
@@ -179,8 +193,13 @@ export function StandaloneAppRuntime({
 
   return (
     <div className="min-h-screen bg-background text-foreground" data-app-standalone="true">
-      {/* Standalone top bar — no Verlin Labs / platform admin menus */}
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+      {/* Brand bar only — Verlin Labs menus never show here */}
+      <header
+        className={cn(
+          "sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur",
+          isAdminRoute && "lg:pl-0"
+        )}
+      >
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <button type="button" onClick={() => go("home")} className="flex items-center gap-2 text-left">
             {content.logo?.imageUrl ? (
@@ -208,28 +227,32 @@ export function StandaloneAppRuntime({
             </span>
           </button>
 
-          <nav className="flex flex-wrap items-center gap-1 text-sm font-medium">
-            {(
-              [
-                ["home", "Home"],
-                ["shop", "Products"],
-                ["about", "About"],
-                ["contact", "Contact"],
-              ] as const
-            ).map(([r, label]) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => go(r)}
-                className={cn(
-                  "rounded-lg px-2.5 py-1.5 hover:bg-muted",
-                  route === r && "bg-muted"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
+          {!isAdminRoute ? (
+            <nav className="flex flex-wrap items-center gap-1 text-sm font-medium">
+              {(
+                [
+                  ["home", "Home"],
+                  ["shop", "Products"],
+                  ["about", "About"],
+                  ["contact", "Contact"],
+                ] as const
+              ).map(([r, label]) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => go(r)}
+                  className={cn(
+                    "rounded-lg px-2.5 py-1.5 hover:bg-muted",
+                    route === r && "bg-muted"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+          ) : (
+            <p className="text-xs font-medium text-text-muted">Admin panel</p>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {user?.isAdmin || user?.isStaff ? (
