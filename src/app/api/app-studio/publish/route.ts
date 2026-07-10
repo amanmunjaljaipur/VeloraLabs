@@ -1,8 +1,9 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
+import { expandAndBuildAppSpec } from "@/lib/app-studio/build-app-spec";
 import { researchStudioIdea } from "@/lib/app-studio/generate";
 import { publishStudioApp } from "@/lib/app-studio/publish";
 import { researchToVerlinContent } from "@/lib/app-studio/to-verlin-content";
-import type { StudioFileMap, StudioResearchPack } from "@/lib/app-studio/types";
+import type { StudioAppSpec, StudioFileMap, StudioResearchPack } from "@/lib/app-studio/types";
 import type { LlmProviderKind } from "@/lib/app-builder/types";
 import { NextResponse } from "next/server";
 
@@ -10,8 +11,7 @@ export const runtime = "nodejs";
 export const maxDuration = 90;
 
 /**
- * Publish App Studio build as a hosted app at /apps/{slug}.
- * Always runs (or reuses) research, maps to Verlin GenericAppContent, saves live.
+ * Publish interactive multi-role app at /apps/{slug}.
  */
 export async function POST(request: Request) {
   const session = await requireCmsEditor();
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   let body: {
     prompt?: string;
     research?: StudioResearchPack | null;
+    appSpec?: StudioAppSpec | null;
     studioFiles?: StudioFileMap | null;
     brandName?: string;
     status?: "draft" | "live";
@@ -49,29 +50,42 @@ export async function POST(request: Request) {
           model: body.model || "gemini-2.0-flash",
           baseUrl: "https://generativelanguage.googleapis.com/v1beta",
         }
-      : body.provider === "anthropic"
-        ? {
-            provider: "custom" as const,
-            apiKey: body.apiKey.trim(),
-            model: body.model || "claude-sonnet-4-20250514",
-            baseUrl: "https://api.anthropic.com/v1",
-          }
-        : {
-            provider: (body.provider as LlmProviderKind) || ("groq" as const),
-            apiKey: body.apiKey.trim(),
-            model: body.model || "llama-3.3-70b-versatile",
-          }
+      : {
+          provider: (body.provider as LlmProviderKind) || ("groq" as const),
+          apiKey: body.apiKey.trim(),
+          model: body.model || "llama-3.3-70b-versatile",
+        }
     : null;
 
   let research = body.research || null;
-  if (!research?.summary) {
-    research = await researchStudioIdea({ prompt, secrets });
+  let appSpec = body.appSpec || null;
+
+  if (!appSpec || !appSpec.roles?.length) {
+    if (!research?.summary) {
+      research = await researchStudioIdea({ prompt, secrets });
+    }
+    const expanded = await expandAndBuildAppSpec({ prompt, research, secrets });
+    appSpec = expanded.appSpec;
+    research = expanded.research;
+  }
+
+  if (!research) {
+    research = {
+      summary: appSpec.description,
+      targetUsers: appSpec.roles.map((r) => r.label),
+      coreWorkflows: appSpec.workflows.map((w) => ({ name: w.name, steps: w.steps })),
+      screens: appSpec.screens.map((s) => s.title),
+      dataEntities: appSpec.entities.map((e) => e.name),
+      techNotes: [],
+      competitors: [],
+      rewrittenPrompt: appSpec.rewrittenPrompt,
+    };
   }
 
   const content = researchToVerlinContent({
     prompt,
     research,
-    brandName: body.brandName,
+    brandName: body.brandName || appSpec.brandName,
   });
 
   try {
@@ -79,8 +93,9 @@ export async function POST(request: Request) {
       prompt,
       research,
       content,
+      appSpec,
       studioFiles: body.studioFiles || null,
-      brandName: content.brandName,
+      brandName: appSpec.brandName,
       createdBy: session.user?.email || undefined,
       projectId: body.projectId,
       slug: body.slug,
@@ -103,6 +118,7 @@ export async function POST(request: Request) {
       publicUrl,
       absoluteUrl: `${origin}${publicUrl}`,
       research,
+      appSpec,
       content,
     });
   } catch (e) {

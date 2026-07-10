@@ -1,5 +1,6 @@
 import { StandaloneAppRuntime } from "@/components/app-builder/StandaloneAppRuntime";
 import { VerlinAppRuntime } from "@/components/app-builder/VerlinAppRuntime";
+import { StudioWorkingApp } from "@/components/app-studio/StudioWorkingApp";
 import { isGenericContent } from "@/lib/app-builder/types";
 import { ensureTenantForProject } from "@/lib/app-builder/tenant-store";
 import { getAppProjectBySlug } from "@/lib/app-builder/store";
@@ -16,12 +17,20 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const project = await getAppProjectBySlug(slug);
-  if (!project || project.status !== "live" || !project.content) {
+  if (!project || project.status !== "live") {
     return { title: "App not found" };
   }
+  if (project.studioAppSpec) {
+    return createMetadata({
+      title: `${project.studioAppSpec.brandName} · Live app`,
+      description: project.studioAppSpec.description,
+      path: project.publicPath,
+    });
+  }
+  if (!project.content) return { title: "App not found" };
   const c = project.content;
   return createMetadata({
-    title: c.seoTitle || `${c.brandName} · ${c.city}`,
+    title: c.seoTitle || `${c.brandName}`,
     description: c.seoDescription || c.description || c.tagline,
     path: project.publicPath,
   });
@@ -31,15 +40,23 @@ export default async function GeneratedAppPage({ params }: PageProps) {
   const { slug, path } = await params;
   const project = await getAppProjectBySlug(slug);
 
-  if (!project || project.status !== "live" || !project.content) {
+  if (!project || project.status !== "live") {
     notFound();
   }
 
-  // Ensure tenant auth exists (owner = creator, default role = customer)
   try {
     await ensureTenantForProject(project);
   } catch (e) {
     console.error("[apps] ensureTenantForProject", e);
+  }
+
+  // Interactive multi-role App Studio product
+  if (project.runtimeStyle === "studio-interactive" && project.studioAppSpec) {
+    return (
+      <div className="min-h-screen">
+        <StudioWorkingApp spec={project.studioAppSpec} fullScreen />
+      </div>
+    );
   }
 
   if (project.content) {

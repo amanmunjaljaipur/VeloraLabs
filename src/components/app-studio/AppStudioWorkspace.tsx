@@ -1,7 +1,7 @@
 "use client";
 
 import { StudioAppFullscreen } from "@/components/app-studio/StudioAppFullscreen";
-import { StudioVerlinPreview } from "@/components/app-studio/StudioVerlinPreview";
+import { StudioWorkingApp } from "@/components/app-studio/StudioWorkingApp";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import type { GenericAppContent } from "@/lib/app-builder/types";
@@ -9,6 +9,7 @@ import { createBaseScaffold, listFilePaths } from "@/lib/app-studio/scaffold";
 import { toSandpackReactTsFiles } from "@/lib/app-studio/parse-files";
 import { researchToVerlinContent } from "@/lib/app-studio/to-verlin-content";
 import type {
+  StudioAppSpec,
   StudioChatMessage,
   StudioFileMap,
   StudioResearchPack,
@@ -41,10 +42,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const EXAMPLE_PROMPTS = [
-  "A task board like Trello with drag-free columns and add-card form",
-  "A personal finance dashboard with expense categories and charts (CSS only)",
-  "A booking page for a yoga studio with class list and booking modal",
-  "A SaaS landing page + pricing + waitlist form for an AI writing tool",
+  "Yoga studio booking: members book classes, instructors see roster, owner manages all bookings",
+  "Team task board: members create tasks, managers move status on a Kanban board",
+  "Expense tracker: employees submit claims, managers approve or reject on a board",
+  "Sales CRM: reps log leads, managers advance deals through pipeline stages",
 ];
 
 type CanvasTab = "verlin" | "sandbox" | "code";
@@ -68,6 +69,7 @@ export function AppStudioWorkspace() {
   const [versionIndex, setVersionIndex] = useState(-1);
   const [research, setResearch] = useState<StudioResearchPack | null>(null);
   const [verlinContent, setVerlinContent] = useState<GenericAppContent | null>(null);
+  const [appSpec, setAppSpec] = useState<StudioAppSpec | null>(null);
   const [published, setPublished] = useState<{
     slug: string;
     publicPath: string;
@@ -130,13 +132,14 @@ export function AppStudioWorkspace() {
   }, [loadMyApps]);
 
   const pushVersion = useCallback(
-    (label: string, nextFiles: StudioFileMap, userPrompt: string) => {
+    (label: string, nextFiles: StudioFileMap, userPrompt: string, nextSpec?: StudioAppSpec | null) => {
       const v: StudioVersion = {
         id: uid(),
         label,
         prompt: userPrompt,
         files: nextFiles,
         createdAt: new Date().toISOString(),
+        appSpec: nextSpec || undefined,
       };
       setVersions((prev) => {
         const trimmed = versionIndex >= 0 ? prev.slice(0, versionIndex + 1) : prev;
@@ -152,6 +155,7 @@ export function AppStudioWorkspace() {
     const v = versions[index];
     if (!v) return;
     setFiles(v.files);
+    if (v.appSpec) setAppSpec(v.appSpec);
     setVersionIndex(index);
     setActiveFile(
       v.files["/src/App.tsx"] ? "/src/App.tsx" : Object.keys(v.files)[0] || "/src/App.tsx"
@@ -185,134 +189,119 @@ export function AppStudioWorkspace() {
     setPublished(null);
 
     try {
-      // 1) Research first (always for first build / new idea)
-      setPhase("Researching product, workflows & competitors…");
-      const isFirst = !research || versions.length === 0;
-      let nextResearch = research;
-
-      if (isFirst || /research|workflow|competitor|rebuild/i.test(userText)) {
-        const rRes = await fetch("/api/app-studio/research", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: userText.trim(), ...aiAuth() }),
-        });
-        const rData = (await rRes.json()) as {
-          research?: StudioResearchPack;
-          error?: string;
-        };
-        if (rData.research) {
-          nextResearch = rData.research;
-          setResearch(rData.research);
-        }
-      }
-
-      // 2) Generate code files (sandbox / export)
-      setPhase("Building application with research insights…");
-      const res = await fetch("/api/app-studio/generate", {
+      // 1) ALWAYS rewrite idea → full multi-role product (roles, workflows, screens, seed data)
+      setPhase("Rewriting idea into full product: roles, workflows, screens…");
+      const expandRes = await fetch("/api/app-studio/expand", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: userText.trim(),
-          currentFiles: isFirst ? undefined : files,
-          runResearch: false,
-          research: nextResearch,
-          history: messages
-            .filter((x) => x.role === "user" || x.role === "assistant")
-            .slice(-6)
-            .map((x) => ({ role: x.role as "user" | "assistant", content: x.content })),
-          imageDataUrl: imageDataUrl || undefined,
-          ...aiAuth(),
-        }),
+        body: JSON.stringify({ prompt: userText.trim(), ...aiAuth() }),
       });
-
-      const data = (await res.json()) as {
-        files?: StudioFileMap;
-        summary?: string;
+      const expandData = (await expandRes.json()) as {
         research?: StudioResearchPack;
-        designedBy?: string;
+        appSpec?: StudioAppSpec;
+        rewrittenPrompt?: string;
         error?: string;
-        code?: string;
-        hint?: string;
-        warning?: string;
-        content?: GenericAppContent;
       };
 
-      if (data.research) {
-        nextResearch = data.research;
-        setResearch(data.research);
-      }
-
-      // 3) Map research → Verlin UI content (same components as live /apps)
-      setPhase("Composing Verlin Labs pages…");
-      if (nextResearch) {
-        const content = researchToVerlinContent({
-          prompt: userText.trim(),
-          research: nextResearch,
-        });
-        setVerlinContent(content);
-      }
-
-      if (data.files && Object.keys(data.files).length) {
-        setFiles(data.files);
-        setPreviewKey((k) => k + 1);
-        pushVersion(
-          isFirst ? "Initial build" : userText.trim().slice(0, 60),
-          data.files,
-          userText.trim()
-        );
-        setActiveFile(
-          data.files["/src/App.tsx"]
-            ? "/src/App.tsx"
-            : data.files["/App.tsx"]
-              ? "/App.tsx"
-              : Object.keys(data.files)[0]
-        );
-      }
-
-      if (!res.ok && !nextResearch) {
-        const msg = data.error || "Build failed";
-        toast(msg.slice(0, 160), "error");
-        if (data.code === "credits" || data.code === "no_key" || data.code === "auth") {
+      if (!expandRes.ok || !expandData.appSpec) {
+        toast(expandData.error || "Could not expand product brief", "error");
+        if (expandRes.status === 403) {
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "assistant",
+              content: "Sign in as an admin/editor to use App Studio.",
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+        } else {
           setShowKeyPanel(true);
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "assistant",
+              content:
+                expandData.error ||
+                "Failed to design roles & workflows. Try again — heuristics still work without a key.",
+              createdAt: new Date().toISOString(),
+            },
+          ]);
         }
-        setMessages((m) => [
-          ...m,
-          {
-            id: uid(),
-            role: "assistant",
-            content: `${msg}\n\nFix AI key if needed, then Build again.`,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-        setCanvasTab("verlin");
         return;
       }
 
+      const nextSpec = expandData.appSpec;
+      const nextResearch = expandData.research || null;
+      setAppSpec(nextSpec);
+      if (nextResearch) setResearch(nextResearch);
       setCanvasTab("verlin");
       setImageDataUrl(null);
+      // Working multi-role app first — never wait on sandbox code gen
+      setFullScreen(true);
+      pushVersion("Working multi-role app", files, userText.trim(), nextSpec);
 
-      const brand = verlinContent?.brandName;
-      const researchNote = nextResearch
-        ? `\n\n**Research**\n${nextResearch.summary}\n**Workflows:** ${(nextResearch.coreWorkflows || []).map((w) => w.name).join(", ")}\n**Screens:** ${(nextResearch.screens || []).join(", ")}`
-        : "";
+      const content = researchToVerlinContent({
+        prompt: userText.trim(),
+        research:
+          nextResearch || {
+            summary: nextSpec.description,
+            targetUsers: nextSpec.roles.map((r) => r.label),
+            coreWorkflows: nextSpec.workflows.map((w) => ({
+              name: w.name,
+              steps: w.steps,
+            })),
+            screens: nextSpec.screens.map((s) => s.title),
+            dataEntities: nextSpec.entities.map((e) => e.name),
+            techNotes: [],
+            competitors: [],
+            rewrittenPrompt: nextSpec.rewrittenPrompt,
+          },
+        brandName: nextSpec.brandName,
+      });
+      setVerlinContent(content);
 
-      const builtName =
-        nextResearch
-          ? researchToVerlinContent({ prompt: userText.trim(), research: nextResearch }).brandName
-          : brand || "your app";
+      const roleList = nextSpec.roles.map((r) => `• **${r.label}** — ${r.description}`).join("\n");
+      const wfList = nextSpec.workflows
+        .map((w) => `• **${w.name}** (${w.roleId}): ${w.steps.join(" → ")}`)
+        .join("\n");
 
       setMessages((m) => [
         ...m,
         {
           id: uid(),
           role: "assistant",
-          content: `Built **${builtName}** with Verlin UI pages (Button, Card, Badge).${researchNote}\n\n1. Review the **Verlin UI** tab\n2. Click **Publish** for a live share link at \`/apps/…\`\n\n_AI code: ${data.designedBy || "studio"}_`,
+          content: `### Expanded product brief\n${nextSpec.rewrittenPrompt.slice(0, 900)}${nextSpec.rewrittenPrompt.length > 900 ? "…" : ""}\n\n### Roles (selector top-right)\n${roleList}\n\n### Workflows\n${wfList}\n\n### Screens\n${nextSpec.screens.map((s) => s.title).join(", ")}\n\n**Working app is open.** Switch roles top-right to try every workflow. Create records, move board statuses, book classes. Then **Publish** for a shareable \`/apps/…\` link.`,
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast("App ready — click See full app for the complete screen", "success");
-      // Open full product screen so the user sees the whole app immediately
-      setFullScreen(true);
+      toast("Working multi-role app ready — try every role top-right", "success");
+
+      // 2) Optional sandbox code — background only; working app already live
+      setPhase("Working app ready · optional sandbox code in background…");
+      void (async () => {
+        try {
+          const res = await fetch("/api/app-studio/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: nextSpec.rewrittenPrompt || userText.trim(),
+              runResearch: false,
+              research: nextResearch,
+              ...aiAuth(),
+            }),
+          });
+          const data = (await res.json()) as { files?: StudioFileMap };
+          if (data.files && Object.keys(data.files).length) {
+            setFiles(data.files);
+            setPreviewKey((k) => k + 1);
+            pushVersion("Sandbox code", data.files, userText.trim(), nextSpec);
+          }
+        } catch {
+          /* working app does not depend on sandbox */
+        }
+      })();
     } catch {
       toast("Network error during generation", "error");
     } finally {
@@ -335,6 +324,7 @@ export function AppStudioWorkspace() {
         body: JSON.stringify({
           prompt: p || research?.summary || "Studio app",
           research,
+          appSpec,
           studioFiles: files,
           status: "live",
           slug: published?.slug,
@@ -347,8 +337,10 @@ export function AppStudioWorkspace() {
         absoluteUrl?: string;
         publicUrl?: string;
         content?: GenericAppContent;
+        appSpec?: StudioAppSpec;
         error?: string;
       };
+      if (data.appSpec) setAppSpec(data.appSpec);
       if (!res.ok || !data.project) {
         toast(data.error || "Publish failed", "error");
         return;
@@ -368,7 +360,7 @@ export function AppStudioWorkspace() {
         {
           id: uid(),
           role: "assistant",
-          content: `**Published:** [${data.project!.name}](${absolute})\n\nLive link: ${absolute}\n\nAnyone with the link can open the app (Verlin UI).`,
+          content: `**Published:** [${data.project!.name}](${absolute})\n\nLive link: ${absolute}\n\nAnyone with the link gets the **interactive multi-role app** (role selector top-right).`,
           createdAt: new Date().toISOString(),
         },
       ]);
@@ -445,7 +437,7 @@ export function AppStudioWorkspace() {
           <div>
             <p className="text-sm font-bold text-foreground">App Studio</p>
             <p className="text-[10px] text-muted-foreground">
-              Prompt → research workflows → live code preview
+              Rewrite idea → multi-role working app → publish
             </p>
           </div>
         </div>
@@ -477,9 +469,9 @@ export function AppStudioWorkspace() {
             type="button"
             size="sm"
             variant="secondary"
-            disabled={!verlinContent}
+            disabled={!appSpec}
             onClick={() => {
-              if (!verlinContent) {
+              if (!appSpec) {
                 toast("Build an app first to open the full screen", "error");
                 return;
               }
@@ -493,7 +485,7 @@ export function AppStudioWorkspace() {
             size="sm"
             variant="cta"
             loading={publishing}
-            disabled={!research && !verlinContent}
+            disabled={!appSpec}
             onClick={() => void publishLive()}
           >
             <UploadCloud className="h-3.5 w-3.5" /> Publish
@@ -599,9 +591,10 @@ export function AppStudioWorkspace() {
           <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
             {messages.length === 0 && (
               <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">What do you want to build?</p>
+                <p className="font-medium text-foreground">What product should we build?</p>
                 <p className="mt-1 text-xs">
-                  I research workflows, then generate a full React app with live preview. Iterate in chat.
+                  We rewrite your idea into roles, screens, and workflows — then open a real interactive app
+                  (role selector top-right). Not a marketing page.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {EXAMPLE_PROMPTS.map((ex) => (
@@ -746,7 +739,7 @@ export function AppStudioWorkspace() {
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                <LayoutTemplate className="h-3.5 w-3.5" /> Verlin UI
+                <LayoutTemplate className="h-3.5 w-3.5" /> Working app
               </button>
               <button
                 type="button"
@@ -783,23 +776,27 @@ export function AppStudioWorkspace() {
 
           {canvasTab === "verlin" ? (
             <div className="min-h-0 flex-1 overflow-hidden bg-muted/20 p-2">
-              {verlinContent ? (
-                <div className="relative h-full min-h-[480px]">
-                  <div className="absolute right-3 top-3 z-10">
+              {appSpec ? (
+                <div className="relative h-full min-h-[520px]">
+                  <div className="absolute right-3 top-2 z-20">
                     <Button type="button" size="sm" variant="cta" onClick={() => setFullScreen(true)}>
                       <Maximize2 className="h-3.5 w-3.5" />
-                      See full app
+                      Full screen
                     </Button>
                   </div>
-                  <StudioVerlinPreview content={verlinContent} />
+                  <StudioWorkingApp
+                    key={`${appSpec.brandName}-${appSpec.roles.map((r) => r.id).join("-")}`}
+                    spec={appSpec}
+                  />
                 </div>
               ) : (
                 <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
                   <LayoutTemplate className="mb-3 h-10 w-10 opacity-40" />
-                  <p className="font-medium text-foreground">Full product screen</p>
+                  <p className="font-medium text-foreground">Interactive multi-role product</p>
                   <p className="mt-1 max-w-sm">
-                    After you Build, use <strong>See full app</strong> for a complete full-screen
-                    experience. Publish for a public link at /apps/…
+                    Click <strong>Build</strong> — we rewrite your prompt into roles, workflows, and
+                    screens with seed data. Use the <strong>role selector (top right)</strong> to try
+                    every user path.
                   </p>
                 </div>
               )}
@@ -937,13 +934,47 @@ export function AppStudioWorkspace() {
         </section>
       </div>
 
-      <StudioAppFullscreen
-        open={fullScreen}
-        onClose={() => setFullScreen(false)}
-        content={verlinContent}
-        publishedPath={published?.publicPath}
-        publishedUrl={published?.absoluteUrl}
-      />
+      {fullScreen && appSpec && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col bg-background"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-navy px-3 py-2 text-white">
+            <p className="text-sm font-semibold">
+              {appSpec.brandName} · full working app · switch roles top-right
+            </p>
+            <div className="flex gap-2">
+              {published?.publicPath && (
+                <a
+                  href={published.publicPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/20 bg-white/10 px-3 text-sm"
+                >
+                  Live link <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+              <Button type="button" size="sm" variant="secondary" onClick={() => setFullScreen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1">
+            <StudioWorkingApp spec={appSpec} fullScreen />
+          </div>
+        </div>
+      )}
+
+      {!appSpec && (
+        <StudioAppFullscreen
+          open={fullScreen}
+          onClose={() => setFullScreen(false)}
+          content={verlinContent}
+          publishedPath={published?.publicPath}
+          publishedUrl={published?.absoluteUrl}
+        />
+      )}
     </div>
   );
 }

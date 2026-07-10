@@ -211,10 +211,12 @@ export interface AppProject {
   content: AppExtensionContent | null;
   /** Forge build-plan data models — drives the generic CRUD admin for non-ecommerce apps */
   dataModels?: AppDataModelSpec[];
-  /** "verlin-native" = Verlin Labs UI components (Button/Card/etc). Absent/"generated" = themed runtime. */
-  runtimeStyle?: "generated" | "verlin-native";
+  /** verlin-native = marketing pages; studio-interactive = multi-role working app */
+  runtimeStyle?: "generated" | "verlin-native" | "studio-interactive";
   /** Optional Vite/React source snapshot from App Studio (for export / code view) */
   studioFiles?: Record<string, string>;
+  /** Interactive multi-role app definition (App Studio working runtime) */
+  studioAppSpec?: import("@/lib/app-studio/types").StudioAppSpec;
   publicPath: string;
   createdAt: string;
   updatedAt: string;
