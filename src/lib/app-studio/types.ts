@@ -117,6 +117,17 @@ export type StudioWorkflow = {
   entityId?: string;
 };
 
+/** Educational content pack (Verlin Labs voice) for product homes & demos */
+export type StudioLearningContent = {
+  heroHeadline: string;
+  heroSub: string;
+  whoItsFor: string;
+  outcomes: string[];
+  howItWorks: Array<{ step: string; detail: string }>;
+  trustLines: string[];
+  faqs: Array<{ question: string; answer: string }>;
+};
+
 /** Full interactive app definition — drives the working runtime */
 export type StudioAppSpec = {
   version: 1;
@@ -133,6 +144,8 @@ export type StudioAppSpec = {
   screens: StudioScreen[];
   workflows: StudioWorkflow[];
   research?: StudioResearchPack;
+  /** Verlin-style educational content for dashboards & settings */
+  learning?: StudioLearningContent;
 };
 
 export type StudioGenerateResult = {

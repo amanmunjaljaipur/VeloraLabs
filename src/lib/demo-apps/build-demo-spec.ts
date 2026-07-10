@@ -1,5 +1,6 @@
 /**
  * Convert DemoCategoryDef → full StudioAppSpec (roles, entities, screens, workflows).
+ * Always runs Verlin educational content premiumization first.
  */
 
 import type {
@@ -15,8 +16,11 @@ import {
   getDemoCategory,
   type DemoCategoryDef,
 } from "@/lib/demo-apps";
+import { premiumizeDemoCategory } from "@/lib/demo-apps/premiumize";
 
-export function buildDemoAppSpec(def: DemoCategoryDef): StudioAppSpec {
+export function buildDemoAppSpec(raw: DemoCategoryDef): StudioAppSpec {
+  const def = premiumizeDemoCategory(raw);
+
   const roles: StudioRole[] = def.roles.map((r, i) => ({
     id: r.id,
     label: r.label,
@@ -93,10 +97,25 @@ export function buildDemoAppSpec(def: DemoCategoryDef): StudioAppSpec {
     }
   }
 
+  const learning = def.learning!;
+
   const rewrittenPrompt = `Build a complete multi-role product for category "${def.name}" named ${def.brandName}.
 
-SUMMARY
+HERO
+${learning.heroHeadline}
+${learning.heroSub}
+
+SUMMARY (Verlin educational voice)
 ${def.description}
+
+WHO IT'S FOR
+${learning.whoItsFor}
+
+OUTCOMES
+${learning.outcomes.map((o, i) => `${i + 1}. ${o}`).join("\n")}
+
+HOW IT WORKS
+${learning.howItWorks.map((h) => `- ${h.step}: ${h.detail}`).join("\n")}
 
 EXAMPLES IN MARKET: ${def.examples.join(", ")}
 
@@ -107,13 +126,18 @@ MODULES (${def.modules.length})
 ${def.modules.map((m) => `- ${m.title}: ${m.description}`).join("\n")}
 
 WORKFLOWS
-${workflows.map((w) => `- ${w.name} [${w.roleId}]: ${w.steps.join(" → ")}`).join("\n")}
+${workflows.map((w) => `- ${w.name} [${w.roleId}]: ${w.steps.join(" → ")} · ${w.description}`).join("\n")}
 
 DATA
 ${entities.map((e) => `${e.name}: ${e.fields.map((f) => f.key).join(", ")} · statuses ${(e.statuses || []).join("/")}`).join("\n")}
 
+FAQS
+${learning.faqs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n")}
+
 SUCCESS
-Role selector top-right changes modules. Create records, move board statuses, complete happy and fail paths. Verlin Labs UI theme. Not a marketing brochure.`;
+Role selector top-right changes modules. Create records, move board statuses, complete happy and fail paths.
+Content quality matches Verlin Labs educational pages: clear jobs, concrete outcomes, Class-8 English.
+Not a marketing brochure.`;
 
   return {
     version: 1,
@@ -128,16 +152,30 @@ Role selector top-right changes modules. Create records, move board statuses, co
     entities,
     screens,
     workflows,
+    learning: {
+      heroHeadline: learning.heroHeadline,
+      heroSub: learning.heroSub,
+      whoItsFor: learning.whoItsFor,
+      outcomes: learning.outcomes,
+      howItWorks: learning.howItWorks,
+      trustLines: learning.trustLines,
+      faqs: learning.faqs,
+    },
     research: {
       summary: def.description,
       targetUsers: roles.map((r) => r.label),
       coreWorkflows: workflows.map((w) => ({ name: w.name, steps: w.steps })),
       screens: screens.map((s) => s.title),
       dataEntities: entities.map((e) => e.name),
-      techNotes: ["Verlin UI", "Studio multi-module runtime", "Mock local state"],
+      techNotes: [
+        "Verlin UI",
+        "Studio multi-module runtime",
+        "Mock local state",
+        "Educational content pack (Verlin voice)",
+      ],
       competitors: def.examples.map((name) => ({
         name,
-        takeaway: `Parity module inspired by ${name}`,
+        takeaway: `Parity module inspired by ${name} — content teaches the job, not hype`,
       })),
       rewrittenPrompt,
     },

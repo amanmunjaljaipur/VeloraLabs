@@ -42,8 +42,8 @@ export default async function DemoAppPage({ params }: Props) {
         <p className="truncate text-sm font-semibold">
           {hit.spec.brandName} · {hit.def.name}
         </p>
-        <span className="hidden text-xs text-white/70 sm:inline">
-          Switch roles top-right
+        <span className="hidden max-w-[14rem] truncate text-xs text-white/70 sm:inline">
+          {hit.def.learning?.outcomes?.[0] || "Switch roles top-right"}
         </span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

@@ -14,10 +14,13 @@ import type { StudioAppSpec, StudioEntity, StudioRole, StudioScreen } from "@/li
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
+  BookOpen,
   CheckCircle2,
+  CircleDot,
   LayoutGrid,
   Loader2,
   Plus,
+  ShieldCheck,
   UserRound,
   XCircle,
 } from "lucide-react";
@@ -324,6 +327,15 @@ export function MultiModuleProductApp({
           </div>
         )}
 
+        {activeScreen && activeScreen.type !== "dashboard" && (
+          <div className="mb-4 space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{activeScreen.title}</h1>
+            {activeScreen.description && (
+              <p className="max-w-3xl text-sm text-muted-foreground">{activeScreen.description}</p>
+            )}
+          </div>
+        )}
+
         {workflowsForRole.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {workflowsForRole.map((w) => (
@@ -332,6 +344,7 @@ export function MultiModuleProductApp({
                 type="button"
                 onClick={() => setScreenId(w.screenId)}
                 className="rounded-full border border-accent-teal/30 bg-accent-teal/10 px-3 py-1 text-xs font-medium text-accent-teal hover:bg-accent-teal/20"
+                title={w.description}
               >
                 {w.name}
               </button>
@@ -340,11 +353,42 @@ export function MultiModuleProductApp({
         )}
 
         {activeScreen?.type === "dashboard" && (
-          <div className="space-y-5">
-            <div>
-              <h1 className="text-2xl font-bold">Welcome, {role?.label}</h1>
-              <p className="mt-1 text-muted-foreground">{spec.description}</p>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
+                Learning track · {role?.label}
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                {spec.learning?.heroHeadline || `Welcome, ${role?.label}`}
+              </h1>
+              <p className="max-w-3xl text-base text-muted-foreground">
+                {spec.learning?.heroSub || spec.description}
+              </p>
+              {spec.learning?.whoItsFor && (
+                <p className="max-w-3xl text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Who it&apos;s for: </span>
+                  {spec.learning.whoItsFor}
+                </p>
+              )}
             </div>
+
+            {spec.learning?.outcomes && spec.learning.outcomes.length > 0 && (
+              <Card className="border-accent-teal/25 bg-accent-teal/5 p-5">
+                <div className="mb-3 flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-accent-teal" />
+                  <p className="text-sm font-semibold">What you will practice</p>
+                </div>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {spec.learning.outcomes.map((o) => (
+                    <li key={o} className="flex gap-2 text-sm text-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-teal" />
+                      <span>{o}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             {primaryEntity && (
               <div className="grid gap-3 sm:grid-cols-3">
                 {counts(primaryEntity.id).map((c) => (
@@ -356,6 +400,7 @@ export function MultiModuleProductApp({
                 ))}
               </div>
             )}
+
             <div className="flex flex-wrap gap-2">
               {workflowsForRole.map((w) => (
                 <Button
@@ -368,16 +413,65 @@ export function MultiModuleProductApp({
                 </Button>
               ))}
             </div>
-            <Card className="border-dashed p-4">
-              <p className="text-sm font-medium">Roles in this app</p>
-              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+
+            {spec.learning?.howItWorks && spec.learning.howItWorks.length > 0 && (
+              <div>
+                <p className="mb-3 text-sm font-semibold">How this demo works</p>
+                <ol className="grid gap-3 md:grid-cols-2">
+                  {spec.learning.howItWorks.map((h, i) => (
+                    <Card key={h.step} className="flex gap-3 p-4">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navy text-sm font-bold text-white dark:bg-accent-teal dark:text-navy">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="font-medium">{h.step}</p>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{h.detail}</p>
+                      </div>
+                    </Card>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            <Card className="p-4">
+              <p className="text-sm font-medium">Roles in this product</p>
+              <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
                 {spec.roles.map((r) => (
-                  <li key={r.id}>
-                    <strong className="text-foreground">{r.label}</strong> — {r.description}
+                  <li key={r.id} className="flex gap-2">
+                    <CircleDot className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-teal" />
+                    <span>
+                      <strong className="text-foreground">{r.label}</strong> — {r.description}
+                    </span>
                   </li>
                 ))}
               </ul>
             </Card>
+
+            {spec.learning?.trustLines && spec.learning.trustLines.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {spec.learning.trustLines.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground"
+                  >
+                    <ShieldCheck className="h-3 w-3 text-accent-teal" />
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {spec.learning?.faqs && spec.learning.faqs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold">FAQ</p>
+                {spec.learning.faqs.map((f) => (
+                  <Card key={f.question} className="p-4">
+                    <p className="text-sm font-medium text-foreground">{f.question}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{f.answer}</p>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -426,21 +520,50 @@ export function MultiModuleProductApp({
           )}
 
         {activeScreen?.type === "settings" && (
-          <Card className="max-w-lg space-y-3 p-6">
-            <h2 className="text-lg font-semibold">Settings</h2>
-            <p className="text-sm text-muted-foreground">{spec.description}</p>
-            <p className="text-xs text-muted-foreground">
-              Switch roles top-right. Use API path toggle for happy/fail demos. Title containing
-              “fail” rejects creates.
-            </p>
-            <ul className="list-inside list-disc text-sm text-muted-foreground">
-              {spec.roles.map((r) => (
-                <li key={r.id}>
-                  {r.label}: {r.description}
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <div className="mx-auto max-w-2xl space-y-4">
+            <Card className="space-y-3 p-6">
+              <h2 className="text-lg font-semibold">Settings & demo notes</h2>
+              <p className="text-sm text-muted-foreground">{spec.description}</p>
+              <p className="text-sm text-muted-foreground">
+                Switch roles top-right. Use the API path toggle for happy/fail demos. A title
+                containing “fail” rejects creates so you can practice error UX.
+              </p>
+              {activeScreen.description && (
+                <p className="text-sm text-muted-foreground">{activeScreen.description}</p>
+              )}
+            </Card>
+            {spec.learning?.trustLines && (
+              <Card className="space-y-2 p-5">
+                <p className="text-sm font-semibold">Trust & limits</p>
+                <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+                  {spec.learning.trustLines.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            <Card className="space-y-2 p-5">
+              <p className="text-sm font-semibold">Roles</p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {spec.roles.map((r) => (
+                  <li key={r.id}>
+                    <strong className="text-foreground">{r.label}</strong> — {r.description}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            {spec.learning?.faqs && spec.learning.faqs.length > 0 && (
+              <Card className="space-y-3 p-5">
+                <p className="text-sm font-semibold">FAQ</p>
+                {spec.learning.faqs.map((f) => (
+                  <div key={f.question}>
+                    <p className="text-sm font-medium">{f.question}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{f.answer}</p>
+                  </div>
+                ))}
+              </Card>
+            )}
+          </div>
         )}
 
         {workflowsForRole.length > 0 && (

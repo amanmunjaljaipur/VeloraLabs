@@ -44,11 +44,25 @@ export default function DemoAppsIndexPage() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 pb-20 md:px-6">
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Each card opens a full interactive product demo: roles (top-right selector), modules,
-          create/list/board workflows, validation, and mock API happy/fail paths. Banking and career
-          verticals use specialized runtimes; all others use the multi-module Verlin runtime.
-        </p>
+        <section className="max-w-3xl space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-wide text-accent-teal">
+            Educational product demos
+          </p>
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Same clarity as Verlin Labs courses — applied to 50 product types
+          </h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Every demo is written like a learning track: who it is for, what you will practice, how
+            the flow works, and honest FAQ. Inside each app you get multi-role jobs (switch
+            top-right), modules, create/list/board workflows, validation, and mock API happy/fail
+            paths — not empty shells or marketing fluff.
+          </p>
+          <ul className="list-inside list-disc text-sm text-muted-foreground">
+            <li>Class-8 English, concrete outcomes, India-aware examples where they fit</li>
+            <li>Banking and resume verticals use specialized product UIs</li>
+            <li>All others use the multi-module Verlin runtime with full educational home</li>
+          </ul>
+        </section>
 
         {byGroup.map((group) => (
           <section key={group.id}>
@@ -61,10 +75,15 @@ export default function DemoAppsIndexPage() {
                       {c.brandName}
                     </p>
                     <h3 className="mt-1 text-base font-semibold text-foreground">{c.name}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{c.tagline}</p>
-                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-sm font-medium text-foreground/90">{c.tagline}</p>
+                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                       {c.description}
                     </p>
+                    {c.learning?.outcomes?.[0] && (
+                      <p className="mt-2 line-clamp-2 text-[11px] text-accent-teal/90">
+                        Practice: {c.learning.outcomes[0]}
+                      </p>
+                    )}
                     <p className="mt-3 text-[11px] text-muted-foreground">
                       {c.roles.length} roles · {c.modules.length} modules ·{" "}
                       {c.workflows.length} workflows

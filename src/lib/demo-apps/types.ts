@@ -14,6 +14,34 @@ export type DemoGroupId =
   | "health"
   | "travel";
 
+/**
+ * Verlin Labs educational content pack for a demo product.
+ * Same voice as courses / free sessions: clear job, concrete outcomes, Class-8 English.
+ */
+export type DemoLearningContent = {
+  /** Outcome-led tagline (~6–12 words) */
+  tagline: string;
+  /** 2–3 sentences: who it’s for, what you practice, what “done” looks like */
+  description: string;
+  heroHeadline: string;
+  heroSub: string;
+  /** Who should open this demo first */
+  whoItsFor: string;
+  /** 3–5 concrete outcomes (skills or product jobs) */
+  outcomes: string[];
+  /** Short “how this demo works” steps */
+  howItWorks: Array<{ step: string; detail: string }>;
+  /** Trust / reality lines (demo data, mock APIs, India-ready cues) */
+  trustLines: string[];
+  faqs: Array<{ question: string; answer: string }>;
+  /** Richer role blurbs keyed by role id */
+  roleCopy?: Record<string, string>;
+  /** Richer module blurbs keyed by module id */
+  moduleCopy?: Record<string, string>;
+  /** Optional richer seed rows keyed by entity id (merged by index) */
+  seedEnrichment?: Record<string, Array<Partial<Record<string, unknown>>>>;
+};
+
 export type DemoCategoryDef = {
   slug: string;
   name: string;
@@ -24,6 +52,8 @@ export type DemoCategoryDef = {
   examples: string[];
   productKind: "banking" | "resume" | "booking" | "expense" | "crm" | "tasks" | "generic";
   brandName: string;
+  /** Optional authored learning content; premiumize fills gaps */
+  learning?: DemoLearningContent;
   roles: Array<{
     id: string;
     label: string;

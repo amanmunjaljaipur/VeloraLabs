@@ -775,6 +775,25 @@ export function BankingProductApp({
         )}
         {tab === "home" && (
           <div className="space-y-5">
+            {spec.learning && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
+                  Learning track · {role?.label}
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight">{spec.learning.heroHeadline}</h1>
+                <p className="max-w-3xl text-sm text-muted-foreground">{spec.learning.heroSub}</p>
+                {spec.learning.outcomes.length > 0 && (
+                  <ul className="grid gap-1.5 sm:grid-cols-2">
+                    {spec.learning.outcomes.slice(0, 4).map((o) => (
+                      <li key={o} className="flex gap-2 text-sm text-foreground">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-teal" />
+                        {o}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
             <Card
               className="overflow-hidden p-0 text-white"
               style={{

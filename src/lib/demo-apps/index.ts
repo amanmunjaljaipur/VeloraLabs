@@ -18,11 +18,14 @@ import { CATEGORIES as education } from "./groups/education";
 import { CATEGORIES as health } from "./groups/health";
 import { CATEGORIES as travel } from "./groups/travel";
 import type { DemoCategoryDef, DemoGroupId } from "./types";
+import { premiumizeDemoCategory } from "./premiumize";
 
-export type { DemoCategoryDef, DemoGroupId } from "./types";
+export type { DemoCategoryDef, DemoGroupId, DemoLearningContent } from "./types";
 export { DEMO_GROUP_LABELS, DEMO_GROUP_ORDER, ent } from "./types";
+export { premiumizeDemoCategory, premiumizeAll } from "./premiumize";
+export { getLearningPack, DEMO_LEARNING_PACKS } from "./learning-content";
 
-export const DEMO_CATEGORIES: DemoCategoryDef[] = [
+const RAW_CATEGORIES: DemoCategoryDef[] = [
   ...social,
   ...entertainment,
   ...fintech,
@@ -34,8 +37,15 @@ export const DEMO_CATEGORIES: DemoCategoryDef[] = [
   ...travel,
 ];
 
+/** All 50 categories with Verlin educational content applied. */
+export const DEMO_CATEGORIES: DemoCategoryDef[] = RAW_CATEGORIES.map(premiumizeDemoCategory);
+
 export function getDemoCategory(slug: string): DemoCategoryDef | undefined {
   return DEMO_CATEGORIES.find((c) => c.slug === slug);
+}
+
+export function getRawDemoCategory(slug: string): DemoCategoryDef | undefined {
+  return RAW_CATEGORIES.find((c) => c.slug === slug);
 }
 
 export function assertFiftyCategories(): void {

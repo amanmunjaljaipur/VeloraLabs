@@ -1,45 +1,40 @@
 # Demo apps (50 categories)
 
-Deployable layout — each **group** is its own folder so you can ship or edit verticals independently.
+Interactive multi-role product demos at `/demo-apps` and `/demo-apps/[slug]`.
+
+## Content quality (Verlin Labs educational voice)
+
+Every category is **premiumized** before it becomes a `StudioAppSpec`:
+
+| Layer | Path |
+|-------|------|
+| Handcrafted packs (all 50) | `learning-content.ts` |
+| Thin-copy upgrades | `premiumize.ts` |
+| Spec builder | `build-demo-spec.ts` |
+| Catalog export | `index.ts` → `DEMO_CATEGORIES` (already premiumized) |
+
+Each pack includes: outcome-led tagline, 2–3 sentence description, hero, who it’s for, outcomes, how-it-works, trust lines, FAQs, role/module copy, and richer seed rows.
+
+**Voice rules** (same as App Content Agent / courses):
+
+- Class-8 English, short sentences  
+- Concrete jobs and finish lines — no “world-class” fluff  
+- India-aware examples where natural  
+- Honest demo limits (mock APIs, no real money/health claims)  
+
+## Layout
 
 ```
-src/lib/demo-apps/
-  types.ts                 # shared types + ent() helper
-  index.ts                 # merges all groups → DEMO_CATEGORIES
-  build-demo-spec.ts       # DemoCategoryDef → StudioAppSpec
-  categories.ts            # thin re-export (compat)
-  groups/
-    social/index.ts        # 6 apps
-    entertainment/index.ts # 6 apps
-    fintech/index.ts       # 6 apps
-    ecommerce/index.ts     # 6 apps
-    utilities/index.ts     # 6 apps
-    productivity/index.ts  # 6 apps
-    education/index.ts     # 5 apps
-    health/index.ts        # 5 apps
-    travel/index.ts        # 4 apps
+types.ts
+learning-content.ts
+premiumize.ts
+build-demo-spec.ts
+groups/<domain>/index.ts   ← structure + base seeds
+index.ts
 ```
 
-## URLs
+## Adding a category
 
-- Gallery: `/demo-apps`
-- One app: `/demo-apps/<slug>` (e.g. `/demo-apps/digital-banking`)
-
-## Validate
-
-```bash
-npx tsx scripts/test-demo-apps.ts
-```
-
-## Add or edit a category
-
-1. Open the matching `groups/<domain>/index.ts`
-2. Add/update a `DemoCategoryDef` object
-3. Run `npx tsx scripts/test-demo-apps.ts`
-4. Open `/demo-apps/<slug>`
-
-## Runtime
-
-- `productKind: "banking"` → BankingProductApp  
-- `productKind: "resume"` → ResumeProductApp  
-- everything else → MultiModuleProductApp  
+1. Add blueprint to the right `groups/<domain>/index.ts`  
+2. Add a full pack in `learning-content.ts` under the same `slug`  
+3. Run `assertFiftyCategories` via build / `npm run build`  
