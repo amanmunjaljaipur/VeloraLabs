@@ -1,7 +1,9 @@
 /**
- * Dynamic guided interview: Grok (or free LLM) acts as a product manager
- * and designs simple questions from the user's one-line product idea.
+ * Dynamic guided interview: Grok acts as PM from the user's product idea.
+ * NOT ecom-only — banking, insurance, resume, booking, any vertical.
+ * Every question is skippable.
  */
+import { detectVerticalFromPrompt } from "@/lib/app-builder/detect-vertical";
 import { getExtension } from "@/lib/app-builder/extensions";
 import { callUserLlm, defaultModelForProvider, parseJsonObject } from "@/lib/app-builder/llm";
 import { getPlatformAppBuilderSecrets } from "@/lib/app-builder/platform-llm";
@@ -23,10 +25,16 @@ export interface DesignInterviewResult {
   questions: InterviewQuestion[];
   designedBy: string;
   rationale?: string;
+  /** Detected product shape from prompt */
+  detected?: {
+    extensionId: string;
+    appKind: string;
+    label: string;
+  };
 }
 
-/** Always present — identity + logo */
-const CORE_IDS = ["brandName", "city", "contact", "logoPreference"] as const;
+/** Soft identity fields — optional, never block skip */
+const CORE_IDS = ["brandName", "whoFor", "mainJob", "contact", "logoPreference"] as const;
 
 /**
  * Workflow discovery — understand offline business before designing the app.
@@ -288,9 +296,8 @@ function sanitizeQuestion(raw: Partial<InterviewQuestion>, index: number): Inter
           .slice(0, 280)
       : undefined,
     placeholder: raw.placeholder ? String(raw.placeholder).slice(0, 160) : undefined,
-    required: raw.required !== false && (CORE_IDS as readonly string[]).includes(id)
-      ? true
-      : Boolean(raw.required),
+    // All questions are skippable — never force required in the UI
+    required: false,
     multiline,
     hint: raw.hint ? String(raw.hint).slice(0, 200) : undefined,
     suggestions,
@@ -301,22 +308,24 @@ function sanitizeQuestion(raw: Partial<InterviewQuestion>, index: number): Inter
 
 function ensureCoreQuestions(
   questions: InterviewQuestion[],
-  extensionId: string
+  extensionId: string,
+  isEcomLike: boolean
 ): InterviewQuestion[] {
-  const byId = new Map(questions.map((q) => [q.id, q]));
+  const byId = new Map<string, InterviewQuestion>(
+    questions.map((q) => [q.id, { ...q, required: false as boolean }])
+  );
   const base = getExtension(extensionId)?.questions || [];
 
   const LOGO_Q: InterviewQuestion = {
     id: "logoPreference",
     label: "Do you already have a logo, or should we design one for you?",
-    helpText:
-      "If you have a logo, paste its web link (from Google Drive, Imgur, etc.). Or tap “Please design a logo for me”.",
-    required: true,
+    helpText: "Skip if you want a simple name mark for now.",
+    required: false,
     selectMode: "single",
     suggestions: [
       "Please design a logo for me",
       "I will paste my logo link below",
-      "Use my shop name as a simple logo for now",
+      "Use my name as a simple logo for now",
     ],
     allowCustom: true,
     placeholder: "Or paste https://… link to your logo image",
@@ -325,71 +334,66 @@ function ensureCoreQuestions(
   for (const coreId of CORE_IDS) {
     if (!byId.has(coreId)) {
       const fromBase = base.find((q) => q.id === coreId);
-      if (fromBase) byId.set(coreId, fromBase);
+      if (fromBase) byId.set(coreId, { ...fromBase, required: false });
       else if (coreId === "logoPreference") byId.set(coreId, LOGO_Q);
     }
   }
 
-  // Ensure workflow discovery questions exist (offline business first)
-  for (const wq of WORKFLOW_DEFAULTS) {
-    if (!byId.has(wq.id)) byId.set(wq.id, wq);
+  // Offline shop workflow only when this is actually a local-shop style product
+  if (isEcomLike) {
+    for (const wq of WORKFLOW_DEFAULTS) {
+      if (!byId.has(wq.id)) byId.set(wq.id, { ...wq, required: false });
+    }
   }
 
-  // Order inspired by Shopify/Wix: identity → offline → channels → offer → goals → brand
-  const preferredOrder = [
-    "brandName",
-    "city",
-    "sellChannel",
-    "offlineDay",
-    "customerSteps",
-    "busyTimes",
-    "whoDoesWhat",
-    "offlinePain",
-    "uniqueSelling",
-    "whatYouSell",
-    "shopType",
-    "audience",
-    "shippingHow",
-    "paymentToday",
-    "appHelpHope",
-    "successGoal",
-    "shareWhere",
-    "contact",
-    "howToOrder",
-    "logoPreference",
-  ];
+  const preferredOrder = isEcomLike
+    ? [
+        "brandName",
+        "city",
+        "whoFor",
+        "mainJob",
+        "sellChannel",
+        "offlineDay",
+        "customerSteps",
+        "uniqueSelling",
+        "whatYouSell",
+        "shippingHow",
+        "paymentToday",
+        "contact",
+        "logoPreference",
+      ]
+    : [
+        "brandName",
+        "whoFor",
+        "mainJob",
+        "problemSolved",
+        "mustHaveFeatures",
+        "userJourney",
+        "trustSafety",
+        "successMetric",
+        "tone",
+        "contact",
+        "logoPreference",
+      ];
 
   const ordered: InterviewQuestion[] = [];
-  const workflowRequired = new Set([
-    "offlineDay",
-    "customerSteps",
-    "offlinePain",
-    "appHelpHope",
-    "sellChannel",
-    "uniqueSelling",
-    "shippingHow",
-    "paymentToday",
-  ]);
   const take = (id: string) => {
     const q = byId.get(id);
     if (!q) return;
-    const force =
-      (CORE_IDS as readonly string[]).includes(id) || workflowRequired.has(id);
-    ordered.push(force ? { ...q, required: true } : q);
+    ordered.push({ ...q, required: false });
     byId.delete(id);
   };
 
   for (const id of preferredOrder) take(id);
   for (const q of questions) {
     if (byId.has(q.id)) {
-      ordered.push(byId.get(q.id)!);
+      ordered.push({ ...byId.get(q.id)!, required: false });
       byId.delete(q.id);
     }
   }
-  for (const q of byId.values()) ordered.push(q);
+  for (const q of byId.values()) ordered.push({ ...q, required: false });
 
-  // Keep enough room for identity + workflow + leader-style offer/fulfilment + logo
-  return ordered.slice(0, 16);
+  return ordered.slice(0, 12);
 }
 
 /**
@@ -459,17 +463,47 @@ export function fallbackInterviewQuestions(
     extras.push({
       id: "logoPreference",
       label: "Do you already have a logo, or should we design one for you?",
-      helpText: "Paste a logo link, or ask us to design one that matches your city and products.",
-      required: true,
+      helpText: "Skip if you want a simple name mark.",
+      required: false,
       selectMode: "single",
       suggestions: [
         "Please design a logo for me",
         "I will paste my logo link below",
-        "Use my shop name as a simple logo for now",
+        "Use my name as a simple logo for now",
       ],
       allowCustom: true,
       placeholder: "https://… logo image link",
     });
+  }
+
+  if (/\b(bank|insurance|resume|cv|booking|portfolio|fintech)\b/i.test(prompt)) {
+    extras.push(
+      {
+        id: "mustHaveFeatures",
+        label: "Which features matter most on day one?",
+        helpText: "Pick a few. Skip the rest — we can add more later.",
+        required: false,
+        selectMode: "multi",
+        allowCustom: true,
+        suggestions: [
+          "Clear homepage story",
+          "Trust / safety section",
+          "Pricing or plans",
+          "FAQ",
+          "Contact / apply form",
+          "How it works steps",
+        ],
+      },
+      {
+        id: "problemSolved",
+        label: "What problem does this solve for the user?",
+        required: false,
+        multiline: true,
+        selectMode: "free",
+        allowCustom: true,
+        suggestions: [],
+      }
+    );
   }
 
   // Merge base + extras, unique ids
@@ -478,61 +512,46 @@ export function fallbackInterviewQuestions(
   for (const q of [...base, ...extras]) {
     if (seen.has(q.id)) continue;
     seen.add(q.id);
-    merged.push(q);
+    merged.push({ ...q, required: false });
   }
-  return ensureCoreQuestions(merged, extensionId);
+  const detected = detectVerticalFromPrompt(prompt);
+  const isEcom = detected.extensionId === "ecom-local-shop" || extensionId === "ecom-local-shop";
+  return ensureCoreQuestions(merged, extensionId || detected.extensionId, isEcom);
 }
 
 const PM_SYSTEM = `You are a senior product manager for Verlin Labs App Builder.
-You design onboarding like industry leaders — but in SIMPLE words for non-tech India owners
-(parents, kirana, home bakers, crafts, tuition).
 
-## Learn from leaders (apply the INTENT, not the jargon)
-- Shopify: sell online/offline, products, shipping, payments, store goals, setup checklist
-- Wix AI: business type, what makes you unique, website goal, look & feel
-- Dukaan / Instamojo: WhatsApp-first, UPI/COD, shareable catalog link, local delivery
-- Square / local retail: who helps, peak hours, how customers order today
+## CRITICAL: Understand the PRODUCT from the user's prompt first
+The user may build ANYTHING: local shop, digital banking, insurance, resume updater,
+booking, portfolio, tuition, SaaS landing, internal tool demo, etc.
+DO NOT assume e-commerce. If they say banking → ask about trust, accounts, KYC language simply.
+If resume → ask about job seekers, sections, export. If insurance → plans, claims FAQ.
+If shop → products, WhatsApp, delivery. Match questions to THIS idea only.
 
-## Your job (in this order)
-1. OFFLINE reality first — day, customer steps, channels, pain.
-2. OFFER — concrete products/services (for photos + catalogue).
-3. FULFILMENT — how they get orders + how they get paid (India-first).
-4. GOALS — 2–3 website jobs + 3-month success.
-5. BRAND — name, city, contact, logo (design vs own link).
-
-## Discovery themes (cover most; tailor chips to the idea)
-- sellChannel, offlineDay, customerSteps, busyTimes, whoDoesWhat, offlinePain
-- uniqueSelling, whatYouSell / products, audience
-- shippingHow, paymentToday, appHelpHope, successGoal, shareWhere
-- brandName, city, contact, logoPreference
-
-## Rules for every question
-- Class-8 English. No jargon: no API, LLM, stack, OAuth, CRM, SKU, deploy, omnichannel, conversion.
-- Prefer chips. Always allowCustom: true.
-- 10 to 14 questions. Not more than 14.
-- Mix selectMode single | multi | free. Multiline for "describe your day" and product list.
-- required: true for brandName, city, contact, logoPreference, offline day, customer steps, pain, channels, unique selling, shipping, payment, app help.
-- MUST include exact ids: brandName, city, contact, logoPreference.
-- Prefer stable ids when possible: sellChannel, offlineDay, customerSteps, uniqueSelling, shippingHow, paymentToday, appHelpHope, successGoal, shareWhere.
-- logoPreference: "Please design a logo for me" + paste link option.
-- Product questions must ask for CONCRETE product names (so we can search/build photos).
-- helpText = one friendly coach sentence.
+## Rules
+- Class-8 English. No jargon (no API, LLM, OAuth, CRM, SKU, omnichannel).
+- 6 to 10 questions MAX. Prefer fewer.
+- EVERY question is skippable. Set required: false always.
+- Prefer chips + allowCustom: true.
+- Include soft ids when useful: brandName, whoFor, mainJob, contact, logoPreference.
+- Never force offline shop workflow for non-shop products.
+- helpText = one friendly coach line; say they can skip.
 
 Return ONLY valid JSON:
 {
-  "rationale": "one short sentence: which leader pattern you applied + offline insight",
+  "rationale": "one sentence: what product you understood + why these questions",
   "questions": [
     {
-      "id": "camelOr_snake",
+      "id": "camelCase",
       "label": "plain question?",
-      "helpText": "optional coach line",
+      "helpText": "optional — you can skip this",
       "placeholder": "optional",
-      "required": true,
+      "required": false,
       "multiline": false,
       "selectMode": "single",
       "suggestions": ["chip1", "chip2"],
       "allowCustom": true,
-      "hint": "optional note for later website generation"
+      "hint": "optional for generation"
     }
   ]
 }`;
@@ -544,10 +563,24 @@ export async function designInterviewQuestions(
   input: DesignInterviewInput
 ): Promise<DesignInterviewResult> {
   const prompt = input.prompt.trim();
+  const detected = detectVerticalFromPrompt(prompt);
+  const extensionId =
+    input.extensionId && input.extensionId !== "ecom-local-shop"
+      ? input.extensionId
+      : detected.extensionId;
+  const isEcom = extensionId === "ecom-local-shop";
+
+  const detectedMeta = {
+    extensionId,
+    appKind: detected.appKind,
+    label: detected.label,
+  };
+
   if (!prompt) {
     return {
-      questions: fallbackInterviewQuestions("local shop", input.extensionId),
+      questions: fallbackInterviewQuestions("custom app", extensionId),
       designedBy: "fallback-empty-prompt",
+      detected: detectedMeta,
     };
   }
 
@@ -557,35 +590,35 @@ export async function designInterviewQuestions(
 
   if (!secrets) {
     return {
-      questions: fallbackInterviewQuestions(prompt, input.extensionId),
+      questions: fallbackInterviewQuestions(prompt, extensionId),
       designedBy: "fallback-no-llm-key",
-      rationale: "Using smart starter questions (no AI key available for product-manager design).",
+      rationale: `Understood as: ${detected.label}. Starter questions (no AI key for full PM design).`,
+      detected: detectedMeta,
     };
   }
 
-  const ext = getExtension(input.extensionId);
+  const ext = getExtension(extensionId);
   const extensionHint = ext
-    ? `Product shape: ${ext.plainLabel || ext.label} (${ext.id}). ${ext.description}`
-    : `Product shape id: ${input.extensionId}`;
+    ? `Detected product family: ${detected.label} → extension ${extensionId} (${ext.plainLabel}). ${ext.description}`
+    : `Detected: ${detected.label} (${extensionId})`;
 
   try {
     const raw = await callUserLlm({
       secrets,
-      temperature: 0.55,
-      maxTokens: 2500,
+      temperature: 0.5,
+      maxTokens: 2200,
       timeoutMs: 60_000,
       messages: [
         { role: "system", content: PM_SYSTEM },
         {
           role: "user",
-          content: `User's product idea (one prompt):
+          content: `User's product idea (SOURCE OF TRUTH — understand this deeply):
 """${prompt}"""
 
 ${extensionHint}
 
-Design the guided interview NOW like Shopify + Wix + Dukaan onboarding in simple Hindi-English friendly words.
-Priority: offline day & customer steps → sell channels → unique selling → products → shipping & payment → goals → name/city/contact/logo.
-Every chip must fit THIS idea. Concrete product names for photos later.`,
+Design a SHORT guided interview for THIS product only (not a generic shop template).
+All questions skippable. Chips tailored to the idea. 6–10 questions.`,
         },
       ],
     });
@@ -599,22 +632,24 @@ Every chip must fit THIS idea. Concrete product names for photos later.`,
       .map((q, i) => sanitizeQuestion(q, i))
       .filter((q): q is InterviewQuestion => Boolean(q));
 
-    if (cleaned.length < 4) {
+    if (cleaned.length < 3) {
       throw new Error("Too few questions from PM model");
     }
 
-    const questions = ensureCoreQuestions(cleaned, input.extensionId);
+    const questions = ensureCoreQuestions(cleaned, extensionId, isEcom);
     return {
       questions,
       designedBy: `${secrets.provider}:${secrets.model || defaultModelForProvider(secrets.provider as LlmProviderKind)}`,
       rationale: parsed.rationale?.trim().slice(0, 280),
+      detected: detectedMeta,
     };
   } catch (error) {
     console.error("[app-builder] interview design failed:", error);
     return {
-      questions: fallbackInterviewQuestions(prompt, input.extensionId),
+      questions: fallbackInterviewQuestions(prompt, extensionId),
       designedBy: "fallback-after-llm-error",
-      rationale: "AI design failed — using tailored starter questions from your idea keywords.",
+      rationale: `AI design failed — using starter questions for: ${detected.label}.`,
+      detected: detectedMeta,
     };
   }
 }

@@ -1,5 +1,7 @@
 import { buildShopLogo, getLocationBrand, productEmoji } from "@/lib/app-builder/branding";
+import { detectVerticalFromPrompt } from "@/lib/app-builder/detect-vertical";
 import { getExtension } from "@/lib/app-builder/extensions";
+import { generateGenericAppContent } from "@/lib/app-builder/generate-generic";
 import {
   aboutImageUrl,
   applyLogoImage,
@@ -9,6 +11,8 @@ import {
 } from "@/lib/app-builder/images";
 import { callUserLlm, parseJsonObject } from "@/lib/app-builder/llm";
 import type {
+  AppExtensionContent,
+  AppExtensionId,
   AppInterviewAnswer,
   AppLlmSecrets,
   EcomLocalShopContent,
@@ -265,8 +269,8 @@ type LlmShopShape = Omit<
 };
 
 /**
- * Generate extension content with the user's LLM, falling back to a solid template.
- * Always applies location-based logo, product photos, and hero imagery.
+ * Generate extension content from prompt + answers.
+ * Ecom shops → catalogue runtime. Everything else → generic multi-page app.
  */
 export async function generateExtensionContent(input: {
   extensionId: string;
@@ -274,10 +278,23 @@ export async function generateExtensionContent(input: {
   answers: AppInterviewAnswer[];
   customPoints?: string[];
   secrets: AppLlmSecrets;
-}): Promise<{ content: EcomLocalShopContent; generatedBy: string }> {
-  const ext = getExtension(input.extensionId);
-  if (!ext || ext.id !== "ecom-local-shop") {
-    throw new Error("Unsupported extension");
+}): Promise<{ content: AppExtensionContent; generatedBy: string }> {
+  const detected = detectVerticalFromPrompt(input.prompt);
+  let extensionId = (input.extensionId || detected.extensionId) as AppExtensionId;
+  // Prefer prompt detection when user left default ecom but idea is not a shop
+  if (
+    extensionId === "ecom-local-shop" &&
+    detected.extensionId !== "ecom-local-shop" &&
+    detected.confidence !== "low"
+  ) {
+    extensionId = detected.extensionId;
+  }
+
+  if (extensionId !== "ecom-local-shop") {
+    return generateGenericAppContent({
+      ...input,
+      extensionId,
+    });
   }
 
   const customPoints = (input.customPoints || []).map((p) => p.trim()).filter(Boolean);

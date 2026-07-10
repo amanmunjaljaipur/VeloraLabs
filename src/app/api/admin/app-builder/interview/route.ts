@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
   const result = await designInterviewQuestions({
     prompt,
-    extensionId: body.extensionId || "ecom-local-shop",
+    extensionId: body.extensionId || "generic-app",
     secrets,
   });
 
@@ -57,10 +57,11 @@ export async function POST(request: Request) {
     questions: result.questions,
     designedBy: result.designedBy,
     rationale: result.rationale,
+    detected: result.detected,
     note: body.apiKey?.trim()
       ? "Questions designed with your AI key (not stored)."
       : result.designedBy.startsWith("fallback")
         ? "Starter questions from your idea. Add a Grok key on the next AI step for richer generation — or set XAI_API_KEY on the server for full PM design."
-        : "Questions designed by the product-manager AI from your idea.",
+        : "Questions designed from your product idea (any vertical — not only shops).",
   });
 }

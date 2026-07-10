@@ -71,7 +71,8 @@ export function AppBuilderStudio() {
   const [step, setStep] = useState<Step>("idea");
   const [prompt, setPrompt] = useState("");
   const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
-  const [extensionId, setExtensionId] = useState("ecom-local-shop");
+  const [extensionId, setExtensionId] = useState("generic-app");
+  const [detectedLabel, setDetectedLabel] = useState("");
   /** Designed per-prompt by product-manager AI — not a fixed list */
   const [dynamicQuestions, setDynamicQuestions] = useState<InterviewQuestion[]>([]);
   const [interviewRationale, setInterviewRationale] = useState("");
@@ -123,7 +124,9 @@ export function AppBuilderStudio() {
     setLlmProviders(data.llmProviders);
     setPlatformGrokReady(Boolean(data.platformGrokReady));
     setUsePlatformKeyByDefault(Boolean(data.usePlatformKeyByDefault));
-    if (data.extensions[0]) setExtensionId(data.extensions[0].id);
+    const generic = data.extensions.find((e) => e.id === "generic-app");
+    if (generic) setExtensionId("generic-app");
+    else if (data.extensions[0]) setExtensionId(data.extensions[0].id);
     // Prefer Grok when platform key is ready
     const xai = data.llmProviders.find((p) => p.id === "xai") || data.llmProviders[0];
     if (xai) {
@@ -225,10 +228,8 @@ export function AppBuilderStudio() {
   }
 
   function validateCurrentQuestion(): string | null {
+    // All questions are skippable
     if (!currentQ) return "No question";
-    if (currentQ.required && !answers[currentQ.id]?.trim()) {
-      return "Please pick a suggestion or write your own answer — we need this to build your shop.";
-    }
     return null;
   }
 
@@ -259,14 +260,19 @@ export function AppBuilderStudio() {
         rationale?: string;
         error?: string;
         note?: string;
+        detected?: { extensionId?: string; appKind?: string; label?: string };
       };
       if (!res.ok || !data.questions?.length) {
         toast(data.error || "Could not design questions. Try again.", "error");
         return false;
       }
-      setDynamicQuestions(data.questions);
+      setDynamicQuestions(data.questions.map((q) => ({ ...q, required: false })));
       setInterviewDesignedBy(data.designedBy || "");
       setInterviewRationale(data.rationale || data.note || "");
+      if (data.detected?.extensionId) {
+        setExtensionId(data.detected.extensionId);
+        setDetectedLabel(data.detected.label || data.detected.appKind || "");
+      }
       setAnswers({});
       setQuestionIndex(0);
       setCustomDraft("");
@@ -298,6 +304,26 @@ export function AppBuilderStudio() {
     setQuestionIndex((i) => i + 1);
   }
 
+  /** Skip current question without answering */
+  function skipQuestion() {
+    if (currentQ) {
+      setAnswers((prev) => ({ ...prev, [currentQ.id]: prev[currentQ.id] || "" }));
+    }
+    setCustomDraft("");
+    if (questionIndex >= questions.length - 1) {
+      setStep("extras");
+      return;
+    }
+    setQuestionIndex((i) => i + 1);
+  }
+
+  /** Skip all remaining questions and continue */
+  function skipAllQuestions() {
+    setCustomDraft("");
+    setStep("extras");
+    toast("Skipped remaining questions — we will use your original idea.", "success");
+  }
+
   function goPrevQuestion() {
     setCustomDraft("");
     if (questionIndex <= 0) {
@@ -309,26 +335,22 @@ export function AppBuilderStudio() {
 
   async function handleBuild() {
     if (!prompt.trim()) {
-      toast("First tell us your shop idea in simple words.", "error");
+      toast("First describe what you want to build in simple words.", "error");
       setStep("idea");
       return;
     }
-    if (!extension) return;
+    if (!extension) {
+      // still allow build with generic-app
+      setExtensionId("generic-app");
+    }
     if (questions.length === 0) {
-      toast("We need to design questions from your idea first.", "error");
+      toast("We need to design questions from your idea first (you can skip them all).", "error");
       setStep("idea");
       return;
     }
-    for (const q of questions) {
-      if (q.required && !answers[q.id]?.trim()) {
-        toast(`Please answer: ${q.label}`, "error");
-        setStep("guide");
-        setQuestionIndex(questions.findIndex((x) => x.id === q.id));
-        return;
-      }
-    }
+    // Required answers no longer block build — prompt is enough
     if (!apiKey.trim() && !usePlatformKeyByDefault && !platformGrokReady) {
-      toast("Paste your AI helper key so we can write the shop pages for you.", "error");
+      toast("Paste your AI helper key so we can write the pages for you.", "error");
       setStep("ai");
       return;
     }
@@ -384,7 +406,7 @@ export function AppBuilderStudio() {
       setActiveProject(genData.project);
       setStep("result");
       setApiKey("");
-      toast("Your shop website is ready!", "success");
+      toast("Your app is ready!", "success");
       await load();
     } catch {
       toast("Something went wrong. Please try again.", "error");
@@ -560,9 +582,10 @@ export function AppBuilderStudio() {
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold">What kind of shop do you want?</h2>
+                <h2 className="text-lg font-semibold">What do you want to build?</h2>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Pick a starting idea (you can change every detail later).
+                  Shop, booking, banking, insurance, resume tool, portfolio — or anything you
+                  describe. We read your idea first (not a fixed shop template).
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {ideaExamples.map((idea) => (
@@ -594,7 +617,7 @@ export function AppBuilderStudio() {
               <label className="block text-sm">
                 <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
                   <Lightbulb className="h-3.5 w-3.5" />
-                  Describe your shop in plain words
+                  Describe your product in plain words
                 </span>
                 <textarea
                   value={prompt}
@@ -603,22 +626,14 @@ export function AppBuilderStudio() {
                     setSelectedIdeaId((id) => (id === "custom" || !id ? "custom" : id));
                   }}
                   rows={4}
-                  placeholder="Example: I sell handmade diyas and gift boxes from my home in Jaipur. Parents and tourists buy from me. I take orders on WhatsApp."
+                  placeholder="Examples: digital banking app for India… insurance plans site… resume updater for students… handmade shop on WhatsApp…"
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
                 />
               </label>
 
-              {extensions[0] ? (
-                <p className="text-xs text-text-muted">
-                  We will build: <strong className="text-foreground">{extensions[0].plainLabel}</strong>
-                </p>
-              ) : null}
-
               <p className="text-xs text-text-secondary">
-                Next a product manager (AI) will ask how your business works{" "}
-                <strong>offline today</strong> — your day, customer steps, busy times, what is hard —
-                then name, products, and logo. Questions are made for <strong>your</strong> idea, in
-                simple words.
+                Next, AI reads your idea and asks a few simple questions for{" "}
+                <strong>that product</strong> (not always a shop). You can skip any or all questions.
               </p>
 
               <Button
@@ -628,8 +643,8 @@ export function AppBuilderStudio() {
                 onClick={() => void startGuidedFromIdea()}
               >
                 {designingQuestions
-                  ? "Learning your offline business…"
-                  : "Understand my business & ask questions"}
+                  ? "Understanding your idea…"
+                  : "Understand my idea & ask questions"}
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Card>
@@ -662,11 +677,11 @@ export function AppBuilderStudio() {
               {(interviewRationale || interviewDesignedBy) && questionIndex === 0 ? (
                 <div className="rounded-xl border border-accent-teal/20 bg-accent-teal/5 px-3 py-2 text-xs text-text-secondary">
                   <p className="font-semibold text-foreground">
-                    First we learn your offline work — then we design the app
+                    Questions are tailored to your idea — skip any you want
                   </p>
                   {interviewRationale ? <p className="mt-1">{interviewRationale}</p> : null}
                   <p className="mt-1">
-                    Answer like you are explaining to a friend how your shop / service runs today.
+                    Answer in plain words, or skip. We still build from your original idea.
                   </p>
                   {interviewDesignedBy ? (
                     <p className="mt-1 text-text-muted">Source: {interviewDesignedBy}</p>
@@ -807,25 +822,29 @@ export function AppBuilderStudio() {
                 </div>
               )}
 
+              {detectedLabel ? (
+                <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-text-secondary">
+                  We think you are building:{" "}
+                  <strong className="text-foreground">{detectedLabel}</strong>
+                  {extensionId !== "ecom-local-shop" ? " (not only shops)" : ""}
+                </p>
+              ) : null}
+
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button type="button" onClick={goNextQuestion}>
                   {questionIndex >= questions.length - 1 ? "Continue" : "Next question"}
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
-                {!currentQ.required ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setCustomDraft("");
-                      if (questionIndex >= questions.length - 1) setStep("extras");
-                      else setQuestionIndex((i) => i + 1);
-                    }}
-                  >
-                    Skip for now
-                  </Button>
-                ) : null}
+                <Button type="button" variant="secondary" onClick={skipQuestion}>
+                  Skip this question
+                </Button>
+                <Button type="button" variant="secondary" onClick={skipAllQuestions}>
+                  Skip all remaining
+                </Button>
               </div>
+              <p className="text-[11px] text-text-muted">
+                Skipping is fine — we still build from your original idea and any answers you gave.
+              </p>
             </Card>
           )}
 
@@ -1155,7 +1174,10 @@ export function AppBuilderStudio() {
                     brandName: activeProject.name,
                     publicPath: activeProject.publicPath,
                     answers: activeProject.answers || [],
-                    hasProducts: Boolean(activeProject.content?.products?.length),
+                    hasProducts: Boolean(
+                      activeProject.content?.extensionId === "ecom-local-shop" &&
+                        activeProject.content.products?.length
+                    ),
                     hasLogo: Boolean(activeProject.content?.logo),
                   }).map((item) => (
                     <li

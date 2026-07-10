@@ -25,7 +25,7 @@ Read companion refs as needed:
 
 ## Core principles (non-negotiable)
 
-1. **One vertical first** — never “build anything.” Bound the extension (e.g. `ecom-local-shop`, later `booking-local`, `tuition-centre`).
+1. **Prompt-first product** — understand the idea; detect vertical (`detect-vertical.ts`). Support ecom **and** banking, insurance, resume, booking, portfolio, `generic-app`. Never force ecom questions for non-shops.
 2. **Non-tech first** — Class 6–12 parents / local shop owners language. No “LLM”, “OAuth”, “Blob”, “deploy pipeline” in UI copy.
 3. **One prompt starts; interview is designed from that prompt** — never a fixed question list every time. Call `/api/admin/app-builder/interview` (Grok as product manager) via `designInterviewQuestions`. Fallback only if no LLM key.
 4. **Suggestions + own words** — every question: chips to tap + "add your own." Language: Class-8 English, no tech jargon.

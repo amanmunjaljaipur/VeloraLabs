@@ -40,7 +40,7 @@ export default async function GeneratedAppPage({ params }: PageProps) {
     console.error("[apps] ensureTenantForProject", e);
   }
 
-  if (project.extensionId === "ecom-local-shop" && project.content.extensionId === "ecom-local-shop") {
+  if (project.content) {
     return (
       <StandaloneAppRuntime
         content={project.content}

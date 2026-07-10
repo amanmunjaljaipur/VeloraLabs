@@ -8,8 +8,10 @@ import {
   AppTourReplayButton,
 } from "@/components/app-builder/AppGuidedTour";
 import { EcomLocalShopApp } from "@/components/app-builder/EcomLocalShopApp";
+import { GenericAppRuntime } from "@/components/app-builder/GenericAppRuntime";
 import { resolveShopTheme, withAlpha } from "@/lib/app-builder/shop-theme";
-import type { EcomLocalShopContent } from "@/lib/app-builder/types";
+import type { AppExtensionContent, EcomLocalShopContent } from "@/lib/app-builder/types";
+import { isEcomContent, isGenericContent } from "@/lib/app-builder/types";
 import { cn } from "@/lib/utils";
 import {
   ExternalLink,
@@ -108,19 +110,28 @@ export function StandaloneAppRuntime({
   slug,
   pathSegments = [],
 }: {
-  content: EcomLocalShopContent;
+  content: AppExtensionContent;
   basePath: string;
   slug: string;
   pathSegments?: string[];
 }) {
   const [route, setRoute] = useState<AppRoute>(() => parseRoute(pathSegments));
-  const [content, setContent] = useState(initialContent);
+  const [content, setContent] = useState<AppExtensionContent>(initialContent);
   const [user, setUser] = useState<AppUserView | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [forceTour, setForceTour] = useState(false);
 
-  const theme = resolveShopTheme(content);
+  const theme = resolveShopTheme({
+    primaryColor: content.primaryColor,
+    secondaryColor: content.secondaryColor,
+    accentColor: content.accentColor,
+    surfaceColor: "surfaceColor" in content ? content.surfaceColor : undefined,
+    themePalette: content.themePalette,
+    logo: content.logo,
+  });
   const accent = theme.primary;
+  const brandName = content.brandName;
+  const city = "city" in content && content.city ? content.city : "";
 
   const loadMe = useCallback(async () => {
     try {
@@ -230,33 +241,41 @@ export function StandaloneAppRuntime({
                   background: `linear-gradient(145deg, ${theme.gradientFrom}, ${theme.gradientTo})`,
                 }}
               >
-                {content.logo?.initials || content.brandName.slice(0, 2).toUpperCase()}
+                {content.logo?.initials || brandName.slice(0, 2).toUpperCase()}
               </span>
             )}
             <span>
               <span className="block text-sm font-semibold" style={{ color: theme.primary }}>
-                {content.brandName}
+                {brandName}
               </span>
               <span className="block text-[10px] text-text-muted">
                 {isAdminRoute ? "Admin · " : ""}
-                {content.city}
+                {city || content.tagline?.slice(0, 24)}
               </span>
             </span>
           </button>
 
-          {/* Public pages always reachable from top menu */}
+          {/* Public pages — products only for ecom */}
           <nav
             className="flex flex-wrap items-center gap-1 text-sm font-medium"
-            aria-label="Shop pages"
+            aria-label="App pages"
             data-tour="nav"
           >
             {(
-              [
-                ["home", "Home", Home],
-                ["shop", "Products", ShoppingBag],
-                ["about", "About", Store],
-                ["contact", "Contact", ExternalLink],
-              ] as const
+              (
+                isEcomContent(content)
+                  ? ([
+                      ["home", "Home", Home],
+                      ["shop", "Products", ShoppingBag],
+                      ["about", "About", Store],
+                      ["contact", "Contact", ExternalLink],
+                    ] as const)
+                  : ([
+                      ["home", "Home", Home],
+                      ["about", "About", Store],
+                      ["contact", "Contact", ExternalLink],
+                    ] as const)
+              )
             ).map(([r, label, Icon]) => (
               <button
                 key={r}
@@ -398,7 +417,7 @@ export function StandaloneAppRuntime({
         />
       ) : null}
 
-      {isAdminRoute && user?.isAdmin ? (
+      {isAdminRoute && user?.isAdmin && isEcomContent(content) ? (
         <AppAdminPanel
           slug={slug}
           content={content}
@@ -410,7 +429,7 @@ export function StandaloneAppRuntime({
         />
       ) : null}
 
-      {isAdminRoute && user && !user.isAdmin && user.isStaff ? (
+      {isAdminRoute && user && !user.isAdmin && user.isStaff && isEcomContent(content) ? (
         <AppAdminPanel
           slug={slug}
           content={content}
@@ -421,6 +440,24 @@ export function StandaloneAppRuntime({
           onContentUpdated={setContent}
           staffOnly
         />
+      ) : null}
+
+      {isAdminRoute && user?.isAdmin && isGenericContent(content) ? (
+        <div className="mx-auto max-w-lg px-4 py-16 text-center">
+          <p className="text-lg font-semibold">Dashboard for this product</p>
+          <p className="mt-2 text-sm text-text-secondary">
+            Full CMS for non-shop apps is rolling out. Use Site wording improvements from the builder
+            for now, or edit after export. Your live app is available via the top menu.
+          </p>
+          <button
+            type="button"
+            onClick={() => go("home")}
+            className="mt-6 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: accent }}
+          >
+            Back to app
+          </button>
+        </div>
       ) : null}
 
       {isAdminRoute && !user?.isAdmin && !user?.isStaff ? (
@@ -484,7 +521,7 @@ export function StandaloneAppRuntime({
         </div>
       ) : null}
 
-      {!isAuthRoute && !isAdminRoute && route !== "account" ? (
+      {!isAuthRoute && !isAdminRoute && route !== "account" && isEcomContent(content) ? (
         <EcomLocalShopApp
           content={content}
           basePath={basePath}
@@ -501,8 +538,12 @@ export function StandaloneAppRuntime({
         />
       ) : null}
 
+      {!isAuthRoute && !isAdminRoute && route !== "account" && isGenericContent(content) ? (
+        <GenericAppRuntime content={content} pathSegments={pathSegments} embedded />
+      ) : null}
+
       {/* Footer on account / auth pages (shop pages include their own footer) */}
-      {(isAuthRoute || route === "account") && !isAdminRoute ? (
+      {(isAuthRoute || route === "account") && !isAdminRoute && isEcomContent(content) ? (
         <AppBuilderFooter content={content} theme={theme} onNavigate={(p) => go(p)} />
       ) : null}
     </div>

@@ -67,7 +67,8 @@ export async function POST(request: Request, context: Ctx) {
 
   // Prefer catalogue prices/names when product ids match (stop price spoofing)
   const project = await getAppProjectBySlug(slug);
-  const catalogue = project?.content?.products || [];
+  const catalogue =
+    project?.content?.extensionId === "ecom-local-shop" ? project.content.products || [] : [];
   const byId = new Map(catalogue.map((p) => [p.id, p]));
 
   const raw = clampOrderItems(body.items);

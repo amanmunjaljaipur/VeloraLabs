@@ -1,4 +1,13 @@
-export type AppExtensionId = "ecom-local-shop";
+/** Prompt can map to any of these; unknown ideas use generic-app */
+export type AppExtensionId =
+  | "ecom-local-shop"
+  | "generic-app"
+  | "booking-local"
+  | "digital-banking"
+  | "insurance"
+  | "resume-career"
+  | "portfolio"
+  | "tuition-centre";
 
 export type AppProjectStatus = "draft" | "live" | "archived";
 
@@ -98,7 +107,75 @@ export interface EcomLocalShopContent {
   seoDescription?: string;
 }
 
-export type AppExtensionContent = EcomLocalShopContent;
+/** Non-ecom apps: banking, insurance, resume, booking, portfolio, custom… */
+export interface GenericAppPage {
+  id: string;
+  /** Route segment: home | about | pricing | features | contact | faq | apply | … */
+  path: string;
+  title: string;
+  headline?: string;
+  bodyHtml: string;
+  ctaLabel?: string;
+}
+
+export interface GenericAppFeature {
+  id: string;
+  title: string;
+  body: string;
+  icon?: string;
+}
+
+export interface GenericAppContent {
+  extensionId: Exclude<AppExtensionId, "ecom-local-shop"> | "generic-app";
+  /** Machine kind from prompt detection */
+  appKind: string;
+  brandName: string;
+  tagline: string;
+  description: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor?: string;
+  surfaceColor?: string;
+  themePalette?: string[];
+  city?: string;
+  contactEmail: string;
+  contactPhone: string;
+  whatsappNumber?: string;
+  address?: string;
+  heroHeadline: string;
+  heroSubheadline: string;
+  ctaLabel: string;
+  /** Secondary CTA (e.g. “Apply”, “Book demo”) */
+  secondaryCtaLabel?: string;
+  aboutHtml: string;
+  logo: ShopLogo;
+  heroImageUrl?: string;
+  nav: Array<{ path: string; label: string }>;
+  pages: GenericAppPage[];
+  features: GenericAppFeature[];
+  faqs: Array<{ question: string; answer: string }>;
+  trustBadges: string[];
+  footerNote: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  /** Free-form blocks for vertical specifics (plans, form fields labels, etc.) */
+  customBlocks?: Array<{ title: string; body: string }>;
+  languageNote?: string;
+}
+
+export type AppExtensionContent = EcomLocalShopContent | GenericAppContent;
+
+export function isEcomContent(
+  content: AppExtensionContent | null | undefined
+): content is EcomLocalShopContent {
+  return Boolean(content && content.extensionId === "ecom-local-shop");
+}
+
+export function isGenericContent(
+  content: AppExtensionContent | null | undefined
+): content is GenericAppContent {
+  return Boolean(content && content.extensionId !== "ecom-local-shop");
+}
 
 export interface AppProject {
   id: string;

@@ -92,25 +92,30 @@ export async function POST(request: Request) {
   }
 
   const prompt = body.prompt?.trim();
-  const extensionId = body.extensionId || "ecom-local-shop";
-  const ext = getExtension(extensionId);
   if (!prompt) {
     return NextResponse.json(
-      { error: "Please describe your shop idea in simple words first." },
+      { error: "Please describe your product idea in simple words first." },
       { status: 400 }
     );
   }
-  if (!ext) return NextResponse.json({ error: "Unknown shop type" }, { status: 400 });
 
-  // Answers come from dynamic product-manager interview (not a fixed extension checklist)
-  const answers = Array.isArray(body.answers) ? body.answers : [];
-  const filled = answers.filter((a) => a.answer?.trim());
-  if (filled.length === 0) {
-    return NextResponse.json(
-      { error: "Please answer the guided questions for your idea first." },
-      { status: 400 }
-    );
+  // Prompt-first: detect vertical unless client forced a non-default extension
+  const { detectVerticalFromPrompt } = await import("@/lib/app-builder/detect-vertical");
+  const detected = detectVerticalFromPrompt(prompt);
+  let extensionId = body.extensionId || detected.extensionId;
+  if (
+    (!body.extensionId || body.extensionId === "ecom-local-shop") &&
+    detected.extensionId !== "ecom-local-shop"
+  ) {
+    extensionId = detected.extensionId;
   }
+  const ext = getExtension(extensionId) || getExtension("generic-app");
+  if (!ext) {
+    return NextResponse.json({ error: "Unknown app type" }, { status: 400 });
+  }
+
+  // Answers optional — user may skip all questions; prompt is enough
+  const answers = Array.isArray(body.answers) ? body.answers : [];
   const brandAnswer = answers.find((a) => a.id === "brandName")?.answer?.trim();
   if (!brandAnswer) {
     // Soft require: if PM used a different id, keep going with prompt-based name
