@@ -5,6 +5,7 @@ import {
   getAllUserRoles,
   getRoleForEmail,
   hasCustomRoleAssignment,
+  isHardcodedSuperAdmin,
   removeUserRole,
   setUserRole,
 } from "@/lib/roles";
@@ -26,9 +27,9 @@ export const runtime = "nodejs";
 
 async function requireRoleManager() {
   const session = await auth();
-  if (!session?.user || !isAdminRole(session.user.role)) {
-    return null;
-  }
+  if (!session?.user) return null;
+  if (isHardcodedSuperAdmin(session.user.email)) return session;
+  if (!isAdminRole(session.user.role)) return null;
   return session;
 }
 
@@ -48,7 +49,8 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await ensureRolesLoaded();
+  // Always force-reload so list matches latest Blob writes from any instance
+  await ensureRolesLoaded(true);
   await ensureKnownUsersLoaded();
 
   const assignments = getAllUserRoles().map(({ email, role }) => ({
@@ -62,11 +64,18 @@ export async function GET() {
     unassigned?: Awaited<ReturnType<typeof getUsersWithoutRoleAssignment>>;
   } = { assignments };
 
-  if (session.user.role === "super_admin") {
+  if (
+    session.user.role === "super_admin" ||
+    isHardcodedSuperAdmin(session.user.email)
+  ) {
     payload.unassigned = await getUsersWithoutRoleAssignment();
   }
 
-  return NextResponse.json(payload);
+  return NextResponse.json(payload, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+    },
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -86,7 +95,9 @@ export async function POST(req: NextRequest) {
     }
 
     const email = parsed.data.email.toLowerCase().trim();
-    const actorRole = session.user.role;
+    const actorRole =
+      session.user.role ||
+      (isHardcodedSuperAdmin(session.user.email) ? ("super_admin" as const) : null);
     if (!actorRole) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -121,18 +132,26 @@ export async function POST(req: NextRequest) {
 
     await setUserRole(email, parsed.data.role, session.user.email ?? "admin");
 
-    return NextResponse.json({
-      success: true,
-      assignment: {
-        email,
-        role: parsed.data.role,
-        label: ROLE_LABELS[parsed.data.role],
+    // Confirm what is stored after Blob write
+    const confirmed = getRoleForEmail(email);
+
+    return NextResponse.json(
+      {
+        success: true,
+        assignment: {
+          email,
+          role: confirmed || parsed.data.role,
+          label: ROLE_LABELS[confirmed || parsed.data.role],
+        },
+        note:
+          confirmed === "super_admin" || confirmed === "admin"
+            ? "Saved to Blob. They should refresh or re-open the site — powers load on next request."
+            : "Saved to Blob. Takes effect on their next page load (no long wait).",
       },
-      note:
-        parsed.data.role === "super_admin" || parsed.data.role === "admin"
-          ? "Role saved. They should refresh the admin page or sign out and sign back in to load full powers."
-          : undefined,
-    });
+      {
+        headers: { "Cache-Control": "no-store, max-age=0" },
+      }
+    );
   } catch (error) {
     console.error("Role assignment failed:", error);
     const message = error instanceof Error ? error.message : "Server error";
@@ -157,7 +176,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     const email = parsed.data.email.toLowerCase().trim();
-    const actorRole = session.user.role;
+    const actorRole =
+      session.user.role ||
+      (isHardcodedSuperAdmin(session.user.email) ? ("super_admin" as const) : null);
     if (!actorRole) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -183,7 +204,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: true },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

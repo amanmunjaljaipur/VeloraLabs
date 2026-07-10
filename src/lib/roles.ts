@@ -8,8 +8,10 @@ import { UserRole } from "@/types/roles";
 export type UserRolesConfig = Record<string, UserRole>;
 
 const ROLES_FILE = "user-roles.json";
-/** Short TTL so role promotions (e.g. → super_admin) show up across instances quickly */
-const CACHE_TTL_MS = 15 * 1000;
+/** Short TTL for warm cache; writers always refresh carefully */
+const CACHE_TTL_MS = 5_000;
+/** After a local write, prefer in-memory map over re-hydrating stale Blob for a few seconds */
+const LOCAL_WRITE_GRACE_MS = 8_000;
 
 /**
  * Permanent platform owners — always super_admin regardless of Blob / user-roles.json drift.
@@ -34,8 +36,8 @@ export function isHardcodedSuperAdmin(email: string | null | undefined): boolean
 let cachedRoles: UserRolesConfig | null = null;
 let cacheLoadedAt = 0;
 let loadPromise: Promise<void> | null = null;
-let superAdminSeededAt = 0;
-const SEED_COOLDOWN_MS = 60_000;
+let writeChain: Promise<void> = Promise.resolve();
+let lastLocalWriteAt = 0;
 
 function readLocalRolesFile(): UserRolesConfig {
   try {
@@ -69,37 +71,39 @@ export function invalidateRolesCache(): void {
 }
 
 /**
- * Ensure hardcoded owners exist in user-roles.json / Blob so admin lists show them.
- * Best-effort — never throws.
+ * Serialize role mutations on this instance so concurrent assigns don't clobber each other.
  */
-async function ensureHardcodedSuperAdminsPersisted(): Promise<void> {
-  if (Date.now() - superAdminSeededAt < SEED_COOLDOWN_MS) return;
+function enqueueRoleWrite<T>(fn: () => Promise<T>): Promise<T> {
+  const run = writeChain.then(fn, fn);
+  writeChain = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
 
-  try {
-    const roles = { ...getRolesSnapshot() };
-    let dirty = false;
-    for (const email of HARDCODED_SUPER_ADMIN_EMAILS) {
-      if (roles[email] !== "super_admin") {
-        roles[email] = "super_admin";
-        dirty = true;
-      }
-    }
-    if (!dirty) {
-      superAdminSeededAt = Date.now();
-      return;
-    }
-
-    cachedRoles = roles;
-    cacheLoadedAt = Date.now();
-    superAdminSeededAt = Date.now();
-    await writeLocalRolesFile(roles);
-  } catch (e) {
-    console.warn("[roles] failed to persist hardcoded super_admin seed", e);
-  }
+/**
+ * Ensure hardcoded owners exist in the map (in-memory + best-effort Blob).
+ */
+function applyHardcoded(roles: UserRolesConfig): UserRolesConfig {
+  return withHardcodedSuperAdmins(roles);
 }
 
 export async function ensureRolesLoaded(force = false): Promise<void> {
+  // Warm cache: skip network if recent (unless force)
   if (!force && cachedRoles && Date.now() - cacheLoadedAt < CACHE_TTL_MS) {
+    return;
+  }
+
+  // After a write on this instance, keep local cache as truth briefly so we don't
+  // re-pull a slightly stale Blob and wipe the assignment we just made.
+  if (
+    force &&
+    cachedRoles &&
+    lastLocalWriteAt > 0 &&
+    Date.now() - lastLocalWriteAt < LOCAL_WRITE_GRACE_MS
+  ) {
+    cacheLoadedAt = Date.now();
     return;
   }
 
@@ -108,21 +112,42 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
     return;
   }
 
+  // If force and a load is in flight, wait for it then optionally re-run
+  if (loadPromise && force) {
+    try {
+      await loadPromise;
+    } catch {
+      /* continue */
+    }
+    // If another writer just finished on this instance, keep that map
+    if (
+      cachedRoles &&
+      lastLocalWriteAt > 0 &&
+      Date.now() - lastLocalWriteAt < LOCAL_WRITE_GRACE_MS
+    ) {
+      cacheLoadedAt = Date.now();
+      return;
+    }
+  }
+
   loadPromise = (async () => {
     try {
-      // Always re-pull from Blob on Vercel so role changes are visible on all instances
       await ensureDataFileHydrated(ROLES_FILE, "{}", { force: true });
     } catch (e) {
-      // Blob/network must never block login or super_admin resolution
       console.warn("[roles] hydrate failed — using local/hardcoded roles", e);
     }
     try {
-      cachedRoles = withHardcodedSuperAdmins(readLocalRolesFile());
+      const fromDisk = readLocalRolesFile();
+      // Merge: never drop keys we already have in cache from a recent write
+      const merged =
+        cachedRoles && Date.now() - lastLocalWriteAt < LOCAL_WRITE_GRACE_MS
+          ? { ...fromDisk, ...cachedRoles }
+          : fromDisk;
+      cachedRoles = applyHardcoded(merged);
       cacheLoadedAt = Date.now();
-      await ensureHardcodedSuperAdminsPersisted();
     } catch (e) {
-      console.warn("[roles] read/seed failed — keeping hardcoded-only map", e);
-      cachedRoles = withHardcodedSuperAdmins(cachedRoles || {});
+      console.warn("[roles] read failed — keeping hardcoded-only map", e);
+      cachedRoles = applyHardcoded(cachedRoles || {});
       cacheLoadedAt = Date.now();
     }
   })();
@@ -137,7 +162,6 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
 export function getRoleForEmail(email: string | null | undefined): UserRole | null {
   if (!email) return null;
   const normalized = normalizeEmail(email);
-  // Hardcoded owners always win — no file/Blob required
   if (isHardcodedSuperAdmin(normalized)) {
     return "super_admin";
   }
@@ -150,25 +174,35 @@ export function getRoleForEmail(email: string | null | undefined): UserRole | nu
 }
 
 /**
- * Fresh role from disk/Blob — use for session/JWT so super_admin promotions apply immediately.
- * Hardcoded super_admin is returned even if hydrate fails.
+ * Fresh role from Blob/disk — used by session/JWT so promotions apply quickly.
+ * Hardcoded super_admin never depends on I/O.
  */
 export async function getRoleForEmailFresh(
   email: string | null | undefined
 ): Promise<UserRole | null> {
   if (!email) return null;
-  // Critical: resolve owner BEFORE any async I/O that might throw
   if (isHardcodedSuperAdmin(email)) {
-    // Fire-and-forget seed; do not await failures
-    void ensureRolesLoaded(true).catch(() => undefined);
+    void ensureRolesLoaded(false).catch(() => undefined);
     return "super_admin";
   }
   try {
-    await ensureRolesLoaded(true);
+    // Force reload so another instance's assign is visible ASAP
+    // (grace period only protects the *writing* instance from clobbering itself)
+    const writingRecently =
+      lastLocalWriteAt > 0 && Date.now() - lastLocalWriteAt < LOCAL_WRITE_GRACE_MS;
+    await ensureRolesLoaded(!writingRecently);
+    // Extra pull if still missing (eventual consistency)
+    let role = getRoleForEmail(email);
+    if (!role) {
+      lastLocalWriteAt = 0; // allow force hydrate past grace
+      await ensureRolesLoaded(true);
+      role = getRoleForEmail(email);
+    }
+    return role;
   } catch (e) {
-    console.warn("[roles] getRoleForEmailFresh load failed", e);
+    console.warn("[roles] getRoleForEmailFresh failed", e);
+    return getRoleForEmail(email);
   }
-  return getRoleForEmail(email);
 }
 
 export function hasCustomRoleAssignment(email: string | null | undefined): boolean {
@@ -183,54 +217,86 @@ export function hasCustomRoleAssignment(email: string | null | undefined): boole
 }
 
 export function getAllUserRoles(): { email: string; role: UserRole }[] {
-  const roles = withHardcodedSuperAdmins(getRolesSnapshot());
+  const roles = applyHardcoded(getRolesSnapshot());
   return Object.entries(roles)
     .map(([email, role]) => ({ email, role }))
     .sort((a, b) => a.email.localeCompare(b.email));
 }
 
+/**
+ * Assign/update a role and await Blob so other instances see it immediately.
+ * Serialized + retry so concurrent assigns do not overwrite each other.
+ */
 export async function setUserRole(
   email: string,
   role: UserRole,
   _updatedBy?: string
 ): Promise<void> {
   const normalized = normalizeEmail(email);
-  await ensureRolesLoaded(true);
-
-  // Never demote hardcoded platform owners
   if (isHardcodedSuperAdmin(normalized) && role !== "super_admin") {
     role = "super_admin";
   }
 
-  const roles = { ...getRolesSnapshot() };
-  roles[normalized] = role;
-  for (const e of HARDCODED_SUPER_ADMIN_EMAILS) {
-    roles[e] = "super_admin";
-  }
+  await enqueueRoleWrite(async () => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        // Attempt 0: use warm cache if any; later attempts force Blob reload
+        lastLocalWriteAt = 0; // allow hydrate to see others' writes
+        await ensureRolesLoaded(true);
 
-  cachedRoles = roles;
-  cacheLoadedAt = Date.now();
-  await writeLocalRolesFile(roles);
+        const roles = applyHardcoded({ ...getRolesSnapshot() });
+        roles[normalized] = role;
+
+        cachedRoles = roles;
+        cacheLoadedAt = Date.now();
+        lastLocalWriteAt = Date.now();
+
+        // Await Blob put (user-roles is in AWAIT_BLOB_PERSIST_FILES)
+        await writeLocalRolesFile(roles);
+
+        // Verify our assignment is still present after write
+        const verify = applyHardcoded(readLocalRolesFile());
+        if (verify[normalized] === role) {
+          cachedRoles = applyHardcoded({ ...verify });
+          cacheLoadedAt = Date.now();
+          lastLocalWriteAt = Date.now();
+          return;
+        }
+        lastError = new Error("Role write verify failed");
+      } catch (e) {
+        lastError = e;
+        console.warn(`[roles] setUserRole attempt ${attempt + 1} failed`, e);
+        await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
+      }
+    }
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Failed to save role assignment");
+  });
 }
 
-export async function removeUserRole(email: string, _updatedBy?: string): Promise<boolean> {
+export async function removeUserRole(
+  email: string,
+  _updatedBy?: string
+): Promise<boolean> {
   const normalized = normalizeEmail(email);
-  await ensureRolesLoaded(true);
-
   if (isHardcodedSuperAdmin(normalized)) {
     return false;
   }
 
-  const roles = { ...getRolesSnapshot() };
-  if (!(normalized in roles)) return false;
-  delete roles[normalized];
-  for (const e of HARDCODED_SUPER_ADMIN_EMAILS) {
-    roles[e] = "super_admin";
-  }
+  return enqueueRoleWrite(async () => {
+    lastLocalWriteAt = 0;
+    await ensureRolesLoaded(true);
 
-  cachedRoles = roles;
-  cacheLoadedAt = Date.now();
-  await writeLocalRolesFile(roles);
+    const roles = applyHardcoded({ ...getRolesSnapshot() });
+    if (!(normalized in roles)) return false;
+    delete roles[normalized];
 
-  return true;
+    cachedRoles = roles;
+    cacheLoadedAt = Date.now();
+    lastLocalWriteAt = Date.now();
+    await writeLocalRolesFile(roles);
+    return true;
+  });
 }
