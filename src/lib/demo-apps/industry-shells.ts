@@ -52,10 +52,10 @@ function legalFooter(
       },
       ...extraColumns,
     ],
-    copyright: `© ${new Date().getFullYear()} ${brand}. All rights reserved. Demo product — not a live ${industry} service.`,
+    copyright: `© ${new Date().getFullYear()} ${brand}. All rights reserved.`,
     disclaimers: [
       ...disclaimers,
-      "Interactive product demonstration by Verlin Labs. Data is mock and resets in-session.",
+      `Not a live ${industry} service. Sample data only; session state resets when you leave.`,
     ],
     trustBadges: badges.length
       ? badges
@@ -771,7 +771,7 @@ export function panelContent(
           `You are using an interactive demonstration of ${brand}.`,
           "No real contracts, payments, medical advice, or regulated services are provided.",
           "Features may change; availability is not guaranteed.",
-          "By continuing you acknowledge this is educational product software from Verlin Labs demos.",
+          "By continuing you acknowledge this is an interactive product demonstration with sample data.",
         ],
       };
     case "security":
@@ -790,7 +790,7 @@ export function panelContent(
         body: [
           shell.iaRationale,
           `Market benchmarks informing this IA: ${shell.marketBenchmarks.join(", ")}.`,
-          "Built as a multi-role interactive product for Verlin Labs App Studio demos.",
+          "Multi-role interactive product shell for realistic walkthroughs and demos.",
         ],
       };
     case "support":

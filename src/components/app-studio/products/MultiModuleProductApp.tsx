@@ -339,53 +339,45 @@ export function MultiModuleProductApp({
           : "h-full min-h-[520px] max-h-[calc(100dvh-6rem)] rounded-xl border border-border"
       )}
     >
-      {/* Production app bar */}
+      {/* Product app bar — brand only, no host-site chrome */}
       <header className="z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 md:px-4">
-          <div className="min-w-0">
-            <p className="truncate text-lg font-bold" style={{ color: spec.primaryColor }}>
-              {spec.brandName}
-            </p>
-            <p className="truncate text-[11px] text-muted-foreground">
-              {spec.tagline}
-              {shell?.marketBenchmarks?.[0] && (
-                <span className="hidden sm:inline">
-                  {" "}
-                  · IA: {shell.marketBenchmarks.slice(0, 2).join(", ")}
-                </span>
-              )}
-            </p>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
+              style={{ background: spec.primaryColor || "#0f2744" }}
+              aria-hidden
+            >
+              {spec.brandName.slice(0, 1)}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold tracking-tight md:text-lg" style={{ color: spec.primaryColor }}>
+                {spec.brandName}
+              </p>
+              <p className="truncate text-[11px] text-muted-foreground">{spec.tagline}</p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {utilityNav.slice(0, 3).map((u) => (
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {utilityNav.slice(0, 2).map((u) => (
               <button
                 key={u.id}
                 type="button"
                 onClick={() => activateNav(u)}
-                className="hidden items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-muted sm:inline-flex"
+                className="hidden items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted md:inline-flex"
               >
                 <NavIcon name={u.icon || "settings"} className="h-3.5 w-3.5" />
                 {u.label}
               </button>
             ))}
-            <label className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 px-2 py-1 text-[11px]">
-              <span className="text-muted-foreground">API</span>
-              <select
-                value={pathMode}
-                onChange={(e) => setPathMode(e.target.value as MockPathMode)}
-                className="bg-transparent font-semibold outline-none"
-              >
-                <option value="auto">Auto</option>
-                <option value="always_ok">Always OK</option>
-                <option value="always_fail">Always fail</option>
-              </select>
-            </label>
-            <div className="flex items-center gap-1.5 rounded-xl border-2 border-accent-teal/40 bg-accent-teal/10 px-2.5 py-1.5">
-              <UserRound className="h-4 w-4 text-accent-teal" />
+            {/* Account / role switcher — in-product, not host admin */}
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-muted/30 px-2 py-1.5">
+              <UserRound className="h-4 w-4 text-muted-foreground" />
               <select
                 value={roleId}
                 onChange={(e) => switchRole(e.target.value)}
-                className="max-w-[12rem] bg-transparent text-sm font-bold outline-none"
+                className="max-w-[10rem] bg-transparent text-sm font-semibold outline-none sm:max-w-[14rem]"
+                aria-label="Signed in as role"
+                title="Switch product role"
               >
                 {spec.roles.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -396,37 +388,40 @@ export function MultiModuleProductApp({
             </div>
           </div>
         </div>
-        {/* Top tabs when not pure sidebar mobile */}
+        {/* Top primary nav: consumer / media / ecom industry standard (desktop) */}
         {!useSidebar && primaryNav.length > 0 && (
-          <nav className="hidden gap-1 overflow-x-auto border-t border-border/50 px-2 py-1.5 md:flex md:px-4 [scrollbar-width:thin]">
+          <nav
+            className="hidden gap-0.5 overflow-x-auto border-t border-border/60 px-2 py-1 md:flex md:px-4 [scrollbar-width:thin]"
+            aria-label="Main"
+          >
             {primaryNav.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => activateNav(item)}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium whitespace-nowrap",
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap",
                   isNavActive(item)
                     ? "bg-accent-teal/15 text-accent-teal"
-                    : "text-muted-foreground hover:bg-muted"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <NavIcon name={item.icon} className="h-3.5 w-3.5" />
+                <NavIcon name={item.icon} className="h-4 w-4" />
                 {item.label}
               </button>
             ))}
-            {moreNav.length > 0 && (
+            {(moreNav.length > 0 || visibleScreens.length > primaryNav.length) && (
               <button
                 type="button"
                 onClick={() => setMoreOpen((v) => !v)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
-                <Menu className="h-3.5 w-3.5" /> More
+                <Menu className="h-4 w-4" /> More
               </button>
             )}
           </nav>
         )}
-        {/* Fallback: all modules if no shell */}
+        {/* Fallback module strip if shell missing */}
         {!shell && (
           <nav className="flex gap-1 overflow-x-auto border-t border-border/50 px-2 py-1.5 md:px-4 [scrollbar-width:thin]">
             {visibleScreens.map((s) => (
@@ -449,27 +444,25 @@ export function MultiModuleProductApp({
             ))}
           </nav>
         )}
-        {role && (
-          <div className="border-t border-border/50 bg-accent-teal/5 px-3 py-1.5 text-xs text-muted-foreground md:px-4">
-            <span className="font-semibold text-accent-teal">Viewing as {role.label}</span>
-            {" — "}
-            <span className="line-clamp-1 sm:line-clamp-none">{role.description}</span>
-          </div>
-        )}
-        {moreOpen && moreNav.length > 0 && (
-          <div className="flex flex-wrap gap-1 border-t border-border bg-muted/30 px-3 py-2">
+        {moreOpen && (
+          <div className="flex flex-wrap gap-1.5 border-t border-border bg-muted/25 px-3 py-2.5">
             {moreNav.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => activateNav(item)}
-                className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium hover:border-accent-teal/40"
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-accent-teal/40"
               >
                 {item.label}
               </button>
             ))}
             {visibleScreens
-              .filter((s) => !primaryNav.some((p) => resolveNavScreenId(p.screenId, moduleIds) === s.id))
+              .filter(
+                (s) =>
+                  !primaryNav.some(
+                    (p) => resolveNavScreenId(p.screenId, moduleIds) === s.id
+                  )
+              )
               .map((s) => (
                 <button
                   key={`mod-${s.id}`}
@@ -479,7 +472,7 @@ export function MultiModuleProductApp({
                     setActivePanel(null);
                     setScreenId(s.id);
                   }}
-                  className="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:border-accent-teal/40"
+                  className="rounded-full border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-accent-teal/40"
                 >
                   {s.title}
                 </button>
@@ -553,8 +546,9 @@ export function MultiModuleProductApp({
                 </>
               )}
             </div>
-            <div className="border-t border-border p-2 text-[10px] text-muted-foreground">
-              {shell.iaRationale.slice(0, 120)}…
+            <div className="space-y-1 border-t border-border p-3">
+              <p className="text-[10px] font-medium text-muted-foreground">Signed in as</p>
+              <p className="text-xs font-semibold text-foreground">{role?.label}</p>
             </div>
           </aside>
         )}
@@ -616,11 +610,6 @@ export function MultiModuleProductApp({
             {activeScreen.description && (
               <p className="max-w-3xl text-sm text-muted-foreground">{activeScreen.description}</p>
             )}
-            {shell?.iaRationale && (
-              <p className="max-w-3xl text-[11px] text-muted-foreground/80">
-                Industry IA: {shell.marketBenchmarks.join(" · ")}
-              </p>
-            )}
           </div>
         )}
 
@@ -644,7 +633,7 @@ export function MultiModuleProductApp({
           <div className="space-y-6">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
-                Learning track · {role?.label}
+                {role?.label}
               </p>
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
                 {spec.learning?.heroHeadline || `Welcome, ${role?.label}`}
@@ -814,15 +803,27 @@ export function MultiModuleProductApp({
         {!panel && activeScreen?.type === "settings" && (
           <div className="mx-auto max-w-2xl space-y-4">
             <Card className="space-y-3 p-6">
-              <h2 className="text-lg font-semibold">Settings & demo notes</h2>
+              <h2 className="text-lg font-semibold">Settings</h2>
               <p className="text-sm text-muted-foreground">{spec.description}</p>
-              <p className="text-sm text-muted-foreground">
-                Switch roles top-right. Use the API path toggle for happy/fail demos. A title
-                containing “fail” rejects creates so you can practice error UX.
-              </p>
               {activeScreen.description && (
                 <p className="text-sm text-muted-foreground">{activeScreen.description}</p>
               )}
+              <label className="mt-2 flex flex-col gap-1 text-sm">
+                <span className="font-medium">Request behaviour (sandbox)</span>
+                <select
+                  value={pathMode}
+                  onChange={(e) => setPathMode(e.target.value as MockPathMode)}
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="auto">Realistic (auto)</option>
+                  <option value="always_ok">Always succeed</option>
+                  <option value="always_fail">Always fail</option>
+                </select>
+                <span className="text-xs text-muted-foreground">
+                  Use this to rehearse success and error states. Titles containing “fail” also
+                  reject creates.
+                </span>
+              </label>
             </Card>
             {spec.learning?.trustLines && (
               <Card className="space-y-2 p-5">
@@ -940,16 +941,12 @@ export function MultiModuleProductApp({
               ))}
               <p className="pt-2 font-medium text-foreground/80">{shell.footer.copyright}</p>
               <p>{shell.footer.supportLine}</p>
-              <p className="text-[10px]">
-                Role: {role?.label} · {visibleScreens.length} modules · Verlin Labs interactive demo
-              </p>
             </div>
           </footer>
         )}
         {!shell && (
           <footer className="mt-8 border-t border-border pt-4 text-center text-[10px] text-muted-foreground">
-            {spec.brandName} · Verlin Labs demo · {visibleScreens.length} modules · Role:{" "}
-            {role?.label}
+            © {new Date().getFullYear()} {spec.brandName}
           </footer>
         )}
           </div>

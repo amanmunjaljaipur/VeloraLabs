@@ -8,6 +8,7 @@ import {
   isThinCopy,
   synthesizeLearningPack,
 } from "./learning-content";
+import { ensureIndustryRoles } from "./industry-roles";
 import type { DemoCategoryDef, DemoLearningContent } from "./types";
 
 function expandRoleDescription(
@@ -88,7 +89,10 @@ function enrichSeedRow(
 /**
  * Apply Verlin educational content quality to a category definition.
  */
-export function premiumizeDemoCategory(def: DemoCategoryDef): DemoCategoryDef {
+export function premiumizeDemoCategory(raw: DemoCategoryDef): DemoCategoryDef {
+  // Industry multi-sided roles first (compliance, ops, parent, etc.)
+  const def = ensureIndustryRoles(raw);
+
   const pack: DemoLearningContent =
     def.learning || getLearningPack(def.slug) || synthesizeLearningPack(def);
 

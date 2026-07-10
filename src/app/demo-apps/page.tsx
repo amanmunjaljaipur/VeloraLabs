@@ -59,9 +59,12 @@ export default function DemoAppsIndexPage() {
             health, travel, workplace).
           </p>
           <ul className="list-inside list-disc text-sm text-muted-foreground">
-            <li>Nav IA from Material + vertical leaders (PhonePe, Swiggy, Duolingo, Slack, etc.)</li>
-            <li>Footers: Product, Support, Legal, industry columns + disclaimers</li>
-            <li>Happy/fail mock APIs, role switcher, production-style empty states</li>
+            <li>
+              <strong>Opens in a new tab</strong> as a full-screen product — no Verlin navbar,
+              admin menu, or site footer
+            </li>
+            <li>Industry nav: top bar or left sidebar + mobile bottom tabs</li>
+            <li>Multi-sided roles (customer, ops, compliance, teacher, driver…)</li>
           </ul>
         </section>
 
@@ -70,11 +73,22 @@ export default function DemoAppsIndexPage() {
             <h2 className="mb-4 text-lg font-semibold text-foreground">{group.label}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.items.map((c) => (
-                <Link key={c.slug} href={`/demo-apps/${c.slug}`}>
+                <a
+                  key={c.slug}
+                  href={`/demo-apps/${c.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block h-full"
+                >
                   <Card hover className="h-full p-4 transition hover:border-accent-teal/40">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
-                      {c.brandName}
-                    </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
+                        {c.brandName}
+                      </p>
+                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        Opens as app ↗
+                      </span>
+                    </div>
                     <h3 className="mt-1 text-base font-semibold text-foreground">{c.name}</h3>
                     <p className="mt-1 text-sm font-medium text-foreground/90">{c.tagline}</p>
                     <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
@@ -93,7 +107,7 @@ export default function DemoAppsIndexPage() {
                       Like: {c.examples.slice(0, 3).join(", ")}
                     </p>
                   </Card>
-                </Link>
+                </a>
               ))}
             </div>
           </section>

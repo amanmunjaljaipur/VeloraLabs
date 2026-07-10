@@ -25,6 +25,7 @@ export { DEMO_GROUP_LABELS, DEMO_GROUP_ORDER, ent } from "./types";
 export { premiumizeDemoCategory, premiumizeAll } from "./premiumize";
 export { getLearningPack, DEMO_LEARNING_PACKS } from "./learning-content";
 export { resolveIndustryShell, panelContent } from "./industry-shells";
+export { ensureIndustryRoles } from "./industry-roles";
 
 const RAW_CATEGORIES: DemoCategoryDef[] = [
   ...social,
