@@ -16,6 +16,7 @@ import {
   Users,
   Video,
   Landmark,
+  Rocket,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,6 +37,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/sessions": Video,
   "/admin/chatbot-training": Bot,
   "/admin/blog": PenLine,
+  "/admin/app-studio": Rocket,
   "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
