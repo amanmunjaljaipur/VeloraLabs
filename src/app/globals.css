@@ -547,17 +547,12 @@ body {
 
 /* ─── Premium surfaces & atmosphere ─────────────────────────────────────── */
 
-/* Hero — always light text on navy (immune to theme / .text-display overrides) */
+/* Hero dark surfaces — default light text; brand wordmark uses logo tokens */
 .hero-dark,
 .hero-dark h1,
 .hero-dark p,
-.hero-dark span,
 .hero-dark li {
-  color: #f8fafc !important;
-}
-
-.hero-dark .hero-headline-accent {
-  color: #7dd3fc;
+  color: #f8fafc;
 }
 
 .hero-dark .hero-subtext {
@@ -566,6 +561,16 @@ body {
 
 .hero-dark .hero-muted {
   color: rgb(248 250 252 / 0.65);
+}
+
+/* Match VerlinLogo tone="light": white + teal labs (not sky blue) */
+.hero-dark .hero-headline-accent,
+.brand-labs-on-dark {
+  color: var(--accent-teal-light);
+}
+
+.brand-verlin-on-dark {
+  color: #ffffff;
 }
 
 .bg-hero-mesh {

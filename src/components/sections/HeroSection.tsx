@@ -2,6 +2,7 @@
 
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { VerlinBrandText } from "@/components/ui/VerlinBrandText";
 import type { HomeContentData } from "@/lib/cms/home-content-types";
 import { HOME_HERO } from "@/lib/home-content";
 import { EASE_OUT } from "@/lib/motion";
@@ -21,13 +22,15 @@ interface HeroSectionProps {
 /**
  * Controlled merge hero:
  * Prod conversion = dark navy split + full-width amber CTA
- * Hybrid polish = serif display, pill buttons, calm chips
+ * Brand colors match logo (white + teal labs on dark)
  */
 export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
   const reduceMotion = useReducedMotion();
-  const [brand, headlineRest] = hero.headline.includes(" — ")
-    ? hero.headline.split(" — ", 2)
-    : [hero.headline, ""];
+
+  // "Verlin Labs — clarity-first learning for the AI age"
+  const brandPrefix = /^Verlin Labs/i;
+  const hasBrand = brandPrefix.test(hero.headline);
+  const afterBrand = hasBrand ? hero.headline.replace(brandPrefix, "") : hero.headline;
 
   return (
     <section className="overflow-hidden bg-[#0a1628]">
@@ -40,15 +43,23 @@ export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
             transition={{ duration: 0.45, ease: EASE_OUT }}
           >
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm">
-              <Sparkles className="h-4 w-4 text-accent-teal" aria-hidden />
-              Clarity-first learning · Verlin Labs
+              <Sparkles className="h-4 w-4 text-accent-teal-light" aria-hidden />
+              <span>
+                Clarity-first learning ·{" "}
+                <VerlinBrandText tone="light" className="font-medium" />
+              </span>
             </div>
 
-            <h1 className="max-w-xl font-[family-name:var(--font-display)] text-[clamp(2.125rem,5.2vw,3.75rem)] font-medium leading-[1.08] tracking-tight text-white">
-              <span className="text-sky-300">{brand}</span>
-              {headlineRest ? (
-                <span className="text-white">{` — ${headlineRest}`}</span>
-              ) : null}
+            <h1 className="max-w-xl font-[family-name:var(--font-display)] text-[clamp(2.125rem,5.2vw,3.75rem)] font-medium leading-[1.08] tracking-tight">
+              {hasBrand ? (
+                <VerlinBrandText
+                  tone="light"
+                  after={afterBrand}
+                  afterClassName="text-white"
+                />
+              ) : (
+                <span className="text-white">{hero.headline}</span>
+              )}
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/90 md:mt-6 md:text-lg">
@@ -68,7 +79,6 @@ export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
               ))}
             </div>
 
-            {/* Prod conversion stack: primary CTA full-width, then secondary pair */}
             <div className="mx-auto mt-8 w-full max-w-xl md:mt-10">
               <ButtonLink
                 href="/free-session"

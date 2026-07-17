@@ -10,6 +10,7 @@ interface VerlinLogoProps {
 }
 
 function VerlinWordmark({ tone }: { tone: "default" | "light" }) {
+  // Keep in sync with VerlinBrandText — logo colors are the source of truth
   const verlinClass =
     tone === "light" ? "text-white" : "text-[var(--logo-verlin)]";
   const labsClass =

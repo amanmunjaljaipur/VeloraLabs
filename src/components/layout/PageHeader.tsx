@@ -2,6 +2,10 @@
 
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { Button } from "@/components/ui/Button";
+import {
+  splitVerlinBrandTitle,
+  VerlinBrandText,
+} from "@/components/ui/VerlinBrandText";
 import { motion } from "framer-motion";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
@@ -33,6 +37,7 @@ export function PageHeader({
   cta,
 }: PageHeaderProps) {
   const centered = align === "center";
+  const { hasBrand, rest: titleRest } = splitVerlinBrandTitle(title);
 
   return (
     <section
@@ -65,7 +70,17 @@ export function PageHeader({
               </div>
             )}
             {eyebrow && <p className="section-eyebrow mb-4">{eyebrow}</p>}
-            <h1 className="text-display font-semibold">{title}</h1>
+            <h1 className="text-display font-semibold">
+              {hasBrand ? (
+                <VerlinBrandText
+                  tone="default"
+                  after={titleRest}
+                  afterClassName="text-text-primary"
+                />
+              ) : (
+                title
+              )}
+            </h1>
             {subtitle && (
               <p
                 className={cn(

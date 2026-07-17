@@ -1,6 +1,10 @@
 "use client";
 
 import { MotionReveal } from "@/components/ui/MotionReveal";
+import {
+  splitVerlinBrandTitle,
+  VerlinBrandText,
+} from "@/components/ui/VerlinBrandText";
 import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {
@@ -19,6 +23,7 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   const centered = align === "center";
+  const { hasBrand, rest: titleRest } = splitVerlinBrandTitle(title);
 
   return (
     <MotionReveal
@@ -29,7 +34,17 @@ export function SectionHeader({
       )}
     >
       {eyebrow && <p className="section-eyebrow mb-4">{eyebrow}</p>}
-      <h2 className="section-title">{title}</h2>
+      <h2 className="section-title">
+        {hasBrand ? (
+          <VerlinBrandText
+            tone="default"
+            after={titleRest}
+            afterClassName="text-text-primary"
+          />
+        ) : (
+          title
+        )}
+      </h2>
       {subtitle && (
         <p className={cn("section-subtitle", centered && "mx-auto")}>{subtitle}</p>
       )}
