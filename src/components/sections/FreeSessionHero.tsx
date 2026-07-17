@@ -54,7 +54,7 @@ export function FreeSessionHero({ headline, description }: FreeSessionHeroProps)
               ))}
             </div>
             <div className="mt-10">
-              <ButtonLink href="#book" size="lg" variant="cta" className="shadow-glow-amber">
+              <ButtonLink href="#book" size="lg" variant="cta">
                 Book your session now
               </ButtonLink>
               <p className="mt-2 text-xs text-text-muted">100% free · No credit card</p>

@@ -29,7 +29,7 @@ export function SectionShell({
         "scroll-mt-20",
         size === "lg" ? "section-y-lg" : "section-y",
         divider && "section-divider",
-        tinted && "bg-muted/25",
+        tinted ? "bg-[var(--bg-light)]" : "bg-[var(--canvas)]",
         className
       )}
     >

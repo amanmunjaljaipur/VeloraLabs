@@ -68,7 +68,7 @@ function FooterLink({
   className?: string;
 }) {
   const linkClass = cn(
-    "inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-accent-teal-light",
+    "inline-flex items-center gap-1.5 text-sm leading-relaxed text-white/65 transition-colors hover:text-accent-teal-light",
     className
   );
 
@@ -112,10 +112,10 @@ function FooterNavColumn({
 
   return (
     <div>
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
+      <h3 className="text-[0.8125rem] font-semibold tracking-tight text-white/80">
         {title}
       </h3>
-      <ul className="mt-4 flex flex-col gap-2.5">
+      <ul className="mt-3 flex flex-col">
         {primaryLinks.map((link) => (
           <li key={link.href}>
             <FooterLink href={link.href}>{link.label}</FooterLink>
@@ -124,13 +124,13 @@ function FooterNavColumn({
       </ul>
       {isPrograms && trackLinks.length > 0 && (
         <div className="mt-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+          <p className="text-[0.75rem] font-semibold tracking-tight text-white/50">
             By track
           </p>
-          <ul className="mt-2.5 flex flex-col gap-2 border-l border-white/10 pl-3">
+          <ul className="mt-1.5 flex flex-col border-l border-white/10 pl-3">
             {trackLinks.map((link) => (
               <li key={link.href}>
-                <FooterLink href={link.href} className="text-[13px] text-white/60">
+                <FooterLink href={link.href} className="text-[0.875rem] text-white/55">
                   {link.label}
                 </FooterLink>
               </li>
@@ -170,32 +170,29 @@ export function Footer({ tagline, linkGroups, social, contact }: FooterProps) {
 
   return (
     <footer className="relative border-t border-white/10 bg-navy text-white">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-teal/50 to-transparent"
-        aria-hidden
-      />
-
-      <div className="container-verlin py-14 md:py-16 lg:py-20">
+      <div className="container-verlin py-14 md:py-16">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4 xl:col-span-4">
             <VerlinLogo tone="light" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/65">{tagline}</p>
+            <p className="mt-4 max-w-xs text-[0.9375rem] leading-[1.47] text-white/60">
+              {tagline}
+            </p>
 
             {contact && (
-              <address className="mt-6 space-y-3 not-italic">
+              <address className="mt-6 space-y-1 not-italic">
                 <FooterLink href={`mailto:${contact.email}`}>
                   <Mail className="h-4 w-4 shrink-0 text-accent-teal-light/80" aria-hidden />
                   <span className="break-all">{contact.email}</span>
                 </FooterLink>
-                <p className="flex items-start gap-2 text-sm text-white/65">
+                <p className="flex items-start gap-2 text-[0.9375rem] leading-[2.2] text-white/60">
                   <MapPin
-                    className="mt-0.5 h-4 w-4 shrink-0 text-accent-teal-light/80"
+                    className="mt-1.5 h-4 w-4 shrink-0 text-accent-teal-light/80"
                     aria-hidden
                   />
                   {contact.location}
                 </p>
                 {contact.responseNote && (
-                  <p className="text-xs text-white/45">{contact.responseNote}</p>
+                  <p className="text-[0.75rem] leading-snug text-white/40">{contact.responseNote}</p>
                 )}
               </address>
             )}
@@ -210,7 +207,7 @@ export function Footer({ tagline, linkGroups, social, contact }: FooterProps) {
 
             <Link
               href="/newsletter"
-              className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-medium text-white/85 transition-colors hover:border-accent-teal/35 hover:bg-accent-teal/10 hover:text-accent-teal-light"
+              className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.875rem] font-normal text-white/85 transition-colors hover:border-accent-teal/35 hover:bg-accent-teal/10 hover:text-accent-teal-light"
             >
               Subscribe to newsletter
               <span aria-hidden>→</span>
@@ -230,13 +227,13 @@ export function Footer({ tagline, linkGroups, social, contact }: FooterProps) {
         </div>
       </div>
 
-      <div className="border-t border-white/10 bg-navy-muted/50">
-        <div className="container-verlin flex flex-col items-center justify-between gap-4 py-6 text-sm text-white/50 sm:flex-row">
+      <div className="border-t border-white/10">
+        <div className="container-verlin flex flex-col items-center justify-between gap-4 py-5 text-[0.75rem] text-white/45 sm:flex-row">
           <p>© {new Date().getFullYear()} Verlin Labs. All rights reserved.</p>
           {legalLinks.length > 0 && (
             <nav aria-label="Legal" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
               {legalLinks.map((link) => (
-                <FooterLink key={link.href} href={link.href} className="text-xs text-white/50">
+                <FooterLink key={link.href} href={link.href} className="text-[0.75rem] leading-normal text-white/45">
                   {link.label}
                 </FooterLink>
               ))}

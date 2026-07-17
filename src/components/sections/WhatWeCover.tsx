@@ -10,18 +10,18 @@ import { motion } from "framer-motion";
 
 export function WhatWeCover({ topics = WHAT_WE_COVER }: WhatWeCoverProps) {
   return (
-    <section className="border-b border-border/80 bg-gradient-to-b from-muted/30 to-background py-10 md:py-12">
+    <section className="border-b border-border bg-[var(--bg-parchment)] py-8 md:py-10">
       <div className="container-verlin">
-        <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-text-muted">
+        <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.08em] text-text-muted">
           What we cover
         </p>
-        <MotionStagger className="flex flex-wrap items-center justify-center gap-2.5" stagger={0.05}>
+        <MotionStagger className="flex flex-wrap items-center justify-center gap-2.5" stagger={0.04}>
           {topics.map((topic) => (
             <MotionStaggerItem key={topic}>
               <motion.span
-                whileHover={{ scale: 1.03, y: -1 }}
+                whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
-                className="inline-block cursor-default rounded-full border border-border/80 bg-card/80 px-4 py-2 text-sm font-medium text-text-secondary shadow-xs transition-colors duration-200 hover:border-accent-teal/30 hover:bg-accent-teal/5 hover:text-teal hover:shadow-sm"
+                className="inline-block cursor-default rounded-full border border-border bg-[var(--surface-card)] px-4 py-2 text-sm font-medium text-text-secondary transition-colors duration-200 hover:border-teal/35 hover:text-teal"
               >
                 {topic}
               </motion.span>

@@ -1,80 +1,81 @@
 @import "tailwindcss";
 
-/* ─── Verlin Labs Design System v2 — Premium clarity-first ─────────────── */
+/* ─── Verlin Labs · Apple × Claude hybrid (DESIGN-VERLIN.md) ───────────── */
+/* Light default: Claude cream + Apple chrome. Dark: warm product black. */
 
 :root {
-  /* Primary — deep navy / slate */
   --navy: #0f172a;
   --navy-muted: #1e293b;
   --navy-soft: #334155;
   --deep-teal: #0a3d3a;
+  --surface-dark: #0a1628;
+  --surface-dark-elevated: #1e293b;
 
-  /* Accent — teal */
+  /* Verlin brand accents */
   --teal: #0d9488;
   --accent-teal: #14b8a6;
   --accent-teal-light: #5eead4;
   --logo-verlin: #0c1222;
-  --logo-labs: var(--accent-teal);
+  --logo-labs: var(--teal);
 
-  /* CTA — warm amber */
   --cta-amber: #f59e0b;
   --cta-amber-hover: #d97706;
   --cta-amber-light: #fffbeb;
 
-  /* Surfaces */
-  --bg-off-white: #fafaf9;
-  --bg-light: #f8fafc;
+  /* Controlled merge: cream page (Claude) + white cards (prod conversion) */
+  --canvas: #faf9f5;
+  --bg-off-white: #faf9f5;
+  --bg-light: #f5f5f7;
   --bg-elevated: #ffffff;
   --bg-dark: #0f172a;
+  --bg-parchment: #f5f5f7;
+  --surface-card: #ffffff;
+  --surface-cream-strong: #f5f0e8;
 
-  /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  /* Claude warm ink + Apple near-black */
+  --text-primary: #141413;
+  --text-secondary: #3d3d3a;
+  --text-muted: #6c6a64;
+  --text-muted-soft: #8e8b82;
 
-  /* Borders */
-  --border: #e2e8f0;
-  --border-subtle: #f1f5f9;
+  --border: #e6dfd8;
+  --border-subtle: #ebe6df;
   --ring: var(--accent-teal);
 
-  /* Semantic */
-  --background: var(--bg-off-white);
+  --background: var(--canvas);
   --foreground: var(--text-primary);
-  --card: var(--bg-elevated);
+  --card: #ffffff;
   --card-foreground: var(--text-primary);
-  --muted: #f1f5f9;
+  --muted: var(--bg-light);
 
-  /* Shadows — layered depth */
+  /* Apple: quiet chrome; product shadow only for images */
   --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.06);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.05);
   --shadow-lg: 0 10px 24px -4px rgb(15 23 42 / 0.1), 0 4px 8px -4px rgb(15 23 42 / 0.06);
-  --shadow-xl: 0 20px 40px -8px rgb(15 23 42 / 0.12), 0 8px 16px -8px rgb(15 23 42 / 0.06);
-  --shadow-glow-teal: 0 0 40px -8px rgb(20 184 166 / 0.35);
-  --shadow-glow-amber: 0 0 32px -6px rgb(245 158 11 / 0.4);
+  --shadow-xl: 0 16px 40px -10px rgb(20 20 19 / 0.12);
+  --shadow-glow-teal: 0 0 28px -10px rgb(20 184 166 / 0.2);
+  --shadow-glow-amber: 0 0 24px -8px rgb(245 158 11 / 0.28);
+  --shadow-product: 0 3px 5px 0 rgb(0 0 0 / 0.12), 0 8px 24px 0 rgb(0 0 0 / 0.1);
 
-  /* Spacing */
-  --section-y: 4.5rem;
-  --section-y-md: 6rem;
-  --section-y-lg: 7.5rem;
+  --section-y: 3.75rem;
+  --section-y-md: 5rem;
+  --section-y-lg: 6rem;
   --container-px: 1.25rem;
-  --container-max: 80rem;
-  --scroll-padding: 5.5rem;
+  --container-max: 75rem;
+  --scroll-padding: 4.75rem;
 
-  /* Radius */
+  /* Apple pills + Claude card radius (~12px) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+  --radius-pill: 9999px;
 
-  /* Gradients */
-  --gradient-hero:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgb(20 184 166 / 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 90% 10%, rgb(15 23 42 / 0.06), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 70% 90%, rgb(245 158 11 / 0.06), transparent 45%),
-    var(--background);
+  --gradient-hero: var(--canvas);
 
-  /* Motion */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 180ms;
   --duration-normal: 280ms;
@@ -145,10 +146,12 @@
   list-style: disc;
 }
 
+/* Product-ready dark = prod slate (admin/courses), not warm editorial black */
 .dark {
   --logo-verlin: #f8fafc;
   --logo-labs: var(--accent-teal-light);
-  --background: var(--bg-dark);
+  --navy: #0f172a;
+  --background: #0f172a;
   --foreground: #f8fafc;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
@@ -159,11 +162,15 @@
   --card-foreground: #f8fafc;
   --muted: #1e293b;
   --bg-elevated: #1e293b;
+  --bg-light: #1e293b;
+  --bg-parchment: #1e293b;
+  --surface-card: #1e293b;
+  --canvas: #0f172a;
+  --surface-dark: #0a1628;
   --cta-amber-light: #422006;
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
-  --shadow-lg: 0 12px 28px -4px rgb(0 0 0 / 0.45);
-  --shadow-glow-teal: 0 0 48px -8px rgb(20 184 166 / 0.25);
+  --shadow-lg: 0 12px 28px -4px rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
@@ -191,6 +198,8 @@
   --color-muted: var(--muted);
   --color-ring: var(--ring);
   --font-sans: var(--font-inter);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
   --radius-3xl: var(--radius-3xl);
@@ -217,9 +226,11 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
-  line-height: 1.65;
-  letter-spacing: -0.01em;
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.0625rem; /* Apple ~17px reading pace */
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -284,14 +295,14 @@ body {
 }
 
 .section-divider {
-  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
 }
 
 .section-panel {
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
   background: var(--card);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   padding: 1.5rem;
 }
 
@@ -303,54 +314,69 @@ body {
 
 /* ─── Typography scale ──────────────────────────────────────────────────── */
 
+/* Claude serif display + Apple tight editorial cadence */
 .text-display {
-  font-size: clamp(2.125rem, 5.5vw, 4.25rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-transform: none;
   color: var(--text-primary);
 }
 
 .text-heading {
-  font-size: clamp(1.75rem, 3.5vw, 2.625rem);
-  font-weight: 700;
+  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-weight: 500;
   line-height: 1.12;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
+  text-transform: none;
   color: var(--text-primary);
 }
 
 .text-subheading {
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
-  font-weight: 500;
-  line-height: 1.55;
-  letter-spacing: -0.01em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(1.0625rem, 2vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.011em;
+  text-transform: none;
   color: var(--text-secondary);
 }
 
 .text-body {
-  font-size: 1rem;
-  line-height: 1.7;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  text-transform: none;
   color: var(--text-secondary);
 }
 
 @media (min-width: 768px) {
   .text-body {
     font-size: 1.0625rem;
-    line-height: 1.75;
+    line-height: 1.5;
   }
 }
 
 .text-body-lead {
-  font-size: 1rem;
-  line-height: 1.65;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.011em;
+  text-transform: none;
   color: var(--text-secondary);
   max-width: 38rem;
 }
 
 @media (min-width: 768px) {
   .text-body-lead {
-    font-size: 1.125rem;
-    line-height: 1.7;
+    font-size: 1.1875rem;
+    line-height: 1.45;
   }
 }
 
@@ -372,21 +398,20 @@ body {
 
 .mesh-hero {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgb(20 184 166 / 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 90% 10%, rgb(15 23 42 / 0.06), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 70% 90%, rgb(245 158 11 / 0.06), transparent 45%),
+    radial-gradient(ellipse 70% 50% at 12% 18%, rgb(20 184 166 / 0.07), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 88% 12%, rgb(15 23 42 / 0.04), transparent 50%),
     var(--background);
 }
 
 .glass-surface {
-  background: color-mix(in srgb, var(--card) 82%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--bg-parchment) 80%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
 .card-verlin {
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--card-foreground);
@@ -399,15 +424,15 @@ body {
 
 .card-verlin-hover {
   transition:
-    transform var(--duration-normal) var(--ease-out-expo),
+    border-color var(--duration-fast) ease,
     box-shadow var(--duration-normal) var(--ease-out-expo),
-    border-color var(--duration-fast) ease;
+    transform var(--duration-normal) var(--ease-out-expo);
 }
 
 .card-verlin-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: color-mix(in srgb, var(--accent-teal) 30%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--accent-teal) 28%, var(--border));
 }
 
 .badge-verlin {
@@ -645,37 +670,44 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--accent-teal) 20%, transparent);
-  background: color-mix(in srgb, var(--accent-teal) 8%, transparent);
-  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  padding: 0.3rem 0.75rem;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--teal);
 }
 
 .section-title {
-  font-size: clamp(1.875rem, 4vw, 2.75rem);
-  font-weight: 700;
+  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
+  font-weight: 500;
   line-height: 1.12;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
+  text-transform: none;
   color: var(--text-primary);
 }
 
 .section-subtitle {
-  margin-top: 1rem;
+  margin-top: 0.875rem;
   max-width: 36rem;
-  font-size: 1rem;
-  line-height: 1.65;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  text-transform: none;
   color: var(--text-secondary);
 }
 
 @media (min-width: 768px) {
   .section-subtitle {
     font-size: 1.125rem;
-    line-height: 1.7;
+    line-height: 1.5;
     max-width: 42rem;
   }
 }

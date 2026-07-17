@@ -12,10 +12,10 @@ export const DURATION = {
 } as const;
 
 export const HOVER = {
-  buttonScale: { primary: 1.03, cta: 1.03, secondary: 1.02 } as const,
-  tapScale: 0.97,
-  cardLift: -6,
-  iconScale: 1.1,
+  buttonScale: { primary: 1.01, cta: 1.01, secondary: 1.01 } as const,
+  tapScale: 0.95,
+  cardLift: -2,
+  iconScale: 1.05,
 } as const;
 
 export const REVEAL = {

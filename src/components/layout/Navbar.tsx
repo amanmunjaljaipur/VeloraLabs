@@ -40,8 +40,8 @@ function NavLink({
       href={href}
       onClick={onClick}
       className={cn(
-        "group relative whitespace-nowrap text-sm font-medium transition-colors duration-150",
-        active ? "text-accent-teal" : "text-foreground/75 hover:text-foreground"
+        "group relative whitespace-nowrap text-sm font-medium tracking-tight transition-colors duration-150",
+        active ? "text-teal" : "text-foreground/70 hover:text-foreground"
       )}
     >
       {children}
@@ -93,12 +93,12 @@ export function Navbar({ nav }: NavbarProps) {
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-200 ease-out",
           scrolled
-            ? "border-b border-border/80 bg-background/95 shadow-sm backdrop-blur-md"
-            : "border-b border-transparent bg-background/90 backdrop-blur-sm"
+            ? "border-b border-border/80 bg-[var(--canvas)]/95 shadow-sm backdrop-blur-xl backdrop-saturate-150"
+            : "border-b border-transparent bg-[var(--canvas)]/90 backdrop-blur-md"
         )}
       >
         <nav
-          className="container-verlin-nav flex h-16 items-center gap-3 md:h-[4.25rem] lg:gap-4"
+          className="container-verlin-nav flex h-14 items-center gap-3 md:h-16 lg:gap-5"
           aria-label="Main navigation"
         >
           <VerlinLogo className="mr-1 shrink-0 sm:mr-2" />

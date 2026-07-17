@@ -19,8 +19,8 @@ function VerlinWordmark({ tone }: { tone: "default" | "light" }) {
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex items-baseline font-extrabold lowercase leading-none tracking-[-0.045em]",
-        "text-[clamp(1.25rem,2.5vw,1.6rem)]"
+        "inline-flex items-baseline font-semibold lowercase leading-none tracking-[-0.03em]",
+        "text-[clamp(1.2rem,2.4vw,1.5rem)]"
       )}
       style={{ fontFamily: "var(--font-inter), Inter, system-ui, sans-serif" }}
     >

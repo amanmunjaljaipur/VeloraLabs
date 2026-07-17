@@ -80,7 +80,7 @@ export function MarketingHome() {
       </SectionShell>
 
       <SectionShell id="approach" tinted>
-        <div className="space-y-16 md:space-y-28">
+        <div className="space-y-12 md:space-y-16">
           <LearningSplit
             title="Learn with mental models, not memorization"
             description="Frameworks that stick — visual maps, live explanation, and pacing matched to you."

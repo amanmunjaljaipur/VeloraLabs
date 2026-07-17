@@ -17,10 +17,7 @@ export function TrustSignals({ compact = false }: TrustSignalsProps) {
       <div className="container-verlin">
         <div className={compact ? "max-w-4xl mx-auto" : "max-w-5xl mx-auto"}>
           <p className="section-eyebrow text-center">Trust & authority</p>
-          <h2
-            id="trust-signals-heading"
-            className="mt-3 text-center text-2xl font-semibold text-foreground md:text-3xl"
-          >
+          <h2 id="trust-signals-heading" className="section-title mt-3 text-center">
             {trust.headline}
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-text-secondary md:text-base">
@@ -32,10 +29,10 @@ export function TrustSignals({ compact = false }: TrustSignalsProps) {
               <Link
                 key={item.label}
                 href={item.href}
-                className="rounded-2xl border border-border/80 bg-card px-4 py-4 text-center transition-colors hover:border-accent-teal/30 hover:bg-accent-teal/5"
+                className="rounded-xl border border-border bg-card px-4 py-5 text-center shadow-sm transition-colors hover:border-accent-teal/30"
               >
-                <p className="text-lg font-semibold text-foreground">{item.value}</p>
-                <p className="mt-1 text-xs text-text-secondary">{item.label}</p>
+                <p className="text-lg font-semibold tracking-tight text-foreground">{item.value}</p>
+                <p className="mt-1 text-[0.8125rem] text-text-secondary">{item.label}</p>
               </Link>
             ))}
           </div>
@@ -69,7 +66,7 @@ export function TrustSignals({ compact = false }: TrustSignalsProps) {
                 );
 
                 const className =
-                  "block h-full rounded-2xl border border-border/80 bg-card p-5 transition-shadow hover:border-accent-teal/25 hover:shadow-md";
+                  "block h-full rounded-[1.125rem] border border-border/70 bg-card p-5 transition-colors hover:border-accent-teal/25";
 
                 return isExternal ? (
                   <a

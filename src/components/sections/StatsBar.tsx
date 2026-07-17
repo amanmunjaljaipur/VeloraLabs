@@ -11,16 +11,16 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <section className="section-divider border-b border-border/80 bg-muted/25 py-10 md:py-14">
+    <section className="border-b border-border bg-[var(--canvas)] py-10 md:py-12">
       <div className="container-verlin">
-        <MotionStagger className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <MotionStagger className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-8">
           {stats.map((stat) => (
             <MotionStaggerItem key={stat.label}>
-              <div className="group text-center transition-transform duration-300 hover:-translate-y-0.5">
-                <p className="text-3xl font-semibold text-teal transition-colors duration-300 group-hover:text-accent-teal md:text-4xl">
+              <div className="text-center">
+                <p className="font-[family-name:var(--font-display)] text-[2rem] font-medium tracking-tight text-teal md:text-[2.5rem]">
                   {stat.value}
                 </p>
-                <p className="mt-1 text-sm text-text-secondary">{stat.label}</p>
+                <p className="mt-1.5 text-sm text-text-secondary">{stat.label}</p>
               </div>
             </MotionStaggerItem>
           ))}

@@ -22,21 +22,22 @@ export function buttonClassNames(
 ) {
   const sizes = {
     sm: "h-9 px-4 text-sm",
-    md: "h-12 px-6 text-base",
-    lg: "h-14 px-8 text-base font-semibold md:text-lg",
+    md: "h-11 px-5 text-[0.9375rem] md:h-12 md:px-6",
+    lg: "h-12 px-7 text-base font-semibold md:h-14 md:px-8 md:text-lg",
   };
 
+  /* Prod conversion weight + Apple pill + Verlin colors */
   const variants = {
     primary:
-      "bg-navy text-white shadow-sm hover:bg-navy-muted hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2",
+      "bg-navy text-white shadow-sm hover:bg-navy-muted focus-visible:ring-2 focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2",
     cta:
-      "bg-cta-amber text-navy font-bold shadow-sm hover:bg-cta-amber-hover hover:shadow-glow-amber focus-visible:ring-2 focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2",
+      "bg-cta-amber text-navy font-bold shadow-sm hover:bg-cta-amber-hover hover:shadow-[var(--shadow-glow-amber)] focus-visible:ring-2 focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2",
     secondary:
-      "border border-border bg-card/60 text-foreground shadow-xs backdrop-blur-sm hover:border-accent-teal/50 hover:bg-accent-teal/5 hover:text-accent-teal hover:shadow-sm focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2",
+      "border border-border bg-card text-foreground shadow-none hover:border-accent-teal/45 hover:bg-accent-teal/5 hover:text-accent-teal focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2",
   };
 
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-xl font-medium",
+    "inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-colors duration-200 ease-out",
     sizes[size],
     variants[variant],
     className
@@ -56,7 +57,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             ? undefined
             : {
                 scale: HOVER.buttonScale[variant],
-                y: -1,
                 transition: { duration: DURATION.hover, ease: EASE_OUT },
               }
         }

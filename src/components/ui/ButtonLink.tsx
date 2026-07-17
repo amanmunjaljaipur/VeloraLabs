@@ -40,7 +40,6 @@ export function ButtonLink({
           ? undefined
           : {
               scale: HOVER.buttonScale[variant],
-              y: -1,
               transition: { duration: DURATION.hover, ease: EASE_OUT },
             }
       }

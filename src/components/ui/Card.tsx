@@ -12,9 +12,8 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ className, hover, children, onClick, id, role, tabIndex, "aria-label": ariaLabel }: CardProps) {
   const reduceMotion = useReducedMotion();
   const classes = cn(
-    "card-verlin rounded-2xl p-5 text-card-foreground md:p-8",
-    hover &&
-      "card-verlin-hover transition-shadow duration-[250ms] hover:border-accent-teal/25 hover:shadow-lg",
+    "card-verlin rounded-xl p-5 text-card-foreground md:p-6",
+    hover && "card-verlin-hover",
     className
   );
 

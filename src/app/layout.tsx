@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -31,10 +31,27 @@ function buildSiteVerification(): Metadata["verification"] | undefined {
   return Object.keys(verification).length > 0 ? verification : undefined;
 }
 
+/** Apple body / UI — Inter */
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+/** Claude display — Cormorant Garamond serif headlines */
+const display = Cormorant_Garamond({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+/** Optional mono for technical captions only */
+const mono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400"],
   display: "swap",
 });
 
@@ -111,7 +128,7 @@ export default async function RootLayout({
     return (
       <html
         lang="en"
-        className={`${inter.variable} h-dvh max-h-dvh overflow-hidden`}
+        className={`${inter.variable} ${display.variable} ${mono.variable} h-dvh max-h-dvh overflow-hidden`}
         suppressHydrationWarning
       >
         <body className="h-dvh max-h-dvh overflow-hidden antialiased">
@@ -131,7 +148,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${display.variable} ${mono.variable} h-full`}
+      suppressHydrationWarning
+    >
       <head>
         <link
           rel="sitemap"
