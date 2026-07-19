@@ -9,7 +9,7 @@ Verlin Labs exists to close that distance. We teach through mental models, live 
 
 If you have ever finished a tutorial and still could not explain what you learned, you are exactly who we built this for.
 
-## The Gap I Could not Ignore
+## The Gap I Could Not Ignore
 
 For over a decade, I worked at the intersection of product and artificial intelligence. I built and scaled AI systems that powered real decisions inside large organizations - systems that needed to be reliable, explainable, and useful.
 

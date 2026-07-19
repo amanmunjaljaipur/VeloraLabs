@@ -78,7 +78,7 @@ export const AUDIENCE_LANDING: Record<string, AudienceLandingConfig> = {
     eyebrow: "AI for school students",
     headline: "AI for Students - learn how technology works, not just how to use it",
     subheadline:
-      "My own kids are starting to hear about AI everywhere - at school, on their phones, from friends. This 8-day track is what I'd want them to sit through: everyday analogies, safe tool practice, and a showcase project they are actually proud to demo, taught live by founder Aman Munjal.",
+      "My own kids are starting to hear about AI everywhere - at school, on their phones, from friends. This 8-day track is what I would want them to sit through: everyday analogies, safe tool practice, and a showcase project they are actually proud to demo, taught live by founder Aman Munjal.",
     benefits: [
       "Everyday analogies - no scary jargon or exam cramming",
       "Safe, age-appropriate AI tool use with clear boundaries",
@@ -138,7 +138,7 @@ export const AUDIENCE_LANDING: Record<string, AudienceLandingConfig> = {
     eyebrow: "AI for college engineers",
     headline: "AI for Engineers - from LLM fundamentals to portfolio-ready projects",
     subheadline:
-      "I wish I'd had this when I was first trying to make sense of transformers and RAG. This track builds durable intuition, not just tutorial recall - live sessions, mental models, and portfolio work that actually survives an interview.",
+      "I wish I had had this when I was first trying to make sense of transformers and RAG. This track builds durable intuition, not just tutorial recall - live sessions, mental models, and portfolio work that actually survives an interview.",
     benefits: [
       "Transformers and LLMs explained as information pipelines",
       "Hands-on API projects and portfolio pieces recruiters can evaluate",

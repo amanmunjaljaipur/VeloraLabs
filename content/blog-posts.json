@@ -103,7 +103,7 @@
           ]
         },
         {
-          "title": "Combine, Do not Commit Blindly",
+          "title": "Combine, Do Not Commit Blindly",
           "paragraphs": [
             "You can also combine approaches - many production systems use LlamaIndex for retrieval and hand-roll the orchestration logic around it, skipping LangChain's abstractions where they do not add value. The point is not loyalty to one library, it is matching the tool to the actual bottleneck in front of you.",
             "This is exactly the kind of judgment call our [Engineer Track](/ai-for-engineers) is built around - not memorizing API syntax, but building the intuition to know which tool a given problem actually calls for, before you have burned two weeks finding out the hard way."
@@ -228,7 +228,7 @@
       "tags": ["LLMs", "Students", "Tokenization", "AI Literacy", "Parents"],
       "sections": [
         {
-          "title": "It Feels Like Thinking. It Is not - and That is Useful to Know.",
+          "title": "It Feels Like Thinking. It Is Not - and That Is Useful to Know.",
           "paragraphs": [
             "When you ask ChatGPT a question and it answers in full sentences, it is easy to assume something is \"thinking\" the way you think - understanding your question, considering options, deciding on an answer. It is not, and understanding what it is actually doing instead is the single most useful thing a student (or a curious parent) can learn about AI this year.",
             "The honest, slightly less magical answer: ChatGPT is playing an extremely sophisticated game of \"guess the next word,\" over and over, thousands of times per answer, informed by patterns it saw in enormous amounts of text."
@@ -243,7 +243,7 @@
           ]
         },
         {
-          "title": "What is Actually a 'Word' to the Model? (Tokenization)",
+          "title": "What Is Actually a 'Word' to the Model? (Tokenization)",
           "paragraphs": [
             "Here is the twist: the model does not even work with whole words. It breaks text into smaller chunks called tokens - sometimes a whole word, sometimes just a few letters, depending on how common that word is."
           ],
@@ -254,7 +254,7 @@
           ]
         },
         {
-          "title": "What ChatGPT Is and Is not Doing",
+          "title": "What ChatGPT Is and Is Not Doing",
           "table": {
             "headers": ["It looks like...", "What is actually happening"],
             "rows": [
@@ -504,7 +504,7 @@
       "tags": ["Product Management", "PRD", "AI Features", "Reliability"],
       "sections": [
         {
-          "title": "Your PRD Template Has No Field for 'What If It is Wrong?'",
+          "title": "Your PRD Template Has No Field for 'What If It Is Wrong?'",
           "paragraphs": [
             "Your standard PRD template has a section called \"Expected Behavior\" with one clean bullet list. Then you try to fill it in for an AI feature, and you hit a wall your template was never built for: the system will not behave the same way twice, \"accuracy\" is not a boolean, and engineering keeps asking \"what should happen when the model gets it wrong?\" - a question your template does not have a field for.",
             "This is the moment most PMs discover that AI features need a different PRD shape, not just a new section bolted onto the old one. Skip this step and you will ship a feature with no shared definition of \"working,\" which means every stakeholder discovers a different definition of \"broken\" after launch."
