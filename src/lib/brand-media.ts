@@ -38,8 +38,8 @@ export const BRAND_MEDIA: Record<BrandMediaKey, BrandMediaAsset> = {
   /** Custom on-brand illustration (2026 revamp) - replaces generic stock video with a
    *  purpose-built diagram of the section's actual message: scattered tools -> Information/Framework/Clarity. */
   homeMentalModels: {
-    image: "/images/brand-mental-models-framework.jpg",
-    alt: "Mental models, not tool lists - scattered tools transforming into an Information, Framework, Clarity stack",
+    image: "/images/brand-mental-models-framework-v2.jpg",
+    alt: "Mental models, not tool lists - a dozen scattered tools converging into one reusable Information, Framework, Clarity core",
   },
   homeHandsOn: {
     image: "/images/brand-hands-on.jpg",
@@ -89,11 +89,10 @@ export const BRAND_MEDIA: Record<BrandMediaKey, BrandMediaAsset> = {
     image: "/images/brand-faq-illustration.jpg",
     alt: "Structure emerging from open questions",
   },
-  /** Improved from session 20 - large REUSABLE FRAMEWORKS cards */
+  /** Custom on-brand illustration (2026 revamp) - three fanned framework cards. */
   mentalModelsHub: {
-    image: "/images/hq-mental-hub.jpg",
-    video: "/videos/mental-models-hub.mp4",
-    alt: "Reusable frameworks - Systems, Trade-offs, Mental models",
+    image: "/images/brand-mental-models-hub.jpg",
+    alt: "Reusable frameworks - Systems, Trade-offs, and Mental Models, the three lenses applied to every new problem",
   },
   /** Improved from session 18 - large WHAT LEARNERS SAY */
   testimonials: {

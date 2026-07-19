@@ -20,6 +20,12 @@ interface PageHeaderProps {
   imageAlt?: string;
   /** Optional muted loop - OpenAI-style product media */
   video?: string;
+  /**
+   * "contain" for custom illustrations with baked-in text/labels near the
+   * edges - "cover" (default) crops a 16:9 image inside this 4:3 frame and
+   * cuts off headlines. Use "contain" for any generated diagram/illustration.
+   */
+  imageFit?: "cover" | "contain";
   /** Text alignment inside the copy column only */
   align?: "left" | "center";
   compact?: boolean;
@@ -38,6 +44,7 @@ export function PageHeader({
   image,
   imageAlt = "",
   video,
+  imageFit = "cover",
   align = "left",
   compact,
   breadcrumbs,
@@ -138,11 +145,12 @@ export function PageHeader({
                 image={image}
                 alt={imageAlt}
                 video={video}
+                fit={imageFit}
                 priority
                 rounded={false}
                 scrim="none"
                 sharpText
-                className="absolute inset-0 min-h-0"
+                className={cn("absolute inset-0 min-h-0", imageFit === "contain" && "bg-[#faf9f4]")}
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </motion.div>

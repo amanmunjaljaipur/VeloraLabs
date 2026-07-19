@@ -16,6 +16,12 @@ interface LearningSplitProps {
   illustration?: boolean;
   items?: string[];
   toolIcons?: boolean;
+  /**
+   * "contain" for custom illustrations with baked-in text/labels near the
+   * edges - "cover" (default) crops a 16:9 image inside this 4:3 frame and
+   * cuts off headlines. Use "contain" for any generated diagram/illustration.
+   */
+  fit?: "cover" | "contain";
 }
 
 export function LearningSplit({
@@ -26,6 +32,7 @@ export function LearningSplit({
   video,
   reverse,
   items,
+  fit = "cover",
 }: LearningSplitProps) {
   const reduceMotion = useReducedMotion();
 
@@ -45,10 +52,11 @@ export function LearningSplit({
           image={image}
           alt={imageAlt}
           video={video}
+          fit={fit}
           rounded={false}
           scrim="none"
           sharpText
-          className="absolute inset-0 min-h-0"
+          className={cn("absolute inset-0 min-h-0", fit === "contain" && "bg-[#faf9f4]")}
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
       </div>

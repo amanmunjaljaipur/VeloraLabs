@@ -44,9 +44,9 @@ export default function MentalModelsPage() {
         eyebrow="Frameworks"
         title="Mental Models Hub"
         subtitle="Reusable frameworks with full explanations, real-world examples, and step-by-step application - not just definitions."
-        image="/images/hq-mental-hub.jpg"
-        imageAlt="Verlin Labs AI mental models - visual frameworks for understanding LLMs and complex technology"
-        video="/videos/mental-models-hub.mp4"
+        image="/images/brand-mental-models-hub.jpg"
+        imageAlt="Reusable frameworks - Systems, Trade-offs, and Mental Models, the three lenses applied to every new problem"
+        imageFit="contain"
       />
 
       <section className="border-b border-border/80 bg-muted/20">

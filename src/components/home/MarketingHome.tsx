@@ -94,6 +94,7 @@ export function MarketingHome() {
                 ? (home.learningIllustrations.mentalModels as { video?: string }).video
                 : undefined) ?? BRAND_MEDIA.homeMentalModels.video
             }
+            fit="contain"
             illustration
             items={[
               "Visual frameworks for complex AI concepts",
