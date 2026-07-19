@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 /**
- * Vercel Cron — publishes due scheduled blog posts (runs hourly).
+ * Vercel Cron - publishes due scheduled blog posts (runs hourly).
  * Auth: Authorization: Bearer CRON_SECRET
  */
 export async function GET(request: NextRequest) {

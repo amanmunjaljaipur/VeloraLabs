@@ -51,7 +51,7 @@ export default function ProgramsPage() {
     <>
       <CoursesGraphJsonLd />
       <HowToJsonLd
-        name="How Verlin Labs programs work — from free session to demo day"
+        name="How Verlin Labs programs work - from free session to demo day"
         description="Four clear steps from your free intro session through mental models, hands-on projects, and capstone demo day."
         path="/programs"
         steps={howItWorks.map((step) => ({
@@ -65,13 +65,15 @@ export default function ProgramsPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="What we offer"
         title="Programs & Offerings"
-        subtitle="Every path starts with clarity — from a free introductory session to full learning tracks and team workshops."
-        align="center"
+        subtitle="Every path starts with clarity - from a free introductory session to full learning tracks and team workshops."
+        image="/images/hq-programs.jpg"
+        imageAlt="Programs path from free session to demo day"
+        video="/videos/programs.mp4"
         compact
       />
 
       <section className="section-y">
-        <div className="container-verlin max-w-5xl space-y-12">
+        <div className="container-verlin !max-w-5xl space-y-12">
           <Card className="border-accent-teal/25 bg-gradient-to-br from-accent-teal/5 to-transparent p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div className="max-w-xl">
@@ -85,7 +87,7 @@ export default function ProgramsPage() {
                   Free 2-hour introductory session
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  Experience how we teach — live, structured, and tailored to your background.
+                  Experience how we teach - live, structured, and tailored to your background.
                   No payment required. The best way to decide which program fits you.
                 </p>
               </div>
@@ -102,7 +104,7 @@ export default function ProgramsPage() {
             <h2 className="text-2xl font-semibold text-foreground">Paid learning tracks</h2>
             <p className="mt-2 max-w-2xl text-text-secondary leading-relaxed">
               Cohort-based programs built around mental models, live sessions, and hands-on
-              practice — designed separately for students, engineers, and product leaders.
+              practice - designed separately for students, engineers, and product leaders.
             </p>
             <div className="mt-8 grid gap-5 lg:grid-cols-3">
               {tracks.map(({ slug, course }) => {
@@ -168,7 +170,7 @@ export default function ProgramsPage() {
                   Corporate & team workshops
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  Clarity-first AI literacy for organizations — custom pacing, practical
+                  Clarity-first AI literacy for organizations - custom pacing, practical
                   frameworks, and follow-up resources for engineering and product teams.
                 </p>
               </div>
@@ -185,7 +187,7 @@ export default function ProgramsPage() {
       <InstructorsSection compact />
 
       <SiteExploreLinks section="learn" title="Free resources" subtitle="Library, mental models, and downloads to support your learning." />
-      <SiteExploreLinks section="company" excludeHref="/about" title="Questions?" subtitle="FAQ and contact — we're happy to help you choose the right path." limit={3} />
+      <SiteExploreLinks section="company" excludeHref="/about" title="Questions?" subtitle="FAQ and contact - we are happy to help you choose the right path." limit={3} />
       <SeoRichTextSection block={PROGRAMS_SEO_BLOCK} />
     </>
   );

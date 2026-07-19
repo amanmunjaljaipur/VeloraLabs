@@ -10,11 +10,11 @@ Use this workbook during your free Verlin Labs session. Bring a notebook or open
 
 ## Session flow
 
-1. **Warm-up** — What do you already know about AI? Write three words.
-2. **Mental model** — Sketch the input → model → output pipeline in your own words.
-3. **Live demo** — Note one surprise and one thing that made sense.
-4. **Hands-on** — Try the guided prompt exercise with your instructor.
-5. **Q&A** — Write your top two questions for the group.
+1. **Warm-up** - What do you already know about AI? Write three words.
+2. **Mental model** - Sketch the input → model → output pipeline in your own words.
+3. **Live demo** - Note one surprise and one thing that made sense.
+4. **Hands-on** - Try the guided prompt exercise with your instructor.
+5. **Q&A** - Write your top two questions for the group.
 
 ## Reflection prompts
 

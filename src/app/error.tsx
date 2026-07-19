@@ -17,7 +17,7 @@ export default function Error({
 
   return (
     <section className="section-y">
-      <div className="container-verlin mx-auto max-w-lg px-4 text-center md:px-8">
+      <div className="container-verlin mx-auto !max-w-lg px-4 text-center md:px-8">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-text-secondary">
           <AlertTriangle className="h-7 w-7" aria-hidden />
         </div>

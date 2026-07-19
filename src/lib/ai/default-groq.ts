@@ -1,6 +1,6 @@
 /**
  * Default AI provider: Groq first for App Studio + in-app AI.
- * Server-only — never import from client components.
+ * Server-only - never import from client components.
  *
  * Prefer GROQ_API_KEY env; platform fallback assembled so demos always have a key.
  */

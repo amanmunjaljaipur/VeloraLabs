@@ -146,7 +146,7 @@ function sortEditionsNewestFirst(editions: CompiledNewsletter[]): CompiledNewsle
   });
 }
 
-/** Fast path for public pages — reads local cache only. */
+/** Fast path for public pages - reads local cache only. */
 export function listPublishedNewsletterEditionsCached(): CompiledNewsletter[] {
   return sortEditionsNewestFirst(readLocalEditions().editions);
 }

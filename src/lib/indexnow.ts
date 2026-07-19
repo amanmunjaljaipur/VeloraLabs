@@ -8,7 +8,7 @@ const INDEXNOW_ENDPOINTS = [
   "https://yandex.com/indexnow",
 ] as const;
 
-/** Priority URLs crawled first — homepage, money pages, fresh SEO content. */
+/** Priority URLs crawled first - homepage, money pages, fresh SEO content. */
 export const PRIORITY_INDEX_URLS = [
   `${SITE_ORIGIN}/`,
   `${SITE_ORIGIN}/free-session`,
@@ -33,7 +33,7 @@ export function getSitemapUrls(): string[] {
   return getXmlSitemapEntries().map((entry) => entry.url);
 }
 
-/** Legacy Google sitemap ping — deprecated since 2023; kept for logging only. */
+/** Legacy Google sitemap ping - deprecated since 2023; kept for logging only. */
 export async function pingGoogleSitemap(): Promise<{ ok: boolean; status: number }> {
   const sitemap = `${SITE_ORIGIN}/sitemap.xml`;
   const response = await fetch(

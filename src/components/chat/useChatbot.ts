@@ -7,14 +7,14 @@ const WELCOME_FAQ: ChatMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hi! I'm the Verlin Labs assistant.\n\n**Choose a topic below**, pick a question, or **type your own question** for a clear answer.",
+    "Hi! I am the Verlin Labs assistant.\n\n**Choose a topic below**, pick a question, or **type your own question** for a clear answer.",
 };
 
 function welcomeLlm(label: string): ChatMessage {
   return {
     id: "welcome",
     role: "assistant",
-    content: `Hi! I'm the Verlin Labs assistant powered by **${label}** (free tier).\n\nAsk anything about our free session, courses, pricing, or teaching style — or browse topics below.`,
+    content: `Hi! I am the Verlin Labs assistant powered by **${label}** (free tier).\n\nAsk anything about our free session, courses, pricing, or teaching style - or browse topics below.`,
   };
 }
 
@@ -73,7 +73,7 @@ export function useChatbot() {
       {
         id: `assistant-${idRef.current++}`,
         role: "assistant",
-        content: `Great — pick a question about **${category}**, or type your own:`,
+        content: `Great - pick a question about **${category}**, or type your own:`,
       },
     ]);
   }, []);
@@ -202,7 +202,7 @@ export function useChatbot() {
       {
         id: `assistant-${idRef.current++}`,
         role: "assistant",
-        content: "No problem — **choose another topic** below, or type a question.",
+        content: "No problem - **choose another topic** below, or type a question.",
       },
     ]);
   }, []);

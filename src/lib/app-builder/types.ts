@@ -178,8 +178,7 @@ export function isGenericContent(
 }
 
 /** Minimal, structurally-compatible mirror of Forge's ForgeDataField/ForgeDataModel
- *  (kept here, not imported from @/lib/forge/types, to avoid a circular dependency —
- *  app-builder is the lower-level module Forge builds on top of). */
+ *  (kept here, not imported from @/lib/forge/types, to avoid a circular dependency - *  app-builder is the lower-level module Forge builds on top of). */
 export interface AppDataFieldSpec {
   name: string;
   type: string;
@@ -209,7 +208,7 @@ export interface AppProject {
   customPoints?: string[];
   llm: AppLlmConfigPublic;
   content: AppExtensionContent | null;
-  /** Forge build-plan data models — drives the generic CRUD admin for non-ecommerce apps */
+  /** Forge build-plan data models - drives the generic CRUD admin for non-ecommerce apps */
   dataModels?: AppDataModelSpec[];
   /** verlin-native = marketing pages; studio-interactive = multi-role working app */
   runtimeStyle?: "generated" | "verlin-native" | "studio-interactive";
@@ -260,7 +259,7 @@ export interface AppIdeaExample {
   emoji: string;
 }
 
-/** Request-only secrets — never persisted */
+/** Request-only secrets - never persisted */
 export interface AppLlmSecrets {
   provider: LlmProviderKind;
   apiKey: string;

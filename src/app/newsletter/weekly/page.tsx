@@ -77,7 +77,7 @@ export default async function WeeklyNewsletterPage({ searchParams }: WeeklyNewsl
           <div className="mt-12 rounded-2xl border border-teal/20 bg-teal/5 p-6 text-center">
             <p className="font-medium text-foreground">Want this in your inbox every Sunday?</p>
             <p className="mt-2 text-sm text-text-secondary">
-              Subscribe only if you want the weekly PDF — we won&apos;t add you automatically when
+              Subscribe only if you want the weekly PDF - we won&apos;t add you automatically when
               you sign in.
             </p>
             <Link href="/newsletter" className="mt-4 inline-block text-teal hover:underline">

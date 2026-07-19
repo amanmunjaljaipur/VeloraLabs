@@ -109,7 +109,7 @@ export async function recordKnownUser(
   return record;
 }
 
-/** Adds the user if missing — used to backfill OAuth users on active sessions. */
+/** Adds the user if missing - used to backfill OAuth users on active sessions. */
 export async function ensureKnownUser(
   email: string,
   name: string | null | undefined,

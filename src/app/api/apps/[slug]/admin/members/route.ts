@@ -50,7 +50,7 @@ export async function POST(request: Request, context: Ctx) {
     return NextResponse.json(
       {
         error:
-          "This email is already on the team. Change their role separately — invite cannot reset passwords.",
+          "This email is already on the team. Change their role separately - invite cannot reset passwords.",
       },
       { status: 409 }
     );

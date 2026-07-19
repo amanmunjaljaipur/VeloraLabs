@@ -24,7 +24,7 @@ export function ArticleJsonLd({ item }: { item: LibraryItem }) {
       url: SITE_ORIGIN,
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_ORIGIN}/images/hero-side.jpg`,
+        url: `${SITE_ORIGIN}/images/brand-hero-clarity.jpg`,
       },
     },
     datePublished: item.publishedAt,

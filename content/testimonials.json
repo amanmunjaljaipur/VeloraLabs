@@ -1,42 +1,42 @@
 [
   {
     "id": "1",
-    "quote": "Before this, AI felt like magic I was supposed to already understand. The mental models broke it into pieces I could actually think through — and explain to my friends without sounding like I was reading from a textbook.",
+    "quote": "Before this, AI felt like magic I was supposed to already understand. The mental models broke it into pieces I could actually think through - and explain to my friends without sounding like I was reading from a textbook.",
     "name": "Priya Sharma",
     "role": "Class 10 Student",
     "audience": "students"
   },
   {
     "id": "2",
-    "quote": "I'd sat through plenty of ML lectures that jumped straight to formulas. The free session was different — we talked through how things work, asked messy questions, and left with frameworks I still use when I'm reading papers or debugging code.",
+    "quote": "I'd sat through plenty of ML lectures that jumped straight to formulas. The free session was different - we talked through how things work, asked messy questions, and left with frameworks I still use when I am reading papers or debugging code.",
     "name": "Arjun Mehta",
     "role": "CS Engineering Student",
     "audience": "engineers"
   },
   {
     "id": "3",
-    "quote": "Vendor demos all sound the same until you know what questions to ask. Verlin Labs gave me a way to evaluate AI features honestly — what they can do, where they break, and what my team actually needs — without pretending I have a PhD.",
+    "quote": "Vendor demos all sound the same until you know what questions to ask. Verlin Labs gave me a way to evaluate AI features honestly - what they can do, where they break, and what my team actually needs - without pretending I have a PhD.",
     "name": "Sarah Chen",
     "role": "Senior Product Manager",
     "audience": "professionals"
   },
   {
     "id": "4",
-    "quote": "My daughter used to nod along when people talked about AI. Now she pushes back thoughtfully — she asks why something works, not just whether it works. That shift in how she thinks is what I cared about most.",
+    "quote": "My daughter used to nod along when people talked about AI. Now she pushes back thoughtfully - she asks why something works, not just whether it works. That shift in how she thinks is what I cared about most.",
     "name": "Rajesh Kumar",
     "role": "Parent of Class 8 Student",
     "audience": "students"
   },
   {
     "id": "5",
-    "quote": "I'm an EE student, not a CS major, so I expected to feel behind. Instead, the focus on intuition and clear structure helped me reason about transformers and LLMs in a way that finally stuck — not just for an exam, but for actual projects.",
+    "quote": "I am an EE student, not a CS major, so I expected to feel behind. Instead, the focus on intuition and clear structure helped me reason about transformers and LLMs in a way that finally stuck - not just for an exam, but for actual projects.",
     "name": "David Okonkwo",
     "role": "Final Year EE Student",
     "audience": "engineers"
   },
   {
     "id": "6",
-    "quote": "I came to the free session skeptical — another AI workshop, I assumed. I left with a plain-language map of what my team should learn first, what to ignore for now, and how to talk about risk without shutting down good ideas.",
+    "quote": "I came to the free session skeptical - another AI workshop, I assumed. I left with a plain-language map of what my team should learn first, what to ignore for now, and how to talk about risk without shutting down good ideas.",
     "name": "Maria Gonzalez",
     "role": "Engineering Director",
     "audience": "professionals"

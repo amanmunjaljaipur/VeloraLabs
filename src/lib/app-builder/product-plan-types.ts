@@ -1,6 +1,6 @@
 /**
  * Product plan shown to the user AFTER research and BEFORE generation.
- * Encodes business model, IA, modules, personas — not hollow marketing pages.
+ * Encodes business model, IA, modules, personas - not hollow marketing pages.
  */
 
 import type { AppExtensionId } from "@/lib/app-builder/types";

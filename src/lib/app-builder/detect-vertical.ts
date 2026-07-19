@@ -1,6 +1,6 @@
 /**
  * Infer App Builder extension + app kind from the user's free-text idea.
- * Prompt understanding first — never force ecom for every product.
+ * Prompt understanding first - never force ecom for every product.
  */
 
 import type { AppExtensionId } from "@/lib/app-builder/types";
@@ -97,7 +97,7 @@ export function detectVerticalFromPrompt(prompt: string): DetectedVertical {
     appKind: "custom",
     label: "Custom product from your idea",
     confidence: "medium",
-    reasons: ["No fixed vertical matched — building a flexible app shaped by your prompt"],
+    reasons: ["No fixed vertical matched - building a flexible app shaped by your prompt"],
   };
 }
 

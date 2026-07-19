@@ -18,19 +18,19 @@ Complex ideas become usable when you find the **smallest accurate picture**. If 
 
 **Act → Measure → Learn → Adjust**
 
-Applies to studying, product launches, and prompt engineering. No loop means no improvement — only hope.
+Applies to studying, product launches, and prompt engineering. No loop means no improvement - only hope.
 
 ## LLM mental model
 
 **Tokenize → Attend → Predict next token**
 
-The model does not “know” facts — it predicts plausible text. Your job: supply context, verify outputs, define success.
+The model does not “know” facts - it predicts plausible text. Your job: supply context, verify outputs, define success.
 
 ## RAG in one line
 
 **Retrieve relevant chunks → prepend to prompt → generate with citations**
 
-If retrieval fails, the answer will fail — fix search before rewriting prompts.
+If retrieval fails, the answer will fail - fix search before rewriting prompts.
 
 ## Quick checks before trusting AI output
 

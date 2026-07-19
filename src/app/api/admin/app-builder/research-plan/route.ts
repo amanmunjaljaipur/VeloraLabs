@@ -58,6 +58,6 @@ export async function POST(request: Request) {
     plan,
     source,
     message:
-      "Review this plan carefully. We only build after you approve — this avoids empty brochure sites.",
+      "Review this plan carefully. We only build after you approve - this avoids empty brochure sites.",
   });
 }

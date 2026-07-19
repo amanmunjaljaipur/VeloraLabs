@@ -9,7 +9,7 @@ export function WebSiteJsonLd() {
     alternateName: ["Verlin Labs AI Education", "Verlin Labs India"],
     url: SITE_ORIGIN,
     description:
-      "Verlin Labs — clarity-first AI training in India. Free sessions, mental models, library guides, and live programs for students, engineers, and product managers.",
+      "Verlin Labs - clarity-first AI training in India. Free sessions, mental models, library guides, and live programs for students, engineers, and product managers.",
     inLanguage: "en-IN",
     about: [
       "Artificial intelligence education",

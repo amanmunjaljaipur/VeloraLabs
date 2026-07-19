@@ -97,7 +97,7 @@ export function LegalCmsPanel() {
     const payload = (await res.json()) as { document: LegalDocument };
     setCms((prev) => (prev ? { ...prev, [activeType]: payload.document } : prev));
     toast(
-      `${DOC_TABS.find((t) => t.type === activeType)?.label} saved — now v${payload.document.version}`,
+      `${DOC_TABS.find((t) => t.type === activeType)?.label} saved - now v${payload.document.version}`,
       "success"
     );
   }

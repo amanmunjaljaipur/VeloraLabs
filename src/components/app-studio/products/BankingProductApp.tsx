@@ -104,7 +104,7 @@ function defaultAccounts(): Row[] {
   return [
     { id: "a1", title: "Everyday Savings", level: "Savings", amount: 84250, status: "Active", ifsc: "HZBN0001234" },
     { id: "a2", title: "Salary Current", level: "Current", amount: 126400, status: "Active", ifsc: "HZBN0001234" },
-    { id: "a3", title: "UPI Wallet", level: "Wallet", amount: 2340, status: "Active", ifsc: "—" },
+    { id: "a3", title: "UPI Wallet", level: "Wallet", amount: 2340, status: "Active", ifsc: " - " },
     { id: "a4", title: "Emergency Fund", level: "Savings", amount: 50000, status: "Frozen", ifsc: "HZBN0001234" },
   ];
 }
@@ -181,10 +181,10 @@ export function BankingProductApp({
   ]);
   const [loans, setLoans] = useState<Row[]>([
     { id: "l1", title: "Personal loan", amount: 240000, emi: 8200, status: "Active", due: "05 Apr" },
-    { id: "l2", title: "Credit line", amount: 50000, emi: 0, status: "Available", due: "—" },
+    { id: "l2", title: "Credit line", amount: 50000, emi: 0, status: "Available", due: " - " },
   ]);
   const [scheduled, setScheduled] = useState<Row[]>([
-    { id: "s1", title: "Rent — Rohan", amount: 25000, when: "1st every month", status: "Active" },
+    { id: "s1", title: "Rent - Rohan", amount: 25000, when: "1st every month", status: "Active" },
     { id: "s2", title: "SIP Mutual fund", amount: 10000, when: "5th every month", status: "Active" },
   ]);
   const [cases, setCases] = useState<Row[]>([
@@ -302,7 +302,7 @@ export function BankingProductApp({
   function goReview() {
     if (!validateTransfer()) return;
     setStep(1);
-    flash("Details look good — review and confirm", "info");
+    flash("Details look good - review and confirm", "info");
   }
 
   function goOtp() {
@@ -316,7 +316,7 @@ export function BankingProductApp({
     if (!validateTransfer()) return;
     if (otp.trim() !== "123456" && otp.trim() !== "000000" && pathMode === "auto") {
       setFieldErrors({ otp: "Invalid OTP. Use 123456 (pass) or 000000 (fail demo)." });
-      flash("Invalid OTP — transfer not completed", "error");
+      flash("Invalid OTP - transfer not completed", "error");
       return;
     }
 
@@ -432,7 +432,7 @@ export function BankingProductApp({
             title: String(bill.title),
             amount: amt,
             description: "Bill payment",
-            plan: String(src?.title || "—"),
+            plan: String(src?.title || " - "),
             status: "Completed",
             channel: "Bill",
           },
@@ -473,7 +473,7 @@ export function BankingProductApp({
     setBenName("");
     setBenUpi("");
     setBenErrors({});
-    flash("Payee added — pending verification (success)", "success");
+    flash("Payee added - pending verification (success)", "success");
   }
 
   async function sendUpi() {
@@ -784,7 +784,7 @@ export function BankingProductApp({
         )}
         {tab === "home" && (
           <div className="space-y-5">
-            {/* Bank home leads with money UI — not a course “learning track” banner */}
+            {/* Bank home leads with money UI - not a course “learning track” banner */}
             <Card
               className="overflow-hidden p-0 text-white"
               style={{
@@ -951,7 +951,7 @@ export function BankingProductApp({
                   >
                     {accounts.map((a) => (
                       <option key={a.id} value={String(a.title)}>
-                        {String(a.title)} ({inr(a.amount)}) — {String(a.status)}
+                        {String(a.title)} ({inr(a.amount)}) - {String(a.status)}
                       </option>
                     ))}
                   </select>
@@ -991,7 +991,7 @@ export function BankingProductApp({
                     <strong>From:</strong> {fromAcct}
                   </p>
                   <p>
-                    <strong>Note:</strong> {note || "—"}
+                    <strong>Note:</strong> {note || " - "}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -1222,7 +1222,7 @@ export function BankingProductApp({
         )}
 
         {tab === "statements" && (
-          <Module title="Statements" hint="Download is demo — success message only">
+          <Module title="Statements" hint="Download is demo - success message only">
             {["Mar 2026", "Feb 2026", "Jan 2026", "Dec 2025"].map((m) => (
               <Card key={m} className="flex items-center justify-between p-4">
                 <p className="font-medium">{m} statement (PDF)</p>
@@ -1232,7 +1232,7 @@ export function BankingProductApp({
                   variant="secondary"
                   onClick={() => {
                     const body = [
-                      `${spec.brandName} — Account statement`,
+                      `${spec.brandName} - Account statement`,
                       `Period: ${m}`,
                       `Generated: ${new Date().toISOString()}`,
                       "",
@@ -1241,7 +1241,7 @@ export function BankingProductApp({
                       "2026-03-05,UPI to merchant,-1240,Success",
                       "2026-03-12,NEFT rent,-25000,Success",
                       "",
-                      "Demo file only — not a bank statement.",
+                      "Demo file only - not a bank statement.",
                     ].join("\n");
                     const blob = new Blob([body], { type: "text/csv;charset=utf-8" });
                     const url = URL.createObjectURL(blob);
@@ -1444,7 +1444,7 @@ export function BankingProductApp({
               variant="cta"
               onClick={() => {
                 if (limits.dailyTransfer < 1000 || limits.upi < 100) {
-                  flash("Limits too low — daily ≥ ₹1,000, UPI ≥ ₹100", "error");
+                  flash("Limits too low - daily ≥ ₹1,000, UPI ≥ ₹100", "error");
                   return;
                 }
                 flash("Limits saved successfully", "success");
@@ -1483,7 +1483,7 @@ export function BankingProductApp({
                     return;
                   }
                   setKyc((p) => ({ ...p, status: "Verified" }));
-                  flash("Profile updated — KYC remains Verified", "success");
+                  flash("Profile updated - KYC remains Verified", "success");
                 }}
               >
                 Save profile
@@ -1493,7 +1493,7 @@ export function BankingProductApp({
                 variant="secondary"
                 onClick={() => {
                   setKyc((p) => ({ ...p, status: "Re-KYC required" }));
-                  flash("Re-KYC requested — upload docs in a full build", "info");
+                  flash("Re-KYC requested - upload docs in a full build", "info");
                 }}
               >
                 Request re-KYC
@@ -1510,7 +1510,7 @@ export function BankingProductApp({
               on={security.twoFa}
               onChange={(v) => {
                 setSecurity((p) => ({ ...p, twoFa: v }));
-                flash(v ? "2FA enabled" : "2FA disabled — less secure", v ? "success" : "error");
+                flash(v ? "2FA enabled" : "2FA disabled - less secure", v ? "success" : "error");
               }}
             />
             <Toggle
@@ -1598,7 +1598,7 @@ export function BankingProductApp({
                   },
                   ...prev,
                 ]);
-                flash("Dispute raised successfully — case #demo", "success");
+                flash("Dispute raised successfully - case #demo", "success");
               }}
             >
               Raise new dispute
@@ -1668,7 +1668,7 @@ export function BankingProductApp({
             <div className="space-y-3">
               <h2 className="text-lg font-semibold">Your cases</h2>
               {cases.length === 0 && (
-                <p className="text-sm text-muted-foreground">No cases yet — submit one on the left.</p>
+                <p className="text-sm text-muted-foreground">No cases yet - submit one on the left.</p>
               )}
               {cases.map((c) => (
                 <Card key={c.id} className="space-y-2 p-4">
@@ -1794,11 +1794,11 @@ export function BankingProductApp({
               ))}
             {transfers.filter((t) => /pending|2fa|failed/i.test(String(t.status))).length ===
               0 && (
-              <p className="text-sm text-muted-foreground">Queue empty — all clear.</p>
+              <p className="text-sm text-muted-foreground">Queue empty - all clear.</p>
             )}
           </Module>
         )}
-        {/* Footer scrolls with content — never pinned/shrink-0 or it crushes the bank UI */}
+        {/* Footer scrolls with content - never pinned/shrink-0 or it crushes the bank UI */}
         <footer className="mx-auto mt-10 w-full max-w-7xl border-t border-border pt-6 pb-8">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(

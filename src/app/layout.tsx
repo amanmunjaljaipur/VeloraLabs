@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
+import { Outfit, Work_Sans, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -31,19 +31,19 @@ function buildSiteVerification(): Metadata["verification"] | undefined {
   return Object.keys(verification).length > 0 ? verification : undefined;
 }
 
-/** Apple body / UI — Inter */
-const inter = Inter({
+/** Modern SaaS body / UI - Work Sans (2025 revamp) */
+const inter = Work_Sans({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   display: "swap",
 });
 
-/** Claude display — Cormorant Garamond serif headlines */
-const display = Cormorant_Garamond({
+/** Modern SaaS display - Outfit geometric headlines (2025 revamp) */
+const display = Outfit({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -60,11 +60,11 @@ const siteVerification = buildSiteVerification();
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
+    default: "Verlin Labs - AI Training & Mental Models for Students, Engineers & PMs",
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
+    "Verlin Labs - clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
   keywords: [
     "AI training India",
     "AI course India",
@@ -86,28 +86,28 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
+    title: "Verlin Labs - AI Training & Mental Models for Students, Engineers & PMs",
     description:
-      "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
+      "Verlin Labs - clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
     type: "website",
     url: "/",
     siteName: SITE_NAME,
     locale: "en_IN",
     images: [
       {
-        url: "/images/hero-side.jpg",
+        url: "/images/brand-hero-clarity.jpg",
         width: 1200,
         height: 630,
-        alt: "Verlin Labs — clarity-first learning for the AI age",
+        alt: "Verlin Labs - clarity-first learning for the AI age",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Verlin Labs — AI Training & Mental Models for Students, Engineers & PMs",
+    title: "Verlin Labs - AI Training & Mental Models for Students, Engineers & PMs",
     description:
-      "Verlin Labs — clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
-    images: ["/images/hero-side.jpg"],
+      "Verlin Labs - clarity-first AI training in India. Free 2-hour session, mental models, and live programs for students, engineers, and product managers.",
+    images: ["/images/brand-hero-clarity.jpg"],
   },
   ...(siteVerification ? { verification: siteVerification } : {}),
 };
@@ -119,7 +119,7 @@ export default async function RootLayout({
 }>) {
   const site = getSiteConfig();
   const headerList = await headers();
-  // Set by middleware for /apps/* — hide Verlin Labs navbar, footer, admin chrome, chatbot
+  // Set by middleware for /apps/* - hide Verlin Labs navbar, footer, admin chrome, chatbot
   const standaloneApp = headerList.get("x-vl-app-shell") === "1";
 
   if (standaloneApp) {
@@ -169,7 +169,7 @@ export default async function RootLayout({
             <ToastProvider>
               <a
                 href="#main"
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:bg-deep-teal focus:px-4 focus:py-2 focus:text-white"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-teal focus:ring-offset-2"
               >
                 Skip to content
               </a>

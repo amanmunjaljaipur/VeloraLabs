@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "My Course",
-  description: "Your enrolled program — syllabus, session recordings, and learning progress.",
+  description: "Your enrolled program - syllabus, session recordings, and learning progress.",
 };
 
 export default async function MyCoursePage() {

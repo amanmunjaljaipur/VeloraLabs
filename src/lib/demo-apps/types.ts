@@ -42,6 +42,18 @@ export type DemoLearningContent = {
   seedEnrichment?: Record<string, Array<Partial<Record<string, unknown>>>>;
 };
 
+export interface DemoFooterLink {
+  label: string;
+  screenId?: string;
+  panel?: "help" | "legal" | "privacy" | "terms" | "security" | "about" | "support";
+  hrefLabel?: string;
+}
+
+export interface DemoFooterColumn {
+  title: string;
+  links: DemoFooterLink[];
+}
+
 export type DemoCategoryDef = {
   slug: string;
   name: string;
@@ -49,6 +61,10 @@ export type DemoCategoryDef = {
   groupLabel: string;
   tagline: string;
   description: string;
+  imageUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  footerColumns?: DemoFooterColumn[];
   examples: string[];
   productKind:
     | "banking"
@@ -100,6 +116,7 @@ export type DemoCategoryDef = {
     entityId?: string;
     roleIds?: string[];
     description: string;
+    imageUrl?: string;
   }>;
   workflows: Array<{
     id: string;

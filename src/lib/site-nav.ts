@@ -1,4 +1,4 @@
-/** @deprecated Import from `@/lib/site-sitemap` — this module re-exports for backwards compatibility. */
+/** @deprecated Import from `@/lib/site-sitemap` - this module re-exports for backwards compatibility. */
 export type { FooterLinkGroup, SitemapSection } from "./site-sitemap";
 export {
   buildFooterLinkGroups,

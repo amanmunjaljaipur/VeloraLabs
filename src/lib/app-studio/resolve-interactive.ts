@@ -57,7 +57,7 @@ function isStrongSpec(spec: StudioAppSpec | undefined | null): boolean {
 }
 
 /**
- * Return interactive appSpec — existing strong one or freshly built from project.
+ * Return interactive appSpec - existing strong one or freshly built from project.
  * Persists upgrade so Blob stays corrected (best-effort).
  */
 export async function resolveInteractiveAppSpec(

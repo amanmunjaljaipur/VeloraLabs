@@ -27,7 +27,7 @@ export default async function PostSessionPage() {
     <>
       <PageHeader
         title="Thank you for attending!"
-        subtitle="You experienced clarity-first learning. Here's how the full program takes you further."
+        subtitle="You experienced clarity-first learning. Here is how the full program takes you further."
       />
 
       <section className="pb-16">

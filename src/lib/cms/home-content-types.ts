@@ -6,6 +6,8 @@ export interface HomeContentData {
     subheadline: string;
     illustration: string;
     illustrationAlt: string;
+    /** Optional muted loop under public/videos */
+    video?: string;
   };
   whatWeCover: string[];
   howItWorks: {
@@ -14,12 +16,12 @@ export interface HomeContentData {
     description: string;
     icon: string;
   }[];
-  howItWorksIllustration: { src: string; alt: string };
+  howItWorksIllustration: { src: string; alt: string; video?: string };
   learningIllustrations: {
-    mentalModels: { src: string; alt: string };
-    handsOn: { src: string; alt: string };
+    mentalModels: { src: string; alt: string; video?: string };
+    handsOn: { src: string; alt: string; video?: string };
   };
   homeFaqs: AccordionItem[];
   testimonialAvatars: Record<string, string>;
-  freeSessionIllustration: { src: string; alt: string };
+  freeSessionIllustration: { src: string; alt: string; video?: string };
 }

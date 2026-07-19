@@ -22,7 +22,7 @@ export function SemanticHubPage({ hub, breadcrumbs }: SemanticHubPageProps) {
       />
 
       <section className="section-y">
-        <div className="container-verlin max-w-3xl">
+        <div className="container-verlin !max-w-3xl">
           <p className="rounded-xl border border-accent-teal/20 bg-accent-teal/5 px-4 py-3 text-sm text-text-secondary">
             <span className="font-semibold text-foreground">Answers: </span>
             {hub.targetQuestion}
@@ -56,7 +56,7 @@ export function SemanticHubPage({ hub, breadcrumbs }: SemanticHubPageProps) {
       </section>
 
       <section className="section-y border-t border-border bg-muted/20">
-        <div className="container-verlin max-w-3xl">
+        <div className="container-verlin !max-w-3xl">
           <h2 className="text-xl font-semibold text-foreground">Deep-dive library picks</h2>
           <ul className="mt-4 space-y-2">
             {hub.libraryLinks.map((link) => (
@@ -71,7 +71,7 @@ export function SemanticHubPage({ hub, breadcrumbs }: SemanticHubPageProps) {
       </section>
 
       <section className="section-y">
-        <div className="container-verlin max-w-3xl">
+        <div className="container-verlin !max-w-3xl">
           <h2 className="text-xl font-semibold text-foreground">Common questions</h2>
           <div className="mt-6">
             <Accordion items={hub.faqs} defaultOpenIndex={0} />

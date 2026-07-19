@@ -51,19 +51,17 @@ export function AdminHomeDashboard({ userName, role, email }: AdminHomeDashboard
   const links = getAdminMenuLinks(role).filter((link) => link.href !== "/admin");
 
   return (
-    <section className="pb-16">
-      <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-accent-teal">
-          {ROLE_LABELS[role]} dashboard
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.02em] text-foreground md:text-4xl">
+    <section className="container-verlin section-y pb-16">
+      <div className="stack-header max-w-2xl">
+        <p className="section-eyebrow">{ROLE_LABELS[role]} dashboard</p>
+        <h1 className="section-title">
           Welcome back, {firstName}
         </h1>
-        <p className="mt-3 max-w-2xl text-text-secondary">
+        <p className="section-subtitle">
           Manage site content, learner roles, bookings, analytics, App Studio, newsletter, and
           program operations from one place.
           {email ? (
-            <span className="mt-1 block text-xs text-muted-foreground">Signed in as {email}</span>
+            <span className="mt-1 block text-xs text-text-muted">Signed in as {email}</span>
           ) : null}
         </p>
         {links.length === 0 ? (
@@ -71,14 +69,14 @@ export function AdminHomeDashboard({ userName, role, email }: AdminHomeDashboard
             No admin modules for this role. If you are a platform owner, sign out and sign back in.
           </p>
         ) : (
-          <p className="mt-2 text-sm font-medium text-foreground">
+          <p className="mt-3 text-sm font-medium text-foreground">
             {links.length} admin modules available
             {role === "super_admin" ? " (full super admin access)" : ""}.
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid-editorial sm:grid-cols-2 xl:grid-cols-3">
         {links.map((link) => {
           const Icon = ICONS[link.href] ?? Shield;
           return (

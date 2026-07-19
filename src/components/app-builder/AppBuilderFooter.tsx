@@ -19,7 +19,7 @@ export function AppBuilderFooter({
   exploreLinks,
 }: {
   content: EcomLocalShopContent;
-  /** @deprecated use theme — kept for callers that only pass primary */
+  /** @deprecated use theme - kept for callers that only pass primary */
   accent?: string;
   theme?: ShopThemeTokens;
   onNavigate?: (page: FooterNavKey) => void;

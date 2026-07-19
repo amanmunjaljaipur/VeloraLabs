@@ -38,7 +38,7 @@ export function TestimonialCard({ quote, name, role, audience }: TestimonialCard
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-accent-teal/25 shadow-sm">
             <OptimizedImage
               src={avatarSrc}
-              alt={`${name} — Verlin Labs AI training learner testimonial`}
+              alt={`${name} - Verlin Labs AI training learner testimonial`}
               fill
               className="object-cover"
               sizes="48px"

@@ -26,7 +26,7 @@ function productSearchQuery(input: {
   return base || "local handmade product";
 }
 
-/** Wikimedia Commons file search — free, no API key. */
+/** Wikimedia Commons file search - free, no API key. */
 export async function searchWikimediaProductImages(
   query: string,
   limit = 6

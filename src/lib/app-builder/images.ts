@@ -1,5 +1,5 @@
 /**
- * Visual assets for generated shops — product photos, hero, logo art.
+ * Visual assets for generated shops - product photos, hero, logo art.
  * Uses free prompt-to-image URLs (pollinations) so non-tech owners get a lively storefront
  * without uploading photos. User-provided logo URLs always win when set.
  */
@@ -126,7 +126,7 @@ export function resolveLogoChoice(answers: Record<string, string>): {
     /have|my logo|own logo|upload|paste|link|url|photo of logo|already/.test(pref) &&
     !/design|create|make|generate|build|please make|for me/.test(pref)
   ) {
-    // Said they have a logo but no URL yet — still generate placeholder art until they add URL
+    // Said they have a logo but no URL yet - still generate placeholder art until they add URL
     return { mode: "generate" };
   }
 

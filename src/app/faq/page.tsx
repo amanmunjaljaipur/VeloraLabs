@@ -25,7 +25,9 @@ export default function FaqPage() {
         eyebrow="Help center"
         title="Frequently Asked Questions"
         subtitle="Everything you need to know about learning with Verlin Labs"
-        align="center"
+        image="/images/brand-free-session.jpg"
+        imageAlt="Answers and guidance for Verlin Labs learners"
+        video="/videos/faq.mp4"
         compact
       />
 

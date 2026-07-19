@@ -12,9 +12,8 @@ interface ButtonLinkProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   className?: string;
-  /** Keep the link full width at all breakpoints (useful in grids). */
   fullWidth?: boolean;
-  /** Entrance animation delay (seconds) */
+  /** Kept for API compat; entrance delay no longer used (less AI-template) */
   delay?: number;
 }
 
@@ -25,33 +24,41 @@ export function ButtonLink({
   size = "md",
   className,
   fullWidth = false,
-  delay = 0,
 }: ButtonLinkProps) {
   const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      className={cn("inline-flex w-full", !fullWidth && "sm:w-auto")}
-      initial={reduceMotion ? false : { opacity: 0, y: 20, scale: 0.95 }}
-      animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.4, delay, ease: EASE_OUT }}
+      className={cn(
+        fullWidth ? "block w-full min-w-0" : "inline-flex w-full sm:w-auto"
+      )}
       whileHover={
         reduceMotion
           ? undefined
           : {
               scale: HOVER.buttonScale[variant],
+              y: -1,
               transition: { duration: DURATION.hover, ease: EASE_OUT },
             }
       }
       whileTap={
         reduceMotion
           ? undefined
-          : { scale: HOVER.tapScale, transition: { duration: DURATION.press, ease: EASE_OUT } }
+          : {
+              scale: HOVER.tapScale,
+              y: 0,
+              transition: { duration: DURATION.press, ease: EASE_OUT },
+            }
       }
     >
       <Link
         href={href}
-        className={cn(buttonClassNames(variant, size), "w-full", !fullWidth && "sm:w-auto", className)}
+        className={cn(
+          buttonClassNames(variant, size),
+          "w-full",
+          !fullWidth && "sm:w-auto",
+          className
+        )}
       >
         {children}
       </Link>

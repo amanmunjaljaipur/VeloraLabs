@@ -21,7 +21,7 @@ interface HubCard {
 const hubCards: HubCard[] = [
   {
     title: "Library",
-    description: "Articles, guides, and workshops — organized for clarity.",
+    description: "Articles, guides, and workshops - organized for clarity.",
     href: "/library",
     icon: BookOpen,
     badge: "Deep dives",
@@ -34,7 +34,7 @@ const hubCards: HubCard[] = [
   },
   {
     title: "Mental Models",
-    description: "Core frameworks we teach — explained without jargon.",
+    description: "Core frameworks we teach - explained without jargon.",
     href: "/mental-models",
     icon: Brain,
   },
@@ -46,7 +46,7 @@ const hubCards: HubCard[] = [
   },
   {
     title: "Newsletter",
-    description: "Weekly clarity-first insights — no noise.",
+    description: "Weekly clarity-first insights - no noise.",
     href: "/newsletter",
     icon: Mail,
   },
@@ -66,7 +66,7 @@ export function ResourcesHub() {
           <p className="text-xs font-semibold uppercase tracking-wider text-teal">Quick links</p>
           <h2 className="mt-2 text-2xl font-semibold text-foreground">Jump to a section</h2>
           <p className="mt-2 text-text-secondary leading-relaxed">
-            Pick a destination below — or scroll for downloads, featured reads, mental models,
+            Pick a destination below - or scroll for downloads, featured reads, mental models,
             and more.
           </p>
         </div>

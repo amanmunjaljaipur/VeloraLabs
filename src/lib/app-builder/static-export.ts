@@ -1,6 +1,6 @@
 /**
  * Build a self-contained static HTML site for a local shop.
- * One index.html with hash routing — works on any static host offline.
+ * One index.html with hash routing - works on any static host offline.
  */
 import type { EcomLocalShopContent } from "@/lib/app-builder/types";
 

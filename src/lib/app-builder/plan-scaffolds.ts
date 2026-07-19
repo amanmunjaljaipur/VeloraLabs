@@ -1,5 +1,5 @@
 /**
- * High-quality plan scaffolds — banking / insurance / resume / booking.
+ * High-quality plan scaffolds - banking / insurance / resume / booking.
  * Used when answers are thin; LLM enriches but never invents hollow 3-page shells.
  */
 
@@ -66,8 +66,8 @@ export function bankingScaffold(input: {
         ? ["Sole traders", "Finance managers", "Business owners"]
         : ["Salaried individuals", "Students", "Families"],
       valueProp: isSme
-        ? "Open a business account online, pay vendors, track cash, invite team roles — without branch paperwork drama."
-        : "Open an account in minutes, pay anyone, freeze cards, and see spend clearly — mobile-first and fee-transparent.",
+        ? "Open a business account online, pay vendors, track cash, invite team roles - without branch paperwork drama."
+        : "Open an account in minutes, pay anyone, freeze cards, and see spend clearly - mobile-first and fee-transparent.",
       extensionId: "digital-banking",
       appKind: "digital-banking",
       summary: `Complete digital banking website for ${brand}: public product & trust pages PLUS authenticated dashboard modules (accounts, payments, cards, statements) with mocked data and clear states.`,
@@ -288,7 +288,7 @@ export function bankingScaffold(input: {
       "Deposit guarantee / regulatory framing in footer (region-appropriate, fictional bank)",
       "Security messaging: 2FA, session care, fraud tips",
       "Cookie/consent note in footer",
-      "No fake banking licence numbers — label as demo/fictional where needed",
+      "No fake banking licence numbers - label as demo/fictional where needed",
     ],
     assumptions: [
       "v1 is a clickable prototype: real navigation, mocked data, no live core banking",
@@ -312,7 +312,7 @@ export function insuranceScaffold(input: { brandName?: string; region?: string }
   return {
     ...baseMeta({
       brandName: brand,
-      tagline: "Insurance explained simply — plans, claims, trust",
+      tagline: "Insurance explained simply - plans, claims, trust",
       businessModel: "Digital insurance distributor / insurer marketing site",
       businessModelDetail:
         "Public site for health/term/motor plan discovery, quote interest, claims FAQ, and a light authenticated claims-status demo.",
@@ -441,7 +441,7 @@ export function insuranceScaffold(input: { brandName?: string; region?: string }
     ],
     trustCompliance: [
       "Insurance is subject to terms; product pages show disclaimer",
-      "No fake IRDAI licence numbers — fictional brand",
+      "No fake IRDAI licence numbers - fictional brand",
       "Claims timelines are illustrative",
     ],
     assumptions: ["v1 is marketing + mocked policy/claims screens", "No real underwriting"],
@@ -459,7 +459,7 @@ export function resumeScaffold(input: { brandName?: string }): ProductPlan {
       tagline: "Update your resume and LinkedIn with clear, job-ready guidance",
       businessModel: "Career tools / resume updater product",
       businessModelDetail:
-        "Job seekers improve resume and profile: guided sections, tips, templates, and export path — marketing site + authenticated workspace mock.",
+        "Job seekers improve resume and profile: guided sections, tips, templates, and export path - marketing site + authenticated workspace mock.",
       region: "India",
       audience: ["Students", "Early-career professionals", "Career switchers"],
       valueProp: "Step-by-step resume upgrade with examples, not blank templates only.",

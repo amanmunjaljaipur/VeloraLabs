@@ -11,7 +11,7 @@
         {
           "day": 1,
           "title": "LLMs, Tokens & Transformers",
-          "description": "Build strong mental models for how large language models work — tokens, attention, and prediction — without getting lost in math.",
+          "description": "Build strong mental models for how large language models work - tokens, attention, and prediction - without getting lost in math.",
           "topics": [
             "Tokenization and embeddings",
             "Transformer architecture intuition",
@@ -22,7 +22,7 @@
         {
           "day": 2,
           "title": "APIs, Embeddings & Vector Basics",
-          "description": "Understand the building blocks of modern AI applications — APIs, vector stores, and how data flows through AI systems.",
+          "description": "Understand the building blocks of modern AI applications - APIs, vector stores, and how data flows through AI systems.",
           "topics": [
             "REST APIs for LLM services",
             "Embeddings explained practically",
@@ -33,7 +33,7 @@
         {
           "day": 3,
           "title": "Prompt Engineering & Tool Use",
-          "description": "Master structured prompting, chain-of-thought, and function calling — the skills that separate hobbyists from engineers.",
+          "description": "Master structured prompting, chain-of-thought, and function calling - the skills that separate hobbyists from engineers.",
           "topics": [
             "System prompts and few-shot learning",
             "Structured outputs (JSON mode)",
@@ -49,7 +49,7 @@
         {
           "day": 4,
           "title": "RAG Architecture",
-          "description": "Design and implement Retrieval-Augmented Generation pipelines — the most common pattern in production AI apps.",
+          "description": "Design and implement Retrieval-Augmented Generation pipelines - the most common pattern in production AI apps.",
           "topics": [
             "Chunking and indexing strategies",
             "Retrieval quality and reranking",
@@ -60,7 +60,7 @@
         {
           "day": 5,
           "title": "Fine-Tuning vs Prompting",
-          "description": "Learn when to prompt, when to fine-tune, and when to use both — with clear decision frameworks.",
+          "description": "Learn when to prompt, when to fine-tune, and when to use both - with clear decision frameworks.",
           "topics": [
             "Fine-tuning use cases",
             "LoRA and parameter-efficient methods",
@@ -71,7 +71,7 @@
         {
           "day": 6,
           "title": "Building with LLM APIs",
-          "description": "Hands-on session building a real application using LLM APIs — from design to working prototype.",
+          "description": "Hands-on session building a real application using LLM APIs - from design to working prototype.",
           "topics": [
             "Project architecture",
             "Streaming responses",
@@ -99,7 +99,7 @@
         {
           "day": 8,
           "title": "System Design for AI Apps",
-          "description": "Apply system design mental models to AI-powered applications — scalability, reliability, and cost at scale.",
+          "description": "Apply system design mental models to AI-powered applications - scalability, reliability, and cost at scale.",
           "topics": [
             "Architecture patterns for AI apps",
             "Caching and batching strategies",

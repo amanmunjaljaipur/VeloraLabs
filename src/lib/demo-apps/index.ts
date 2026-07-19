@@ -1,5 +1,5 @@
 /**
- * Demo apps catalog — re-exports all 50 categories from deployable group folders.
+ * Demo apps catalog - re-exports all 50 categories from deployable group folders.
  *
  * Layout:
  *   types.ts

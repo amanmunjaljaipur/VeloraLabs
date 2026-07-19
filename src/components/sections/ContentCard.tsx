@@ -42,9 +42,9 @@ export function ContentCard({
         <div className="relative h-44 overflow-hidden rounded-t-xl bg-[var(--bg-light)]">
           <OptimizedImage
             src={image}
-            alt={`${title} — Verlin Labs ${type.toLowerCase()} cover image`}
+            alt={`${title} - Verlin Labs ${type.toLowerCase()} cover image`}
             fill
-            className={`transition-transform duration-300 ease-out group-hover:scale-[1.02] ${
+            className={`transition-transform duration-200 ease-out motion-safe:group-hover:scale-[1.02] ${
               isIllustration ? "object-contain p-4" : "object-cover"
             }`}
             sizes="(max-width: 640px) 100vw, 300px"
@@ -55,12 +55,8 @@ export function ContentCard({
             <Badge variant="difficulty">{level}</Badge>
             <Badge>{type}</Badge>
           </div>
-          <h3 className="font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-foreground group-hover:text-teal">
-            {title}
-          </h3>
-          <p className="mt-2 flex-1 text-sm leading-relaxed text-text-secondary line-clamp-3">
-            {description}
-          </p>
+          <h3 className="card-title group-hover:text-teal">{title}</h3>
+          <p className="card-body mt-2 flex-1 line-clamp-3">{description}</p>
           <div className="mt-4 border-t border-border pt-3">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
               <span className="inline-flex items-center gap-1.5">

@@ -3,11 +3,11 @@
     {
       "id": "general",
       "title": "General",
-      "description": "What Verlin Labs is and who it's for",
+      "description": "What Verlin Labs is and who it is for",
       "items": [
         {
           "question": "What is Verlin Labs?",
-          "answer": "Verlin Labs is a clarity-first learning platform for AI and technology. We teach through mental models, live sessions, and hands-on practice — helping students, engineers, and product managers understand how modern systems actually work, not just memorize buzzwords."
+          "answer": "Verlin Labs is a clarity-first learning platform for AI and technology. We teach through mental models, live sessions, and hands-on practice - helping students, engineers, and product managers understand how modern systems actually work, not just memorize buzzwords."
         }
       ]
     },
@@ -18,7 +18,7 @@
       "items": [
         {
           "question": "Is the 2-hour session really free?",
-          "answer": "Yes — the full introductory session is free. No enrollment fee, no credit card to book, and no hidden charges during or after the session."
+          "answer": "Yes - the full introductory session is free. No enrollment fee, no credit card to book, and no hidden charges during or after the session."
         }
       ]
     },
@@ -28,7 +28,7 @@
       "description": "Tracks, duration, and enrollment",
       "items": [
         {
-          "question": "What's the difference between the three tracks?",
+          "question": "What is the difference between the three tracks?",
           "answer": "All tracks share the same clarity-first framework, but examples, pace, and project depth adapt to your background."
         }
       ]
@@ -36,11 +36,11 @@
     {
       "id": "learning",
       "title": "Learning Experience",
-      "description": "How we teach and what you'll use",
+      "description": "How we teach and what you will use",
       "items": [
         {
           "question": "How is this different from YouTube or other online courses?",
-          "answer": "Most content optimizes for watch time. Verlin Labs optimizes for understanding — live mental models, mentor Q&A, audience-tailored pacing, and hands-on exercises with feedback. You leave knowing what to do next, not just what to watch next."
+          "answer": "Most content optimizes for watch time. Verlin Labs optimizes for understanding - live mental models, mentor Q&A, audience-tailored pacing, and hands-on exercises with feedback. You leave knowing what to do next, not just what to watch next."
         },
         {
           "question": "Do I need any technical background?",
@@ -48,7 +48,7 @@
         },
         {
           "question": "What tools will I use?",
-          "answer": "Tools vary by track — from accessible AI assistants and no-code builders for students and PMs, to coding environments and APIs for engineers. We introduce tools only after the underlying concept is clear, and we never require expensive paid software for the free session."
+          "answer": "Tools vary by track - from accessible AI assistants and no-code builders for students and PMs, to coding environments and APIs for engineers. We introduce tools only after the underlying concept is clear, and we never require expensive paid software for the free session."
         },
         {
           "question": "Are the sessions live or recorded?",
@@ -63,11 +63,11 @@
       "items": [
         {
           "question": "Do you offer corporate or team training?",
-          "answer": "Yes. We run clarity-first AI literacy workshops for teams — tailored examples, live Q&A, and follow-up resources. Contact us with your team size, goals, and timeline for options."
+          "answer": "Yes. We run clarity-first AI literacy workshops for teams - tailored examples, live Q&A, and follow-up resources. Contact us with your team size, goals, and timeline for options."
         },
         {
           "question": "Can we customize a program for our team?",
-          "answer": "Yes. We can adapt modules, case studies, and pacing for your industry and skill mix. Share your context through the contact form and we'll propose a structure that fits."
+          "answer": "Yes. We can adapt modules, case studies, and pacing for your industry and skill mix. Share your context through the contact form and we will propose a structure that fits."
         }
       ]
     },
@@ -78,11 +78,11 @@
       "items": [
         {
           "question": "What time zones do you support?",
-          "answer": "Sessions are scheduled in India Standard Time (IST) by default, with slots designed for learners in India and compatible regions. If you're in another time zone, mention it when booking or contacting us — we'll suggest the best available options."
+          "answer": "Sessions are scheduled in India Standard Time (IST) by default, with slots designed for learners in India and compatible regions. If you are in another time zone, mention it when booking or contacting us - we will suggest the best available options."
         },
         {
           "question": "How are the sessions conducted?",
-          "answer": "Online via video conferencing. You'll receive a link after booking. A laptop or tablet with stable internet is recommended. Camera and microphone are optional but helpful for interaction."
+          "answer": "Online via video conferencing. You will receive a link after booking. A laptop or tablet with stable internet is recommended. Camera and microphone are optional but helpful for interaction."
         },
         {
           "question": "What if I miss a session?",

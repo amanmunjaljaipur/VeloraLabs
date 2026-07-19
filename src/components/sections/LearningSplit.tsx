@@ -1,92 +1,65 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
-import { Bot, Brain, CalendarCheck, Check, Code2, Rocket, Sparkles, Trophy } from "lucide-react";
+import { MediaFrame } from "@/components/ui/MediaFrame";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "framer-motion";
+import { Check } from "lucide-react";
 
 interface LearningSplitProps {
   title: string;
   description: string;
   image: string;
   imageAlt: string;
+  video?: string | null;
   reverse?: boolean;
   illustration?: boolean;
   items?: string[];
   toolIcons?: boolean;
 }
 
-const stepIcons = [CalendarCheck, Code2, Trophy];
-
 export function LearningSplit({
   title,
   description,
   image,
   imageAlt,
+  video,
   reverse,
-  illustration,
   items,
-  toolIcons,
 }: LearningSplitProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.div
       className={cn(
-        "grid gap-8 md:gap-12 lg:grid-cols-2 lg:items-center",
+        "grid-editorial items-center lg:grid-cols-2 lg:gap-16 xl:gap-20",
         reverse && "lg:[&>*:first-child]:order-2"
       )}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.45 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: DURATION.reveal + 0.06, ease: EASE_OUT }}
     >
-      <div
-        className={cn(
-          "group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-[var(--surface-card)] shadow-[var(--shadow-product)]"
-        )}
-      >
-        <OptimizedImage
-          src={image}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/80 shadow-[var(--shadow-md)]">
+        <MediaFrame
+          image={image}
           alt={imageAlt}
-          fill
-          className={cn(
-            "transition-transform duration-500 group-hover:scale-[1.015]",
-            illustration ? "object-cover object-center" : "object-cover"
-          )}
+          video={video}
+          rounded={false}
+          scrim="none"
+          sharpText
+          className="absolute inset-0 min-h-0"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
-        {toolIcons && (
-          <div className="absolute bottom-4 left-4 flex gap-2">
-            {stepIcons.map((Icon, i) => (
-              <div
-                key={i}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-[rgba(210,210,215,0.64)] text-navy backdrop-blur-sm"
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-              </div>
-            ))}
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-[rgba(210,210,215,0.64)] text-navy backdrop-blur-sm">
-              <Rocket className="h-4 w-4" aria-hidden="true" />
-            </div>
-          </div>
-        )}
-        {!toolIcons && illustration && (
-          <div className="absolute bottom-4 right-4 flex gap-2">
-            {[Brain, Sparkles, Bot].map((Icon, i) => (
-              <div
-                key={i}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-[rgba(210,210,215,0.64)] text-navy backdrop-blur-sm"
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-      <div className="min-w-0">
-        <h3 className="text-heading">{title}</h3>
-        <p className="text-body-lead mt-4">{description}</p>
+
+      <div className="min-w-0 text-left">
+        <h3 className="section-title mt-0">{title}</h3>
+        <p className="section-subtitle mt-4 max-w-none">
+          {description}
+        </p>
         {items && items.length > 0 && (
-          <ul className="list-verlin mt-6 md:mt-8">
+          <ul className="list-verlin mt-7 max-w-md text-left md:mt-8">
             {items.map((item, index) => (
               <li key={item}>
                 <span className="list-verlin-marker" aria-hidden="true">

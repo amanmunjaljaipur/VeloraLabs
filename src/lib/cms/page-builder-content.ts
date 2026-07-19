@@ -55,7 +55,7 @@ export function publishBuilderPage(content: BuilderPageContent): BuilderPageCont
   };
 }
 
-/** Only published sections reach the public site — drafts stay in the design studio. */
+/** Only published sections reach the public site - drafts stay in the design studio. */
 export function getLiveBuilderSections(content: BuilderPageContent): PageBlock[] {
   if (content.status === "published") {
     return content.publishedSections.length > 0

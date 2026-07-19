@@ -20,7 +20,7 @@ function pageBody(plan: ProductPlan, page: ProductPlan["publicPages"][0]): strin
   }
   if (page.zone === "authenticated") {
     parts.push(
-      "<p><em>Demo / authenticated module</em> — mocked data for a clickable prototype. States include empty, loading, error, and success where relevant.</p>"
+      "<p><em>Demo / authenticated module</em> - mocked data for a clickable prototype. States include empty, loading, error, and success where relevant.</p>"
     );
   }
   parts.push(`<p>${plan.valueProp}</p>`);

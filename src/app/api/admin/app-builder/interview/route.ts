@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     note: body.apiKey?.trim()
       ? "Questions designed with your AI key (not stored)."
       : result.designedBy.startsWith("fallback")
-        ? "Starter questions from your idea. Add a Grok key on the next AI step for richer generation — or set XAI_API_KEY on the server for full PM design."
-        : "Questions designed from your product idea (any vertical — not only shops).",
+        ? "Starter questions from your idea. Add a Grok key on the next AI step for richer generation - or set XAI_API_KEY on the server for full PM design."
+        : "Questions designed from your product idea (any vertical - not only shops).",
   });
 }

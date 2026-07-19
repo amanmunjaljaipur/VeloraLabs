@@ -51,7 +51,7 @@ export function SiteExploreLinks({
 
   return (
     <section className="border-t border-border bg-muted/20 py-12 md:py-16">
-      <div className="container-verlin max-w-4xl">
+      <div className="container-verlin !max-w-4xl">
         <h2 className="text-xl font-semibold text-foreground">
           {title ?? defaults.title}
         </h2>

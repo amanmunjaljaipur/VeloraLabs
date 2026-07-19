@@ -111,7 +111,7 @@ export async function deleteAppProject(id: string): Promise<boolean> {
   return true;
 }
 
-/** Sync fallback for rare non-async call sites — prefer async APIs. */
+/** Sync fallback for rare non-async call sites - prefer async APIs. */
 export function listAppProjectsSync(): AppProject[] {
   return [...readLocal().projects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }

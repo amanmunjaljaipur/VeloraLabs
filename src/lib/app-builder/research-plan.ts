@@ -1,5 +1,5 @@
 /**
- * Research product plan after prompt + answers — ALWAYS before generation.
+ * Research product plan after prompt + answers - ALWAYS before generation.
  * Uses scaffolds (banking/insurance/resume) + Grok enrichment.
  */
 
@@ -109,7 +109,7 @@ function genericScaffold(prompt: string, brandName: string, appKind: string, ext
       { id: "f3", title: "Core demo screen", description: "Functional mock", priority: "must" },
       { id: "f4", title: "FAQ + contact", description: "Trust and support", priority: "must" },
     ],
-    trustCompliance: ["Honest scope — demo where not live", "No fake regulatory claims"],
+    trustCompliance: ["Honest scope - demo where not live", "No fake regulatory claims"],
     assumptions: ["v1 is clickable prototype with mocked data where needed"],
     outOfScope: ["Full production backend", "Native apps"],
     researchedAt: new Date().toISOString(),
@@ -223,7 +223,7 @@ Based on Grok Vertical Research:
       plan: {
         ...base,
         researchSource: `${base.researchSource}+no-llm`,
-        summary: `${base.summary} (Plan from research scaffolds — approve to build.)${researchPackStr ? `\n\nResearch insights applied:\n${researchPackStr}` : ""}`,
+        summary: `${base.summary} (Plan from research scaffolds - approve to build.)${researchPackStr ? `\n\nResearch insights applied:\n${researchPackStr}` : ""}`,
       },
       source: "scaffold",
     };
@@ -272,7 +272,7 @@ Class-8 English for summary and titles.`,
           role: "user",
           content: JSON.stringify({
             prompt,
-            answers: qa || "(user skipped most questions — still produce a FULL complete plan from the idea)",
+            answers: qa || "(user skipped most questions - still produce a FULL complete plan from the idea)",
             customPoints: input.customPoints || [],
             detected: { extensionId: detected.extensionId, appKind: detected.appKind, label: detected.label },
             scaffoldHint: {
@@ -303,7 +303,7 @@ Class-8 English for summary and titles.`,
       plan: {
         ...base,
         researchSource: `${base.researchSource}+llm-fallback`,
-        summary: `${base.summary} (Using full scaffold — still complete enough to build.)`,
+        summary: `${base.summary} (Using full scaffold - still complete enough to build.)`,
       },
       source: "scaffold-fallback",
     };

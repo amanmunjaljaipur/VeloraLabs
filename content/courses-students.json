@@ -11,7 +11,7 @@
         {
           "day": 1,
           "title": "What is AI, Really?",
-          "description": "Discover what artificial intelligence means using everyday analogies — no scary jargon, just clear mental models.",
+          "description": "Discover what artificial intelligence means using everyday analogies - no scary jargon, just clear mental models.",
           "topics": [
             "AI vs human intelligence",
             "How machines 'learn' patterns",
@@ -22,7 +22,7 @@
         {
           "day": 2,
           "title": "How Apps & the Internet Work",
-          "description": "Build intuition for how your phone, apps, and the internet connect — explained like a story, not a textbook.",
+          "description": "Build intuition for how your phone, apps, and the internet connect - explained like a story, not a textbook.",
           "topics": [
             "What happens when you tap an app",
             "How data travels online",
@@ -32,8 +32,8 @@
         },
         {
           "day": 3,
-          "title": "ChatGPT & AI Assistants — Safely",
-          "description": "Learn to use AI assistants responsibly for homework help, curiosity, and creativity — with clear do's and don'ts.",
+          "title": "ChatGPT & AI Assistants - Safely",
+          "description": "Learn to use AI assistants responsibly for homework help, curiosity, and creativity - with clear do's and don'ts.",
           "topics": [
             "What ChatGPT can and cannot do",
             "Safe and ethical AI use for students",
@@ -61,7 +61,7 @@
         {
           "day": 5,
           "title": "Prompting Like a Pro (Beginner)",
-          "description": "Practice writing prompts that get helpful, accurate responses — a superpower for school projects and curiosity.",
+          "description": "Practice writing prompts that get helpful, accurate responses - a superpower for school projects and curiosity.",
           "topics": [
             "Good vs bad prompts",
             "Step-by-step prompting",
@@ -82,8 +82,8 @@
         },
         {
           "day": 7,
-          "title": "Mini Project — Solve a Real Problem",
-          "description": "Apply everything you've learned to a small project — pick a problem you care about and use AI + mental models to explore solutions.",
+          "title": "Mini Project - Solve a Real Problem",
+          "description": "Apply everything you have learned to a small project - pick a problem you care about and use AI + mental models to explore solutions.",
           "topics": [
             "Choosing a project topic",
             "Research with AI assistance",
@@ -94,7 +94,7 @@
         {
           "day": 8,
           "title": "Showcase & Next Steps",
-          "description": "Present your project, celebrate what you've learned, and get a personalized roadmap for continuing your tech journey.",
+          "description": "Present your project, celebrate what you have learned, and get a personalized roadmap for continuing your tech journey.",
           "activities": [
             "Project showcase",
             "Peer presentations",

@@ -73,7 +73,7 @@ const GROUP_SHELLS: Record<
     navPattern: "bottom-tabs",
     marketBenchmarks: def.examples.slice(0, 3),
     iaRationale:
-      "Consumer messaging/social IA: primary surfaces for feed or chats, discovery, create, notifications/activity, and profile — Material bottom nav 3–5 items; safety in More.",
+      "Consumer messaging/social IA: primary surfaces for feed or chats, discovery, create, notifications/activity, and profile - Material bottom nav 3–5 items; safety in More.",
     primaryNav: [
       nav("home", "Home", { icon: "home", screenId: "home" }),
       nav("inbox", "Chats", { icon: "message", screenId: "inbox" }),
@@ -144,7 +144,7 @@ const GROUP_SHELLS: Record<
         ],
       },
     ], [
-      "Titles and media metadata are sample data — no licensed content streams.",
+      "Titles and media metadata are sample data - no licensed content streams.",
       "Parental controls language is illustrative.",
     ], ["HD catalog (demo)", "Profiles", "Content advisory labels"]),
     emptyStates: {
@@ -362,7 +362,7 @@ const GROUP_SHELLS: Record<
       "Admin policies are illustrative for product design reviews.",
     ], ["SSO language (demo)", "Audit log (demo)", "Role-based modules"]),
     emptyStates: {
-      list: "Inbox zero — or create your first item.",
+      list: "Inbox zero - or create your first item.",
       board: "No cards in this column.",
     },
     ctaLabels: { create: "New item", primary: "Start task" },
@@ -411,7 +411,7 @@ const GROUP_SHELLS: Record<
       },
     ], [
       "Not an accredited institution. Certificates are demo status only.",
-      "Student data is fictional — do not enter real minors’ PII.",
+      "Student data is fictional - do not enter real minors’ PII.",
     ], ["Progress tracking", "Teacher roles", "Accessible labels"]),
     emptyStates: {
       list: "No lessons due. Open Path to start one.",
@@ -461,7 +461,7 @@ const GROUP_SHELLS: Record<
       },
     ], [
       "Not a medical device. Not diagnosis, treatment, or emergency care.",
-      "If you have a medical emergency, call local emergency services — do not use this demo.",
+      "If you have a medical emergency, call local emergency services - do not use this demo.",
       "Health logs are fictional sample data only.",
     ], ["Privacy-first defaults", "No clinical claims", "Sensitive-data caution"]),
     emptyStates: {
@@ -779,9 +779,9 @@ export function panelContent(
         title: "Security centre",
         body: [
           "Production apps publish security posture here: encryption in transit, session controls, 2FA, and vulnerability reporting.",
-          "This demo uses mock APIs and local state — treat nothing as a secure vault.",
+          "This demo uses mock APIs and local state - treat nothing as a secure vault.",
           "Role-based module visibility simulates least-privilege access.",
-          "Report demo issues via the product owner — not a real bug bounty endpoint.",
+          "Report demo issues via the product owner - not a real bug bounty endpoint.",
         ],
       };
     case "about":

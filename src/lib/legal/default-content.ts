@@ -263,7 +263,7 @@ To request cancellation, email ${CONTACT} with your name, enrollment email, prog
     `Once your program has started or you have attended more than one live session or accessed substantial course materials:
 
 • Fees for sessions already delivered, mentor time already used, and digital materials already provided are non-refundable.
-• If you must withdraw for documented medical or exceptional circumstances, contact us — we may offer a partial credit toward a future cohort at our discretion; this is not guaranteed.
+• If you must withdraw for documented medical or exceptional circumstances, contact us - we may offer a partial credit toward a future cohort at our discretion; this is not guaranteed.
 • Introductory or promotional pricing is tied to the enrolled cohort and is not transferable without our written approval.`
   ),
   section(

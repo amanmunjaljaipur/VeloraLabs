@@ -1,5 +1,5 @@
 /**
- * Vertical Research Agent core — research an app type and persist to ops memory.
+ * Vertical Research Agent core - research an app type and persist to ops memory.
  * Runs immediately when research is missing for a vertical.
  */
 

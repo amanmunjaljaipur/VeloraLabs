@@ -1,12 +1,13 @@
 import type { AccordionItem } from "@/components/ui/Accordion";
+import { BRAND_MEDIA } from "@/lib/brand-media";
 
 export const HOME_HERO = {
-  headline: "Verlin Labs — clarity-first learning for the AI age",
+  headline: "Verlin Labs - clarity-first learning for the AI age",
   subheadline:
-    "Verlin Labs helps you master the frameworks that matter in our rapidly changing world. Free 2-hour session and hands-on programs for students, engineers, and PMs.",
-  illustration: "/images/hero-home-visual.jpg",
-  illustrationAlt:
-    "Verlin Labs AI training hero — neural network visualization for clarity-first learning",
+    "Master the frameworks that matter. Free 2-hour live session and hands-on programs for students, engineers, and product managers.",
+  illustration: BRAND_MEDIA.homeHero.image,
+  illustrationAlt: BRAND_MEDIA.homeHero.alt,
+  video: BRAND_MEDIA.homeHero.video,
 };
 
 export const WHAT_WE_COVER = [
@@ -46,18 +47,21 @@ export const HOW_IT_WORKS = [
 ] as const;
 
 export const HOW_IT_WORKS_ILLUSTRATION = {
-  src: "/images/how-it-works-timeline.jpg",
-  alt: "How it works — Discover, Understand, Build, and Showcase your AI learning journey from free session to Demo Day",
+  src: BRAND_MEDIA.homeJourney.image,
+  alt: BRAND_MEDIA.homeJourney.alt,
+  video: BRAND_MEDIA.homeJourney.video,
 };
 
 export const LEARNING_ILLUSTRATIONS = {
   mentalModels: {
-    src: "/images/mental-models-map-illustration.jpg",
-    alt: "Mental models infographic — turn complexity into clarity from information to understanding",
+    src: BRAND_MEDIA.homeMentalModels.image,
+    alt: BRAND_MEDIA.homeMentalModels.alt,
+    video: BRAND_MEDIA.homeMentalModels.video,
   },
   handsOn: {
-    src: "/images/hands-on-mvp-illustration.jpg",
-    alt: "Instructor leading a hands-on workshop with students around a laptop — practical tech learning from day one",
+    src: BRAND_MEDIA.homeHandsOn.image,
+    alt: BRAND_MEDIA.homeHandsOn.alt,
+    video: BRAND_MEDIA.homeHandsOn.video,
   },
 } as const;
 
@@ -65,22 +69,22 @@ export const HOME_FAQS: AccordionItem[] = [
   {
     question: "Is the free session really free?",
     answer:
-      "Yes — completely free with no hidden fees. We want you to experience our teaching style before considering the full course. No credit card is required to book.",
+      "Yes - completely free with no hidden fees. We want you to experience our teaching style before considering the full course. No credit card is required to book.",
   },
   {
     question: "What is a mental model?",
     answer:
-      "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems — so new topics feel familiar instead of overwhelming.",
+      "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems - so new topics feel familiar instead of overwhelming.",
   },
   {
     question: "Do I need any prior AI knowledge?",
     answer:
-      "No. We start from clarity-first foundations and adapt depth to your track — students, engineers, or product managers. Bring curiosity; we handle the structure.",
+      "No. We start from clarity-first foundations and adapt depth to your track - students, engineers, or product managers. Bring curiosity; we handle the structure.",
   },
   {
     question: "How is this different from YouTube or courses?",
     answer:
-      "Most content dumps information. Verlin Labs teaches through live mental models, audience-tailored pacing, hands-on exercises, and mentor Q&A — so understanding sticks and you know what to do next.",
+      "Most content dumps information. Verlin Labs teaches through live mental models, audience-tailored pacing, hands-on exercises, and mentor Q&A - so understanding sticks and you know what to do next.",
   },
   {
     question: "Can I join if I'm a complete beginner?",
@@ -90,7 +94,7 @@ export const HOME_FAQS: AccordionItem[] = [
   {
     question: "What happens after the free session?",
     answer:
-      "You'll receive a summary, resource starter pack, and optional next steps. If the full program fits your goals, we'll share enrollment details — no pressure and no hard sell.",
+      "You'll receive a summary, resource starter pack, and optional next steps. If the full program fits your goals, we'll share enrollment details - no pressure and no hard sell.",
   },
   {
     question: "Who is this for?",
@@ -114,6 +118,7 @@ export const TESTIMONIAL_AVATARS: Record<string, string> = {
 };
 
 export const FREE_SESSION_ILLUSTRATION = {
-  src: "/images/free-session-live-illustration.jpg",
-  alt: "Live online session with instructor teaching and engaged students",
+  src: BRAND_MEDIA.freeSession.image,
+  alt: BRAND_MEDIA.freeSession.alt,
+  video: BRAND_MEDIA.freeSession.video,
 };

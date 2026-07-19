@@ -340,7 +340,7 @@ export function AppAdminPanel({
         options: data.options || [],
       });
       if (!data.options?.length) {
-        setMsg("No images found — try a clearer product name.");
+        setMsg("No images found - try a clearer product name.");
       }
     } catch {
       setMsg("Image search failed. Try again.");
@@ -355,7 +355,7 @@ export function AppAdminPanel({
     next[i] = { ...next[i], image: url };
     setProducts(next);
     setImagePicker(null);
-    setMsg("Photo selected — click Save products to keep it.");
+    setMsg("Photo selected - click Save products to keep it.");
   }
 
   async function uploadProductPhoto(index: number, file: File) {
@@ -366,7 +366,7 @@ export function AppAdminPanel({
       const next = [...products];
       next[index] = { ...next[index], image: url };
       setProducts(next);
-      setMsg("Your photo was uploaded — click Save products to keep it.");
+      setMsg("Your photo was uploaded - click Save products to keep it.");
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Could not upload photo");
     } finally {
@@ -458,8 +458,8 @@ export function AppAdminPanel({
         logoBgTo: t.logoBgTo,
         logoBadge: t.badge || f.logoBadge,
       }));
-      setThemeNotes(t.notes || "Multi-colour theme ready — Save to apply on the shop.");
-      setMsg("Multi-colour theme filled in — review, then Save brand & theme.");
+      setThemeNotes(t.notes || "Multi-colour theme ready - Save to apply on the shop.");
+      setMsg("Multi-colour theme filled in - review, then Save brand & theme.");
     } catch {
       setMsg("Theme builder failed. Try another image.");
     } finally {
@@ -518,12 +518,12 @@ export function AppAdminPanel({
       setThemeNotes(
         [t.notes, data.sampledFrom ? `Source: ${data.sampledFrom}` : ""]
           .filter(Boolean)
-          .join(" · ") || "Theme from website ready — Save brand & theme."
+          .join(" · ") || "Theme from website ready - Save brand & theme."
       );
       setMsg(
         data.logoCandidateUrl
-          ? "Theme + logo candidate filled from your website — review and Save."
-          : "Theme colours filled from your website — review and Save brand & theme."
+          ? "Theme + logo candidate filled from your website - review and Save."
+          : "Theme colours filled from your website - review and Save brand & theme."
       );
     } catch {
       setMsg("Website theme failed. Check the link or upload a logo instead.");
@@ -553,7 +553,7 @@ export function AppAdminPanel({
         seoTitle: settingsForm.seoTitle,
         seoDescription: settingsForm.seoDescription,
       },
-      "Brand & multi-colour theme saved — check your shop"
+      "Brand & multi-colour theme saved - check your shop"
     );
   }
 
@@ -754,7 +754,7 @@ export function AppAdminPanel({
         </div>
       </aside>
 
-      {/* Mobile top nav — same pattern as Verlin mobile admin */}
+      {/* Mobile top nav - same pattern as Verlin mobile admin */}
       <div className="flex min-w-0 flex-1 flex-col">
         <div
           className="sticky top-0 z-30 border-b border-border bg-background/95 px-3 py-2 backdrop-blur lg:hidden"
@@ -821,7 +821,7 @@ export function AppAdminPanel({
               </div>
               <p className="text-xs text-text-muted">
                 <strong>Improve shop wording</strong> rewrites Home, About, FAQs and Google title /
-                description from your products and city — clear, local, and SEO-ready.
+                description from your products and city - clear, local, and SEO-ready.
               </p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Stat label="Products" value={String(content.products.length)} />
@@ -885,7 +885,7 @@ export function AppAdminPanel({
             </div>
           )}
 
-          {/* SITE CMS — no JSON */}
+          {/* SITE CMS - no JSON */}
           {(section === "admin-cms" ||
             section === "admin-cms-home" ||
             section === "admin-cms-about" ||
@@ -897,7 +897,7 @@ export function AppAdminPanel({
                   <div>
                     <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Site CMS</h1>
                     <p className="mt-1 text-sm text-text-secondary">
-                      Edit pages, copy, and images — forms only. Or let the content agent improve
+                      Edit pages, copy, and images - forms only. Or let the content agent improve
                       wording for you.
                     </p>
                   </div>
@@ -1116,7 +1116,7 @@ export function AppAdminPanel({
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">CRM</h1>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Customers and contacts for this shop — always included with every app.
+                  Customers and contacts for this shop - always included with every app.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-4">
@@ -1232,7 +1232,7 @@ export function AppAdminPanel({
                     <ul className="mt-2 list-inside list-disc text-text-secondary">
                       {o.items.map((it, idx) => (
                         <li key={idx}>
-                          {it.qty}× {it.name} — {it.price}
+                          {it.qty}× {it.name} - {it.price}
                         </li>
                       ))}
                     </ul>
@@ -1242,7 +1242,7 @@ export function AppAdminPanel({
             </div>
           )}
 
-          {/* PRODUCTS — upload own photos, search web, or AI images */}
+          {/* PRODUCTS - upload own photos, search web, or AI images */}
           {section === "admin-products" && !staffOnly && (
             <div className="space-y-4" data-tour="admin-products">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1474,7 +1474,7 @@ export function AppAdminPanel({
             <div className="space-y-4">
               <h1 className="text-2xl font-semibold">Role Assignment</h1>
               <p className="text-sm text-text-secondary">
-                Same idea as Verlin Labs roles — for this shop only.
+                Same idea as Verlin Labs roles - for this shop only.
               </p>
               <label className="block text-sm">
                 <span className={label}>Default role for new sign-ups</span>
@@ -1618,7 +1618,7 @@ export function AppAdminPanel({
                 <p className="text-sm font-semibold">0. Your existing website (optional)</p>
                 <p className="text-xs text-text-secondary">
                   Paste your live site (https://…). We sample brand colours and try to find a logo
-                  image for you — same multi-colour theme as logo upload.
+                  image for you - same multi-colour theme as logo upload.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <input
@@ -1708,8 +1708,8 @@ export function AppAdminPanel({
               <div className="rounded-2xl border border-border bg-card p-4 space-y-3" data-tour="admin-theme">
                 <p className="text-sm font-semibold">2. Theme from your logo or a mood photo</p>
                 <ol className="list-decimal space-y-1 pl-4 text-xs text-text-secondary">
-                  <li>Upload your logo (above) — or upload a separate photo that matches your brand look.</li>
-                  <li>Tap <strong>Build theme from image</strong> — we sample colours and refine them.</li>
+                  <li>Upload your logo (above) - or upload a separate photo that matches your brand look.</li>
+                  <li>Tap <strong>Build theme from image</strong> - we sample colours and refine them.</li>
                   <li>Tweak colours if you like, then <strong>Save brand & theme</strong>.</li>
                 </ol>
                 <div className="flex flex-wrap gap-2">
@@ -1896,7 +1896,7 @@ export function AppAdminPanel({
                   placeholder="#c2410c, #9a3412, #ea580c, #7c2d12"
                 />
                 <span className="mt-1 block text-[11px] text-text-muted">
-                  Used across chips, product cards, hero ribbon, and footer — not one colour only.
+                  Used across chips, product cards, hero ribbon, and footer - not one colour only.
                 </span>
               </label>
 

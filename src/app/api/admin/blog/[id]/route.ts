@@ -54,7 +54,10 @@ export async function PATCH(req: NextRequest, context: Ctx) {
   if (body.status) {
     next.status = body.status;
     if (body.status === "published") {
-      next.publishedAt = now;
+      // Manually publishing early (e.g. "Publish now" on a scheduled post)
+      // must keep the original scheduled date/time intact, not stamp "now" -
+      // mirrors the cron auto-publish behavior in publishDueBlogPosts().
+      next.publishedAt = existing.scheduledAt ?? existing.publishedAt ?? now;
       next.scheduledAt = null;
     }
     if (body.status === "scheduled") {

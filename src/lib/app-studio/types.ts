@@ -1,5 +1,5 @@
 /**
- * App Studio — interactive multi-role product apps (not marketing shells).
+ * App Studio - interactive multi-role product apps (not marketing shells).
  */
 
 export type StudioFileMap = Record<string, string>;
@@ -106,6 +106,7 @@ export type StudioScreen = {
   roleIds: string[];
   entityId?: string;
   description?: string;
+  imageUrl?: string;
 };
 
 export type StudioWorkflow = {
@@ -187,7 +188,7 @@ export type StudioProductShell = {
   ctaLabels?: Record<string, string>;
 };
 
-/** Full interactive app definition — drives the working runtime */
+/** Full interactive app definition - drives the working runtime */
 export type StudioAppSpec = {
   version: 1;
   brandName: string;

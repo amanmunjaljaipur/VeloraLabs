@@ -11,11 +11,11 @@ export interface AppExtensionMeta {
   plainLabel: string;
   description: string;
   pathPrefix: string;
-  /** Soft starter questions — interview AI replaces with prompt-specific ones */
+  /** Soft starter questions - interview AI replaces with prompt-specific ones */
   questions: InterviewQuestion[];
 }
 
-/** Starter ideas — shops AND non-ecom products */
+/** Starter ideas - shops AND non-ecom products */
 export const APP_IDEA_EXAMPLES: AppIdeaExample[] = [
   {
     id: "crafts",
@@ -84,13 +84,13 @@ export const APP_IDEA_EXAMPLES: AppIdeaExample[] = [
   {
     id: "custom",
     title: "Anything else",
-    description: "Describe your product in your own words — we shape the app from that",
+    description: "Describe your product in your own words - we shape the app from that",
     emoji: "✨",
     prompt: "",
   },
 ];
 
-/** Soft starters — vertical-specific chips (never one shop list for every product) */
+/** Soft starters - vertical-specific chips (never one shop list for every product) */
 function extensionSoftQuestions(extensionId: string): InterviewQuestion[] {
   const map: Record<string, ReturnType<typeof verticalCoreQuestions>> = {
     "ecom-local-shop": verticalCoreQuestions("ecom"),
@@ -109,7 +109,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
   {
     id: "generic-app",
     label: "Any product (from your idea)",
-    plainLabel: "We read your idea and shape the right app — not only shops",
+    plainLabel: "We read your idea and shape the right app - not only shops",
     description:
       "Banking, insurance, resume tools, portals, or anything you describe. Questions adapt to your prompt; every question is skippable.",
     pathPrefix: "/apps",
@@ -127,7 +127,7 @@ export const APP_EXTENSIONS: AppExtensionMeta[] = [
     id: "booking-local",
     label: "Booking / appointments",
     plainLabel: "Services and simple booking",
-    description: "Salon, clinic, consultancy — services and contact to book.",
+    description: "Salon, clinic, consultancy - services and contact to book.",
     pathPrefix: "/apps",
     questions: extensionSoftQuestions("booking-local"),
   },

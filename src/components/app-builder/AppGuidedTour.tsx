@@ -144,7 +144,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
       title: "Welcome",
       route: "home",
       annotations: [],
-      body: `Welcome to ${brandName}. We’ll point at each important part of your shop with arrows. Follow the tips at the tail of each arrow — you can skip anytime.`,
+      body: `Welcome to ${brandName}. We’ll point at each important part of your shop with arrows. Follow the tips at the tail of each arrow - you can skip anytime.`,
     },
     {
       id: "top-bar",
@@ -154,13 +154,13 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='brand']",
           title: "Your brand",
-          body: "Logo and shop name — click anytime to return to Home (same idea as the Verlin Labs logo).",
+          body: "Logo and shop name - click anytime to return to Home (same idea as the Verlin Labs logo).",
           side: "bottom",
         },
         {
           target: "[data-tour='nav']",
           title: "Page links",
-          body: "Main pages stay here on every screen — Home, Products/About, and more. Works from the public site and while you’re in admin.",
+          body: "Main pages stay here on every screen - Home, Products/About, and more. Works from the public site and while you’re in admin.",
           side: "bottom",
         },
         {
@@ -211,7 +211,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='about']",
           title: "Your story",
-          body: "Tell people who you are and why they should trust your local shop — in plain words.",
+          body: "Tell people who you are and why they should trust your local shop - in plain words.",
           side: "bottom",
         },
       ],
@@ -224,7 +224,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='faq']",
           title: "Common questions",
-          body: "Orders, delivery, payment — fewer repeat calls when answers live here.",
+          body: "Orders, delivery, payment - fewer repeat calls when answers live here.",
           side: "bottom",
         },
       ],
@@ -250,7 +250,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='auth-form']",
           title: "Shop login only",
-          body: "Customers create an account for this shop only — separate from Verlin Labs.",
+          body: "Customers create an account for this shop only - separate from Verlin Labs.",
           side: "right",
         },
         {
@@ -323,7 +323,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='admin-settings']",
           title: "Multi-colour brand",
-          body: "Paste your website link and/or upload your logo to pull multi-colour theme colours. Buttons, nav, and accents use the full palette — not one colour only.",
+          body: "Paste your website link and/or upload your logo to pull multi-colour theme colours. Buttons, nav, and accents use the full palette - not one colour only.",
           side: "bottom",
         },
         {
@@ -342,7 +342,7 @@ export function buildDefaultTour(brandName: string, opts?: { includeAdmin?: bool
         {
           target: "[data-tour='content-agent']",
           title: "Improve shop wording",
-          body: "One tap rewrites Home, About, FAQs and Google title/description from your products and city — clear, local, SEO-ready.",
+          body: "One tap rewrites Home, About, FAQs and Google title/description from your products and city - clear, local, SEO-ready.",
           side: "bottom",
         },
       ],
@@ -672,7 +672,7 @@ export function AppGuidedTour({
         </div>
       ))}
 
-      {/* Welcome / done / fallback when targets not found — still overlay, not a modal popup */}
+      {/* Welcome / done / fallback when targets not found - still overlay, not a modal popup */}
       {showCenteredCard ? (
         <div className="pointer-events-auto absolute left-1/2 top-1/2 z-[120] w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-white/15 bg-card shadow-2xl">
           <div
@@ -715,7 +715,7 @@ export function AppGuidedTour({
   );
 }
 
-/** Small control to replay tour — show in top bar for shop and admin */
+/** Small control to replay tour - show in top bar for shop and admin */
 export function AppTourReplayButton({
   accent,
   onClick,

@@ -1,33 +1,30 @@
 "use client";
 
-import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { WHAT_WE_COVER } from "@/lib/home-content";
 
 interface WhatWeCoverProps {
   topics?: string[];
 }
-import { motion } from "framer-motion";
 
 export function WhatWeCover({ topics = WHAT_WE_COVER }: WhatWeCoverProps) {
   return (
-    <section className="border-b border-border bg-[var(--bg-parchment)] py-8 md:py-10">
-      <div className="container-verlin">
-        <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.08em] text-text-muted">
-          What we cover
-        </p>
-        <MotionStagger className="flex flex-wrap items-center justify-center gap-2.5" stagger={0.04}>
-          {topics.map((topic) => (
-            <MotionStaggerItem key={topic}>
-              <motion.span
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-                className="inline-block cursor-default rounded-full border border-border bg-[var(--surface-card)] px-4 py-2 text-sm font-medium text-text-secondary transition-colors duration-200 hover:border-teal/35 hover:text-teal"
-              >
+    <section className="border-b border-border bg-[var(--canvas)]">
+      <div className="container-verlin py-8 text-center md:py-10">
+        <p className="section-eyebrow mx-auto mb-4">What we cover</p>
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-2 gap-y-2 md:gap-x-3">
+          {topics.map((topic, i) => (
+            <span key={topic} className="inline-flex items-center text-sm text-text-secondary md:text-[0.9375rem]">
+              {i > 0 && (
+                <span className="mr-2 text-border md:mr-3" aria-hidden>
+                  ·
+                </span>
+              )}
+              <span className="font-medium tracking-tight text-text-primary/90">
                 {topic}
-              </motion.span>
-            </MotionStaggerItem>
+              </span>
+            </span>
           ))}
-        </MotionStagger>
+        </div>
       </div>
     </section>
   );

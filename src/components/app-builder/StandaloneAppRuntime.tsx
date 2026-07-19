@@ -277,7 +277,7 @@ export function StandaloneAppRuntime({
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground" data-app-standalone="true">
-      {/* Always-visible top bar — works in shop AND admin so you can leave admin */}
+      {/* Always-visible top bar - works in shop AND admin so you can leave admin */}
       <header
         className="sticky top-0 z-[60] border-b border-border bg-card shadow-sm"
         data-tour="header"
@@ -320,7 +320,7 @@ export function StandaloneAppRuntime({
             </span>
           </button>
 
-          {/* Public pages — full IA for generic apps; ecom keeps shop links */}
+          {/* Public pages - full IA for generic apps; ecom keeps shop links */}
           <nav
             className="flex max-w-full flex-wrap items-center gap-1 text-sm font-medium"
             aria-label="App pages"
@@ -382,7 +382,7 @@ export function StandaloneAppRuntime({
           </nav>
 
           <div className="flex flex-wrap items-center gap-2 text-sm" data-tour="auth-actions">
-            {/* Always available — shop and admin can replay overlay tour */}
+            {/* Always available - shop and admin can replay overlay tour */}
             <AppTourReplayButton accent={accent} onClick={() => setForceTour(true)} />
             {isAdminRoute ? (
               <button
@@ -580,7 +580,7 @@ export function StandaloneAppRuntime({
             </p>
           </div>
           <p className="text-xs text-text-muted">
-            This account is only for <strong>{content.brandName}</strong> — separate from any other
+            This account is only for <strong>{content.brandName}</strong> - separate from any other
             website logins.
           </p>
           <button

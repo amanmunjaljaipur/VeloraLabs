@@ -47,7 +47,7 @@ const RECOMMENDED_READING = [
 const TOOLS = [
   {
     name: "Claude / ChatGPT",
-    detail: "For exploration, not answers — we teach you how to use them well.",
+    detail: "For exploration, not answers - we teach you how to use them well.",
   },
   {
     name: "Notion",
@@ -71,7 +71,7 @@ export function ResourcesPageContent() {
           <SectionHeader
             eyebrow="Downloads"
             title="Save, print, or reference"
-            subtitle="Free workbooks and cheat sheets built for Verlin Labs sessions — open anytime."
+            subtitle="Free workbooks and cheat sheets built for Verlin Labs sessions - open anytime."
             align="left"
             className="mb-10"
           />
@@ -111,7 +111,7 @@ export function ResourcesPageContent() {
             <SectionHeader
               eyebrow="From the library"
               title="Featured reads"
-              subtitle="Start with our most popular articles and guides — then explore the full library."
+              subtitle="Start with our most popular articles and guides - then explore the full library."
               align="left"
               className="mb-0"
             />
@@ -146,7 +146,7 @@ export function ResourcesPageContent() {
             <SectionHeader
               eyebrow="Frameworks"
               title="Core mental models"
-              subtitle="The thinking tools behind everything we teach — each with a full guide."
+              subtitle="The thinking tools behind everything we teach - each with a full guide."
               align="left"
               className="mb-0"
             />
@@ -212,7 +212,7 @@ export function ResourcesPageContent() {
                         ) : (
                           <p className="font-semibold text-foreground">
                             <em>{item.title}</em>
-                            {item.author ? ` — ${item.author}` : ""}
+                            {item.author ? ` - ${item.author}` : ""}
                           </p>
                         )}
                         <p className="mt-1 text-sm text-text-secondary">{item.note}</p>
@@ -228,7 +228,7 @@ export function ResourcesPageContent() {
             <SectionHeader
               eyebrow="Toolkit"
               title="Tools we use"
-              subtitle="What we recommend in sessions — and how we think about using them."
+              subtitle="What we recommend in sessions - and how we think about using them."
               align="left"
               className="mb-8"
             />
@@ -256,7 +256,7 @@ export function ResourcesPageContent() {
           <Card className="border-accent-teal/20 bg-gradient-to-br from-accent-teal/5 to-transparent p-8 text-center md:p-12">
             <h2 className="text-2xl font-semibold text-foreground">Ready to go deeper?</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-text-secondary">
-              Resources are a great start — live programs add structure, feedback, and cohort
+              Resources are a great start - live programs add structure, feedback, and cohort
               learning. Join our newsletter, book a free session, or explore paid tracks.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

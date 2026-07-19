@@ -1,5 +1,5 @@
 /**
- * Published demo stores — tenant super-admin rights scoped to THIS module only.
+ * Published demo stores - tenant super-admin rights scoped to THIS module only.
  * Not platform super_admin (no newsletter, role-assignment, site-wide legal, etc.).
  */
 
@@ -13,7 +13,7 @@ export type StoreCategoryId =
   | "digital-banking"
   | "generic";
 
-/** Rights a store owner gets — relevant product-admin only */
+/** Rights a store owner gets - relevant product-admin only */
 export const STORE_OWNER_RIGHTS = [
   "store.brand", // name, logo, theme
   "store.category", // pick vertical
@@ -141,7 +141,7 @@ export function defaultCms(brand: string): StoreCmsPage[] {
     {
       id: "faq",
       title: "FAQ",
-      body: "Q: How do returns work?\nA: Start a return from Orders within the demo return window.\n\nQ: Is payment real?\nA: No — all payments are simulated.",
+      body: "Q: How do returns work?\nA: Start a return from Orders within the demo return window.\n\nQ: Is payment real?\nA: No - all payments are simulated.",
       published: true,
     },
     {
@@ -157,7 +157,7 @@ export function defaultChatbot(brand: string): StoreChatbotConfig {
   return {
     enabled: true,
     persona: `You are the helpful assistant for ${brand}. Answer only about this store's products, orders, and policies. Be clear and short.`,
-    welcomeMessage: `Hi — I'm the ${brand} assistant. Ask about products, delivery, or returns.`,
+    welcomeMessage: `Hi - I'm the ${brand} assistant. Ask about products, delivery, or returns.`,
     faqs: [
       {
         id: "f1",

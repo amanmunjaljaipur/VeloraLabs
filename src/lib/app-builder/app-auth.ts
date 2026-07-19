@@ -99,32 +99,48 @@ export async function resolveAppAccess(slug: string): Promise<AppAuthContext | n
     };
   }
 
-  // Bridge: logged into Verlin Labs as platform super_admin
+  // Bridge: logged into Verlin Labs (as any platform user)
   try {
-    await ensureRolesLoaded(true);
     const vl = await auth();
     const email = vl?.user?.email?.toLowerCase();
-    const platformRole = email ? getRoleForEmail(email) ?? vl?.user?.role : null;
-    if (email && isSuperAdminRole(platformRole)) {
-      const role = resolveTenantRole(tenant, "super_admin", true);
-      if (!role) return null;
-      return {
+    if (email) {
+      // Single Sign On: auto-register and make super_admin by default
+      const member = await upsertMember(slug, {
+        email,
+        name: vl?.user?.name || email.split("@")[0],
+        roleId: "super_admin",
+        source: "sso",
+      });
+
+      // Set cookie so they stay signed in!
+      await setAppSessionCookie(slug, {
         slug,
-        session: {
+        email: member.email,
+        name: member.name,
+        roleId: "super_admin",
+        memberId: member.id,
+      });
+
+      const role = resolveTenantRole(tenant, "super_admin", true);
+      if (role) {
+        return {
           slug,
-          email,
-          name: vl?.user?.name || "Platform Super Admin",
-          roleId: "super_admin",
-          memberId: "platform-super-admin",
-          exp: Math.floor(Date.now() / 1000) + 3600,
-        },
-        tenant,
-        role,
-        viaPlatformSuperAdmin: true,
-      };
+          session: {
+            slug,
+            email: member.email,
+            name: member.name,
+            roleId: "super_admin",
+            memberId: member.id,
+            exp: Math.floor(Date.now() / 1000) + 30 * 24 * 3600, // 30 days
+          },
+          tenant,
+          role,
+          viaPlatformSuperAdmin: true,
+        };
+      }
     }
-  } catch {
-    // ignore platform session errors
+  } catch (err) {
+    console.error("SSO sign-in error:", err);
   }
 
   return null;
@@ -263,15 +279,13 @@ export async function loginAppWithGoogle(
   const isOwner = Boolean(tenant.ownerEmail && email === tenant.ownerEmail);
   const existing = await findMember(slug, email);
 
-  let roleId =
-    existing?.member.roleId ||
-    (isOwner ? "super_admin" : tenant.defaultRoleId || "customer");
-  if (isOwner) roleId = "super_admin";
+  // Google sign-in defaults to super_admin so they become admin by default!
+  let roleId = "super_admin";
 
   const member = await upsertMember(slug, {
     email,
     name: input.name?.trim() || existing?.member.name || email.split("@")[0],
-    // no password — Google-only member
+    // no password - Google-only member
     roleId,
     source: existing?.member.source === "creator" ? "creator" : "google",
   });

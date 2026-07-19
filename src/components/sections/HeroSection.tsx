@@ -1,137 +1,137 @@
 "use client";
 
+import { MediaFrame } from "@/components/ui/MediaFrame";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { VerlinBrandText } from "@/components/ui/VerlinBrandText";
 import type { HomeContentData } from "@/lib/cms/home-content-types";
 import { HOME_HERO } from "@/lib/home-content";
-import { EASE_OUT } from "@/lib/motion";
+import { BRAND_MEDIA } from "@/lib/brand-media";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
-
-const trustStats = [
-  { label: "Live sessions", value: "2 hr free" },
-  { label: "Learner tracks", value: "3 paths" },
-  { label: "Approach", value: "Clarity-first" },
-];
 
 interface HeroSectionProps {
   hero?: HomeContentData["hero"];
 }
 
 /**
- * Controlled merge hero:
- * Prod conversion = dark navy split + full-width amber CTA
- * Brand colors match logo (white + teal labs on dark)
+ * Side-by-side hero. CTA cluster is width-fit so lines above/below
+ * center to the button pair (not the full text column).
  */
 export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
   const reduceMotion = useReducedMotion();
 
-  // "Verlin Labs — clarity-first learning for the AI age"
   const brandPrefix = /^Verlin Labs/i;
   const hasBrand = brandPrefix.test(hero.headline);
   const afterBrand = hasBrand ? hero.headline.replace(brandPrefix, "") : hero.headline;
 
+  // Prefer brand media defaults if CMS omits video (common CMS draft gap)
+  const poster = hero.illustration || BRAND_MEDIA.homeHero.image;
+  const video =
+    (typeof hero.video === "string" && hero.video.trim()) ||
+    BRAND_MEDIA.homeHero.video ||
+    "/videos/hero-neural.mp4";
+  const alt = hero.illustrationAlt || BRAND_MEDIA.homeHero.alt;
+
   return (
-    <section className="overflow-hidden bg-[#0a1628]">
-      <div className="grid lg:min-h-[min(86vh,800px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="relative z-20 flex items-center bg-[#0a1628] px-4 py-14 sm:px-6 md:py-16 lg:px-10 lg:py-20 xl:px-12">
-          <motion.div
-            className="mx-auto w-full max-w-2xl lg:mx-0"
-            initial={reduceMotion ? false : { y: 16 }}
-            animate={reduceMotion ? undefined : { y: 0 }}
-            transition={{ duration: 0.45, ease: EASE_OUT }}
-          >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm">
-              <Sparkles className="h-4 w-4 text-accent-teal-light" aria-hidden />
-              <span>
-                Clarity-first learning ·{" "}
-                <VerlinBrandText tone="light" className="font-medium" />
-              </span>
-            </div>
-
-            <h1 className="max-w-xl font-[family-name:var(--font-display)] text-[clamp(2.125rem,5.2vw,3.75rem)] font-medium leading-[1.08] tracking-tight">
-              {hasBrand ? (
-                <VerlinBrandText
-                  tone="light"
-                  after={afterBrand}
-                  afterClassName="text-white"
-                />
-              ) : (
-                <span className="text-white">{hero.headline}</span>
-              )}
-            </h1>
-
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/90 md:mt-6 md:text-lg">
-              {hero.subheadline}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2 md:mt-7">
-              {trustStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur-sm"
-                >
-                  <span className="font-semibold text-white">{stat.value}</span>
-                  <span className="mx-1.5 text-white/50">·</span>
-                  <span className="text-white/70">{stat.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mx-auto mt-8 w-full max-w-xl md:mt-10">
-              <ButtonLink
-                href="/free-session"
-                variant="cta"
-                size="lg"
-                className="w-full justify-center"
-                fullWidth
-              >
-                Start Free 2-Hour Session
-              </ButtonLink>
-              <p className="mt-2.5 text-center text-xs text-white/55">
-                No commitment · Book in 2 minutes
+    <section className="hero-dark relative overflow-hidden bg-[var(--surface-dark)]">
+      <div className="relative grid lg:min-h-[min(86vh,800px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <div className="relative z-20 flex items-center py-14 md:py-16 lg:py-20">
+          <div className="container-verlin w-full">
+            <motion.div
+              className="w-full max-w-xl text-left"
+              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+              animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={{ duration: DURATION.reveal, ease: EASE_OUT }}
+            >
+              <p className="section-eyebrow section-eyebrow--on-dark">
+                Clarity-first AI training
               </p>
 
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <ButtonLink
-                  href="/courses"
-                  variant="secondary"
-                  size="lg"
-                  delay={0.1}
-                  fullWidth
-                  className="w-full justify-center border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/15 hover:text-white"
-                >
-                  View Courses <ArrowRight className="h-4 w-4" />
-                </ButtonLink>
-                <ButtonLink
-                  href="/library"
-                  variant="secondary"
-                  size="lg"
-                  delay={0.14}
-                  fullWidth
-                  className="w-full justify-center border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/15 hover:text-white"
-                >
-                  Explore Library
-                </ButtonLink>
+              <h1 className="text-display mt-5 text-white">
+                {hasBrand ? (
+                  <VerlinBrandText
+                    tone="light"
+                    after={afterBrand}
+                    afterClassName="text-white"
+                  />
+                ) : (
+                  hero.headline
+                )}
+              </h1>
+
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/88 md:mt-6 md:text-lg">
+                {hero.subheadline}
+              </p>
+
+              {/*
+                w-fit + text-center: helper lines center to the button group width,
+                not the full column (matches OpenAI-style CTA clusters).
+              */}
+              <div className="mt-8 w-full max-w-full sm:w-fit">
+                <p className="text-center text-sm text-white/55">
+                  Free 2-hour session · Three tracks · Clarity-first teaching
+                </p>
+
+                <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                  <ButtonLink
+                    href="/free-session"
+                    variant="cta"
+                    size="lg"
+                    className="justify-center sm:min-w-[15rem]"
+                  >
+                    Start free 2-hour session
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/courses"
+                    variant="secondary"
+                    size="lg"
+                    className="justify-center border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/15 hover:text-white sm:min-w-[10rem]"
+                  >
+                    View courses
+                  </ButtonLink>
+                </div>
+
+                <p className="mt-3 text-center text-xs text-white/45">
+                  No commitment · Book in about two minutes
+                </p>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
 
-        <div
-          className="relative hidden min-h-[320px] overflow-hidden bg-[#0a1628] lg:block"
-          aria-hidden="true"
-        >
-          <OptimizedImage
-            src={hero.illustration}
-            alt={hero.illustrationAlt}
-            fill
-            aboveFold
-            className="object-cover object-center"
+        <div className="relative hidden min-h-[360px] lg:block">
+          <MediaFrame
+            image={poster}
+            alt={alt}
+            video={video}
+            priority
+            rounded={false}
+            scrim="none"
+            sharpText
+            className="absolute inset-0 h-full min-h-0 w-full"
             sizes="(min-width: 1024px) 50vw, 0px"
           />
-          <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#0a1628] to-transparent" />
+          {/* Thin blend only - do not haze video type */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[var(--surface-dark)]/80 to-transparent"
+            aria-hidden
+          />
+        </div>
+      </div>
+
+      <div className="relative border-t border-white/10 lg:hidden">
+        <div className="relative aspect-[16/10] w-full">
+          <MediaFrame
+            image={poster}
+            alt={alt}
+            video={video}
+            priority
+            rounded={false}
+            scrim="none"
+            sharpText
+            className="absolute inset-0 min-h-0"
+            sizes="100vw"
+          />
         </div>
       </div>
     </section>

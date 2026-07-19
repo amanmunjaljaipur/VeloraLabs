@@ -1,5 +1,5 @@
 /**
- * Super Admin agent pause controls — deploy-safe Blob runtime store.
+ * Super Admin agent pause controls - deploy-safe Blob runtime store.
  * Pausing a runtime agent blocks its API routes until resumed.
  */
 

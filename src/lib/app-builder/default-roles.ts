@@ -1,6 +1,6 @@
 import type { AppCapability, AppRoleDefinition } from "@/lib/app-builder/tenant-types";
 
-/** Built-in roles for a local shop app — owners can rename labels / add custom roles. */
+/** Built-in roles for a local shop app - owners can rename labels / add custom roles. */
 export const DEFAULT_ECOM_ROLES: AppRoleDefinition[] = [
   {
     id: "super_admin",
@@ -50,7 +50,7 @@ export const DEFAULT_ECOM_ROLES: AppRoleDefinition[] = [
   {
     id: "customer",
     label: "Customer",
-    description: "Default role for anyone who signs up to this shop — browse, place orders, manage their profile.",
+    description: "Default role for anyone who signs up to this shop - browse, place orders, manage their profile.",
     capabilities: ["shop.browse", "orders.own", "profile.edit"],
     system: true,
     isDefault: true,

@@ -64,7 +64,7 @@ function contactQ(help?: string): InterviewQuestion {
   return {
     id: "contact",
     label: "How should people reach you or support?",
-    helpText: help || "Phone, WhatsApp, email, or in-app support — optional if you skip.",
+    helpText: help || "Phone, WhatsApp, email, or in-app support - optional if you skip.",
     required: false,
     selectMode: "free",
     allowCustom: true,
@@ -143,7 +143,7 @@ export function verticalCoreQuestions(key: InterviewVerticalKey): InterviewQuest
         {
           id: "mustHaveFeatures",
           label: "Which modules matter most on day one?",
-          helpText: "Pick a few — we can add more later.",
+          helpText: "Pick a few - we can add more later.",
           required: false,
           selectMode: "multi",
           allowCustom: true,
@@ -160,7 +160,7 @@ export function verticalCoreQuestions(key: InterviewVerticalKey): InterviewQuest
         {
           id: "trustSafety",
           label: "What should customers feel safe about?",
-          helpText: "Banks win on trust — keep language simple.",
+          helpText: "Banks win on trust - keep language simple.",
           required: false,
           selectMode: "multi",
           allowCustom: true,
@@ -185,7 +185,7 @@ export function verticalCoreQuestions(key: InterviewVerticalKey): InterviewQuest
             "Compare plans then contact sales",
           ],
         },
-        contactQ("Support phone, email, or chat — optional."),
+        contactQ("Support phone, email, or chat - optional."),
         LOGO_Q,
       ];
 
@@ -480,13 +480,13 @@ export function verticalCoreQuestions(key: InterviewVerticalKey): InterviewQuest
   }
 }
 
-/** Shop offline workflow — ecom only */
+/** Shop offline workflow - ecom only */
 export const ECOM_WORKFLOW_DEFAULTS: InterviewQuestion[] = [
   {
     id: "offlineDay",
     label: "Walk us through a normal day in your business (offline)",
     helpText:
-      "From opening to closing — what do you and your customers actually do? No perfect English needed.",
+      "From opening to closing - what do you and your customers actually do? No perfect English needed.",
     required: false,
     multiline: true,
     selectMode: "free",
@@ -502,7 +502,7 @@ export const ECOM_WORKFLOW_DEFAULTS: InterviewQuestion[] = [
   {
     id: "customerSteps",
     label: "When a customer wants to buy or book, what steps happen today?",
-    helpText: "Think of the last real customer — what did they do, what did you do?",
+    helpText: "Think of the last real customer - what did they do, what did you do?",
     required: false,
     selectMode: "multi",
     suggestions: [

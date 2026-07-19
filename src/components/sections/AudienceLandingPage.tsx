@@ -55,7 +55,7 @@ export function AudienceLandingPage({ config, breadcrumbs }: AudienceLandingPage
           </div>
 
           <Card className="p-6">
-            <div className="relative mb-4 h-40 overflow-hidden rounded-xl bg-gradient-to-br from-accent-teal/5 to-sky-50/40">
+            <div className="relative mb-4 h-40 overflow-hidden rounded-xl bg-gradient-to-br from-accent-teal/5 to-bg-light/40">
               <OptimizedImage
                 src={audience.image}
                 alt={audienceTrackImageAlt(config.slug)}
@@ -75,10 +75,10 @@ export function AudienceLandingPage({ config, breadcrumbs }: AudienceLandingPage
       </section>
 
       <section className="section-y border-t border-border/80 bg-muted/20">
-        <div className="container-verlin max-w-3xl">
+        <div className="container-verlin !max-w-3xl">
           <h2 className="text-2xl font-semibold text-foreground">Frequently asked questions</h2>
           <p className="mt-2 text-text-secondary">
-            Straight answers about this track — booking, expectations, and outcomes.
+            Straight answers about this track - booking, expectations, and outcomes.
           </p>
           <div className="mt-8">
             <Accordion items={config.faqs} defaultOpenIndex={0} />

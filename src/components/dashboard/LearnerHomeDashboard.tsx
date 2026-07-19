@@ -69,13 +69,13 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/80" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-sm font-medium uppercase tracking-wider text-teal">
+        <div className="container-verlin relative py-10 md:py-14">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
+            <div className="max-w-xl">
+              <p className="section-eyebrow">
                 {ROLE_LABELS[role]} · Dashboard
               </p>
-              <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">
+              <h1 className="section-title">
                 Welcome back, {firstName}
               </h1>
               <p className="mt-3 text-lg text-text-secondary">{data.course.title}</p>
@@ -83,25 +83,25 @@ export function LearnerHomeDashboard({ userName, role, data }: LearnerHomeDashbo
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-text-secondary">
                 {data.course.description}
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap">
                 {data.nextDay ? (
-                  <Link href={`/sessions/${data.nextDay.sessionId}`}>
-                    <Button size="lg">
-                      <PlayCircle className="h-5 w-5" />
+                  <Link href={`/sessions/${data.nextDay.sessionId}`} className="inline-flex w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      <PlayCircle className="h-5 w-5 shrink-0" />
                       Continue Day {data.nextDay.day}
                     </Button>
                   </Link>
                 ) : (
-                  <Link href="/my-course">
-                    <Button size="lg">
-                      <CheckCircle2 className="h-5 w-5" />
+                  <Link href="/my-course" className="inline-flex w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      <CheckCircle2 className="h-5 w-5 shrink-0" />
                       My Course
                     </Button>
                   </Link>
                 )}
-                <Link href="/my-course">
-                  <Button size="lg" variant="secondary">
-                    <BookOpen className="h-5 w-5" />
+                <Link href="/my-course" className="inline-flex w-full sm:w-auto">
+                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                    <BookOpen className="h-5 w-5 shrink-0" />
                     View syllabus
                   </Button>
                 </Link>

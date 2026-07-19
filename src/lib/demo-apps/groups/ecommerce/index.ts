@@ -13,7 +13,7 @@ export const CATEGORIES: DemoCategoryDef[] = [
     name: "Mass Marketplaces (E-commerce)",
     group: "ecommerce",
     groupLabel: G.ecommerce,
-    tagline: "Shop with clarity — fair prices, honest returns",
+    tagline: "Shop with clarity - fair prices, honest returns",
     description:
       "Dual-portal marketplace: Shopper storefront (browse, bag, checkout, track, returns) is separate from Seller Hub (dashboard KPIs, add product, catalog, inventory/pricing, fulfilment queue Placed→Delivered, returns desk, payments & P&L with fees/COGS/net, performance). Ops desk for trust & safety. Switch role to enter the right portal.",
     examples: ["Amazon", "Flipkart", "eBay", "Shopify markets"],

@@ -11,7 +11,7 @@
     { "label": "Contact", "href": "/contact" }
   ],
   "footer": {
-    "tagline": "Clarity-first learning for builders, students, and professionals.",
+    "tagline": "I am Aman, a PM who's spent years building AI systems that move the needle. Verlin Labs is my attempt to make that kind of clear thinking available to students, engineers, and fellow PMs.",
     "contact": {
       "email": "contact@verlinlabs.com",
       "location": "India",
@@ -25,7 +25,7 @@
   },
   "newsletter": {
     "title": "Stay sharp on AI and technology",
-    "description": "Weekly mental models, frameworks, and clarity-first insights — no noise.",
+    "description": "Weekly mental models, frameworks, and clarity-first insights - no noise.",
     "cta": "Subscribe"
   }
 }

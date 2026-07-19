@@ -17,7 +17,7 @@ const options: ConnectOption[] = [
   {
     title: "Book a Free 2-Hour Session",
     description:
-      "Experience how we teach — live, structured, and tailored to your background. No payment required.",
+      "Experience how we teach - live, structured, and tailored to your background. No payment required.",
     icon: Calendar,
     href: "/free-session",
     cta: "Reserve your spot",
@@ -25,7 +25,7 @@ const options: ConnectOption[] = [
   {
     title: "Corporate / Team Workshops",
     description:
-      "Clarity-first AI literacy for teams — custom pacing, practical frameworks, and follow-up resources.",
+      "Clarity-first AI literacy for teams - custom pacing, practical frameworks, and follow-up resources.",
     icon: Building2,
     href: "/corporate",
     cta: "View team workshops",
@@ -41,7 +41,7 @@ const options: ConnectOption[] = [
   {
     title: "General Inquiries",
     description:
-      "Questions about programs, library content, enrollment, or anything else — we're here to help.",
+      "Questions about programs, library content, enrollment, or anything else - we are here to help.",
     icon: Mail,
     href: "#contact-form",
     cta: "Ask a question",
@@ -57,7 +57,7 @@ const options: ConnectOption[] = [
   {
     title: "Professional courses",
     description:
-      "Product managers and working professionals — learn about the full track, capstone, and enrollment.",
+      "Product managers and working professionals - learn about the full track, capstone, and enrollment.",
     icon: Briefcase,
     href: "/courses",
     cta: "View courses",
@@ -71,7 +71,7 @@ export function WaysToConnect() {
         <div className="max-w-2xl">
           <h2 className="text-2xl font-semibold text-foreground md:text-3xl">Ways to connect</h2>
           <p className="mt-3 text-text-secondary leading-relaxed">
-            Choose the path that fits your goal — or use the form below and we&apos;ll route your
+            Choose the path that fits your goal - or use the form below and we&apos;ll route your
             message to the right person.
           </p>
         </div>

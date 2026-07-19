@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
         },
         note:
           confirmed === "super_admin" || confirmed === "admin"
-            ? "Saved to Blob. They should refresh or re-open the site — powers load on next request."
+            ? "Saved to Blob. They should refresh or re-open the site - powers load on next request."
             : "Saved to Blob. Takes effect on their next page load (no long wait).",
       },
       {

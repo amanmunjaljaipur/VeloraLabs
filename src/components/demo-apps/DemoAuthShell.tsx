@@ -54,13 +54,47 @@ export function DemoAuthShell({
   const [showAccount, setShowAccount] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
 
-  const refresh = useCallback(() => {
-    setSession(getDemoSession(slug));
+  const refresh = useCallback(async () => {
+    const local = getDemoSession(slug);
+    if (local) {
+      setSession(local);
+      setReady(true);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/session");
+      if (res.ok) {
+        const data = (await res.json()) as { user?: { email?: string; name?: string } };
+        if (data?.user?.email) {
+          const userObj = {
+            id: `sso-${Date.now()}`,
+            email: data.user.email,
+            name: data.user.name || data.user.email.split("@")[0],
+            access: "app_admin" as const,
+          };
+          const expires = new Date();
+          expires.setDate(expires.getDate() + 30);
+          const ssoSession = {
+            userId: userObj.id,
+            email: userObj.email,
+            name: userObj.name,
+            access: userObj.access,
+            slug,
+            expiresAt: expires.toISOString(),
+          };
+          localStorage.setItem(`vl-demo-session:v1:${slug}`, JSON.stringify(ssoSession));
+          setSession(ssoSession);
+        }
+      }
+    } catch (err) {
+      console.warn("Demo SSO auto-login failed", err);
+    }
     setReady(true);
   }, [slug]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -127,7 +161,7 @@ export function DemoAuthShell({
 
     return (
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        {/* Thin session bar — product stays primary */}
+        {/* Thin session bar - product stays primary */}
         <div className="z-40 flex shrink-0 items-center justify-between gap-2 border-b border-border bg-card/90 px-3 py-1.5 text-xs backdrop-blur">
           <div className="flex min-w-0 items-center gap-2">
             <span
@@ -198,7 +232,7 @@ export function DemoAuthShell({
               </>
             )}
             <p className="mt-2 text-[10px] text-muted-foreground">
-              Session for <strong>{slug}</strong> only — other demo apps need their own login.
+              Session for <strong>{slug}</strong> only - other demo apps need their own login.
             </p>
             <Button
               type="button"

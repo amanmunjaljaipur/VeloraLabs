@@ -38,7 +38,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST body: { store: DemoStore } — publish / update */
+/** POST body: { store: DemoStore } - publish / update */
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as { store?: DemoStore };

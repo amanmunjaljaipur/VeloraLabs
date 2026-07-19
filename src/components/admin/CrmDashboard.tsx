@@ -257,7 +257,7 @@ export function CrmDashboard() {
         <div>
           <h1 className="text-2xl font-semibold text-foreground md:text-3xl">CRM</h1>
           <p className="mt-2 max-w-3xl text-sm text-text-secondary md:text-base">
-            Verlin Labs lead pipeline — free sessions, inquiries, newsletter signups, and learners.
+            Verlin Labs lead pipeline - free sessions, inquiries, newsletter signups, and learners.
             Sources sync automatically when you open this page. Edit stages, notes, and follow-ups anytime.
           </p>
           <p className="mt-2 text-xs text-text-secondary">
@@ -363,11 +363,11 @@ export function CrmDashboard() {
                         selectedId === lead.id && "bg-accent-teal/5"
                       )}
                     >
-                      <td className="px-4 py-3 font-medium">{lead.name || "—"}</td>
+                      <td className="px-4 py-3 font-medium">{lead.name || " - "}</td>
                       <td className="px-4 py-3">{lead.email}</td>
                       <td className="px-4 py-3">{CRM_STAGE_LABELS[lead.stage]}</td>
                       <td className="px-4 py-3">{CRM_SOURCE_LABELS[lead.source]}</td>
-                      <td className="px-4 py-3">{lead.sessionDate ? `${lead.sessionDate} ${lead.sessionTime}` : "—"}</td>
+                      <td className="px-4 py-3">{lead.sessionDate ? `${lead.sessionDate} ${lead.sessionTime}` : " - "}</td>
                       <td className="px-4 py-3 text-text-secondary">{formatStamp(lead.updatedAt)}</td>
                     </tr>
                   ))}
@@ -375,7 +375,7 @@ export function CrmDashboard() {
               </table>
               {filteredLeads.length === 0 && (
                 <p className="py-10 text-center text-sm text-text-secondary">
-                  No leads yet. Sources sync automatically when you open CRM — use <strong>Sync sources</strong> to refresh.
+                  No leads yet. Sources sync automatically when you open CRM - use <strong>Sync sources</strong> to refresh.
                 </p>
               )}
             </div>

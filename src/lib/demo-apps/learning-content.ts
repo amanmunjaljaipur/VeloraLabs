@@ -19,7 +19,7 @@ function pack(
   };
 }
 
-/** Full packs by slug — every demo must feel like a Verlin lesson, not a stub. */
+/** Full packs by slug - every demo must feel like a Verlin lesson, not a stub. */
 export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   // ── Education ──────────────────────────────────────────────────────────
   "language-learning": pack({
@@ -43,7 +43,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Switch roles", detail: "Teacher sees class; admin owns the curriculum board." },
     ],
     trustLines: [
-      "Demo data only — no real student records",
+      "Demo data only - no real student records",
       "Mock API: titles containing “fail” reject creates",
       "Same Verlin Labs theme as our courses site",
     ],
@@ -51,7 +51,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       {
         question: "Is this a full Duolingo clone?",
         answer:
-          "No. It is a multi-role product shell so you can feel learner, teacher, and curriculum jobs — the same way we design learning products at Verlin Labs.",
+          "No. It is a multi-role product shell so you can feel learner, teacher, and curriculum jobs - the same way we design learning products at Verlin Labs.",
       },
       {
         question: "How do I prove a lesson is done?",
@@ -68,7 +68,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "You own the skills tree: unlock content, retire weak units, and keep the path coherent.",
     },
     moduleCopy: {
-      home: "Your learning home — streak cue, due practice, and the next outcome to ship today.",
+      home: "Your learning home - streak cue, due practice, and the next outcome to ship today.",
       path: "Skills tree as a board. Status tells you what is open, active, mastered, or still locked.",
       practice: "Run one focused drill. Treat every submit as a small proof of skill.",
       class: "Teacher roster view of lesson progress across the class.",
@@ -103,9 +103,9 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "online-learning-moocs": pack({
     tagline: "Enroll, finish modules, earn a clear certificate path",
     description:
-      "Browse a catalog like Coursera, enroll with intent, and track Open → In progress → Completed. Instructors publish; platform admins keep quality high — the same role split we use when designing learning products.",
+      "Browse a catalog like Coursera, enroll with intent, and track Open → In progress → Completed. Instructors publish; platform admins keep quality high - the same role split we use when designing learning products.",
     heroHeadline: "Online courses with a finish line you can see",
-    heroSub: "Student, instructor, and platform admin each get a real job — not a brochure page.",
+    heroSub: "Student, instructor, and platform admin each get a real job - not a brochure page.",
     whoItsFor: "Students choosing a track, instructors shipping a course, admins reviewing catalog quality.",
     outcomes: [
       "Enroll in a course and move it to In progress",
@@ -127,7 +127,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Do certificates issue for real?",
-        answer: "No — this demo shows the product flow. Certificate settings explain the finish criteria only.",
+        answer: "No - this demo shows the product flow. Certificate settings explain the finish criteria only.",
       },
       {
         question: "How is this different from the LMS demo?",
@@ -140,12 +140,12 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Protect catalog quality: open strong courses, archive noise.",
     },
     moduleCopy: {
-      home: "Your learning dashboard — what is open, in progress, or completed.",
+      home: "Your learning dashboard - what is open, in progress, or completed.",
       catalog: "Browse the public catalog with levels and owners you can trust.",
       enroll: "Join a course with one form. Status updates on the board.",
       studio: "Instructor board for drafts, open, completed, and archived courses.",
       create: "Ship a new course with title, audience, and outcome-led description.",
-      admin: "Platform QA board — archive or reopen based on quality.",
+      admin: "Platform QA board - archive or reopen based on quality.",
       settings: "Certificate rules and notification preferences for this demo.",
     },
     seedEnrichment: {
@@ -169,7 +169,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         {
           title: "Legacy mobile course",
           memberName: "Ops",
-          description: "Archived — content outdated. Kept only for admin QA practice.",
+          description: "Archived - content outdated. Kept only for admin QA practice.",
         },
       ],
     },
@@ -195,14 +195,14 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Admin", detail: "School admin opens roster and notification settings." },
     ],
     trustLines: [
-      "No real student PII — sample names only",
+      "No real student PII - sample names only",
       "Grades are demo status moves, not a full rubric engine",
       "Matches Verlin Labs teaching clarity: one job per screen",
     ],
     faqs: [
       {
         question: "Can parents log in?",
-        answer: "Not in this demo. Roles are student, teacher, and school admin — the core classroom loop.",
+        answer: "Not in this demo. Roles are student, teacher, and school admin - the core classroom loop.",
       },
       {
         question: "How do late submissions work?",
@@ -215,7 +215,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Own school-level setup: rosters, notifications, and class hygiene.",
     },
     moduleCopy: {
-      home: "Classwork home — due soon and recent grades.",
+      home: "Classwork home - due soon and recent grades.",
       work: "Full assignment board with status lanes.",
       submit: "Turn in work with a short note and status update.",
       grade: "Gradebook board for teacher review.",
@@ -231,7 +231,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         },
         {
           title: "Lab report · SQL join practice",
-          description: "Submitted — waiting for teacher feedback on JOIN examples.",
+          description: "Submitted - waiting for teacher feedback on JOIN examples.",
         },
         {
           title: "Quiz 3 · Prompt patterns",
@@ -239,7 +239,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         },
         {
           title: "Capstone project · Product brief",
-          description: "Late — submitted after due date. Teacher decides partial credit.",
+          description: "Late - submitted after due date. Teacher decides partial credit.",
         },
       ],
     },
@@ -250,7 +250,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Build and review cards the Verlin way: short fronts, precise backs, and status that shows New → Learning → Review → Mastered. Authors create decks; teachers assign them to a class.",
     heroHeadline: "Remember more with honest review status",
-    heroSub: "Not infinite decks — a due queue and a path to Mastered.",
+    heroSub: "Not infinite decks - a due queue and a path to Mastered.",
     whoItsFor: "Learners reviewing today, authors writing clean cards, teachers assigning decks.",
     outcomes: [
       "Review due cards and promote one to Mastered",
@@ -259,7 +259,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       "Adjust SRS-style settings language (demo)",
     ],
     howItWorks: [
-      { step: "Review", detail: "Start with cards due today — not the whole library." },
+      { step: "Review", detail: "Start with cards due today - not the whole library." },
       { step: "Deck board", detail: "Watch cards move New → Learning → Review → Mastered." },
       { step: "Add card", detail: "Write one atomic fact; avoid multi-idea cards." },
       { step: "Class decks", detail: "Teachers assign; learners only review." },
@@ -285,7 +285,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       teacher: "Assign decks to a class and check that learners are not stuck on New forever.",
     },
     moduleCopy: {
-      home: "Due-today review — the highest leverage screen for memory.",
+      home: "Due-today review - the highest leverage screen for memory.",
       deck: "All cards by status so you can spot neglected New items.",
       add: "Create a card: title = front cue; description = full answer.",
       teach: "Class decks list for teacher assignment.",
@@ -300,7 +300,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
           status: "Review",
         },
         {
-          title: "SQL JOIN types — INNER vs LEFT",
+          title: "SQL JOIN types - INNER vs LEFT",
           description:
             "INNER keeps matches only; LEFT keeps all left rows and fills missing right with NULL.",
           status: "Learning",
@@ -313,7 +313,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         {
           title: "New term · “Premiumization”",
           description:
-            "Make copy more specific and trustworthy without luxury jargon. Status: New — first review pending.",
+            "Make copy more specific and trustworthy without luxury jargon. Status: New - first review pending.",
           status: "New",
         },
       ],
@@ -340,7 +340,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Coach / Catalog", detail: "Coaches assign; admins manage games." },
     ],
     trustLines: [
-      "Scores are demo numbers — not clinical assessments",
+      "Scores are demo numbers - not clinical assessments",
       "Use for product-flow demos, not medical claims",
       "Verlin voice: short practice, clear done state",
     ],
@@ -351,7 +351,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       },
       {
         question: "What if I miss a day?",
-        answer: "Mark Skipped for rest or miss — honesty beats fake streaks.",
+        answer: "Mark Skipped for rest or miss - honesty beats fake streaks.",
       },
     ],
     roleCopy: {
@@ -372,13 +372,13 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         {
           title: "Memory match · daily",
           score: 820,
-          description: "Completed — solid recall under a 90-second timer.",
+          description: "Completed - solid recall under a 90-second timer.",
           status: "Completed",
         },
         {
           title: "Focus flow · today",
           score: 0,
-          description: "Available — ignore phone notifications for one timed block.",
+          description: "Available - ignore phone notifications for one timed block.",
           status: "Available",
         },
         {
@@ -390,7 +390,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         {
           title: "Rest day",
           score: 0,
-          description: "Skipped on purpose — recovery is part of a sustainable plan.",
+          description: "Skipped on purpose - recovery is part of a sustainable plan.",
           status: "Skipped",
         },
       ],
@@ -401,9 +401,9 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "instant-messaging": pack({
     tagline: "Real chats with safety and group admin jobs",
     description:
-      "Message 1:1 and groups with clear delivery states. Group admins manage mute/archive; safety support closes reports. Built to show multi-role messaging — not a toy inbox.",
+      "Message 1:1 and groups with clear delivery states. Group admins manage mute/archive; safety support closes reports. Built to show multi-role messaging - not a toy inbox.",
     heroHeadline: "Chat product with member, admin, and safety paths",
-    heroSub: "Send, deliver, read — and practice the fail path when a message cannot send.",
+    heroSub: "Send, deliver, read - and practice the fail path when a message cannot send.",
     whoItsFor: "Everyday members, group admins, and safety support staff.",
     outcomes: [
       "Compose a message and watch Sent → Delivered → Read",
@@ -418,7 +418,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "Privacy and notification preferences." },
     ],
     trustLines: [
-      "Demo conversations only — no real phone numbers",
+      "Demo conversations only - no real phone numbers",
       "India-ready product pattern (groups, mute, safety)",
       "Mock API for happy/fail demos",
     ],
@@ -438,7 +438,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       support: "Triage spam and harassment reports to Closed with a clear outcome.",
     },
     moduleCopy: {
-      home: "Inbox overview — what needs a reply vs what is muted.",
+      home: "Inbox overview - what needs a reply vs what is muted.",
       inbox: "Full chat list with member counts and last activity cues.",
       "new-chat": "Start a 1:1 or group with a clear title.",
       messages: "Thread-level message list and delivery status.",
@@ -463,7 +463,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         {
           title: "Family",
           memberName: "5 members",
-          description: "Muted — festival chat noise; check weekly.",
+          description: "Muted - festival chat noise; check weekly.",
           status: "Muted",
         },
         {
@@ -475,7 +475,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       ],
       message: [
         {
-          title: "Hey — still on for today?",
+          title: "Hey - still on for today?",
           description: "Plain text check-in. Status: Read.",
           status: "Read",
         },
@@ -491,7 +491,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         },
         {
           title: "Link · docs.verlinlabs.com",
-          description: "Failed send — network or safety filter demo.",
+          description: "Failed send - network or safety filter demo.",
           status: "Failed",
         },
       ],
@@ -526,12 +526,12 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     howItWorks: [
       { step: "Home", detail: "Feed snapshot and your open drafts." },
       { step: "Posts board", detail: "Move posts through publish and moderation states." },
-      { step: "Create", detail: "Write a post with a concrete caption — not empty hype." },
+      { step: "Create", detail: "Write a post with a concrete caption - not empty hype." },
       { step: "Moderation", detail: "Hide or remove content that breaks trust." },
     ],
     trustLines: [
       "Sample posts use ordinary India weekend and product-launch moments",
-      "No real follower graphs — focus is content lifecycle",
+      "No real follower graphs - focus is content lifecycle",
       "Moderation is a first-class role, not an afterthought",
     ],
     faqs: [
@@ -546,20 +546,20 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       moderator: "Hide spam, remove harm, and leave good posts Published.",
     },
     moduleCopy: {
-      home: "Social home — drafts, live posts, and moderation cues.",
+      home: "Social home - drafts, live posts, and moderation cues.",
       settings: "Privacy and notification preferences for your profile.",
     },
     seedEnrichment: {
       post: [
         {
           title: "Weekend hike · Nilgiris",
-          description: "Early start, tea at the top. Simple joy post — no hard sell.",
+          description: "Early start, tea at the top. Simple joy post - no hard sell.",
           memberName: "Asha",
           status: "Published",
         },
         {
           title: "Product launch · v2 is live",
-          description: "Draft — waiting on final screenshot before publish.",
+          description: "Draft - waiting on final screenshot before publish.",
           memberName: "You",
           status: "Draft",
         },
@@ -571,7 +571,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
         },
         {
           title: "Team photo · offsite",
-          description: "Published recap of team day — faces consented.",
+          description: "Published recap of team day - faces consented.",
           memberName: "Rohan",
           status: "Published",
         },
@@ -582,7 +582,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "professional-networking": pack({
     tagline: "Careers, intros, and recruiter workflows without noise",
     description:
-      "Connect with purpose: profile strength, intros, and recruiter pipelines. Built like LinkedIn-class products but with Verlin clarity — every module has a job.",
+      "Connect with purpose: profile strength, intros, and recruiter pipelines. Built like LinkedIn-class products but with Verlin clarity - every module has a job.",
     heroHeadline: "Professional network with member, mentor, and recruiter views",
     heroSub: "Grow your profile, request intros, and run a simple hiring pipeline.",
     whoItsFor: "Professionals growing network, mentors giving intros, recruiters screening.",
@@ -599,7 +599,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "Visibility and outreach preferences." },
     ],
     trustLines: [
-      "No real LinkedIn import — sample career stories only",
+      "No real LinkedIn import - sample career stories only",
       "Recruiter data is demo seed",
       "Copy follows Class-8 professional English",
     ],
@@ -615,7 +615,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       recruiter: "Screen candidates on a board without losing context.",
     },
     moduleCopy: {
-      home: "Career home — profile cues and open actions.",
+      home: "Career home - profile cues and open actions.",
       settings: "Who can message you and what recruiters see.",
     },
   }),
@@ -639,14 +639,14 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Safety", detail: "Moderator queue." },
     ],
     trustLines: [
-      "No real video upload bytes — metadata workflow only",
+      "No real video upload bytes - metadata workflow only",
       "Moderation is required for any serious short-video product",
       "Demo analytics language stays honest",
     ],
     faqs: [
       {
         question: "Where do videos store?",
-        answer: "This shell tracks titles, descriptions, and status — not binary video files.",
+        answer: "This shell tracks titles, descriptions, and status - not binary video files.",
       },
     ],
     roleCopy: {
@@ -734,7 +734,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       moderator: "Close duplicates, remove abuse, keep FAQs linked.",
     },
     moduleCopy: {
-      home: "Community home — unanswered and hot topics.",
+      home: "Community home - unanswered and hot topics.",
       settings: "Notification and digest preferences.",
     },
   }),
@@ -759,7 +759,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "Profiles and maturity prefs (demo)." },
     ],
     trustLines: [
-      "No real video streams — metadata product demo",
+      "No real video streams - metadata product demo",
       "Catalog ops role shows behind-the-scenes work",
       "Copy stays family-safe by default",
     ],
@@ -774,7 +774,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       ops: "Publish, unpublish, and archive titles cleanly.",
     },
     moduleCopy: {
-      home: "Your streaming home — continue and discover.",
+      home: "Your streaming home - continue and discover.",
       settings: "Profiles, downloads language, and notifications.",
     },
   }),
@@ -824,7 +824,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Music and podcast listening with library management and publisher roles. Build a playlist, continue a show, and keep catalog status clear.",
     heroHeadline: "Audio library with listener and publisher jobs",
-    heroSub: "Save, play, publish episodes — without cluttered UI copy.",
+    heroSub: "Save, play, publish episodes - without cluttered UI copy.",
     whoItsFor: "Listeners, creators/publishers, catalog admins.",
     outcomes: [
       "Add an item to a playlist-style list",
@@ -838,7 +838,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "Download and explicit-content language." },
     ],
     trustLines: [
-      "No audio files streamed — product workflow demo",
+      "No audio files streamed - product workflow demo",
       "Publisher role shows catalog ownership",
       "Clear English labels only",
     ],
@@ -854,7 +854,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Archive broken or rights-limited items.",
     },
     moduleCopy: {
-      home: "Audio home — continue and discover.",
+      home: "Audio home - continue and discover.",
       settings: "Offline and privacy preferences (demo copy).",
     },
   }),
@@ -862,7 +862,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   audiobooks: pack({
     tagline: "Finish books with progress you can see",
     description:
-      "Audiobook library with listening progress and publisher catalog. Designed for long-form finish rates — not endless browse guilt.",
+      "Audiobook library with listening progress and publisher catalog. Designed for long-form finish rates - not endless browse guilt.",
     heroHeadline: "Audiobooks with progress and catalog ops",
     heroSub: "Continue a book, complete it, publish catalog entries.",
     whoItsFor: "Listeners, narrators/publishers, library admins.",
@@ -885,7 +885,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Can I sync progress devices?",
-        answer: "Not implemented — statuses model progress only.",
+        answer: "Not implemented - statuses model progress only.",
       },
     ],
     roleCopy: {
@@ -918,7 +918,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Templates", detail: "Admin catalog." },
     ],
     trustLines: [
-      "No real timeline editor pixels — workflow demo",
+      "No real timeline editor pixels - workflow demo",
       "Review step teaches multi-role creative ops",
       "Honest about demo limits in settings",
     ],
@@ -934,7 +934,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Curate templates the team reuses.",
     },
     moduleCopy: {
-      home: "Creative home — projects needing export.",
+      home: "Creative home - projects needing export.",
       settings: "Export defaults and brand kit language.",
     },
   }),
@@ -942,7 +942,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "digital-reading": pack({
     tagline: "Reading lists with progress and library ops",
     description:
-      "Digital reading for articles and books: save, finish, archive. Library ops keep the catalog useful — same finish-rate philosophy as Verlin learning content.",
+      "Digital reading for articles and books: save, finish, archive. Library ops keep the catalog useful - same finish-rate philosophy as Verlin learning content.",
     heroHeadline: "Read with a finish line, not endless tabs",
     heroSub: "Members read; editors publish; librarians curate.",
     whoItsFor: "Readers, editors, library admins.",
@@ -974,7 +974,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Archive clutter so the library stays useful.",
     },
     moduleCopy: {
-      home: "Reading home — continue and due list.",
+      home: "Reading home - continue and due list.",
       settings: "Display and notification preferences.",
     },
   }),
@@ -985,7 +985,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Digital bank demo with multi-module flows: balances, send money, bills, support cases. Customer, ops, and admin roles. Prefer the specialized banking runtime when productKind is banking.",
     heroHeadline: "Digital banking you can click through end-to-end",
-    heroSub: "Transfer, track, raise support — with happy and fail paths.",
+    heroSub: "Transfer, track, raise support - with happy and fail paths.",
     whoItsFor: "Retail customers, bank ops, and risk/admin staff.",
     outcomes: [
       "Complete a transfer happy path",
@@ -1000,7 +1000,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Ops / Admin", detail: "Queues only visible to staff roles." },
     ],
     trustLines: [
-      "100% mock money — zero real bank rails",
+      "100% mock money - zero real bank rails",
       "OTP and validation patterns are product demos",
       "India cues: UPI-style language where relevant",
     ],
@@ -1011,7 +1011,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       },
       {
         question: "Why does transfer fail?",
-        answer: "Use Always fail API path, or invalid fields — to practice error UX.",
+        answer: "Use Always fail API path, or invalid fields - to practice error UX.",
       },
     ],
     roleCopy: {
@@ -1020,7 +1020,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       admin: "Policy and overview controls for the demo bank.",
     },
     moduleCopy: {
-      home: "Bank home — money jobs for today.",
+      home: "Bank home - money jobs for today.",
       settings: "Alerts, limits language, and security prefs.",
     },
   }),
@@ -1030,7 +1030,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "UPI-style wallet jobs: pay merchants, request money, refunds, and merchant settlement views. Clear statuses beat jargon.",
     heroHeadline: "Mobile wallet for payers and merchants",
-    heroSub: "Send, request, refund — see status truth every time.",
+    heroSub: "Send, request, refund - see status truth every time.",
     whoItsFor: "Consumers, merchants, wallet ops.",
     outcomes: [
       "Create a payment and reach Success or Failed",
@@ -1044,7 +1044,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Merchant / Ops", detail: "Settlement and disputes language." },
     ],
     trustLines: [
-      "No real UPI rails — mock API only",
+      "No real UPI rails - mock API only",
       "India payment patterns in copy (VPA-style notes)",
       "Fail path is intentional for demos",
     ],
@@ -1060,7 +1060,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       ops: "Resolve failed payments and disputes.",
     },
     moduleCopy: {
-      home: "Wallet home — pay and request shortcuts.",
+      home: "Wallet home - pay and request shortcuts.",
       settings: "PIN/biometrics language and limits.",
     },
   }),
@@ -1068,7 +1068,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "retail-banking": pack({
     tagline: "Branch + digital retail banking journeys",
     description:
-      "Accounts, loans applications, service requests. Customer, relationship manager, and branch ops roles — clarity over product sprawl.",
+      "Accounts, loans applications, service requests. Customer, relationship manager, and branch ops roles - clarity over product sprawl.",
     heroHeadline: "Retail bank with RM and branch ops views",
     heroSub: "Open requests, track loans, serve customers.",
     whoItsFor: "Customers, RMs, branch operations.",
@@ -1110,7 +1110,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Buy coverage language, file claims, and process as adjuster/ops. Status honesty matters more than animated mascots.",
     heroHeadline: "Insurance product with claim truth tables",
-    heroSub: "File, review, settle or reject — every state is visible.",
+    heroSub: "File, review, settle or reject - every state is visible.",
     whoItsFor: "Policyholders, agents, claims adjusters.",
     outcomes: [
       "File a claim with a clear incident description",
@@ -1148,7 +1148,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "retail-investing": pack({
     tagline: "Watchlists, orders, and advisor guardrails",
     description:
-      "Retail investing demo: watchlists, order statuses, advisor review. Educational tone — no get-rich promises, same integrity as Verlin Labs teaching.",
+      "Retail investing demo: watchlists, order statuses, advisor review. Educational tone - no get-rich promises, same integrity as Verlin Labs teaching.",
     heroHeadline: "Investing product that teaches process, not hype",
     heroSub: "Place an order path, track fills, review as advisor.",
     whoItsFor: "Investors, advisors, compliance/ops.",
@@ -1164,7 +1164,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Advisor", detail: "Guardrail reviews." },
     ],
     trustLines: [
-      "Not investment advice — demo only",
+      "Not investment advice - demo only",
       "Prices are fictional seeds",
       "Fail/reject paths are intentional teaching tools",
     ],
@@ -1175,12 +1175,12 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       },
     ],
     roleCopy: {
-      investor: "Write why you buy before you click — thesis in description.",
+      investor: "Write why you buy before you click - thesis in description.",
       advisor: "Review risky patterns and coach process.",
       ops: "Handle rejects and settlement-like statuses.",
     },
     moduleCopy: {
-      home: "Investing home — watchlist and open orders.",
+      home: "Investing home - watchlist and open orders.",
       settings: "Risk disclosure language and alerts.",
     },
   }),
@@ -1188,7 +1188,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "crypto-exchange": pack({
     tagline: "Trade flow with compliance and risk roles",
     description:
-      "Exchange-style order book language, deposits, and compliance review. Clear risk copy — never promises of returns.",
+      "Exchange-style order book language, deposits, and compliance review. Clear risk copy - never promises of returns.",
     heroHeadline: "Crypto product shell with compliance in the room",
     heroSub: "Place orders, track deposits, clear compliance holds.",
     whoItsFor: "Traders, compliance officers, exchange ops.",
@@ -1204,7 +1204,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "2FA language and API keys demo note." },
     ],
     trustLines: [
-      "High-risk asset class — educational demo only",
+      "High-risk asset class - educational demo only",
       "No real chain transactions",
       "Compliance role is non-optional in blueprint",
     ],
@@ -1220,7 +1220,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       ops: "Keep deposits and books statuses accurate.",
     },
     moduleCopy: {
-      home: "Exchange home — positions and alerts language.",
+      home: "Exchange home - positions and alerts language.",
       settings: "Security and notification prefs.",
     },
   }),
@@ -1229,7 +1229,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "mass-marketplace": pack({
     tagline: "Browse, buy, sell, and resolve orders",
     description:
-      "Marketplace with buyer, seller, and support roles. Cart language, order statuses, and dispute resolution — local India retail clarity.",
+      "Marketplace with buyer, seller, and support roles. Cart language, order statuses, and dispute resolution - local India retail clarity.",
     heroHeadline: "Marketplace journeys for buyers and sellers",
     heroSub: "Place orders, fulfil, and close support cases.",
     whoItsFor: "Shoppers, sellers, marketplace support.",
@@ -1271,7 +1271,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Hungry customer, restaurant kitchen, delivery partner. Status from Placed to Delivered with cancel/fail practice.",
     heroHeadline: "Food delivery end-to-end in one demo",
-    heroSub: "Order, cook, deliver — three jobs, one board language.",
+    heroSub: "Order, cook, deliver - three jobs, one board language.",
     whoItsFor: "Customers, restaurant staff, riders.",
     outcomes: [
       "Place an order",
@@ -1292,7 +1292,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Live map?",
-        answer: "Not in this shell — statuses carry the journey.",
+        answer: "Not in this shell - statuses carry the journey.",
       },
     ],
     roleCopy: {
@@ -1332,7 +1332,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Dark store inventory live?",
-        answer: "No — statuses simulate pick and OOS outcomes.",
+        answer: "No - statuses simulate pick and OOS outcomes.",
       },
     ],
     roleCopy: {
@@ -1372,7 +1372,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Payments in-app?",
-        answer: "Mock statuses only — no real checkout rails.",
+        answer: "Mock statuses only - no real checkout rails.",
       },
     ],
     roleCopy: {
@@ -1391,7 +1391,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "D2C/brand shop: browse collections, place orders, merchandisers manage catalog, support handles returns language.",
     heroHeadline: "Brand shopping with catalog and care roles",
-    heroSub: "Shop, merchandise, support — premium but plain English.",
+    heroSub: "Shop, merchandise, support - premium but plain English.",
     whoItsFor: "Shoppers, merchandisers, CX support.",
     outcomes: [
       "Place a brand order",
@@ -1511,7 +1511,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Drive-style storage: upload metadata, share states, admin retention. Clear ownership beats nested mystery folders.",
     heroHeadline: "Cloud files with share and admin controls",
-    heroSub: "Store, share, retain — roles for user and admin.",
+    heroSub: "Store, share, retain - roles for user and admin.",
     whoItsFor: "Individuals, team members, workspace admins.",
     outcomes: [
       "Add a file record",
@@ -1571,7 +1571,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Is this secure storage?",
-        answer: "No. Educational UI only — never store real secrets here.",
+        answer: "No. Educational UI only - never store real secrets here.",
       },
     ],
     roleCopy: {
@@ -1610,7 +1610,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Works with Google Authenticator?",
-        answer: "Conceptual only — not a live authenticator backend.",
+        answer: "Conceptual only - not a live authenticator backend.",
       },
     ],
     roleCopy: {
@@ -1627,7 +1627,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "weather-forecasting": pack({
     tagline: "Forecasts, alerts, and editor quality control",
     description:
-      "Weather product: locations, forecast statuses, severe alerts. Editors keep copy accurate — no fearmongering.",
+      "Weather product: locations, forecast statuses, severe alerts. Editors keep copy accurate - no fearmongering.",
     heroHeadline: "Weather with alerts you can act on",
     heroSub: "Users save places; editors publish alert language.",
     whoItsFor: "Everyday users, field teams, content editors.",
@@ -1650,7 +1650,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Radar maps?",
-        answer: "Not rendered — focus is locations and alert workflow.",
+        answer: "Not rendered - focus is locations and alert workflow.",
       },
     ],
     roleCopy: {
@@ -1682,7 +1682,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Ops", detail: "Abuse queue." },
     ],
     trustLines: [
-      "No real tunnel — UI workflow only",
+      "No real tunnel - UI workflow only",
       "Privacy claims stay modest and accurate",
       "Abuse prevention is part of product",
     ],
@@ -1770,7 +1770,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Zoom import?",
-        answer: "Not included — multi-role meeting workflow only.",
+        answer: "Not included - multi-role meeting workflow only.",
       },
     ],
     roleCopy: {
@@ -1787,9 +1787,9 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "email-clients": pack({
     tagline: "Inbox zero with labels and admin routing",
     description:
-      "Email client product: compose, label, archive. Support/admin sees routing. Write emails like Verlin — short and clear.",
+      "Email client product: compose, label, archive. Support/admin sees routing. Write emails like Verlin - short and clear.",
     heroHeadline: "Email with statuses that match real triage",
-    heroSub: "Inbox, sent, archived — plus admin templates.",
+    heroSub: "Inbox, sent, archived - plus admin templates.",
     whoItsFor: "Professionals, support mailboxes, IT admins.",
     outcomes: [
       "Compose and mark Sent",
@@ -1803,7 +1803,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Admin", detail: "Shared mailbox rules." },
     ],
     trustLines: [
-      "No SMTP — local demo messages",
+      "No SMTP - local demo messages",
       "Teach subject-line clarity",
       "Spam folder language without real classifiers",
     ],
@@ -1849,7 +1849,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Gantt charts?",
-        answer: "Not in this demo — status board is the core lesson.",
+        answer: "Not in this demo - status board is the core lesson.",
       },
     ],
     roleCopy: {
@@ -1882,7 +1882,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Admin", detail: "Space settings." },
     ],
     trustLines: [
-      "No full block editor — form + status workflow",
+      "No full block editor - form + status workflow",
       "Archive is a feature, not failure",
       "Sample pages can teach product and learning topics",
     ],
@@ -1906,9 +1906,9 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "generative-ai-assistants": pack({
     tagline: "Prompts, drafts, and human review gates",
     description:
-      "AI assistant product: prompt library, generations, human approve/reject. Verlin stance — AI helps; humans own quality.",
+      "AI assistant product: prompt library, generations, human approve/reject. Verlin stance - AI helps; humans own quality.",
     heroHeadline: "AI drafts with a required human finish line",
-    heroSub: "Create prompts, generate, approve — never auto-publish blindly.",
+    heroSub: "Create prompts, generate, approve - never auto-publish blindly.",
     whoItsFor: "Makers, reviewers, workspace admins.",
     outcomes: [
       "Save a prompt with a clear job",
@@ -1970,7 +1970,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Wearable sync?",
-        answer: "Not live — manual log workflow.",
+        answer: "Not live - manual log workflow.",
       },
     ],
     roleCopy: {
@@ -1987,7 +1987,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "meditation-mindfulness": pack({
     tagline: "Daily sits with teacher-led programs",
     description:
-      "Mindfulness practice: short sessions, streaks language, teacher programs. Calm copy — no spiritual pressure.",
+      "Mindfulness practice: short sessions, streaks language, teacher programs. Calm copy - no spiritual pressure.",
     heroHeadline: "Mindfulness with a gentle daily practice",
     heroSub: "Sit, complete, follow teacher programs.",
     whoItsFor: "Practitioners, teachers, content admins.",
@@ -2004,13 +2004,13 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     ],
     trustLines: [
       "Not therapy or clinical care",
-      "Audio not streamed — status workflow",
+      "Audio not streamed - status workflow",
       "Optional practice, zero shame language",
     ],
     faqs: [
       {
         question: "Live teacher chat?",
-        answer: "Role modules only — no live audio room.",
+        answer: "Role modules only - no live audio room.",
       },
     ],
     roleCopy: {
@@ -2027,7 +2027,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
   "calorie-nutrition": pack({
     tagline: "Food logs with coach review",
     description:
-      "Nutrition logging without toxic diet culture. Log meals, review macros language, coaches support — never shame.",
+      "Nutrition logging without toxic diet culture. Log meals, review macros language, coaches support - never shame.",
     heroHeadline: "Nutrition logs that stay kind and useful",
     heroSub: "Log meals, review days, coach supports.",
     whoItsFor: "Users, nutrition coaches, content admins.",
@@ -2050,7 +2050,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Barcode scan?",
-        answer: "Not included — form logging only.",
+        answer: "Not included - form logging only.",
       },
     ],
     roleCopy: {
@@ -2083,14 +2083,14 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
       { step: "Settings", detail: "Lock and share prefs." },
     ],
     trustLines: [
-      "Sensitive health demo — fictional data only",
+      "Sensitive health demo - fictional data only",
       "Not a diagnostic device",
       "Privacy settings called out explicitly",
     ],
     faqs: [
       {
         question: "Is data shared with partners?",
-        answer: "In this demo, nothing leaves your browser session state. Real products must be explicit — we model that in settings copy.",
+        answer: "In this demo, nothing leaves your browser session state. Real products must be explicit - we model that in settings copy.",
       },
     ],
     roleCopy: {
@@ -2125,12 +2125,12 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     trustLines: [
       "Not a real medical service",
       "No prescriptions are legally valid",
-      "Emergency: copy should say go to ER — never treat here",
+      "Emergency: copy should say go to ER - never treat here",
     ],
     faqs: [
       {
         question: "Video visit works?",
-        answer: "Status workflow only — no clinical video stack in demo.",
+        answer: "Status workflow only - no clinical video stack in demo.",
       },
     ],
     roleCopy: {
@@ -2150,7 +2150,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     description:
       "Ride-hail: request, match, complete, cancel. Drivers accept; ops handle issues. India city cues welcome.",
     heroHeadline: "Rides from request to drop-off status",
-    heroSub: "Rider, driver, ops — one journey board.",
+    heroSub: "Rider, driver, ops - one journey board.",
     whoItsFor: "Riders, drivers, city ops.",
     outcomes: [
       "Request a ride",
@@ -2171,7 +2171,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Live driver GPS?",
-        answer: "Statuses only — no live map hardware.",
+        answer: "Statuses only - no live map hardware.",
       },
     ],
     roleCopy: {
@@ -2251,7 +2251,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Ticket PDF?",
-        answer: "Not generated — booking status is the demo artifact.",
+        answer: "Not generated - booking status is the demo artifact.",
       },
     ],
     roleCopy: {
@@ -2291,7 +2291,7 @@ export const DEMO_LEARNING_PACKS: Record<string, Pack> = {
     faqs: [
       {
         question: "Live foot traffic?",
-        answer: "No — discovery workflow and roles only.",
+        answer: "No - discovery workflow and roles only.",
       },
     ],
     roleCopy: {
@@ -2341,11 +2341,11 @@ export function synthesizeLearningPack(def: DemoCategoryDef): Pack {
     howItWorks: [
       { step: "Home", detail: "Read the outcome list and pick one workflow chip." },
       { step: "Module", detail: "Open list, board, or form for the main entity." },
-      { step: "Act", detail: "Create or move status — that is the proof." },
+      { step: "Act", detail: "Create or move status - that is the proof." },
       { step: "Switch role", detail: "See the product from another job’s eyes." },
     ],
     trustLines: [
-      "Demo data only — not production systems",
+      "Demo data only - not production systems",
       "Mock API for success and failure demos",
       "Verlin Labs UI theme and Class-8 English",
     ],
@@ -2353,7 +2353,7 @@ export function synthesizeLearningPack(def: DemoCategoryDef): Pack {
       {
         question: `Is ${def.brandName} a full clone of ${def.examples[0] || "the market leader"}?`,
         answer:
-          "No. It is an interactive multi-role product shell so you can feel the jobs, modules, and status paths — the way we teach product thinking at Verlin Labs.",
+          "No. It is an interactive multi-role product shell so you can feel the jobs, modules, and status paths - the way we teach product thinking at Verlin Labs.",
       },
       {
         question: "Why do some actions fail?",

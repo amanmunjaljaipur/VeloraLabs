@@ -22,7 +22,7 @@ export function ComponentPalette({ onAdd }: ComponentPaletteProps) {
       <div>
         <h3 className="text-sm font-semibold text-foreground">Component library</h3>
         <p className="mt-1 text-xs text-text-secondary">
-          {BLOCK_DEFINITIONS.length} AEM-style blocks — drag onto the canvas or click + to add.
+          {BLOCK_DEFINITIONS.length} AEM-style blocks - drag onto the canvas or click + to add.
         </p>
       </div>
 

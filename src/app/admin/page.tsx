@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 export const metadata = createMetadata({
   title: "Admin Overview",
-  description: "Verlin Labs admin dashboard — analytics, CMS, CRM, roles, and more.",
+  description: "Verlin Labs admin dashboard - analytics, CMS, CRM, roles, and more.",
   path: "/admin",
 });
 

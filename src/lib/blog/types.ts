@@ -6,6 +6,17 @@ export interface BlogSection {
   title: string;
   paragraphs?: string[];
   bullets?: string[];
+  /** Optional comparative breakdown table rendered after paragraphs/bullets. */
+  table?: {
+    headers: string[];
+    rows: string[][];
+  };
+  /** Optional in-line call-to-action box rendered after this section's content. */
+  cta?: {
+    text: string;
+    label: string;
+    href: string;
+  };
 }
 
 export interface BlogPost {

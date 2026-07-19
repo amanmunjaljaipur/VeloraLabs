@@ -13,7 +13,7 @@ export function OrganizationJsonLd() {
     alternateName: ["Verlin Labs AI Education", "Verlin Labs India"],
     url: SITE_ORIGIN,
     logo: `${SITE_ORIGIN}/icon.png`,
-    image: `${SITE_ORIGIN}/images/hero-home-visual.jpg`,
+    image: `${SITE_ORIGIN}/images/brand-hero-clarity.jpg`,
     description:
       "Verlin Labs is a clarity-first AI education platform in India offering live training, mental models, free intro sessions, and hands-on programs for school students, college engineers, and product managers.",
     slogan: "Clarity-first learning for the AI age",

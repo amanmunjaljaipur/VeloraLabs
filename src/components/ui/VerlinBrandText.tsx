@@ -5,13 +5,13 @@ type BrandTone = "default" | "light";
 interface VerlinBrandTextProps {
   /**
    * default = light backgrounds (dark “Verlin” + teal gradient “Labs”)
-   * light = dark backgrounds (white “Verlin” + teal-light “Labs”) — matches logo tone="light"
+   * light = dark backgrounds (white “Verlin” + teal-light “Labs”) - matches logo tone="light"
    */
   tone?: BrandTone;
   /** Use logo lowercase styling */
   lowercase?: boolean;
   className?: string;
-  /** Optional suffix after the brand (e.g. " — clarity-first…") */
+  /** Optional suffix after the brand (e.g. " - clarity-first…") */
   after?: React.ReactNode;
   afterClassName?: string;
 }

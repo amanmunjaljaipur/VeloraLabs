@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     // OptimizedImage uses 58 (lazy) / 60 (avatars) / 75 (default/above-fold)
-    qualities: [58, 60, 75],
+    qualities: [58, 60, 75, 90],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 31536000,
@@ -34,6 +34,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/videos/:path*",
         headers: [
           {
             key: "Cache-Control",

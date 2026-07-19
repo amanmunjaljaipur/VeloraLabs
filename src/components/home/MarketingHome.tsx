@@ -1,11 +1,13 @@
 import dynamic from "next/dynamic";
 import { AudienceCard } from "@/components/sections/AudienceCard";
 import { ContentCard } from "@/components/sections/ContentCard";
+import { CinematicCta } from "@/components/sections/CinematicCta";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { LearningSplit } from "@/components/sections/LearningSplit";
 import { StatsBar } from "@/components/sections/StatsBar";
 import { TrustSignals } from "@/components/sections/TrustSignals";
 import { WhatWeCover } from "@/components/sections/WhatWeCover";
+import { BRAND_MEDIA } from "@/lib/brand-media";
 
 const HowItWorks = dynamic(() =>
   import("@/components/sections/HowItWorks").then((m) => m.HowItWorks)
@@ -50,15 +52,16 @@ export function MarketingHome() {
       <StatsBar />
 
       <SectionShell id="audiences" divider={false}>
-        <SectionHeader
-          eyebrow="Learning paths"
-          title="Who is this for?"
-          subtitle="Three tailored tracks — students, engineers, and product managers."
-          className="mb-10 md:mb-16"
-        />
-        <MotionStagger className="grid gap-5 md:grid-cols-3 md:gap-6">
+        <div className="stack-header">
+          <SectionHeader
+            eyebrow="Learning paths"
+            title="Who is this for?"
+            subtitle="Three tracks, each built for a different starting point - students, engineers, and product managers."
+          />
+        </div>
+        <MotionStagger className="grid-editorial md:grid-cols-3">
           {audiences.map((a) => (
-            <MotionStaggerItem key={a.slug}>
+            <MotionStaggerItem key={a.slug} className="h-full min-w-0">
               <AudienceCard
                 title={a.title}
                 description={a.heroSubtitle}
@@ -80,27 +83,36 @@ export function MarketingHome() {
       </SectionShell>
 
       <SectionShell id="approach" tinted>
-        <div className="space-y-12 md:space-y-16">
+        <div className="flex flex-col gap-16 md:gap-24">
           <LearningSplit
-            title="Learn with mental models, not memorization"
-            description="Frameworks that stick — visual maps, live explanation, and pacing matched to you."
+            title="We teach mental models, not tool lists"
+            description="Most courses teach you what to click. We focus on why it works, so you can adapt when the tools change - and they will."
             image={home.learningIllustrations.mentalModels.src}
             imageAlt={home.learningIllustrations.mentalModels.alt}
+            video={
+              ("video" in home.learningIllustrations.mentalModels
+                ? (home.learningIllustrations.mentalModels as { video?: string }).video
+                : undefined) ?? BRAND_MEDIA.homeMentalModels.video
+            }
             illustration
             items={[
               "Visual frameworks for complex AI concepts",
-              "Live sessions — not passive video dumps",
+              "Live sessions - not passive video dumps",
               "Examples paced for your background",
             ]}
           />
           <LearningSplit
             title="Hands-on from day one"
-            description="Every program ends with something real — a project, portfolio piece, or working MVP."
+            description="This is not magic - it is practice. Every program ends with something real: a project, portfolio piece, or working MVP."
             image={home.learningIllustrations.handsOn.src}
             imageAlt={home.learningIllustrations.handsOn.alt}
+            video={
+              ("video" in home.learningIllustrations.handsOn
+                ? (home.learningIllustrations.handsOn as { video?: string }).video
+                : undefined) ?? BRAND_MEDIA.homeHandsOn.video
+            }
             illustration
             reverse
-            toolIcons
             items={[
               "Free 2-hour session with live exercises",
               "Capstone demo day on every track",
@@ -110,6 +122,8 @@ export function MarketingHome() {
         </div>
       </SectionShell>
 
+      <CinematicCta />
+
       <HomeFreeSessionForm />
 
       <HowItWorks
@@ -118,28 +132,25 @@ export function MarketingHome() {
       />
 
       <SectionShell id="library">
-        <div className="mb-10 flex flex-col gap-4 sm:mb-16 sm:flex-row sm:items-end sm:justify-between">
+        <div className="stack-header">
           <SectionHeader
             eyebrow="Content library"
             title="Featured content"
-            subtitle="Start with our most popular articles, guides, and workshops — then explore the full library."
-            align="left"
-            className="mb-0"
+            subtitle="Start with our most popular articles, guides, and workshops - then explore the full library."
           />
-          <Link
-            href="/library"
-            className="link-hover shrink-0 text-sm font-medium text-teal sm:pb-1"
-          >
-            View all →
-          </Link>
         </div>
-        <MotionStagger className="grid gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        <MotionStagger className="grid-editorial sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((item) => (
-            <MotionStaggerItem key={item.id}>
+            <MotionStaggerItem key={item.id} className="h-full min-w-0">
               <ContentCard {...item} />
             </MotionStaggerItem>
           ))}
         </MotionStagger>
+        <p className="mt-10 text-center">
+          <Link href="/library" className="link-hover text-sm font-medium">
+            View all content →
+          </Link>
+        </p>
       </SectionShell>
 
       <TrustSignals compact />
@@ -147,20 +158,21 @@ export function MarketingHome() {
       <HomeFaq items={home.homeFaqs} />
 
       <SectionShell id="testimonials" tinted>
-        <SectionHeader
-          eyebrow="Testimonials"
-          title="What learners are saying"
-          subtitle="Students, engineers, and PMs who started with clarity."
-          className="mb-10 md:mb-16"
-        />
+        <div className="stack-header">
+          <SectionHeader
+            eyebrow="Testimonials"
+            title="What learners are saying"
+            subtitle="Real feedback from learners who went from confused to confident."
+          />
+        </div>
         <TestimonialCarousel testimonials={testimonials} />
-        <p className="mt-8 text-center">
-          <a
+        <p className="mt-10 text-center">
+          <Link
             href="/testimonials"
-            className="text-sm font-medium text-teal hover:underline"
+            className="link-hover text-sm font-medium"
           >
             Read all testimonials →
-          </a>
+          </Link>
         </p>
       </SectionShell>
 

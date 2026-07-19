@@ -13,13 +13,13 @@ export default function SitemapPage() {
       <PageHeader
         eyebrow="Site"
         title="Sitemap"
-        subtitle="A structured index of every main page on Verlin Labs — for learners, teams, and search engines."
+        subtitle="A structured index of every main page on Verlin Labs - for learners, teams, and search engines."
         align="center"
         compact
       />
 
       <section className="section-y">
-        <div className="container-verlin max-w-4xl space-y-12">
+        <div className="container-verlin !max-w-4xl space-y-12">
           {sections.map((section) => (
             <div key={section.id}>
               <h2 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">

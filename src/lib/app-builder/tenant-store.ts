@@ -351,7 +351,7 @@ export async function addInquiry(
 }
 
 /* ---------------------------------------------------------------------- */
-/* Generic entity records — CRUD for non-ecommerce Forge data models      */
+/* Generic entity records - CRUD for non-ecommerce Forge data models      */
 /* (booking, tracker, CRM, internal-tool, etc). Records live per tenant,  */
 /* keyed by data model id: tenant.records[modelId] = AppDataRecord[]      */
 /* ---------------------------------------------------------------------- */

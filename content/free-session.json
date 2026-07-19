@@ -1,6 +1,6 @@
 {
   "headline": "Book Your Free 2-Hour Introductory Session",
-  "description": "Experience how Verlin Labs teaches — through clarity, mental models, and deep understanding. No sales pitch. Just a focused session that shows you what's possible.",
+  "description": "Experience how Verlin Labs teaches - through clarity, mental models, and deep understanding. No sales pitch. Just a focused session that shows you what is possible.",
   "benefits": [
     {
       "title": "Core mental model framework",
@@ -16,7 +16,7 @@
     },
     {
       "title": "Interactive Q&A",
-      "description": "Ask anything — we prioritize understanding over covering slides."
+      "description": "Ask anything - we prioritize understanding over covering slides."
     },
     {
       "title": "Resource starter pack",
@@ -53,7 +53,7 @@
       "time": "1:15",
       "duration": "30 min",
       "title": "Hands-on exercise",
-      "description": "Apply the framework to a real problem — together.",
+      "description": "Apply the framework to a real problem - together.",
       "image": "/images/workshop.jpg"
     },
     {
@@ -71,7 +71,7 @@
       "items": [
         {
           "question": "Is the introductory session really free?",
-          "answer": "Yes — the full 2-hour introductory session is completely free. There is no enrollment fee, no credit card required to book, and no hidden charges during or after the session.\n\nWe offer this session so you can experience how Verlin Labs teaches — through clarity, mental models, and live interaction — before making any decision about a paid program. Many learning platforms use a short sales call; we use a structured teaching session instead.",
+          "answer": "Yes - the full 2-hour introductory session is completely free. There is no enrollment fee, no credit card required to book, and no hidden charges during or after the session.\n\nWe offer this session so you can experience how Verlin Labs teaches - through clarity, mental models, and live interaction - before making any decision about a paid program. Many learning platforms use a short sales call; we use a structured teaching session instead.",
           "bullets": [
             "No payment information is collected when you book",
             "You are never auto-enrolled in a paid program",
@@ -80,23 +80,23 @@
         },
         {
           "question": "Who is this session designed for?",
-          "answer": "The session is designed for learners at different stages who want to understand AI and technology with clarity — not hype. When you book, you select the audience track that best matches your background so examples, pace, and exercises feel relevant to you.\n\nEach track covers the same clarity-first framework, but the scenarios and depth are adapted for your context.",
+          "answer": "The session is designed for learners at different stages who want to understand AI and technology with clarity - not hype. When you book, you select the audience track that best matches your background so examples, pace, and exercises feel relevant to you.\n\nEach track covers the same clarity-first framework, but the scenarios and depth are adapted for your context.",
           "bullets": [
-            "School students (Classes 6–12) — intuitive explanations, relatable examples, confidence-building pace",
-            "College engineers — structured frameworks, technical depth, bridge from theory to application",
-            "Working professionals & product managers — decision-ready mental models, product and strategy context",
-            "Parents or educators booking for a student are welcome — note the learner's level when booking"
+            "School students (Classes 6–12) - intuitive explanations, relatable examples, confidence-building pace",
+            "College engineers - structured frameworks, technical depth, bridge from theory to application",
+            "Working professionals & product managers - decision-ready mental models, product and strategy context",
+            "Parents or educators booking for a student are welcome - note the learner's level when booking"
           ]
         },
         {
           "question": "How long is the session?",
-          "answer": "The session is scheduled for 2 hours in total. We follow a published agenda with timed segments so you always know what is coming next and how long each part will take.\n\nA short comfort break is built into the flow. If you need to step away briefly, you can rejoin without missing the overall structure — we recap key transitions at each segment.",
+          "answer": "The session is scheduled for 2 hours in total. We follow a published agenda with timed segments so you always know what is coming next and how long each part will take.\n\nA short comfort break is built into the flow. If you need to step away briefly, you can rejoin without missing the overall structure - we recap key transitions at each segment.",
           "bullets": [
-            "0:00–0:15 — Welcome and goal alignment",
-            "0:15–0:45 — Mental models primer (live demonstration)",
-            "0:45–1:15 — Audience-tailored AI deep-dive",
-            "1:15–1:45 — Guided hands-on exercise",
-            "1:45–2:00 — Personalized learning path and open Q&A"
+            "0:00–0:15 - Welcome and goal alignment",
+            "0:15–0:45 - Mental models primer (live demonstration)",
+            "0:45–1:15 - Audience-tailored AI deep-dive",
+            "1:15–1:45 - Guided hands-on exercise",
+            "1:45–2:00 - Personalized learning path and open Q&A"
           ]
         }
       ]
@@ -107,23 +107,23 @@
       "items": [
         {
           "question": "What should I prepare beforehand?",
-          "answer": "Very little preparation is required — the session is designed to be accessible on the day you join. Most attendees spend fewer than 10 minutes getting ready.\n\nWe recommend joining from a quiet space with a stable internet connection so you can participate in discussion and the hands-on segment comfortably.",
+          "answer": "Very little preparation is required - the session is designed to be accessible on the day you join. Most attendees spend fewer than 10 minutes getting ready.\n\nWe recommend joining from a quiet space with a stable internet connection so you can participate in discussion and the hands-on segment comfortably.",
           "bullets": [
             "Laptop or tablet with camera/microphone (either is optional but helpful for interaction)",
-            "Stable internet connection — wired or strong Wi‑Fi is ideal for screen sharing moments",
+            "Stable internet connection - wired or strong Wi‑Fi is ideal for screen sharing moments",
             "Notebook or digital notes if you like capturing frameworks (not required)",
-            "One question you would like clarity on — AI, learning, or your career path",
+            "One question you would like clarity on - AI, learning, or your career path",
             "No pre-reading, coding environment, or paid tools required"
           ]
         },
         {
           "question": "Do I need a technical or AI background?",
-          "answer": "No prior AI or programming background is required. The session is intentionally clarity-first: we start with mental models and build understanding step by step rather than assuming specialist knowledge.\n\nIf you do have a technical background, you will still benefit — we go deeper on application and trade-offs in the engineer and professional tracks. If you are completely new, you will not be left behind; jargon is introduced only after the underlying idea is clear.",
+          "answer": "No prior AI or programming background is required. The session is intentionally clarity-first: we start with mental models and build understanding step by step rather than assuming specialist knowledge.\n\nIf you do have a technical background, you will still benefit - we go deeper on application and trade-offs in the engineer and professional tracks. If you are completely new, you will not be left behind; jargon is introduced only after the underlying idea is clear.",
           "bullets": [
             "Beginners receive plain-language explanations and visual frameworks",
             "Engineers explore how concepts connect to systems, data, and implementation choices",
             "Professionals focus on product decisions, communication, and stakeholder context",
-            "All tracks include live Q&A — ask at whatever level makes sense for you"
+            "All tracks include live Q&A - ask at whatever level makes sense for you"
           ]
         }
       ]
@@ -134,7 +134,7 @@
       "items": [
         {
           "question": "Can I reschedule or cancel?",
-          "answer": "Yes — you can reschedule or cancel from the link in your confirmation email. We ask for at least 24 hours' notice so the slot can be offered to another learner on the waitlist.\n\nIf you need to change plans inside the 24-hour window due to an emergency, contact us and we will do our best to accommodate you. Late cancellations may be limited to one free change per booking.",
+          "answer": "Yes - you can reschedule or cancel from the link in your confirmation email. We ask for at least 24 hours' notice so the slot can be offered to another learner on the waitlist.\n\nIf you need to change plans inside the 24-hour window due to an emergency, contact us and we will do our best to accommodate you. Late cancellations may be limited to one free change per booking.",
           "bullets": [
             "Reschedule or cancel via the confirmation email link (no login required)",
             "Free changes up to 24 hours before your scheduled start time",
@@ -144,13 +144,13 @@
         },
         {
           "question": "What happens after the session ends?",
-          "answer": "After the session, you receive a concise follow-up by email within 1–2 business days. This summarizes what we covered, highlights the frameworks we used, and outlines sensible next steps based on your audience track and goals.\n\nIf the full program is a good fit, we share enrollment information and syllabus details — but there is no hard sell and no time-limited pressure. Many attendees use only the free session and resources to continue learning independently.",
+          "answer": "After the session, you receive a concise follow-up by email within 1–2 business days. This summarizes what we covered, highlights the frameworks we used, and outlines sensible next steps based on your audience track and goals.\n\nIf the full program is a good fit, we share enrollment information and syllabus details - but there is no hard sell and no time-limited pressure. Many attendees use only the free session and resources to continue learning independently.",
           "bullets": [
             "Session summary and key mental models recap",
             "Personalized learning path recommendation for your track",
             "Optional overview of the full Verlin Labs program structure",
             "Invitation to book office hours or contact support if you have follow-up questions",
-            "No obligation to enroll — you decide if and when to continue"
+            "No obligation to enroll - you decide if and when to continue"
           ]
         },
         {

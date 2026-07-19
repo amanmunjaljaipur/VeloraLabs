@@ -44,7 +44,7 @@ const COURSE_TRACK_LABELS: Record<string, string> = {
   professionals: "Product Managers Program",
 };
 
-/** Canonical site map — single source of truth for nav, footer, HTML sitemap, and XML sitemap. */
+/** Canonical site map - single source of truth for nav, footer, HTML sitemap, and XML sitemap. */
 const STATIC_PAGES: SitemapPage[] = [
   {
     href: "/",
@@ -71,7 +71,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "Programs",
     title: "Programs & Offerings",
     description:
-      "Explore Verlin Labs programs — free session, paid learning tracks for students, engineers, and product managers, plus corporate workshops.",
+      "Explore Verlin Labs programs - free session, paid learning tracks for students, engineers, and product managers, plus corporate workshops.",
     section: "programs",
     inFooter: true,
     priority: 0.85,
@@ -94,7 +94,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "AI for Students",
     title: "AI for School Students",
     description:
-      "Dedicated landing page for Classes 6–12 — mental models, safe AI tool use, and live sessions at Verlin Labs.",
+      "Dedicated landing page for Classes 6–12 - mental models, safe AI tool use, and live sessions at Verlin Labs.",
     section: "programs",
     inFooter: true,
     priority: 0.82,
@@ -114,7 +114,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "AI for Engineers",
     title: "AI for College Engineers",
     description:
-      "Dedicated landing page for college engineers — LLM fundamentals, portfolio projects, and interview prep.",
+      "Dedicated landing page for college engineers - LLM fundamentals, portfolio projects, and interview prep.",
     section: "programs",
     inFooter: true,
     priority: 0.82,
@@ -124,7 +124,7 @@ const STATIC_PAGES: SitemapPage[] = [
     href: "/courses/engineers",
     label: "College Engineers",
     title: "AI Program for College Engineers",
-    description: "Build intuition for modern AI systems — from theory to responsible practice.",
+    description: "Build intuition for modern AI systems - from theory to responsible practice.",
     section: "programs",
     priority: 0.8,
     changeFrequency: "monthly",
@@ -134,7 +134,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "AI for PMs",
     title: "AI for Product Managers",
     description:
-      "Dedicated landing page for product managers — evaluate AI tools, ship MVPs, and lead teams with clarity.",
+      "Dedicated landing page for product managers - evaluate AI tools, ship MVPs, and lead teams with clarity.",
     section: "programs",
     inFooter: true,
     priority: 0.82,
@@ -145,7 +145,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "Product Managers",
     title: "AI Training for Product Managers",
     description:
-      "AI training for product managers — evaluate tools, ship AI-powered MVPs, and lead teams with clarity at Verlin Labs.",
+      "AI training for product managers - evaluate tools, ship AI-powered MVPs, and lead teams with clarity at Verlin Labs.",
     section: "programs",
     priority: 0.8,
     changeFrequency: "monthly",
@@ -164,7 +164,7 @@ const STATIC_PAGES: SitemapPage[] = [
     href: "/library",
     label: "Library",
     title: "Library",
-    description: "Articles, guides, and workshops on AI and technology — organized for clarity.",
+    description: "Articles, guides, and workshops on AI and technology - organized for clarity.",
     section: "learn",
     inFooter: true,
     priority: 0.7,
@@ -185,7 +185,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "LLMs for PM Discovery",
     title: "How to Use LLMs for Product Discovery",
     description:
-      "Long-tail hub for PMs — LLM workflows for discovery, synthesis, and PRDs linked to Verlin Labs courses.",
+      "Long-tail hub for PMs - LLM workflows for discovery, synthesis, and PRDs linked to Verlin Labs courses.",
     section: "learn",
     priority: 0.7,
     changeFrequency: "monthly",
@@ -195,7 +195,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "AI Roadmap for PMs",
     title: "AI Roadmap for Non-Technical PMs",
     description:
-      "Question-based hub — AI literacy and MVP roadmap for product managers without a CS background.",
+      "Question-based hub - AI literacy and MVP roadmap for product managers without a CS background.",
     section: "learn",
     priority: 0.7,
     changeFrequency: "monthly",
@@ -205,7 +205,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "AI for School Students",
     title: "AI Learning Roadmap for Students",
     description:
-      "Hub for Classes 6–12 — safe AI learning, mental models, and links to the Verlin Labs student program.",
+      "Hub for Classes 6–12 - safe AI learning, mental models, and links to the Verlin Labs student program.",
     section: "learn",
     priority: 0.7,
     changeFrequency: "monthly",
@@ -235,7 +235,7 @@ const STATIC_PAGES: SitemapPage[] = [
     href: "/newsletter",
     label: "Newsletter",
     title: "Newsletter",
-    description: "Weekly mental models, frameworks, and clarity-first insights — no noise.",
+    description: "Weekly mental models, frameworks, and clarity-first insights - no noise.",
     section: "learn",
     inFooter: true,
     priority: 0.6,
@@ -264,7 +264,7 @@ const STATIC_PAGES: SitemapPage[] = [
     label: "About",
     title: "About Verlin Labs",
     description:
-      "Founded by Aman Munjal — clarity-first AI education through mental models and live learning.",
+      "Founded by Aman Munjal - clarity-first AI education through mental models and live learning.",
     section: "company",
     inHeader: true,
     inFooter: true,

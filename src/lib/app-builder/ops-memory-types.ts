@@ -1,6 +1,6 @@
 /**
  * Deploy-safe App Builder operational memory.
- * Lives in Blob runtime data — NOT product git content.
+ * Lives in Blob runtime data - NOT product git content.
  * Survives Vercel deploys; never wiped by code pushes.
  */
 

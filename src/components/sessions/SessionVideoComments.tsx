@@ -114,7 +114,7 @@ export function SessionVideoComments({ sessionId }: SessionVideoCommentsProps) {
       {canComment && ownComments.length > 0 && (
         <p className="text-sm text-text-secondary">
           You&apos;ve shared {ownComments.length} comment{ownComments.length === 1 ? "" : "s"}{" "}
-          on this session — they appear below with a{" "}
+          on this session - they appear below with a{" "}
           <span className="font-medium text-teal">You</span> badge.
         </p>
       )}
@@ -130,7 +130,7 @@ export function SessionVideoComments({ sessionId }: SessionVideoCommentsProps) {
           <p className="mt-3 text-sm text-text-secondary">
             {canComment
               ? "Be the first to share a question, insight, or takeaway from this session."
-              : "Learners haven't commented on this session yet."}
+              : "Learners have not commented on this session yet."}
           </p>
         </Card>
       ) : (
@@ -210,7 +210,7 @@ export function SessionVideoComments({ sessionId }: SessionVideoCommentsProps) {
 
       {isAdmin && !canComment && (
         <p className="text-xs text-text-secondary">
-          Admin view — all learner comments on this session are shown above, including author email.
+          Admin view - all learner comments on this session are shown above, including author email.
         </p>
       )}
     </section>

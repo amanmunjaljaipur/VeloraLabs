@@ -27,7 +27,9 @@ export default async function AboutPage() {
         eyebrow="About us"
         title={(frontmatter.title as string) || "About Verlin Labs"}
         subtitle={frontmatter.subtitle as string}
-        align="center"
+        image="/images/brand-journey.jpg"
+        imageAlt="Verlin Labs learning journey - from free session to real projects"
+        video="/videos/about.mp4"
         compact
       />
       <section className="section-y">

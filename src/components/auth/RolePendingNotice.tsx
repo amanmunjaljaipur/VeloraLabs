@@ -41,7 +41,7 @@ export function RolePendingNotice() {
           <p className="font-semibold">{ROLE_PENDING_LABEL}</p>
           <p className="mt-0.5 text-text-secondary">
             Your account is active, but an admin still needs to assign your learner track (Student,
-            Engineer, or Professional). You can browse the site meanwhile — course access unlocks after
+            Engineer, or Professional). You can browse the site meanwhile - course access unlocks after
             assignment.
           </p>
         </div>

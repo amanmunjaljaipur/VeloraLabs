@@ -22,7 +22,7 @@ export async function generateMetadata({
   const scheduled = getBlogPostBySlug(slug);
   if (scheduled?.status === "published") {
     return createMetadata({
-      title: `${scheduled.title} — Blog`,
+      title: `${scheduled.title} - Blog`,
       description: trimMetaDescription(scheduled.description),
       keywords: [...scheduled.tags, "Verlin Labs blog"],
       path: `/blog/${slug}`,
@@ -33,7 +33,7 @@ export async function generateMetadata({
   const item = getLibraryItem(slug);
   if (!item) return { title: "Not Found" };
   return createMetadata({
-    title: `${item.title} — Blog`,
+    title: `${item.title} - Blog`,
     description: trimMetaDescription(item.description),
     keywords: [...item.tags, "Verlin Labs blog"],
     path: `/blog/${slug}`,

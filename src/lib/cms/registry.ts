@@ -100,7 +100,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "courses-students",
-    label: "Course — Students",
+    label: "Course - Students",
     description: "Student track curriculum and pricing",
     group: "Courses",
     filename: "courses-students.json",
@@ -109,7 +109,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "courses-engineers",
-    label: "Course — Engineers",
+    label: "Course - Engineers",
     description: "Engineer track curriculum and pricing",
     group: "Courses",
     filename: "courses-engineers.json",
@@ -118,7 +118,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "courses-professionals",
-    label: "Course — Product Managers",
+    label: "Course - Product Managers",
     description: "PM track curriculum and pricing",
     group: "Courses",
     filename: "courses.json",
@@ -163,7 +163,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "resource-workbook",
-    label: "Resource — Workbook",
+    label: "Resource - Workbook",
     description: "Free session workbook download",
     group: "Markdown",
     filename: "resource-free-session-workbook.md",
@@ -172,7 +172,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "resource-cheat-sheet",
-    label: "Resource — Cheat Sheet",
+    label: "Resource - Cheat Sheet",
     description: "Mental models cheat sheet",
     group: "Markdown",
     filename: "resource-mental-models-cheat-sheet.md",
@@ -181,7 +181,7 @@ export const CMS_PAGES: CmsPageDefinition[] = [
   },
   {
     id: "resource-glossary",
-    label: "Resource — AI Glossary",
+    label: "Resource - AI Glossary",
     description: "AI glossary download",
     group: "Markdown",
     filename: "resource-ai-glossary.md",

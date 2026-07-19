@@ -24,11 +24,11 @@ export async function generateMetadata({
   const model = getMentalModel(slug);
   if (!model) return { title: "Not Found" };
   return createMetadata({
-    title: `${model.name} — AI Mental Model`,
+    title: `${model.name} - AI Mental Model`,
     description: `${model.shortDescription} Learn this clarity-first framework from Verlin Labs.`,
     keywords: ["AI mental model", model.name, "Verlin Labs", model.difficulty],
     path: `/mental-models/${slug}`,
-    image: "/images/mental-models-map-illustration.jpg",
+    image: "/images/brand-mental-models.jpg",
   });
 }
 
@@ -117,7 +117,7 @@ export default async function MentalModelDetailPage({
 
       <CourseTrackLinks
         title="Turn this mental model into practice"
-        subtitle="Live programs connect frameworks to real projects — with mentor feedback and a demo-day capstone on every track."
+        subtitle="Live programs connect frameworks to real projects - with mentor feedback and a demo-day capstone on every track."
         className="section-y border-t border-border bg-muted/15"
       />
 

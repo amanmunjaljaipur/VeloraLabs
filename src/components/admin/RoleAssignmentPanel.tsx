@@ -401,7 +401,7 @@ export function RoleAssignmentPanel({
           <h2 className="text-lg font-semibold text-foreground">Assign role by email</h2>
         </div>
         <p className="mt-2 text-sm text-text-secondary">
-          Manually assign a role using an email address — useful if someone hasn&apos;t appeared in
+          Manually assign a role using an email address - useful if someone hasn&apos;t appeared in
           the pending list yet.
         </p>
         <form onSubmit={handleAssign} className="mt-6 space-y-4">

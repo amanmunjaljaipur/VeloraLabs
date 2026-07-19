@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 export function FormCtaBlockView({ props }: { props: FormCtaBlockProps }) {
   return (
     <section className="border-y border-border bg-muted/20 py-14 md:py-20">
-      <div className="container-verlin mx-auto max-w-xl rounded-2xl border border-border bg-card p-6 md:p-8">
+      <div className="container-verlin mx-auto !max-w-xl rounded-2xl border border-border bg-card p-6 md:p-8">
         <h2 className="text-2xl font-semibold tracking-tight">{props.title}</h2>
         {props.description ? (
           <p className="mt-2 text-sm text-text-secondary">{props.description}</p>

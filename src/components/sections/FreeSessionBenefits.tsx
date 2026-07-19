@@ -23,7 +23,7 @@ export function FreeSessionBenefits({ benefits }: FreeSessionBenefitsProps) {
             What you&apos;ll walk away with
           </h2>
           <p className="mt-3 text-text-secondary">
-            A focused session designed to show you how clarity-first learning works — not a sales pitch.
+            A focused session designed to show you how clarity-first learning works - not a sales pitch.
           </p>
         </div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

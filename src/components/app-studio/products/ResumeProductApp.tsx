@@ -107,7 +107,7 @@ export function ResumeProductApp({
     setResumes((prev) => [row, ...prev]);
     setActiveId(row.id);
     setTab("builder");
-    flash("New resume created — edit left, preview right");
+    flash("New resume created - edit left, preview right");
   }
 
   async function aiImprove(
@@ -129,11 +129,11 @@ export function ResumeProductApp({
       });
       const data = (await res.json()) as { text?: string; error?: string };
       if (!res.ok || !data.text) {
-        flash(data.error || "AI improve failed — Groq unavailable");
+        flash(data.error || "AI improve failed - Groq unavailable");
         return;
       }
       updateActive({ [field]: data.text } as Partial<ResumeRow>);
-      flash("AI improved — check the live preview");
+      flash("AI improved - check the live preview");
     } catch {
       flash("Network error calling AI");
     } finally {
@@ -244,7 +244,7 @@ export function ResumeProductApp({
                 <div>
                   <p className="font-semibold">{r.title || "Untitled"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.memberName} · {r.level || "—"}
+                    {r.memberName} · {r.level || " - "}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -439,7 +439,7 @@ export function ResumeProductApp({
 
                 {tipEntity && (
                   <p className="text-xs text-muted-foreground pt-2">
-                    Tip: use <strong>Improve with AI</strong> on summary and bullets — powered by
+                    Tip: use <strong>Improve with AI</strong> on summary and bullets - powered by
                     Groq on the server.
                   </p>
                 )}

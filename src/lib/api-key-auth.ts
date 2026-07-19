@@ -22,7 +22,7 @@ export function verifyApiKey(
 
 export function apiKeyUnauthorized(): Response {
   return Response.json(
-    { error: "Unauthorized — provide Authorization: Bearer <key> or x-api-key header" },
+    { error: "Unauthorized - provide Authorization: Bearer <key> or x-api-key header" },
     { status: 401 }
   );
 }

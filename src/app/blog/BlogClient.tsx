@@ -104,7 +104,7 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
                   <div className="grid md:grid-cols-2">
                     <div
                       className={`relative aspect-[16/10] md:aspect-auto md:min-h-[320px] ${
-                        isIllustration ? "bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40" : ""
+                        isIllustration ? "bg-gradient-to-br from-accent-teal/5 via-background to-bg-light/40" : ""
                       }`}
                     >
                       <OptimizedImage

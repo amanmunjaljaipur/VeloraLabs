@@ -457,8 +457,8 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
           ctaHref: "/free-session",
           secondaryCtaLabel: "Explore programs",
           secondaryCtaHref: "/programs",
-          image: "/images/hero-home-visual.jpg",
-          imageAlt: "Verlin Labs hero illustration showing clarity-first AI learning",
+          image: "/images/brand-hero-clarity.jpg",
+          imageAlt: "Clarity-first learning - glowing framework map of mental models",
         } satisfies HeroBlockProps,
       };
     case "page-header":
@@ -488,7 +488,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
         id,
         type,
         props: {
-          text: "Limited seats for the next free session — book your spot.",
+          text: "Limited seats for the next free session - book your spot.",
           linkLabel: "Book now",
           linkHref: "/free-session",
           variant: "info",
@@ -534,7 +534,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
           eyebrow: "Learn by doing",
           title: "Clarity-first sessions",
           bodyHtml:
-            "<p>Live workshops, mental models, and projects — structured so complex AI ideas finally stick.</p>",
+            "<p>Live workshops, mental models, and projects - structured so complex AI ideas finally stick.</p>",
           image: "/images/workshop.jpg",
           imageAlt: "Learners in a Verlin Labs workshop",
           imagePosition: "right",
@@ -607,8 +607,8 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
           title: "Three steps to clarity",
           subtitle: "From first session to confident application.",
           items: [
-            { title: "Book a free session", description: "Experience the teaching style live — no payment required." },
-            { title: "Pick your track", description: "Students, engineers, or product managers — each path is tailored." },
+            { title: "Book a free session", description: "Experience the teaching style live - no payment required." },
+            { title: "Pick your track", description: "Students, engineers, or product managers - each path is tailored." },
             { title: "Build & apply", description: "Mental models plus projects you can use immediately." },
           ],
         } satisfies StepsBlockProps,
@@ -648,7 +648,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
           title: "Clarity-first learning",
           subtitle: "Mental models, live sessions, and hands-on practice.",
           items: [
-            { title: "Live sessions", description: "Interactive workshops — not passive video dumps." },
+            { title: "Live sessions", description: "Interactive workshops - not passive video dumps." },
             { title: "Mental models", description: "Frameworks that help complex AI ideas stick." },
             { title: "Hands-on projects", description: "Build something real you can showcase." },
           ],
@@ -755,7 +755,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
         type,
         props: {
           title: "Programs & pricing",
-          subtitle: "Clear options — start free, upgrade when ready.",
+          subtitle: "Clear options - start free, upgrade when ready.",
           plans: [
             {
               name: "Free session",
@@ -790,11 +790,11 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
           items: [
             {
               question: "Is the free session really free?",
-              answer: "Yes — no credit card required. It is a live 2-hour intro to our teaching style.",
+              answer: "Yes - no credit card required. It is a live 2-hour intro to our teaching style.",
             },
             {
               question: "Who is this for?",
-              answer: "Students, engineers, and product managers — each with a tailored track.",
+              answer: "Students, engineers, and product managers - each with a tailored track.",
             },
           ],
         } satisfies FaqBlockProps,
@@ -903,7 +903,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
         type,
         props: {
           title: "Get the weekly AI brief",
-          description: "Short, practical updates on mental models and AI learning — no fluff.",
+          description: "Short, practical updates on mental models and AI learning - no fluff.",
           buttonLabel: "Subscribe free",
           privacyNote: "We never share your email. Unsubscribe anytime.",
         } satisfies NewsletterBlockProps,
@@ -926,7 +926,7 @@ export function createDefaultBlock(type: PageBlockType): PageBlock {
         type,
         props: {
           title: "Book your free session",
-          description: "Reserve a seat — no payment required.",
+          description: "Reserve a seat - no payment required.",
           buttonLabel: "Continue to booking",
           buttonHref: "/free-session",
           bullets: ["2-hour live intro", "No credit card", "Ask anything"],
@@ -1027,7 +1027,7 @@ export const BUILDER_TEMPLATES = {
   custom: {
     label: "Custom template",
     description:
-      "Blank canvas — drag and drop any components from the library in any order",
+      "Blank canvas - drag and drop any components from the library in any order",
     sections: [] as PageBlockType[],
   },
   landing: {

@@ -1,6 +1,6 @@
 /**
  * Dynamic guided interview: Grok acts as PM from the user's product idea.
- * NOT ecom-only — banking, insurance, resume, booking, any vertical.
+ * NOT ecom-only - banking, insurance, resume, booking, any vertical.
  * Every question is skippable. Chips MUST match the detected vertical.
  */
 import { detectVerticalFromPrompt } from "@/lib/app-builder/detect-vertical";
@@ -255,7 +255,7 @@ export function fallbackInterviewQuestions(
       extras.push({
         id: "deliveryArea",
         label: "Where can you deliver or serve?",
-        helpText: "Area names are enough — no maps needed.",
+        helpText: "Area names are enough - no maps needed.",
         required: false,
         selectMode: "multi",
         suggestions: ["Same neighbourhood only", "Whole city", "Nearby villages", "Pickup only"],
@@ -319,15 +319,15 @@ const PM_SYSTEM = `You are a senior product manager for Verlin Labs App Builder.
 The user may build ANYTHING: local shop, digital banking, insurance, resume updater,
 booking, portfolio, tuition, SaaS landing, internal tool demo, etc.
 
-## HARD RULE — chips must match the product
+## HARD RULE - chips must match the product
 - Digital banking / fintech → audience chips like: retail customers, salary accounts, SME owners, NRI, premium banking. NEVER Students, Parents, Job seekers, Everyday customers as shop-style chips.
 - Insurance → families, individuals, group cover, seniors. NOT shop delivery chips.
 - Resume / career → students/freshers, professionals, career switchers (OK here). NOT shop WhatsApp order.
-- Local shop → neighbours, gift buyers, WhatsApp orders — shop chips OK only here.
+- Local shop → neighbours, gift buyers, WhatsApp orders - shop chips OK only here.
 - Booking → clients, patients, regulars.
 If you ask "Who is this for?", the suggestions MUST sound like THIS product's users.
 
-## BAD (for a bank) — never do this
+## BAD (for a bank) - never do this
 whoFor suggestions: ["Everyday customers", "Students", "Parents", "Business owners", "Job seekers"]
 helpText mentioning "Students, shoppers, patients…"
 
@@ -352,7 +352,7 @@ Return ONLY valid JSON:
     {
       "id": "camelCase",
       "label": "plain question?",
-      "helpText": "optional — you can skip this",
+      "helpText": "optional - you can skip this",
       "placeholder": "optional",
       "required": false,
       "multiline": false,
@@ -371,19 +371,19 @@ function verticalChipHint(key: InterviewVerticalKey, label: string): string {
 Every chip and helpText must be bank-relevant (accounts, UPI, cards, KYC language simply, trust).
 FORBIDDEN chips: Students, Parents, Job seekers, Everyday customers (shop sense), Handmade, Delivery boy.`;
     case "insurance":
-      return `This is INSURANCE (${label}). Chips: plans, claims, families, premiums — not shop delivery.`;
+      return `This is INSURANCE (${label}). Chips: plans, claims, families, premiums - not shop delivery.`;
     case "resume-career":
-      return `This is RESUME / CAREER (${label}). Chips: job seekers, sections, export — not shop catalogue.`;
+      return `This is RESUME / CAREER (${label}). Chips: job seekers, sections, export - not shop catalogue.`;
     case "ecom":
       return `This is a LOCAL SHOP / CATALOGUE (${label}). Shop chips (WhatsApp, delivery, products) are OK.`;
     case "booking":
-      return `This is BOOKING / APPOINTMENTS (${label}). Services, slots, clients — not product catalogue unless relevant.`;
+      return `This is BOOKING / APPOINTMENTS (${label}). Services, slots, clients - not product catalogue unless relevant.`;
     case "tuition":
       return `This is TUITION / COACHING (${label}). Students, parents, batches, fees.`;
     case "portfolio":
       return `This is PORTFOLIO (${label}). Work samples, hire me, clients.`;
     default:
-      return `Custom product (${label}). Infer users from the prompt — never default to shop students/parents chips.`;
+      return `Custom product (${label}). Infer users from the prompt - never default to shop students/parents chips.`;
   }
 }
 
@@ -463,7 +463,7 @@ export async function designInterviewQuestions(
         { role: "system", content: PM_SYSTEM },
         {
           role: "user",
-          content: `User's product idea (SOURCE OF TRUTH — understand this deeply):
+          content: `User's product idea (SOURCE OF TRUTH - understand this deeply):
 """${prompt}"""
 
 ${extensionHint}
@@ -504,7 +504,7 @@ Design a SHORT guided interview for THIS product only.
     return {
       questions: fallbackInterviewQuestions(prompt, resolvedExt),
       designedBy: "fallback-after-llm-error",
-      rationale: `AI design failed — using ${detected.label}-specific starter questions (not shop defaults).`,
+      rationale: `AI design failed - using ${detected.label}-specific starter questions (not shop defaults).`,
       detected: detectedMeta,
     };
   }

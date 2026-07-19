@@ -70,7 +70,7 @@ export function AppAuthScreens({
       }
       onSuccess();
     } catch {
-      setError("Network error — try again");
+      setError("Network error - try again");
     } finally {
       setBusy(false);
     }
@@ -78,7 +78,7 @@ export function AppAuthScreens({
 
   return (
     <div className="relative flex min-h-[calc(100vh-4rem)] flex-1 flex-col">
-      {/* Full branded login — only this app, same base URL /apps/{slug}/login */}
+      {/* Full branded login - only this app, same base URL /apps/{slug}/login */}
       <div
         className="absolute inset-0 opacity-90"
         style={{
@@ -245,7 +245,7 @@ export function AppAuthScreens({
           {mode === "signup" ? (
             <p className="mt-4 rounded-xl bg-muted/40 p-3 text-xs text-text-secondary">
               New shoppers get the <strong>Customer</strong> role. If you are the shop owner, use the
-              same email you used when this shop was created — you will get <strong>Owner</strong>{" "}
+              same email you used when this shop was created - you will get <strong>Owner</strong>{" "}
               access.
             </p>
           ) : null}

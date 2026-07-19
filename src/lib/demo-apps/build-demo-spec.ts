@@ -22,6 +22,9 @@ import { resolveIndustryShell } from "@/lib/demo-apps/industry-shells";
 export function buildDemoAppSpec(raw: DemoCategoryDef): StudioAppSpec {
   const def = premiumizeDemoCategory(raw);
   const shell = resolveIndustryShell(def);
+  if (def.footerColumns && def.footerColumns.length > 0) {
+    shell.footer.columns = def.footerColumns;
+  }
 
   const roles: StudioRole[] = def.roles.map((r, i) => ({
     id: r.id,
@@ -71,6 +74,7 @@ export function buildDemoAppSpec(raw: DemoCategoryDef): StudioAppSpec {
     roleIds: m.roleIds || [],
     entityId: m.entityId,
     description: m.description,
+    imageUrl: m.imageUrl,
   }));
 
   const workflows: StudioWorkflow[] = def.workflows.map((w) => ({
@@ -134,7 +138,7 @@ DISCLAIMERS
 ${shell.footer.disclaimers.map((d) => `- ${d}`).join("\n")}
 
 ROLES
-${roles.map((r, i) => `${i + 1}) ${r.label} (${r.id}) — ${r.description}`).join("\n")}
+${roles.map((r, i) => `${i + 1}) ${r.label} (${r.id}) - ${r.description}`).join("\n")}
 
 MODULES (${def.modules.length})
 ${def.modules.map((m) => `- ${m.title}: ${m.description}`).join("\n")}
@@ -159,8 +163,8 @@ Content matches industry + Verlin educational standards. Not a joke shell.`;
     tagline: def.tagline,
     description: def.description,
     rewrittenPrompt,
-    primaryColor: "#0f2744",
-    accentColor: "#0d9488",
+    primaryColor: def.primaryColor || "#0f2744",
+    accentColor: def.accentColor || "#0d9488",
     productKind: def.productKind,
     roles,
     entities,

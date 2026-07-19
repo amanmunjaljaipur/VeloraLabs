@@ -201,7 +201,7 @@ export function ModuleAccessPanel() {
             <p className="mt-2 max-w-3xl text-sm text-text-secondary">
               Use <strong>Role Assignment</strong> when someone should get the full program for a
               track (Student, Engineer, or Professional). Use this panel when you want to grant
-              access to specific people by email — either the complete program or only selected
+              access to specific people by email - either the complete program or only selected
               modules/days.
             </p>
           </div>

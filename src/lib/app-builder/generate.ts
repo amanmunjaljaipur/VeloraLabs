@@ -146,7 +146,7 @@ function fallbackEcom(
     .map((line, i) => {
       const priceMatch = line.match(/₹\s*[\d,]+|Rs\.?\s*[\d,]+|INR\s*[\d,]+/i);
       const name =
-        line.replace(/[-–—:]?\s*(₹|Rs\.?|INR).*$/i, "").trim() || `Product ${i + 1}`;
+        line.replace(/[-– - :]?\s*(₹|Rs\.?|INR).*$/i, "").trim() || `Product ${i + 1}`;
       return {
         id: `p${i + 1}`,
         name: name.slice(0, 80),
@@ -215,12 +215,12 @@ function fallbackEcom(
           ? `You can order via: ${orderMethods.join(
               ", "
             )}. We will confirm everything with you personally.`
-          : "Message us on WhatsApp or call — we will help you step by step.",
+          : "Message us on WhatsApp or call - we will help you step by step.",
       },
       {
         question: "Do you deliver?",
         answer: orderMethods.some((m) => /deliver/i.test(m))
-          ? "Yes — we deliver in our local area. Ask us for details."
+          ? "Yes - we deliver in our local area. Ask us for details."
           : "Pickup at the shop is available. Message us if you need delivery nearby.",
       },
       {
@@ -229,7 +229,7 @@ function fallbackEcom(
           ? `Payment options include: ${
               orderMethods.filter((m) => /upi|cash|pay|cod/i.test(m)).join(", ") || "UPI or cash"
             }.`
-          : "UPI and cash are usually fine — we will confirm when you order.",
+          : "UPI and cash are usually fine - we will confirm when you order.",
       },
     ],
     ctaLabel: "See products",
@@ -280,7 +280,7 @@ export async function generateExtensionContent(input: {
   answers: AppInterviewAnswer[];
   customPoints?: string[];
   secrets: AppLlmSecrets;
-  /** User-approved product plan — preferred for non-ecom complete builds */
+  /** User-approved product plan - preferred for non-ecom complete builds */
   productPlan?: ProductPlan | null;
   onProgress?: BuildProgressFn;
 }): Promise<{ content: AppExtensionContent; generatedBy: string }> {
@@ -336,7 +336,7 @@ export async function generateExtensionContent(input: {
           role: "system",
           content: `You build complete content for a LOCAL SHOP website for people who are NOT technical (like school students' parents, small shop owners).
 Use simple, warm language. Avoid jargon.
-Interview answers were designed by a product manager from the owner's idea — treat every Q&A as source of truth.
+Interview answers were designed by a product manager from the owner's idea - treat every Q&A as source of truth.
 Pay special attention to industry-leader style answers:
 - offline day, customer steps, sell channels (WhatsApp/shop/Instagram)
 - unique selling points → trust badges and about section
@@ -344,13 +344,13 @@ Pay special attention to industry-leader style answers:
 - paymentToday → paymentMethods and FAQ
 - appHelpHope / successGoal → hero CTA and subheadline
 - shareWhere → soft hints for launch
-Shape like a clean Shopify/Dukaan mini-store: clear catalogue, trust, WhatsApp order, local delivery — not a bloated SaaS.
+Shape like a clean Shopify/Dukaan mini-store: clear catalogue, trust, WhatsApp order, local delivery - not a bloated SaaS.
 Return ONLY valid JSON:
 {
   "brandName": string,
   "tagline": string,
   "description": string,
-  "primaryColor": string (hex — pick colours that feel local to the city),
+  "primaryColor": string (hex - pick colours that feel local to the city),
   "secondaryColor": string (hex),
   "city": string,
   "currency": string,
@@ -380,7 +380,7 @@ Rules:
 - FAQs in simple words (how to order, pay, deliver)
 - Reflect every interview answer and owner points
 - No fake claims
-- Do NOT invent image URLs — the system adds photos and logo after`,
+- Do NOT invent image URLs - the system adds photos and logo after`,
         },
         {
           role: "user",
@@ -451,7 +451,7 @@ Rules:
           : [
               {
                 question: "How do I order?",
-                answer: "Message us on WhatsApp — we will help you.",
+                answer: "Message us on WhatsApp - we will help you.",
               },
             ],
         ctaLabel: parsed.ctaLabel || "See products",

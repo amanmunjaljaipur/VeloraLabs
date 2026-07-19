@@ -93,9 +93,10 @@ export function LibraryClient({
         breadcrumbs={breadcrumbs}
         eyebrow="Resources"
         title="Content Library"
-        subtitle="Articles, guides, and workshops — organized for clarity."
-        image="/images/ai-learning.jpg"
+        subtitle="Articles, guides, and workshops - organized for clarity."
+        image="/images/brand-mental-models.jpg"
         imageAlt="Curated AI learning resources"
+        video="/videos/library.mp4"
       />
 
       <section className="section-y">

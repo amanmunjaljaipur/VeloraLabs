@@ -179,7 +179,7 @@ export function LegalAcceptanceGate() {
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
             {legalStatus.firstTime
               ? "Please review and accept our Terms of Service and Privacy Policy to continue using your Verlin Labs account."
-              : "We've updated our Terms of Service and/or Privacy Policy. Please review and accept to continue using your Verlin Labs account."}
+              : "We have updated our Terms of Service and/or Privacy Policy. Please review and accept to continue using your Verlin Labs account."}
           </p>
 
           <ul className="mt-4 space-y-2 text-sm">

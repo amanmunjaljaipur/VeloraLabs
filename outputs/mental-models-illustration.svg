@@ -1,0 +1,104 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Outfit', 'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#faf9f4"/>
+      <stop offset="100%" stop-color="#f2f0e8"/>
+    </linearGradient>
+    <linearGradient id="emeraldBand1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+    <linearGradient id="emeraldBand2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="emeraldBand3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#6ee7b7"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fdf6e0" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#fdf6e0" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#101914" flood-opacity="0.16"/>
+    </filter>
+    <filter id="tileShadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#101914" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <!-- soft ambient glow behind the framework -->
+  <circle cx="1080" cy="360" r="420" fill="url(#glow)"/>
+
+  <!-- LEFT: scattered disconnected tool tiles ("tool lists") -->
+  <g filter="url(#tileShadow)">
+    <g transform="translate(180,180) rotate(-12)">
+      <rect x="0" y="0" width="86" height="86" rx="18" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <circle cx="43" cy="43" r="14" fill="#a16207" opacity="0.55"/>
+    </g>
+    <g transform="translate(120,330) rotate(9)">
+      <rect x="0" y="0" width="72" height="72" rx="16" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <rect x="20" y="20" width="32" height="32" rx="6" fill="#3a5347" opacity="0.5"/>
+    </g>
+    <g transform="translate(260,300) rotate(-6)">
+      <rect x="0" y="0" width="60" height="60" rx="14" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <path d="M14 30 L26 42 L46 18" stroke="#065f46" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    </g>
+    <g transform="translate(90,470) rotate(14)">
+      <rect x="0" y="0" width="78" height="78" rx="16" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <circle cx="39" cy="39" r="16" fill="#a16207" opacity="0.35"/>
+    </g>
+    <g transform="translate(250,480) rotate(-16)">
+      <rect x="0" y="0" width="56" height="56" rx="12" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <rect x="14" y="14" width="28" height="28" rx="6" fill="#3a5347" opacity="0.4"/>
+    </g>
+    <g transform="translate(160,600) rotate(7)">
+      <rect x="0" y="0" width="68" height="68" rx="14" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <circle cx="34" cy="34" r="14" fill="#059669" opacity="0.4"/>
+    </g>
+    <g transform="translate(310,140) rotate(18)">
+      <rect x="0" y="0" width="54" height="54" rx="12" fill="#ffffff" stroke="#d8d3bf" stroke-width="2"/>
+      <path d="M12 27 L42 27 M27 12 L27 42" stroke="#a16207" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+    </g>
+  </g>
+
+  <text x="200" y="700" font-size="24" letter-spacing="4" fill="#4a5750" font-weight="600">SCATTERED TOOLS</text>
+
+  <!-- transformation arrow -->
+  <g>
+    <path d="M420 420 C 560 420, 560 420, 700 420" stroke="#a16207" stroke-width="4" fill="none" stroke-dasharray="2 14" stroke-linecap="round"/>
+    <path d="M690 405 L716 420 L690 435 Z" fill="#a16207"/>
+  </g>
+
+  <!-- RIGHT: structured mental-model pyramid: Information -> Framework -> Clarity -->
+  <g filter="url(#softShadow)">
+    <rect x="800" y="560" width="640" height="90" rx="20" fill="url(#emeraldBand1)"/>
+    <rect x="860" y="450" width="520" height="90" rx="20" fill="url(#emeraldBand2)"/>
+    <rect x="920" y="340" width="400" height="90" rx="20" fill="url(#emeraldBand3)"/>
+  </g>
+
+  <text x="830" y="613" font-size="30" fill="#faf9f4" font-weight="700" letter-spacing="2">INFORMATION</text>
+  <text x="890" y="503" font-size="30" fill="#faf9f4" font-weight="700" letter-spacing="2">FRAMEWORK</text>
+  <text x="950" y="393" font-size="30" fill="#101914" font-weight="700" letter-spacing="2">CLARITY</text>
+
+  <!-- connecting gold thread rising through the stack -->
+  <path d="M1120 640 C 1150 560, 1080 520, 1120 460 C 1150 410, 1090 380, 1120 320"
+        stroke="#a16207" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.75"/>
+  <circle cx="1120" cy="640" r="7" fill="#a16207"/>
+  <circle cx="1120" cy="460" r="7" fill="#a16207"/>
+  <circle cx="1120" cy="320" r="7" fill="#a16207"/>
+
+  <!-- small lightbulb / clarity mark above the top band -->
+  <g transform="translate(1300,300)">
+    <circle cx="0" cy="0" r="46" fill="#fdf6e0" stroke="#a16207" stroke-width="3"/>
+    <path d="M-14 -6 C -14 -20, 14 -20, 14 -6 C 14 4, 4 6, 4 16 L -4 16 C -4 6, -14 4, -14 -6 Z"
+          fill="none" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>
+    <line x1="-6" y1="20" x2="6" y2="20" stroke="#a16207" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <text x="800" y="250" font-size="40" fill="#101914" font-weight="700">Mental models, not tool lists</text>
+  <text x="800" y="290" font-size="20" fill="#4a5750">One durable framework beats a dozen disconnected shortcuts.</text>
+</svg>

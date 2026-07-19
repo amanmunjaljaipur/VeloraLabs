@@ -22,7 +22,7 @@ export default async function NewsletterArchivePage() {
       <PageHeader
         breadcrumbs={breadcrumbs}
         title="Newsletter archive"
-        subtitle="Browse every published weekly edition — organized by Sunday week in India Standard Time."
+        subtitle="Browse every published weekly edition - organized by Sunday week in India Standard Time."
         compact
       />
       <section className="pb-16 md:pb-24">

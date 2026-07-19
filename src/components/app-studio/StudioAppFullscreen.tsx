@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Full-viewport product screen — hides admin chrome so you see the app alone.
+ * Full-viewport product screen - hides admin chrome so you see the app alone.
  */
 
 import { StudioVerlinPreview } from "@/components/app-studio/StudioVerlinPreview";
@@ -46,7 +46,7 @@ export function StudioAppFullscreen({
       aria-modal="true"
       aria-label={`${content.brandName} full app view`}
     >
-      {/* Viewer chrome — not part of the product */}
+      {/* Viewer chrome - not part of the product */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-navy px-3 py-2 text-white md:px-4">
         <div className="flex min-w-0 items-center gap-2">
           <Maximize2 className="h-4 w-4 shrink-0 opacity-80" />

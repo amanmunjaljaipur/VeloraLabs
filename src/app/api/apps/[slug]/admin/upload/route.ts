@@ -47,7 +47,7 @@ export async function POST(request: Request, context: Ctx) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
-  // Strict MIME allow-list only (no image/* open-ended — blocks image/svg+xml)
+  // Strict MIME allow-list only (no image/* open-ended - blocks image/svg+xml)
   if (!isAllowedImageMime(file.type)) {
     return NextResponse.json(
       { error: "Only JPG, PNG, WebP, or GIF images are allowed" },

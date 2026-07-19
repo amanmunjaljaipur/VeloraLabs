@@ -13,7 +13,7 @@ const CONTACT_FAQS = [
   {
     question: "How quickly will I get a reply?",
     answer:
-      "We aim to respond within 24–48 hours on business days. Urgent free-session scheduling questions are usually faster — often the same day.",
+      "We aim to respond within 24–48 hours on business days. Urgent free-session scheduling questions are usually faster - often the same day.",
     category: "Contact",
   },
   {
@@ -26,7 +26,7 @@ const CONTACT_FAQS = [
   {
     question: "Do you offer corporate or team training?",
     answer:
-      "Yes. We run clarity-first workshops for teams — tailored examples, live Q&A, and follow-up resources. Mention your team size and goals in the contact form.",
+      "Yes. We run clarity-first workshops for teams - tailored examples, live Q&A, and follow-up resources. Mention your team size and goals in the contact form.",
     category: "Contact",
     links: [{ label: "Contact us", href: "/contact" }],
   },
@@ -39,13 +39,13 @@ const CONTACT_FAQS = [
   {
     question: "Will you try to sell me a paid program?",
     answer:
-      "No pressure. We'll answer your question honestly. Paid enrollment is discussed only if it's genuinely relevant to your goals — many people use only the free session and library resources.",
+      "No pressure. We will answer your question honestly. Paid enrollment is discussed only if it is genuinely relevant to your goals - many people use only the free session and library resources.",
     category: "Contact",
   },
   {
     question: "What should I include in my message?",
     answer:
-      "Your background, what you're trying to learn or solve, team size (if applicable), and any timeline. The more context you share, the more useful our reply will be.",
+      "Your background, what you are trying to learn or solve, team size (if applicable), and any timeline. The more context you share, the more useful our reply will be.",
     category: "Contact",
     links: [{ label: "Contact form", href: "/contact" }],
   },
@@ -99,7 +99,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
 
   add({
     question: "What is Verlin Labs?",
-    answer: `${site.name} — ${site.description}`,
+    answer: `${site.name} - ${site.description}`,
     category: "General",
     links: [{ label: "About Verlin Labs", href: "/about" }],
     extraKeywords: ["verlin", "labs", "company", "platform", "who", "what"],
@@ -108,7 +108,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
   add({
     question: "How do I book the free session?",
     answer:
-      "Visit the Free Session page, pick a time slot on the calendar, and confirm your booking. You'll get an immediate confirmation and calendar invite by email. No credit card required.",
+      "Visit the Free Session page, pick a time slot on the calendar, and confirm your booking. You will get an immediate confirmation and calendar invite by email. No credit card required.",
     category: "Free Session",
     links: [{ label: "Book free session", href: "/free-session" }],
     extraKeywords: ["book", "schedule", "reserve", "signup", "sign up", "register"],
@@ -133,7 +133,7 @@ export function collectLegacyKnowledgeEntries(): KnowledgeEntry[] {
   add({
     question: "What is a mental model?",
     answer:
-      "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems — so new topics feel familiar instead of overwhelming.",
+      "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems - so new topics feel familiar instead of overwhelming.",
     category: "Learning",
     links: [{ label: "Mental Models", href: "/mental-models" }],
     extraKeywords: ["framework", "structure", "understand", "mental", "model"],

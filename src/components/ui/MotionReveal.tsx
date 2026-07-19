@@ -1,7 +1,6 @@
 "use client";
 
 import { DURATION, EASE_OUT, REVEAL } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 
 interface MotionRevealProps extends HTMLMotionProps<"div"> {
@@ -9,6 +8,10 @@ interface MotionRevealProps extends HTMLMotionProps<"div"> {
   y?: number;
 }
 
+/**
+ * Scroll reveal - ui-ux-pro-max "Scroll Reveal / Subtle":
+ * opacity + small y (8–16px), ~350ms, ease-out, once in view.
+ */
 export function MotionReveal({
   children,
   className,
@@ -22,7 +25,7 @@ export function MotionReveal({
     <motion.div
       initial={reduceMotion ? false : { opacity: REVEAL.opacity, y }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-48px" }}
+      viewport={{ once: true, margin: "-10% 0px" }}
       transition={{ duration: DURATION.reveal, delay, ease: EASE_OUT }}
       className={className}
       {...props}
@@ -47,10 +50,15 @@ export function MotionStagger({
     <motion.div
       initial={reduceMotion ? false : "hidden"}
       whileInView={reduceMotion ? undefined : "visible"}
-      viewport={{ once: true, margin: "-40px" }}
+      viewport={{ once: true, margin: "-8% 0px" }}
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: stagger } },
+        visible: {
+          transition: {
+            staggerChildren: reduceMotion ? 0 : stagger,
+            delayChildren: reduceMotion ? 0 : 0.04,
+          },
+        },
       }}
       className={className}
     >
@@ -74,7 +82,7 @@ export function MotionStaggerItem({
         reduceMotion
           ? undefined
           : {
-              hidden: { opacity: 0, y: REVEAL.y },
+              hidden: { opacity: 0, y: 12 },
               visible: {
                 opacity: 1,
                 y: 0,

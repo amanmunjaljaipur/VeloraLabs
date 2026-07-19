@@ -98,7 +98,7 @@ function legacyToTraining(legacy: KnowledgeEntry): TrainingEntryInput {
 
 /**
  * Enrich existing dataset rows that have few/no alternate questions.
- * Safe to run repeatedly — does not wipe admin edits to answers.
+ * Safe to run repeatedly - does not wipe admin edits to answers.
  */
 export function enrichTrainingDatasetAlternates(dataset: TrainingDataset): {
   dataset: TrainingDataset;

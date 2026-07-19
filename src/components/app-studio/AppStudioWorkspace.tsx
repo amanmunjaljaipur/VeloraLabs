@@ -43,7 +43,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** Verified multi-role product prompts (research + expand must produce working apps). */
 const EXAMPLE_PROMPTS = [
-  "Digital banking for India: savings, UPI transfers, freeze cards — roles customer, support, ops",
+  "Digital banking for India: savings, UPI transfers, freeze cards - roles customer, support, ops",
   "Yoga studio booking: members book classes, instructors see roster, owner manages bookings",
   "ResumeLift career tool: job seekers build resumes + LinkedIn checklist; coaches review",
   "Team expense tracker: employees submit claims, managers approve or reject on a board",
@@ -87,7 +87,7 @@ export function AppStudioWorkspace() {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [splitPct, setSplitPct] = useState(38);
   const dragRef = useRef<{ startX: number; startPct: number } | null>(null);
-  /** Session-only — never sent to disk */
+  /** Session-only - never sent to disk */
   const [showKeyPanel, setShowKeyPanel] = useState(false);
   // Groq is platform default (server uses hardcoded/env key; UI key optional override)
   const [aiProvider, setAiProvider] = useState<"gemini" | "groq" | "xai" | "anthropic" | "openai">(
@@ -98,6 +98,243 @@ export function AppStudioWorkspace() {
   const [previewKey, setPreviewKey] = useState(0);
   const [fullScreen, setFullScreen] = useState(false);
   const lastPromptRef = useRef("");
+
+  // PM Guided Setup Wizard State
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [selectedCatSlug, setSelectedCatSlug] = useState("");
+  const [wizardBrandName, setWizardBrandName] = useState("");
+  const [wizardTagline, setWizardTagline] = useState("");
+  const [wizardDescription, setWizardDescription] = useState("");
+  const [wizardPrimaryColor, setWizardPrimaryColor] = useState("#0f2744");
+  const [wizardAccentColor, setWizardAccentColor] = useState("#0d9488");
+  const [wizardRoles, setWizardRoles] = useState<
+    Array<{
+      id: string;
+      label: string;
+      description: string;
+      canCreate: boolean;
+      canManage: boolean;
+      screenIds: string[];
+    }>
+  >([]);
+
+  function matchCategory(text: string, cats: any[]) {
+    if (!text.trim()) return null;
+    const words = text.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+    let bestScore = -1;
+    let bestCat = null;
+    for (const cat of cats) {
+      let score = 0;
+      const targets = [
+        (cat.name || "").toLowerCase(),
+        (cat.brandName || "").toLowerCase(),
+        (cat.tagline || "").toLowerCase(),
+        (cat.description || "").toLowerCase(),
+        (cat.slug || "").toLowerCase(),
+      ];
+      for (const word of words) {
+        for (const t of targets) {
+          if (t.includes(word)) score += 1;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestCat = cat;
+      }
+    }
+    return bestCat;
+  }
+
+  async function openGuidedSetup() {
+    if (!prompt.trim()) {
+      toast("Please write a short prompt description of your app idea first!", "error");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/demo-apps");
+      if (res.ok) {
+        const data = await res.json();
+        const cats = data.categories || [];
+        setAllCategories(cats);
+
+        const matched = matchCategory(prompt, cats) || cats[0];
+        if (matched) {
+          setSelectedCatSlug(matched.slug);
+          setWizardBrandName(matched.brandName || "My App");
+          setWizardTagline(matched.tagline || "");
+          setWizardDescription(matched.description || "");
+          setWizardPrimaryColor(matched.primaryColor || "#0f2744");
+          setWizardAccentColor(matched.accentColor || "#0d9488");
+          setWizardRoles(
+            (matched.roles || []).map((r: any) => ({
+              id: r.id,
+              label: r.label,
+              description: r.description,
+              canCreate: r.canCreate !== false,
+              canManage: Boolean(r.canManage),
+              screenIds: (matched.screens || []).map((s: any) => s.id),
+            }))
+          );
+        }
+        setShowWizard(true);
+        setWizardStep(1);
+      } else {
+        toast("Failed to load benchmark app categories.", "error");
+      }
+    } catch (err) {
+      toast("Error initializing Guided Setup.", "error");
+    }
+  }
+
+  function handleSelectCategory(slug: string) {
+    const matched = allCategories.find((c) => c.slug === slug);
+    if (!matched) return;
+    setSelectedCatSlug(slug);
+    setWizardBrandName(matched.brandName || "My App");
+    setWizardTagline(matched.tagline || "");
+    setWizardDescription(matched.description || "");
+    setWizardPrimaryColor(matched.primaryColor || "#0f2744");
+    setWizardAccentColor(matched.accentColor || "#0d9488");
+    setWizardRoles(
+      (matched.roles || []).map((r: any) => ({
+        id: r.id,
+        label: r.label,
+        description: r.description,
+        canCreate: r.canCreate !== false,
+        canManage: Boolean(r.canManage),
+        screenIds: (matched.screens || []).map((s: any) => s.id),
+      }))
+    );
+  }
+
+  function updateWizardRoleField(idx: number, field: string, value: any) {
+    setWizardRoles((prev) => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], [field]: value };
+      return next;
+    });
+  }
+
+  function handleToggleScreenForRole(roleIdx: number, screenId: string) {
+    setWizardRoles((prev) => {
+      const next = [...prev];
+      const currentIds = next[roleIdx].screenIds;
+      if (currentIds.includes(screenId)) {
+        next[roleIdx] = {
+          ...next[roleIdx],
+          screenIds: currentIds.filter((id) => id !== screenId),
+        };
+      } else {
+        next[roleIdx] = {
+          ...next[roleIdx],
+          screenIds: [...currentIds, screenId],
+        };
+      }
+      return next;
+    });
+  }
+
+  function addCustomRole() {
+    const activeCat = allCategories.find((c) => c.slug === selectedCatSlug);
+    const screenIds = activeCat ? activeCat.screens.map((s: any) => s.id) : [];
+    setWizardRoles((prev) => [
+      ...prev,
+      {
+        id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        label: "Custom Visitor",
+        description: "Custom user role with defined page permissions",
+        canCreate: false,
+        canManage: false,
+        screenIds,
+      },
+    ]);
+  }
+
+  function removeWizardRole(idx: number) {
+    setWizardRoles((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handleBuildWizardApp() {
+    const activeCat = allCategories.find((c) => c.slug === selectedCatSlug);
+    if (!activeCat) return;
+
+    setBusy(true);
+    setShowWizard(false);
+    setPhase("Assembling custom roles and screen configurations...");
+
+    const customAppSpec = {
+      ...activeCat,
+      brandName: wizardBrandName,
+      tagline: wizardTagline,
+      description: wizardDescription,
+      primaryColor: wizardPrimaryColor,
+      accentColor: wizardAccentColor,
+      roles: wizardRoles.map((r) => ({
+        id: r.id,
+        label: r.label,
+        description: r.description,
+        canCreate: r.canCreate,
+        canManage: r.canManage,
+      })),
+      modules: activeCat.screens.map((screen: any) => {
+        const allowedRoles = wizardRoles
+          .filter((r) => r.screenIds.includes(screen.id))
+          .map((r) => r.id);
+        return {
+          ...screen,
+          roleIds: allowedRoles,
+        };
+      }),
+      screens: activeCat.screens.map((screen: any) => {
+        const allowedRoles = wizardRoles
+          .filter((r) => r.screenIds.includes(screen.id))
+          .map((r) => r.id);
+        return {
+          ...screen,
+          roleIds: allowedRoles,
+        };
+      }),
+    };
+
+    setAppSpec(customAppSpec);
+
+    try {
+      setPhase("Forging app tenant and templates...");
+      const publishRes = await fetch("/api/app-studio/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `Guided Forge: ${wizardBrandName} (from template ${selectedCatSlug})`,
+          appSpec: customAppSpec,
+          brandName: wizardBrandName,
+          status: "live",
+          slug: wizardBrandName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          ...aiAuth(),
+        }),
+      });
+
+      if (!publishRes.ok) {
+        const errData = await publishRes.json();
+        throw new Error(errData.error || "Failed to publish custom spec app.");
+      }
+
+      const resData = await publishRes.json();
+      setAppSpec(resData.appSpec);
+      setResearch(resData.research);
+      setVerlinContent(resData.content);
+      setCanvasTab("verlin");
+      setFullScreen(true);
+
+      toast(`Success! Created app ${wizardBrandName} at /apps/${resData.project.slug}`, "success");
+      void loadMyApps();
+    } catch (err: any) {
+      toast(err.message || "Failed to generate wizard app", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const paths = useMemo(() => listFilePaths(files), [files]);
   const spFiles = useMemo(() => toSandpackReactTsFiles(files), [files]);
@@ -227,7 +464,7 @@ export function AppStudioWorkspace() {
               role: "assistant",
               content:
                 expandData.error ||
-                "Failed to design roles & workflows. Try again — heuristics still work without a key.",
+                "Failed to design roles & workflows. Try again - heuristics still work without a key.",
               createdAt: new Date().toISOString(),
             },
           ]);
@@ -241,7 +478,7 @@ export function AppStudioWorkspace() {
       if (nextResearch) setResearch(nextResearch);
       setCanvasTab("verlin");
       setImageDataUrl(null);
-      // Working multi-role app first — never wait on sandbox code gen
+      // Working multi-role app first - never wait on sandbox code gen
       setFullScreen(true);
       pushVersion("Working multi-role app", files, userText.trim(), nextSpec);
 
@@ -265,7 +502,7 @@ export function AppStudioWorkspace() {
       });
       setVerlinContent(content);
 
-      const roleList = nextSpec.roles.map((r) => `• **${r.label}** — ${r.description}`).join("\n");
+      const roleList = nextSpec.roles.map((r) => `• **${r.label}** - ${r.description}`).join("\n");
       const wfList = nextSpec.workflows
         .map((w) => `• **${w.name}** (${w.roleId}): ${w.steps.join(" → ")}`)
         .join("\n");
@@ -279,9 +516,9 @@ export function AppStudioWorkspace() {
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast("Working multi-role app ready — try every role top-right", "success");
+      toast("Working multi-role app ready - try every role top-right", "success");
 
-      // 2) Optional sandbox code — background only; working app already live
+      // 2) Optional sandbox code - background only; working app already live
       setPhase("Working app ready · optional sandbox code in background…");
       void (async () => {
         try {
@@ -367,7 +604,7 @@ export function AppStudioWorkspace() {
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast("Published — link ready to share", "success");
+      toast("Published - link ready to share", "success");
       void loadMyApps();
     } catch {
       toast("Publish failed", "error");
@@ -552,7 +789,7 @@ export function AppStudioWorkspace() {
                 type="password"
                 value={aiKey}
                 onChange={(e) => setAiKey(e.target.value)}
-                placeholder="Paste key — not stored"
+                placeholder="Paste key - not stored"
                 className="rounded-lg border border-border bg-background px-2 py-1.5 font-mono"
                 autoComplete="off"
               />
@@ -596,7 +833,7 @@ export function AppStudioWorkspace() {
               <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                 <p className="font-medium text-foreground">What product should we build?</p>
                 <p className="mt-1 text-xs">
-                  We rewrite your idea into roles, screens, and workflows — then open a real interactive app
+                  We rewrite your idea into roles, screens, and workflows - then open a real interactive app
                   (role selector top-right). Not a marketing page.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -704,17 +941,29 @@ export function AppStudioWorkspace() {
                   <ImagePlus className="h-3.5 w-3.5" /> Image
                 </Button>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="cta"
-                loading={busy}
-                disabled={!prompt.trim()}
-                onClick={() => void runGenerate(prompt)}
-              >
-                <Send className="h-3.5 w-3.5" />
-                {versions.length ? "Update" : "Build"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={!prompt.trim() || busy}
+                  onClick={() => void openGuidedSetup()}
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-accent-teal" />
+                  Guided App Forge
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="cta"
+                  loading={busy}
+                  disabled={!prompt.trim()}
+                  onClick={() => void runGenerate(prompt)}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  {versions.length ? "Update" : "Build"}
+                </Button>
+              </div>
             </div>
             <p className="text-[10px] text-muted-foreground">⌘/Ctrl + Enter to send</p>
           </div>
@@ -797,7 +1046,7 @@ export function AppStudioWorkspace() {
                   <LayoutTemplate className="mb-3 h-10 w-10 opacity-40" />
                   <p className="font-medium text-foreground">Interactive multi-role product</p>
                   <p className="mt-1 max-w-sm">
-                    Click <strong>Build</strong> — we rewrite your prompt into roles, workflows, and
+                    Click <strong>Build</strong> - we rewrite your prompt into roles, workflows, and
                     screens with seed data. Use the <strong>role selector (top right)</strong> to try
                     every user path.
                   </p>
@@ -969,6 +1218,269 @@ export function AppStudioWorkspace() {
               fullScreen
               className="h-full min-h-0 flex-1 overflow-hidden"
             />
+          </div>
+        </div>
+      )}
+
+      {showWizard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="flex h-full max-h-[640px] w-full max-w-2xl flex-col rounded-2xl border border-border bg-card shadow-2xl text-foreground">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <div>
+                <h2 className="text-lg font-semibold text-accent-teal">Guided App Forge</h2>
+                <p className="text-xs text-muted-foreground">Product Manager wizard step {wizardStep} of 3</p>
+              </div>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold"
+                onClick={() => setShowWizard(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              {/* Step 1: Mapping & Category */}
+              {wizardStep === 1 && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-accent-teal/30 bg-accent-teal/5 p-4 space-y-2">
+                    <p className="text-sm font-semibold text-accent-teal">💡 Mapped Benchmark Model</p>
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      We analyzed your prompt idea and automatically mapped it to the closest matching benchmark app template:
+                    </p>
+                    {allCategories.find((c) => c.slug === selectedCatSlug) && (
+                      <p className="text-xs font-bold text-foreground">
+                        Matched: {allCategories.find((c) => c.slug === selectedCatSlug).groupLabel} → {allCategories.find((c) => c.slug === selectedCatSlug).name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-secondary uppercase">Change Mapped Benchmark App Template</label>
+                    <select
+                      value={selectedCatSlug}
+                      onChange={(e) => handleSelectCategory(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent-teal"
+                    >
+                      {allCategories.map((cat) => (
+                        <option key={cat.slug} value={cat.slug}>
+                          {cat.groupLabel} · {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-muted-foreground">
+                      This template serves as the foundation for your database entities, forms, and custom footers.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-secondary uppercase">App Name</label>
+                    <input
+                      value={wizardBrandName}
+                      onChange={(e) => setWizardBrandName(e.target.value)}
+                      placeholder="e.g. Acme Billing"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent-teal"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-secondary uppercase">Primary Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={wizardPrimaryColor}
+                          onChange={(e) => setWizardPrimaryColor(e.target.value)}
+                          className="h-9 w-9 rounded-lg border border-border cursor-pointer"
+                        />
+                        <input
+                          value={wizardPrimaryColor}
+                          onChange={(e) => setWizardPrimaryColor(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-2 text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-secondary uppercase">Accent Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={wizardAccentColor}
+                          onChange={(e) => setWizardAccentColor(e.target.value)}
+                          className="h-9 w-9 rounded-lg border border-border cursor-pointer"
+                        />
+                        <input
+                          value={wizardAccentColor}
+                          onChange={(e) => setWizardAccentColor(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-2 text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Roles and Powers */}
+              {wizardStep === 2 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">App Roles & User Powers</p>
+                      <p className="text-[11px] text-muted-foreground">Specify the powers of each role or add new custom ones.</p>
+                    </div>
+                    <Button type="button" size="sm" variant="secondary" onClick={addCustomRole}>
+                      + Add Custom Role
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {wizardRoles.map((role, idx) => {
+                      const activeCat = allCategories.find((c) => c.slug === selectedCatSlug);
+                      const screens = activeCat ? activeCat.screens || [] : [];
+                      return (
+                        <div key={role.id} className="rounded-xl border border-border bg-muted/20 p-4 space-y-3 relative">
+                          <button
+                            type="button"
+                            onClick={() => removeWizardRole(idx)}
+                            className="absolute top-2 right-3 text-red-500 hover:text-red-700 text-xs font-semibold"
+                          >
+                            Remove
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Role Name</label>
+                              <input
+                                value={role.label}
+                                onChange={(e) => updateWizardRoleField(idx, "label", e.target.value)}
+                                className="w-full rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Description</label>
+                              <input
+                                value={role.description}
+                                onChange={(e) => updateWizardRoleField(idx, "description", e.target.value)}
+                                className="w-full rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={role.canCreate}
+                                onChange={(e) => updateWizardRoleField(idx, "canCreate", e.target.checked)}
+                                className="rounded border-border bg-background text-accent-teal focus:ring-accent-teal/50"
+                              />
+                              Can Create Records
+                            </label>
+                            <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={role.canManage}
+                                onChange={(e) => updateWizardRoleField(idx, "canManage", e.target.checked)}
+                                className="rounded border-border bg-background text-accent-teal focus:ring-accent-teal/50"
+                              />
+                              Can Approve / Move Status
+                            </label>
+                          </div>
+
+                          {/* Allowed Screens */}
+                          <div className="space-y-1 pt-2 border-t border-border/40">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Allowed Pages / Screens:</span>
+                            <div className="flex flex-wrap gap-2">
+                              {screens.map((screen: any) => {
+                                const roleScreenIds = role.screenIds || [];
+                                const isAllowed = roleScreenIds.includes(screen.id);
+                                return (
+                                  <button
+                                    key={screen.id}
+                                    type="button"
+                                    onClick={() => handleToggleScreenForRole(idx, screen.id)}
+                                    className={cn(
+                                      "px-2 py-0.5 rounded-lg border text-[10px] transition-colors",
+                                      isAllowed
+                                        ? "bg-accent-teal/15 border-accent-teal/40 text-accent-teal"
+                                        : "bg-background border-border text-muted-foreground hover:bg-muted"
+                                    )}
+                                  >
+                                    {screen.title}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Optional metadata & finish */}
+              {wizardStep === 3 && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-secondary uppercase">Brand Tagline (Optional)</label>
+                    <input
+                      value={wizardTagline}
+                      onChange={(e) => setWizardTagline(e.target.value)}
+                      placeholder="e.g. Next generation project tool"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent-teal"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-secondary uppercase">Product Description (Optional)</label>
+                    <textarea
+                      value={wizardDescription}
+                      onChange={(e) => setWizardDescription(e.target.value)}
+                      rows={4}
+                      placeholder="e.g. Allow managers and visitors to collaborate."
+                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent-teal"
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-1">
+                    <p className="text-xs font-bold text-accent-teal">🚀 Ready to Assemble!</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      We will compile your database schema, setup navigation layout, assign role powers, and register the project inside Verlin Site CMS.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/10">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={wizardStep === 1}
+                onClick={() => setWizardStep((s) => s - 1)}
+              >
+                Back
+              </Button>
+
+              {wizardStep < 3 ? (
+                <Button type="button" variant="cta" onClick={() => setWizardStep((s) => s + 1)}>
+                  Next
+                </Button>
+              ) : (
+                <Button type="button" variant="cta" onClick={handleBuildWizardApp}>
+                  Assemble & Forge App
+                </Button>
+              )}
+            </div>
+
           </div>
         </div>
       )}

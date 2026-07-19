@@ -19,7 +19,7 @@ export function InstructorsSection({ compact = false, className }: InstructorsSe
         <SectionHeader
           eyebrow="About the instructors"
           title="Learn from Aman Munjal, founder of Verlin Labs"
-          subtitle="Live instruction, curriculum design, and corporate workshops — one educator across every track."
+          subtitle="Live instruction, curriculum design, and corporate workshops - one educator across every track."
           className="mb-10 md:mb-12"
         />
 

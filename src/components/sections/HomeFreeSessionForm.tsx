@@ -9,11 +9,10 @@ import { mapHomepageRoleToAudience } from "@/lib/audience-map";
 import { submitForm } from "@/lib/submit-to-sheets";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-import { SITE_IMAGE_ALT } from "@/lib/image-alt";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 import { useState } from "react";
 
+/** Copy left + form right (original two-column structure). */
 export function HomeFreeSessionForm() {
   const { toast } = useToast();
   const [name, setName] = useState("");
@@ -53,64 +52,57 @@ export function HomeFreeSessionForm() {
   };
 
   return (
-    <section id="free-session-form" className="py-16 md:py-24 scroll-mt-20">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground">
-              Start with a free 2-hour session
-            </h2>
-            <p className="mt-4 text-lg text-text-secondary leading-relaxed">
-              Experience clarity-first teaching live — mental models, hands-on exercises, and a
+    <section
+      id="free-session-form"
+      className="section-y scroll-mt-20 border-y border-border bg-[var(--bg-light)]"
+    >
+      <div className="container-verlin">
+        <div className="grid-editorial items-start gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
+          <div className="min-w-0 max-w-xl text-left">
+            <p className="section-eyebrow">Free intro</p>
+            <h2 className="section-title">Start with a free 2-hour session</h2>
+            <p className="section-subtitle mt-4 max-w-none">
+              Experience clarity-first teaching live - mental models, hands-on exercises, and a
               personalized path forward. No sales pitch.
             </p>
-            <ul className="mt-6 space-y-3 text-sm text-foreground">
+            <ul className="mt-6 space-y-3 text-sm text-text-secondary">
               {[
                 "Tailored to students, engineers, or product managers",
                 "Live Q&A with real instructors",
                 "Leave with frameworks you can reuse immediately",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2.5">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal" aria-hidden />
                   {item}
                 </li>
               ))}
             </ul>
-            <div className="relative mt-8 hidden aspect-[16/10] overflow-hidden rounded-2xl border border-border sm:block lg:max-w-md">
-              <OptimizedImage
-                src="/images/workshop.jpg"
-                alt={SITE_IMAGE_ALT.homeFreeSession}
-                fill
-                className="object-cover"
-                sizes="400px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-deep-teal/50 to-transparent" />
-            </div>
           </div>
 
           <motion.div
+            className="min-w-0 w-full"
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.45 }}
+            viewport={{ once: true, margin: "-8% 0px" }}
+            transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Card className="border-teal/20 shadow-md">
+            <Card className="border-border shadow-sm">
               {success ? (
                 <div className="py-8 text-center">
-                  <CheckCircle2 className="mx-auto h-12 w-12 text-teal" />
-                  <h3 className="mt-4 text-xl font-semibold text-foreground">You&apos;re on the list!</h3>
-                  <p className="mt-2 text-sm text-text-secondary">
+                  <CheckCircle2 className="mx-auto h-10 w-10 text-teal" aria-hidden />
+                  <h3 className="card-title mt-4 text-lg">You&apos;re on the list</h3>
+                  <p className="card-body mt-2">
                     We&apos;ll reach out shortly with available session times. Or book directly now.
                   </p>
                   <Link href="/free-session" className="mt-6 inline-block">
-                    <Button>Book your session</Button>
+                    <Button variant="cta">Book your session</Button>
                   </Link>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <h3 className="text-lg font-semibold text-foreground">Request your free session</h3>
+                <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                  <h3 className="card-title text-lg">Request your free session</h3>
                   <Input
-                    label="Full Name"
+                    label="Full name"
                     placeholder="Your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -125,7 +117,7 @@ export function HomeFreeSessionForm() {
                     required
                   />
                   <Select
-                    label="Your Role"
+                    label="Your role"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                     required
@@ -138,7 +130,7 @@ export function HomeFreeSessionForm() {
                     ]}
                   />
                   <Select
-                    label="Preferred Time"
+                    label="Preferred time"
                     value={preferredTime}
                     onChange={(e) => setPreferredTime(e.target.value)}
                     required
@@ -150,12 +142,18 @@ export function HomeFreeSessionForm() {
                       { value: "Weekend afternoon", label: "Weekend afternoon" },
                     ]}
                   />
-                  <Button type="submit" size="lg" className="w-full" loading={submitting}>
-                    Start Free 2-Hour Session
+                  <Button
+                    type="submit"
+                    size="lg"
+                    variant="cta"
+                    className="w-full"
+                    loading={submitting}
+                  >
+                    Start free 2-hour session
                   </Button>
-                  <p className="text-center text-xs text-text-secondary">
+                  <p className="text-center text-xs text-text-muted">
                     Prefer to pick a date now?{" "}
-                    <Link href="/free-session" className="text-teal hover:underline">
+                    <Link href="/free-session" className="link-hover font-medium">
                       Book with calendar →
                     </Link>
                   </p>

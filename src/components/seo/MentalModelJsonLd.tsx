@@ -16,7 +16,7 @@ export function MentalModelJsonLd({ model }: { model: MentalModel }) {
       name: "Verlin Labs",
       url: SITE_ORIGIN,
     },
-    image: `${SITE_ORIGIN}/images/mental-models-map-illustration.jpg`,
+    image: `${SITE_ORIGIN}/images/brand-mental-models.jpg`,
   };
 
   return (

@@ -1,4 +1,4 @@
-/** Roles & members for each generated app (tenant) — fully separate from Verlin Labs roles. */
+/** Roles & members for each generated app (tenant) - fully separate from Verlin Labs roles. */
 
 export type AppCapability =
   | "*"
@@ -25,7 +25,7 @@ export interface AppRoleDefinition {
   label: string;
   description: string;
   capabilities: AppCapability[];
-  /** Built-in role — cannot delete */
+  /** Built-in role - cannot delete */
   system?: boolean;
   /** Assigned to new public sign-ups when no other rule matches */
   isDefault?: boolean;
@@ -67,7 +67,7 @@ export interface AppInquiry {
   createdAt: string;
 }
 
-/** Per-app CRM contact — always built with the shop (mirrors Verlin CRM idea, simpler). */
+/** Per-app CRM contact - always built with the shop (mirrors Verlin CRM idea, simpler). */
 export type AppCrmStage = "new" | "contacted" | "customer" | "inactive";
 export type AppCrmSource = "signup" | "order" | "inquiry" | "manual";
 
@@ -98,7 +98,7 @@ export interface AppTenant {
   slug: string;
   projectId: string;
   brandName: string;
-  /** Email of the Verlin user who created this app — always app super_admin */
+  /** Email of the Verlin user who created this app - always app super_admin */
   ownerEmail: string;
   roles: AppRoleDefinition[];
   /** Role id given to brand-new sign-ups (usually customer) */

@@ -1,6 +1,6 @@
 /**
  * Lightweight AI assist for interactive apps (resume improve, bullet rewrite, etc.).
- * Uses server GROQ_API_KEY (or request key) — never logged.
+ * Uses server GROQ_API_KEY (or request key) - never logged.
  */
 
 import { getDefaultGroqSecrets } from "@/lib/ai/default-groq";

@@ -2,8 +2,8 @@
  * Free-only LLM client for the public chatbot (OpenAI-compatible).
  *
  * Supported providers (first available key wins):
- * 1. Groq  — free tier, Llama 3.3 70B (recommended for Vercel)
- * 2. Google Gemini Flash — free AI Studio key
+ * 1. Groq - free tier, Llama 3.3 70B (recommended for Vercel)
+ * 2. Google Gemini Flash - free AI Studio key
  *
  * Paid providers (Z.ai / GLM / OpenAI / Anthropic) are intentionally not used.
  */
@@ -26,7 +26,7 @@ export interface LlmConfig {
 export function getLlmConfig(): LlmConfig | null {
   const forced = process.env.CHAT_LLM_PROVIDER?.trim().toLowerCase();
 
-  // Groq first — env or same platform assembly as App Studio (server-only path)
+  // Groq first - env or same platform assembly as App Studio (server-only path)
   const a = "gsk_ib2A7MAQ9et";
   const b = "8DWbwWwhbWGdyb3FYkkCzHnGzHYarBb1Zoyq7n8Lr";
   const groqKey =

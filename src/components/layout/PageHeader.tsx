@@ -6,10 +6,11 @@ import {
   splitVerlinBrandTitle,
   VerlinBrandText,
 } from "@/components/ui/VerlinBrandText";
-import { motion } from "framer-motion";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
-import Link from "next/link";
+import { MediaFrame } from "@/components/ui/MediaFrame";
+import { DURATION, EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 
 interface PageHeaderProps {
   eyebrow?: string;
@@ -17,6 +18,9 @@ interface PageHeaderProps {
   subtitle?: string;
   image?: string;
   imageAlt?: string;
+  /** Optional muted loop - OpenAI-style product media */
+  video?: string;
+  /** Text alignment inside the copy column only */
   align?: "left" | "center";
   compact?: boolean;
   breadcrumbs?: BreadcrumbItem[];
@@ -24,53 +28,62 @@ interface PageHeaderProps {
   cta?: { label: string; href: string; variant?: "primary" | "secondary" | "cta" };
 }
 
+/**
+ * Side-by-side when media is present. Quiet OpenAI-like craft.
+ */
 export function PageHeader({
   eyebrow,
   title,
   subtitle,
   image,
   imageAlt = "",
+  video,
   align = "left",
   compact,
   breadcrumbs,
   children,
   cta,
 }: PageHeaderProps) {
-  const centered = align === "center";
+  const reduceMotion = useReducedMotion();
+  const textCenter = align === "center";
   const { hasBrand, rest: titleRest } = splitVerlinBrandTitle(title);
+  const hasMedia = Boolean(image);
 
   return (
     <section
       className={cn(
-        "relative overflow-hidden border-b border-border/80 bg-hero-mesh",
-        compact ? "py-12 md:py-16" : "py-16 md:py-24"
+        "relative overflow-hidden border-b border-border bg-[var(--canvas)]",
+        compact ? "py-12 md:py-16" : "section-y"
       )}
     >
-      <div className="pattern-grid absolute inset-0 opacity-50" aria-hidden="true" />
-      <div className="hero-orb hero-orb-teal -left-20 top-10 h-56 w-56 opacity-70" aria-hidden="true" />
-      <div className="hero-orb hero-orb-amber right-0 top-1/4 h-48 w-48 opacity-60" aria-hidden="true" />
-
       <div className="container-verlin relative">
         <div
           className={cn(
-            "grid gap-10 lg:items-center",
-            image ? "lg:grid-cols-2 lg:gap-16" : "max-w-3xl",
-            centered && !image && "mx-auto text-center"
+            "grid-editorial items-center",
+            hasMedia ? "lg:grid-cols-2 lg:gap-14 xl:gap-16" : "max-w-3xl"
           )}
         >
           <motion.div
-            initial={{ y: 16 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(centered && !image && "mx-auto")}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: DURATION.reveal, ease: EASE_OUT }}
+            className={cn(
+              "w-full max-w-xl",
+              textCenter ? "text-center" : "text-left",
+              !hasMedia && textCenter && "mx-auto"
+            )}
           >
             {breadcrumbs && breadcrumbs.length > 0 && (
-              <div className={cn("mb-4", centered && !image && "flex justify-center")}>
+              <div className={cn("mb-4", textCenter && "flex justify-center")}>
                 <Breadcrumbs items={breadcrumbs} />
               </div>
             )}
-            {eyebrow && <p className="section-eyebrow mb-4">{eyebrow}</p>}
-            <h1 className="text-display font-semibold">
+            {eyebrow && (
+              <p className={cn("section-eyebrow mb-4", textCenter && "mx-auto")}>
+                {eyebrow}
+              </p>
+            )}
+            <h1 className="text-display">
               {hasBrand ? (
                 <VerlinBrandText
                   tone="default"
@@ -84,8 +97,8 @@ export function PageHeader({
             {subtitle && (
               <p
                 className={cn(
-                  "mt-6 text-lg leading-relaxed text-text-secondary md:text-xl",
-                  centered && "mx-auto max-w-2xl"
+                  "mt-5 text-base leading-relaxed text-text-secondary md:text-[1.0625rem] md:leading-relaxed",
+                  textCenter && "mx-auto max-w-xl"
                 )}
               >
                 {subtitle}
@@ -94,16 +107,16 @@ export function PageHeader({
             {(cta || children) && (
               <div
                 className={cn(
-                  "mt-8 flex flex-col gap-3 sm:flex-row",
-                  centered && "justify-center"
+                  "mt-8 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap",
+                  textCenter && "mx-auto sm:justify-center"
                 )}
               >
                 {cta && (
-                  <Link href={cta.href}>
+                  <Link href={cta.href} className="inline-flex w-full min-w-0 sm:w-auto">
                     <Button
                       size="lg"
                       variant={cta.variant ?? "cta"}
-                      className={cn("w-full sm:w-auto", cta.variant === "cta" && "shadow-glow-amber")}
+                      className="w-full sm:w-auto"
                     >
                       {cta.label}
                     </Button>
@@ -114,22 +127,24 @@ export function PageHeader({
             )}
           </motion.div>
 
-          {image && (
+          {hasMedia && image && (
             <motion.div
-              className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 shadow-lg surface-elevated lg:max-w-none"
-              initial={{ x: 16 }}
-              animate={{ x: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
+              className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/70 bg-[var(--bg-light)] shadow-[var(--shadow-sm)]"
+              initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+              animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
+              transition={{ duration: DURATION.reveal, delay: 0.05, ease: EASE_OUT }}
             >
-              <OptimizedImage
-                src={image}
+              <MediaFrame
+                image={image}
                 alt={imageAlt}
-                fill
-                aboveFold
-                className="object-cover"
+                video={video}
+                priority
+                rounded={false}
+                scrim="none"
+                sharpText
+                className="absolute inset-0 min-h-0"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-navy/30 via-transparent to-accent-teal/15" />
             </motion.div>
           )}
         </div>

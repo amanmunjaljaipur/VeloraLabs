@@ -1,6 +1,6 @@
 /**
  * Industry-standard roles missing from thin category blueprints.
- * Merged by slug (preferred) or group defaults — production multi-sided markets need ≥4 roles.
+ * Merged by slug (preferred) or group defaults - production multi-sided markets need ≥4 roles.
  */
 
 import type { DemoCategoryDef } from "./types";
@@ -367,7 +367,7 @@ const SLUG_EXTRA_ROLES: Record<string, Role[]> = {
       canManage: true,
       canCreate: false,
     }),
-    r("support", "App support", "Account and export help — no health advice.", {
+    r("support", "App support", "Account and export help - no health advice.", {
       canManage: true,
     }),
   ],

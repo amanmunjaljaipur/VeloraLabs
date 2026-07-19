@@ -63,12 +63,12 @@ export async function publishStudioApp(input: {
     ],
     customPoints: [
       `App Studio publish`,
-      ...(input.appSpec?.roles || []).map((r) => `Role: ${r.label} — ${r.description}`),
+      ...(input.appSpec?.roles || []).map((r) => `Role: ${r.label} - ${r.description}`),
       ...(input.appSpec?.workflows || []).map(
-        (w) => `Workflow: ${w.name} — ${w.steps.join(" → ")}`
+        (w) => `Workflow: ${w.name} - ${w.steps.join(" → ")}`
       ),
       ...(input.research.competitors || []).map(
-        (c) => `Competitor: ${c.name} — ${c.takeaway}`
+        (c) => `Competitor: ${c.name} - ${c.takeaway}`
       ),
     ],
     llm: {

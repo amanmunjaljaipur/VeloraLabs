@@ -35,18 +35,18 @@ function escapeHtml(value: string): string {
 export function buildMentalModelTip(title: string, summary: string): string {
   const text = `${title} ${summary}`.toLowerCase();
   if (/\b(agent|autonom|tool|workflow)\b/.test(text)) {
-    return "Mental model: Feedback loops — ask what the system measures, who corrects errors, and where humans stay in the loop.";
+    return "Mental model: Feedback loops - ask what the system measures, who corrects errors, and where humans stay in the loop.";
   }
   if (/\b(model|llm|gpt|gemini|claude|reasoning)\b/.test(text)) {
-    return "Mental model: Compression lens — separate capability gains from marketing language; map claims to inputs, outputs, and failure modes.";
+    return "Mental model: Compression lens - separate capability gains from marketing language; map claims to inputs, outputs, and failure modes.";
   }
   if (/\b(safety|alignment|regulat|policy|ethic)\b/.test(text)) {
-    return "Mental model: Trade-off framing — every AI advance shifts speed, quality, cost, and risk; name which lever moved.";
+    return "Mental model: Trade-off framing - every AI advance shifts speed, quality, cost, and risk; name which lever moved.";
   }
   if (/\b(data|dataset|train|fine-tun)\b/.test(text)) {
-    return "Mental model: Information pipeline — trace where data enters, how it is filtered, and what biases survive into the product.";
+    return "Mental model: Information pipeline - trace where data enters, how it is filtered, and what biases survive into the product.";
   }
-  return "Mental model: Clarity-first — translate the headline into one decision your team or study plan should update this week.";
+  return "Mental model: Clarity-first - translate the headline into one decision your team or study plan should update this week.";
 }
 
 function storyCardHtml(story: NewsletterStory, index: number): string {
@@ -81,9 +81,9 @@ export function compileRichNewsletterDraft(
   const weekLabel = formatWeekLabel(getWeekOfSunday());
   const intro =
     options?.intro ??
-    "A clarity-first digest of the week's AI shifts — framed with mental models so students, engineers, and professionals can act, not just read.";
+    "A clarity-first digest of the week's AI shifts - framed with mental models so students, engineers, and professionals can act, not just read.";
 
-  const title = `Verlin Labs AI Weekly — ${weekLabel}`;
+  const title = `Verlin Labs AI Weekly - ${weekLabel}`;
   const cards = stories.map((story, i) => storyCardHtml(story, i + 1)).join("");
 
   const html = `

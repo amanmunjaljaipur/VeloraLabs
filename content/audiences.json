@@ -3,8 +3,8 @@
     "slug": "students",
     "title": "For School Students (Classes 6–12)",
     "shortTitle": "School Students",
-    "heroTitle": "Make AI and tech click — without the jargon",
-    "heroSubtitle": "An 8-day student-friendly program with fun analogies, safe AI tool use, and a hands-on showcase project.",
+    "heroTitle": "Make AI and tech click - without the jargon",
+    "heroSubtitle": "An 8-day program for Classes 6-12. We use everyday analogies, keep tool use safe and supervised, and end with a small project students can actually show their parents and teachers.",
     "tone": "friendly",
     "benefits": [
       "Understand AI concepts with everyday analogies",
@@ -24,8 +24,8 @@
     "slug": "engineers",
     "title": "For College Engineers",
     "shortTitle": "College Engineers",
-    "heroTitle": "Go beyond tutorials — build real understanding",
-    "heroSubtitle": "A 10-day intensive from LLM fundamentals to portfolio projects and interview prep.",
+    "heroTitle": "Go beyond tutorials - build real understanding",
+    "heroSubtitle": "A 10-day intensive for engineering students who want real intuition for how LLMs work - not just prompt recipes. You will leave with portfolio-ready projects and a clearer way to talk about AI systems in interviews.",
     "tone": "technical",
     "benefits": [
       "Connect theory to hands-on projects",
@@ -45,13 +45,13 @@
     "slug": "professionals",
     "title": "For Product Managers",
     "shortTitle": "Product Managers",
-    "heroTitle": "Master AI-powered product management — from discovery to MVP launch",
-    "heroSubtitle": "A 16-day program built for PMs who want to lead with AI tools, ship real products, and drive growth with confidence.",
+    "heroTitle": "Master AI-powered product management - from discovery to MVP launch",
+    "heroSubtitle": "A 16-day program for PMs who are tired of surface-level AI literacy. You will learn how to run better discovery with AI, evaluate tools without the hype, and ship small MVPs using current tools - including vibe coding workflows.",
     "tone": "executive",
     "benefits": [
       "Build an AI-first PM workflow with the right tool stack",
       "Run AI-powered discovery, PRDs, and roadmap planning",
-      "Ship a working MVP using vibe coding — no deep coding required",
+      "Ship a working MVP using vibe coding - no deep coding required",
       "Launch, measure, and present your product on Capstone Demo Day"
     ],
     "examples": [

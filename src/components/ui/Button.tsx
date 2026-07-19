@@ -20,24 +20,29 @@ export function buttonClassNames(
   size: ButtonSize = "md",
   className?: string
 ) {
+  /* Touch targets: md ≥44px, lg ≥48px (ui-ux-pro-max) */
   const sizes = {
-    sm: "h-9 px-4 text-sm",
-    md: "h-11 px-5 text-[0.9375rem] md:h-12 md:px-6",
-    lg: "h-12 px-7 text-base font-semibold md:h-14 md:px-8 md:text-lg",
+    sm: "h-9 min-h-9 px-4 text-sm",
+    md: "h-11 min-h-11 px-5 text-[0.9375rem] md:h-12 md:min-h-12 md:px-6",
+    lg: "h-12 min-h-12 px-7 text-base font-semibold md:h-14 md:min-h-14 md:px-8 md:text-lg",
   };
 
-  /* Prod conversion weight + Apple pill + Verlin colors */
+  /* OpenAI-inspired: soft primary black, quiet secondary, amber only for conversion.
+     --navy is a fixed dark ink (used by the footer/scrims too), so primary must
+     invert explicitly in dark mode - otherwise it's a near-black pill on a
+     near-black dark-mode page. */
   const variants = {
     primary:
-      "bg-navy text-white shadow-sm hover:bg-navy-muted focus-visible:ring-2 focus-visible:ring-accent-teal/40 focus-visible:ring-offset-2",
+      "bg-navy text-white shadow-none hover:bg-navy-muted dark:bg-white dark:text-navy dark:hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-navy/30 dark:focus-visible:ring-white/40 focus-visible:ring-offset-2",
     cta:
-      "bg-cta-amber text-navy font-bold shadow-sm hover:bg-cta-amber-hover hover:shadow-[var(--shadow-glow-amber)] focus-visible:ring-2 focus-visible:ring-cta-amber/50 focus-visible:ring-offset-2",
+      "bg-cta-amber text-navy font-semibold shadow-none hover:bg-cta-amber-hover focus-visible:ring-2 focus-visible:ring-cta-amber/40 focus-visible:ring-offset-2",
     secondary:
-      "border border-border bg-card text-foreground shadow-none hover:border-accent-teal/45 hover:bg-accent-teal/5 hover:text-accent-teal focus-visible:ring-2 focus-visible:ring-accent-teal/30 focus-visible:ring-offset-2",
+      "border border-border/90 bg-transparent text-foreground shadow-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-navy/20 focus-visible:ring-offset-2",
   };
 
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-colors duration-200 ease-out",
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium tracking-tight",
+    "transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 ease-out",
     sizes[size],
     variants[variant],
     className
@@ -51,19 +56,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <motion.span
-        className="inline-flex"
+        className={cn("inline-flex max-w-full", className?.includes("w-full") && "w-full")}
         whileHover={
           reduceMotion || isDisabled
             ? undefined
             : {
                 scale: HOVER.buttonScale[variant],
+                y: -1,
                 transition: { duration: DURATION.hover, ease: EASE_OUT },
               }
         }
         whileTap={
           reduceMotion || isDisabled
             ? undefined
-            : { scale: HOVER.tapScale, transition: { duration: DURATION.press, ease: EASE_OUT } }
+            : { scale: HOVER.tapScale, y: 0, transition: { duration: DURATION.press, ease: EASE_OUT } }
         }
       >
         <button

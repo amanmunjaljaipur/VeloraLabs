@@ -96,7 +96,7 @@ function fallbackGeneric(
       path: "features",
       title: "Features",
       headline: "What you get",
-      bodyHtml: features.map((f) => `<p><strong>${f.title}</strong> — ${f.body}</p>`).join(""),
+      bodyHtml: features.map((f) => `<p><strong>${f.title}</strong> - ${f.body}</p>`).join(""),
     },
     {
       id: "faq",
@@ -235,8 +235,8 @@ async function generatePageBatch(params: {
       {
         role: "system",
         content: `You write real page content for a ${params.detectedLabel} (${params.appKind}) product called "${params.brandName}", built by Verlin Labs App Builder.
-Write ONLY the pages listed below — do not add or skip any.
-For banking/fintech authenticated pages (dashboard, transfer, cards, statements, profile): describe a realistic mocked demo screen — actual balances, sample transaction rows, named quick actions — not vague marketing copy.
+Write ONLY the pages listed below - do not add or skip any.
+For banking/fintech authenticated pages (dashboard, transfer, cards, statements, profile): describe a realistic mocked demo screen - actual balances, sample transaction rows, named quick actions - not vague marketing copy.
 For insurance authenticated pages (quote, claims): describe the real step-by-step flow with sample numbers.
 Class-8 English. No fake licence/registration numbers.
 
@@ -261,7 +261,7 @@ Every bodyHtml must be substantive: 3-6 sentences, a styled card layout, or a fo
       },
       {
         role: "user",
-        content: `Product idea:\n${params.prompt}\n\nPages to write (exactly these, same paths):\n${pageBrief}\n\nInterview notes:\n${params.qa || "(thin answers — write sensible defaults)"}${params.customBlock}`,
+        content: `Product idea:\n${params.prompt}\n\nPages to write (exactly these, same paths):\n${pageBrief}\n\nInterview notes:\n${params.qa || "(thin answers - write sensible defaults)"}${params.customBlock}`,
       },
     ],
   });
@@ -311,7 +311,7 @@ export async function generateGenericAppContent(input: {
   let generatedBy = "fallback-plan-seed";
 
   try {
-    // 1. Shell: brand identity, hero, nav, features, faqs — small, fast, single call.
+    // 1. Shell: brand identity, hero, nav, features, faqs - small, fast, single call.
     emit({ phase: "shell", message: "Writing brand identity, hero copy, and navigation…" });
     const pageList = base.pages.map((p) => `${p.path}: ${p.title}`).join(", ");
     const shellRaw = await callUserLlm({
@@ -323,12 +323,12 @@ export async function generateGenericAppContent(input: {
         {
           role: "system",
           content: `You write the brand shell for a ${detected.label} (${detected.appKind}) product built by Verlin Labs App Builder.
-You MUST reflect the APPROVED PRODUCT PLAN pages in "nav" — do not collapse to 3 marketing pages.
+You MUST reflect the APPROVED PRODUCT PLAN pages in "nav" - do not collapse to 3 marketing pages.
 Class-8 English. No fake licence numbers. aboutHtml may ONLY use <p>/<ul>/<li>/<strong>/<em> tags.
 Return ONLY JSON with: brandName, tagline, description, primaryColor, secondaryColor, city, contactEmail, contactPhone,
 heroHeadline, heroSubheadline, ctaLabel, secondaryCtaLabel, aboutHtml, nav[{path,label}], features[{id,title,body,icon}] (6-12),
 faqs[{question,answer}] (5-8), trustBadges (string array), footerNote, customBlocks[{title,body}].
-Do NOT include a "pages" field — page content is written separately.`,
+Do NOT include a "pages" field - page content is written separately.`,
         },
         {
           role: "user",
@@ -352,7 +352,7 @@ Do NOT include a "pages" field — page content is written separately.`,
     for (const batch of batches) {
       emit({
         phase: "pages",
-        message: `Writing content — ${completed} of ${base.pages.length} pages done…`,
+        message: `Writing content - ${completed} of ${base.pages.length} pages done…`,
         completed,
         total: base.pages.length,
       });
@@ -378,7 +378,7 @@ Do NOT include a "pages" field — page content is written separately.`,
     if (!anyBatchSucceeded) generatedBy = "fallback-plan-seed";
     emit({
       phase: "pages",
-      message: `Writing content — ${base.pages.length} of ${base.pages.length} pages done.`,
+      message: `Writing content - ${base.pages.length} of ${base.pages.length} pages done.`,
       completed: base.pages.length,
       total: base.pages.length,
     });

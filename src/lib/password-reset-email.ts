@@ -29,7 +29,7 @@ function buildResetEmailHtml(resetUrl: string): string {
         </a>
       </p>
       <p style="font-size: 13px; color: #64748b; margin-top: 24px; line-height: 1.5;">
-        If you didn't request this, you can safely ignore this email. Your password won't change
+        If you did not request this, you can safely ignore this email. Your password will not change
         unless you use the link above.
       </p>
       <p style="font-size: 12px; color: #94a3b8; margin-top: 32px; word-break: break-all;">

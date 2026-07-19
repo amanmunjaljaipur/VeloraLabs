@@ -4,42 +4,45 @@
 /* Light default: Claude cream + Apple chrome. Dark: warm product black. */
 
 :root {
-  --navy: #0f172a;
-  --navy-muted: #1e293b;
-  --navy-soft: #334155;
-  --deep-teal: #0a3d3a;
-  --surface-dark: #0a1628;
-  --surface-dark-elevated: #1e293b;
+  --navy: #101914;
+  --navy-muted: #1f342c;
+  --navy-soft: #3a5347;
+  --deep-teal: #064e3b;
+  --surface-dark: #0b1712;
+  --surface-dark-elevated: #122019;
 
-  /* Verlin brand accents */
-  --teal: #0d9488;
-  --accent-teal: #14b8a6;
-  --accent-teal-light: #5eead4;
-  --logo-verlin: #0c1222;
+  /* Verlin brand accents — 2025 revamp: luxury emerald + gold (ui-ux-pro-max) */
+  --teal: #065f46;
+  --accent-teal: #059669;
+  --accent-teal-light: #6ee7b7;
+  --logo-verlin: #101914;
   --logo-labs: var(--teal);
 
-  --cta-amber: #f59e0b;
-  --cta-amber-hover: #d97706;
-  --cta-amber-light: #fffbeb;
+  --cyan-accent: #0891b2;
+  --cyan-accent-light: #67e8f9;
 
-  /* Controlled merge: cream page (Claude) + white cards (prod conversion) */
-  --canvas: #faf9f5;
-  --bg-off-white: #faf9f5;
-  --bg-light: #f5f5f7;
+  --cta-amber: #a16207;
+  --cta-amber-hover: #854d0e;
+  --cta-amber-light: #fdf6e0;
+
+  /* Luxury canvas: warm ivory paper, not violet-tinted */
+  --canvas: #faf9f4;
+  --bg-off-white: #faf9f4;
+  --bg-light: #f2f0e8;
   --bg-elevated: #ffffff;
-  --bg-dark: #0f172a;
-  --bg-parchment: #f5f5f7;
+  --bg-dark: #101914;
+  --bg-parchment: #f2f0e8;
   --surface-card: #ffffff;
-  --surface-cream-strong: #f5f0e8;
+  --surface-cream-strong: #ece8da;
 
-  /* Claude warm ink + Apple near-black */
-  --text-primary: #141413;
-  --text-secondary: #3d3d3a;
-  --text-muted: #6c6a64;
-  --text-muted-soft: #8e8b82;
+  /* Deep emerald-black ink, soft secondary (luxury readability) */
+  --text-primary: #101914;
+  --text-secondary: #4a5750;
+  --text-muted: #6e7a72;
+  --text-muted-soft: #8b968f;
 
-  --border: #e6dfd8;
-  --border-subtle: #ebe6df;
+  --border: #d8d3bf;
+  --border-subtle: #ece9dd;
   --ring: var(--accent-teal);
 
   --background: var(--canvas);
@@ -48,37 +51,78 @@
   --card-foreground: var(--text-primary);
   --muted: var(--bg-light);
 
-  /* Apple: quiet chrome; product shadow only for images */
-  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.05);
-  --shadow-lg: 0 10px 24px -4px rgb(15 23 42 / 0.1), 0 4px 8px -4px rgb(15 23 42 / 0.06);
-  --shadow-xl: 0 16px 40px -10px rgb(20 20 19 / 0.12);
-  --shadow-glow-teal: 0 0 28px -10px rgb(20 184 166 / 0.2);
-  --shadow-glow-amber: 0 0 24px -8px rgb(245 158 11 / 0.28);
-  --shadow-product: 0 3px 5px 0 rgb(0 0 0 / 0.12), 0 8px 24px 0 rgb(0 0 0 / 0.1);
+  /* Quiet chrome; product shadow only for images */
+  --shadow-xs: 0 1px 2px 0 rgb(16 25 20 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(16 25 20 / 0.05);
+  --shadow-md: 0 4px 12px -4px rgb(16 25 20 / 0.1);
+  --shadow-lg: 0 12px 28px -8px rgb(16 25 20 / 0.13);
+  --shadow-xl: 0 20px 40px -12px rgb(16 25 20 / 0.16);
+  --shadow-glow-teal: 0 0 24px -10px rgb(5 150 105 / 0.22);
+  --shadow-glow-amber: 0 0 20px -10px rgb(161 98 7 / 0.22);
+  --shadow-product: 0 3px 5px 0 rgb(16 25 20 / 0.16), 0 8px 24px 0 rgb(16 25 20 / 0.14);
 
-  --section-y: 3.75rem;
-  --section-y-md: 5rem;
-  --section-y-lg: 6rem;
+  /* Product rhythm */
+  --section-y: 4rem;
+  --section-y-md: 5.5rem;
+  --section-y-lg: 6.5rem;
   --container-px: 1.25rem;
-  --container-max: 75rem;
+  --container-max: 72rem; /* shared rail for nav + page - one vertical edge */
+  --gutter: 1.5rem; /* 24px - within-section grid gap */
+  --stack-gap: 2.5rem; /* header → content */
+  --measure: 36rem; /* prose / subtitle measure */
+  --measure-cta: 28rem;
   --scroll-padding: 4.75rem;
 
-  /* Apple pills + Claude card radius (~12px) */
+  /* Softer, rounder modern-SaaS radii */
   --radius-sm: 0.5rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 0.75rem;
-  --radius-3xl: 1rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
   --radius-pill: 9999px;
 
   --gradient-hero: var(--canvas);
 
+  /* ui-ux-pro-max: 150–300ms micro-interactions, ease-out enter */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 180ms;
-  --duration-normal: 280ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 160ms;
+  --duration-normal: 220ms;
+  --duration-reveal: 380ms;
+}
+
+/* Global interaction polish (ui-ux-pro-max + 21st craft) */
+a[href],
+button:not(:disabled),
+[role="button"],
+summary {
+  cursor: pointer;
+}
+
+/* Brand selection - avoids generic browser blue */
+::selection {
+  background: color-mix(in srgb, var(--accent-teal) 28%, transparent);
+  color: var(--text-primary);
+}
+
+.dark ::selection {
+  background: color-mix(in srgb, var(--accent-teal) 35%, transparent);
+  color: #f8fafc;
+}
+
+/* Touch-friendly primary controls (min ~44px on mobile) */
+@media (pointer: coarse) {
+  button:not([class*="h-"]),
+  a.inline-flex[class*="rounded-full"] {
+    min-height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 .cms-rich-editor:empty::before {
@@ -146,28 +190,29 @@
   list-style: disc;
 }
 
-/* Product-ready dark = prod slate (admin/courses), not warm editorial black */
+/* Product-ready dark = deep emerald-black (admin/courses), luxury after dark */
 .dark {
-  --logo-verlin: #f8fafc;
+  --logo-verlin: #f5f2e8;
   --logo-labs: var(--accent-teal-light);
-  --navy: #0f172a;
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border: #1e293b;
-  --border-subtle: #1e293b;
-  --card: #1e293b;
-  --card-foreground: #f8fafc;
-  --muted: #1e293b;
-  --bg-elevated: #1e293b;
-  --bg-light: #1e293b;
-  --bg-parchment: #1e293b;
-  --surface-card: #1e293b;
-  --canvas: #0f172a;
-  --surface-dark: #0a1628;
-  --cta-amber-light: #422006;
+  /* --navy stays a constant deep ink in both themes: it's the fixed footer /
+     modal-scrim / CTA-text color, not a theme-reactive surface. Do not override here. */
+  --background: #0b1712;
+  --foreground: #f5f2e8;
+  --text-primary: #f5f2e8;
+  --text-secondary: #a8b5ab;
+  --text-muted: #77897e;
+  --border: #22362c;
+  --border-subtle: #1c2d24;
+  --card: #122019;
+  --card-foreground: #f5f2e8;
+  --muted: #122019;
+  --bg-elevated: #122019;
+  --bg-light: #122019;
+  --bg-parchment: #122019;
+  --surface-card: #122019;
+  --canvas: #0b1712;
+  --surface-dark: #060d0a;
+  --cta-amber-light: #3a2a0a;
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 12px 28px -4px rgb(0 0 0 / 0.4);
@@ -240,45 +285,28 @@ body {
   outline-offset: 2px;
 }
 
-/* ─── Layout ────────────────────────────────────────────────────────────── */
+/* ─── Layout - one content rail (nav + body share edges) ───────────────── */
 
-.container-verlin {
+.container-verlin,
+.container-verlin-nav {
   width: 100%;
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--container-px);
 }
 
-/* Wider header — uses more horizontal space so nav labels don't clip */
-.container-verlin-nav {
-  width: 100%;
-  max-width: min(100%, 94rem);
-  margin-inline: auto;
-  padding-inline: 1rem;
-}
-
-@media (min-width: 640px) {
-  .container-verlin-nav {
-    padding-inline: 1.25rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-verlin-nav {
-    padding-inline: 1.5rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container-verlin-nav {
-    padding-inline: 2rem;
-  }
-}
-
 @media (min-width: 768px) {
   :root {
     --container-px: 2rem;
     --section-y: var(--section-y-md);
+    --gutter: 1.75rem;
+    --stack-gap: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --container-px: 2.5rem;
   }
 }
 
@@ -295,41 +323,96 @@ body {
 }
 
 .section-divider {
-  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 
 .section-panel {
-  border-radius: var(--radius-2xl);
-  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   background: var(--card);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   padding: 1.5rem;
 }
 
 @media (min-width: 768px) {
   .section-panel {
-    padding: 2.5rem;
+    padding: 2rem;
   }
+}
+
+/* Shared grids - consistent gutters, equal columns */
+.grid-editorial {
+  display: grid;
+  gap: var(--gutter);
+}
+
+@media (min-width: 640px) {
+  .grid-editorial-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-editorial-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-editorial-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Section header → body stack */
+.stack-header {
+  margin-bottom: var(--stack-gap);
+}
+
+.stack-header-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: var(--stack-gap);
+}
+
+@media (min-width: 640px) {
+  .stack-header-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--gutter);
+  }
+}
+
+/* Reading measure for subtitles / leads */
+.measure {
+  max-width: var(--measure);
+}
+
+.measure-cta {
+  max-width: var(--measure-cta);
 }
 
 /* ─── Typography scale ──────────────────────────────────────────────────── */
 
-/* Claude serif display + Apple tight editorial cadence */
+/* Outfit geometric display - H1 only (page heroes) */
 .text-display {
-  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.25rem, 5vw, 3.75rem);
-  font-weight: 500;
-  line-height: 1.08;
+  font-family: var(--font-display), "Outfit", system-ui, sans-serif;
+  font-size: clamp(2.125rem, 4.8vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   text-transform: none;
   color: var(--text-primary);
 }
 
+/* Alias for section titles (same as .section-title) */
 .text-heading {
-  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: 500;
-  line-height: 1.12;
+  font-family: var(--font-display), "Outfit", system-ui, sans-serif;
+  font-size: clamp(1.875rem, 3.2vw, 2.625rem);
+  font-weight: 600;
+  line-height: 1.15;
   letter-spacing: -0.015em;
   text-transform: none;
   color: var(--text-primary);
@@ -337,9 +420,9 @@ body {
 
 .text-subheading {
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.0625rem, 2vw, 1.25rem);
+  font-size: clamp(1.0625rem, 2vw, 1.1875rem);
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.55;
   letter-spacing: -0.011em;
   text-transform: none;
   color: var(--text-secondary);
@@ -349,7 +432,7 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 1.0625rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
   letter-spacing: -0.011em;
   text-transform: none;
   color: var(--text-secondary);
@@ -398,8 +481,8 @@ body {
 
 .mesh-hero {
   background:
-    radial-gradient(ellipse 70% 50% at 12% 18%, rgb(20 184 166 / 0.07), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 88% 12%, rgb(15 23 42 / 0.04), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 12% 18%, rgb(6 95 70 / 0.08), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 88% 12%, rgb(16 25 20 / 0.05), transparent 50%),
     var(--background);
 }
 
@@ -424,15 +507,32 @@ body {
 
 .card-verlin-hover {
   transition:
-    border-color var(--duration-fast) ease,
-    box-shadow var(--duration-normal) var(--ease-out-expo),
-    transform var(--duration-normal) var(--ease-out-expo);
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
+  will-change: transform;
 }
 
 .card-verlin-hover:hover {
+  /* Soft UI hover: ~2–3px lift + shadow (skill standard card hover) */
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: color-mix(in srgb, var(--accent-teal) 28%, var(--border));
+  border-color: color-mix(in srgb, var(--accent-teal) 22%, var(--border));
+}
+
+.card-verlin-hover:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-verlin-hover {
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    will-change: auto;
+  }
+  .card-verlin-hover:hover {
+    transform: none;
+  }
 }
 
 .badge-verlin {
@@ -547,7 +647,7 @@ body {
 
 /* ─── Premium surfaces & atmosphere ─────────────────────────────────────── */
 
-/* Hero dark surfaces — default light text; brand wordmark uses logo tokens */
+/* Hero dark surfaces - default light text; brand wordmark uses logo tokens */
 .hero-dark,
 .hero-dark h1,
 .hero-dark p,
@@ -585,15 +685,55 @@ body {
 }
 
 .hero-orb-teal {
-  background: rgb(20 184 166 / 0.18);
+  background: rgb(5 150 105 / 0.2);
 }
 
 .hero-orb-amber {
-  background: rgb(245 158 11 / 0.12);
+  background: rgb(161 98 7 / 0.12);
 }
 
 .hero-orb-navy {
-  background: rgb(15 23 42 / 0.06);
+  background: rgb(16 25 20 / 0.07);
+}
+
+/* Hero poster Ken Burns - only when no on-image text (avoid hazy labels) */
+@keyframes hero-ken-burns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.04) translate3d(-1%, -0.4%, 0);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.hero-ken-burns {
+  animation: hero-ken-burns 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Labelled marketing videos: max sharpness, no blur filters */
+.media-frame-sharp,
+.media-frame-sharp img,
+.media-frame-video-sharp {
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  filter: none !important;
+}
+
+.media-frame-video-sharp {
+  /* Keep type readable; avoid soft GPU scaling haze */
+  image-rendering: -webkit-optimize-contrast;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 .surface-glass {
@@ -609,8 +749,8 @@ body {
 
 .pattern-grid {
   background-image:
-    linear-gradient(rgb(15 23 42 / 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(15 23 42 / 0.03) 1px, transparent 1px);
+    linear-gradient(rgb(16 25 20 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(16 25 20 / 0.04) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
@@ -671,39 +811,49 @@ body {
 
 /* ─── Section headers ───────────────────────────────────────────────────── */
 
+/* ─── Type system (site-wide) ─────────────────────────────────────────────
+ * Display (Cormorant): page H1 + section H2 only
+ * Body (Inter): everything else - UI, cards, nav, forms, captions
+ * Avoid mixing arbitrary font-semibold + display on random H3s
+ */
+
+/* Quieter eyebrows - plain label, never a glass pill */
 .section-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--surface-card);
-  padding: 0.3rem 0.75rem;
+  display: block;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--teal);
 }
 
+.section-eyebrow--on-dark {
+  color: var(--accent-teal-light);
+}
+
 .section-title {
-  font-family: var(--font-display), "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
-  font-weight: 500;
-  line-height: 1.12;
+  font-family: var(--font-display), "Outfit", system-ui, sans-serif;
+  font-size: clamp(1.875rem, 3.2vw, 2.625rem);
+  font-weight: 600;
+  line-height: 1.15;
   letter-spacing: -0.015em;
   text-transform: none;
   color: var(--text-primary);
+  margin-top: 0.75rem;
 }
 
 .section-subtitle {
-  margin-top: 0.875rem;
-  max-width: 36rem;
+  margin-top: 0.75rem;
+  max-width: var(--measure);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 1.0625rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
   letter-spacing: -0.011em;
   text-transform: none;
   color: var(--text-secondary);
@@ -712,9 +862,26 @@ body {
 @media (min-width: 768px) {
   .section-subtitle {
     font-size: 1.125rem;
-    line-height: 1.5;
-    max-width: 42rem;
+    line-height: 1.6;
   }
+}
+
+/* Card / list H3 - Inter medium (consistent, not mixed serif) */
+.card-title {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.card-body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--text-secondary);
 }
 
 /* ─── Scannable lists ─────────────────────────────────────────────────────── */
@@ -770,7 +937,7 @@ body {
   width: 0.75rem;
 }
 
-/* Chat assistant — compact readable prose inside bubbles */
+/* Chat assistant - compact readable prose inside bubbles */
 .chat-prose {
   word-break: break-word;
 }

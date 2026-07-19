@@ -144,7 +144,7 @@ export function AnalyticsDashboard() {
         <Card className="p-5 lg:col-span-2">
           <div className="mb-4 flex items-center gap-2">
             <Eye className="h-4 w-4 text-accent-teal" aria-hidden />
-            <h2 className="text-sm font-semibold text-foreground">Page views — top pages</h2>
+            <h2 className="text-sm font-semibold text-foreground">Page views - top pages</h2>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="overflow-x-auto">

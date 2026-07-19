@@ -77,8 +77,8 @@ export function Newsletter({
           ) : success ? (
             <SuccessBanner
               className="mt-8"
-              title="You're subscribed!"
-              description="You'll receive our Sunday newsletter when the next edition is published."
+              title="You are subscribed!"
+              description="You will receive our Sunday newsletter when the next edition is published."
             />
           ) : (
             <form

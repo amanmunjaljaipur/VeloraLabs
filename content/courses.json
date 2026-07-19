@@ -235,15 +235,15 @@
   "audiences": [
     {
       "slug": "students",
-      "description": "8-day student-friendly program for Classes 6–12 — fun and project-based."
+      "description": "8-day student-friendly program for Classes 6–12 - fun and project-based."
     },
     {
       "slug": "engineers",
-      "description": "10-day program — APIs, RAG, agents, and portfolio-ready projects."
+      "description": "10-day program - APIs, RAG, agents, and portfolio-ready projects."
     },
     {
       "slug": "professionals",
-      "description": "16-day AI-first program for Product Managers — from fundamentals to MVP launch and capstone demo."
+      "description": "16-day AI-first program for Product Managers - from fundamentals to MVP launch and capstone demo."
     }
   ],
   "comparison": {

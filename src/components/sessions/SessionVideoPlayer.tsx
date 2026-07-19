@@ -224,7 +224,7 @@ export function SessionVideoPlayer({
     <div className="space-y-4">
       {reviewMode ? (
         <p className="rounded-xl border border-teal/20 bg-teal/5 px-4 py-3 text-sm text-text-secondary">
-          <span className="font-medium text-teal">Review mode</span> — you&apos;ve already
+          <span className="font-medium text-teal">Review mode</span> - you&apos;ve already
           completed this session. Watch again anytime; your overall progress won&apos;t change.
         </p>
       ) : (

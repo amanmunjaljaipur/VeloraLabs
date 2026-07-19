@@ -300,7 +300,7 @@ export function BlockInspector({ block, onChange }: BlockInspectorProps) {
               onClick={() =>
                 updateProp("rows", [
                   ...current.props.rows,
-                  current.props.headers.map(() => "—"),
+                  current.props.headers.map(() => " - "),
                 ])
               }
             >

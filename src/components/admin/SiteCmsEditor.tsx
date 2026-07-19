@@ -161,7 +161,7 @@ export function SiteCmsEditor({ pageId }: SiteCmsEditorProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-teal">{page.group}</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-foreground">{page.label}</h1>
             <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-              Edit text, images, and page content visually — no code or JSON needed. Click Save when you&apos;re done.
+              Edit text, images, and page content visually - no code or JSON needed. Click Save when you&apos;re done.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

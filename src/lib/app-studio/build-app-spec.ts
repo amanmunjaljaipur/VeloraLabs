@@ -97,7 +97,7 @@ async function callLlmJsonOnce(
   });
 }
 
-/** Groq free tier often 429s — retry with backoff so expand still succeeds. */
+/** Groq free tier often 429s - retry with backoff so expand still succeeds. */
 async function callLlmJson(
   secrets: AppLlmSecrets,
   system: string,
@@ -124,17 +124,17 @@ async function callLlmJson(
 const EXPAND_SYSTEM = `You are a senior product architect writing the BUILD SPEC for a working multi-role app after research is done.
 NOT a marketing website. The runtime will implement real modules with form validation, success and failure messages.
 
-STEP A — rewrittenPrompt (MANDATORY, 400–900 words) must include:
+STEP A - rewrittenPrompt (MANDATORY, 400–900 words) must include:
 1) Product summary & region
 2) Roles (who does what)
-3) FULL module list (for banking: 15–20 modules — see below)
+3) FULL module list (for banking: 15–20 modules - see below)
 4) Primary happy paths with steps
 5) Negative / failure cases (validation errors, insufficient balance, wrong OTP, blocked payee, failed UPI)
 6) Positive success messages expected
 7) Data entities & statuses
 8) Acceptance criteria: "user can complete X without leaving the app"
 
-STEP B — Return ONLY JSON (no markdown) with that brief + structured fields:
+STEP B - Return ONLY JSON (no markdown) with that brief + structured fields:
 {
   "rewrittenPrompt": "long mature product brief from STEP A",
   "brandName": "string",
@@ -171,7 +171,7 @@ MOCK APIs (required in rewrittenPrompt for every product):
 - Every write action is a mock endpoint (e.g. POST /mock/transfers, POST /mock/support/cases).
 - Each action documents HAPPY path (200 + success toast) and FAIL path (4xx message + no state change or Failed status).
 - Explicit negative-test knobs: OTP 000000 fail, fail@upi decline, subject containing "fail" rejects support ticket, insufficient balance, always_fail demo toggle.
-- Support is a REAL form (subject, category, priority, description) with field validation — not a stub button that invents a case.
+- Support is a REAL form (subject, category, priority, description) with field validation - not a stub button that invents a case.
 - Loading state while mock call runs (200–900ms latency).
 
 HARD RULES:
@@ -180,7 +180,7 @@ HARD RULES:
 - ≥4 seed rows on primary entities.
 - Every role ≥1 workflow.
 - Never brochure-only / pricing-only / waitlist-only.
-- Never ship non-interactive modules — every listed module must create/update data via mock API with pass AND fail.`;
+- Never ship non-interactive modules - every listed module must create/update data via mock API with pass AND fail.`;
 
 export async function expandAndBuildAppSpec(input: {
   prompt: string;
@@ -258,12 +258,12 @@ function composeRewrittenPrompt(parts: {
   entities: StudioEntity[];
   fallback: string;
 }): string {
-  const body = `Build a complete multi-role working product named ${parts.brandName} — not a marketing site.
+  const body = `Build a complete multi-role working product named ${parts.brandName} - not a marketing site.
 
 ${parts.description}
 
 ROLES
-${parts.roles.map((r, i) => `${i + 1}) ${r.label} — ${r.description}`).join("\n")}
+${parts.roles.map((r, i) => `${i + 1}) ${r.label} - ${r.description}`).join("\n")}
 
 WORKFLOWS
 ${parts.workflows
@@ -411,7 +411,7 @@ function normalizeAppSpec(
     fallback.productKind ||
     undefined;
 
-  // Banking/resume: never ship thin entity sets — runtime needs rich seed
+  // Banking/resume: never ship thin entity sets - runtime needs rich seed
   let finalEntities: StudioEntity[] = fixedEntities;
   let finalScreens: StudioScreen[] = fixedScreens;
   let finalWorkflows: StudioWorkflow[] = fixedWorkflows;
@@ -448,7 +448,7 @@ function normalizeAppSpec(
   };
 }
 
-/** Sync heuristic blueprint — used by expand fallback and live-app auto-upgrade. */
+/** Sync heuristic blueprint - used by expand fallback and live-app auto-upgrade. */
 export function buildHeuristicAppSpec(
   prompt: string,
   research?: StudioResearchPack | null,
@@ -821,8 +821,8 @@ function bankingSpec(
     productKind: "banking",
     description:
       research?.summary ||
-      `${brand}: full digital bank demo — accounts, UPI, bills, cards, deposits, loans, KYC, security, disputes, ops. Demo only.`,
-    rewrittenPrompt: `Build a COMPLETE multi-role digital banking product named ${brand} — NOT a marketing website.
+      `${brand}: full digital bank demo - accounts, UPI, bills, cards, deposits, loans, KYC, security, disputes, ops. Demo only.`,
+    rewrittenPrompt: `Build a COMPLETE multi-role digital banking product named ${brand} - NOT a marketing website.
 
 PRIMARY HAPPY PATHS
 1) Customer Home → total ₹ balance → Send money (Details → Review → OTP 123456) → balance decreases → success toast.
@@ -845,9 +845,9 @@ MOCK APIS
 ROLES: Customer (default), Support agent, Bank ops.
 
 ROLES
-1) Customer — home dashboard with account counts, list accounts, send money form, my transfers, freeze cards board, security settings.
-2) Support agent — cases board (Open / In progress / Resolved).
-3) Bank ops — all transfers board, cards, accounts overview.
+1) Customer - home dashboard with account counts, list accounts, send money form, my transfers, freeze cards board, security settings.
+2) Support agent - cases board (Open / In progress / Resolved).
+3) Bank ops - all transfers board, cards, accounts overview.
 
 WORKFLOWS
 - Send money: form → Pending → 2FA → Completed/Failed.
@@ -1155,13 +1155,13 @@ function resumeSpec(prompt: string, research?: StudioResearchPack | null): Studi
     description:
       research?.summary ||
       `${brand}: create a resume, edit with live preview, improve with AI, submit for coach review.`,
-    rewrittenPrompt: `Build a complete multi-role career product named ${brand} — NOT a marketing site.
+    rewrittenPrompt: `Build a complete multi-role career product named ${brand} - NOT a marketing site.
 PRIMARY PATH: Job seeker clicks New resume → fills name/role/summary/experience → sees LIVE PREVIEW update → Improve with AI → Submit for review / Export.
 
 ROLES
-1) Job seeker — create resumes, apply tips (Open → Applied), complete LinkedIn checklist, track status Draft → Ready → Exported.
-2) Career coach — review queue board, change resume status, create tips for clients.
-3) Product admin — all resumes list, dashboards, settings.
+1) Job seeker - create resumes, apply tips (Open → Applied), complete LinkedIn checklist, track status Draft → Ready → Exported.
+2) Career coach - review queue board, change resume status, create tips for clients.
+3) Product admin - all resumes list, dashboards, settings.
 
 WORKFLOWS
 - Build a resume: form → my resumes → tips board → LinkedIn checklist → Ready.
@@ -1380,9 +1380,9 @@ function yogaSpec(prompt: string, research?: StudioResearchPack | null): StudioA
     rewrittenPrompt: `Build a complete yoga studio booking product named ${brand}.
 
 ROLES
-1) Member — browse schedule, book with drop-in/membership/pack, view/cancel own bookings.
-2) Instructor — see assigned classes and who is booked.
-3) Owner — manage all classes and bookings board, change statuses, add slots.
+1) Member - browse schedule, book with drop-in/membership/pack, view/cancel own bookings.
+2) Instructor - see assigned classes and who is booked.
+3) Owner - manage all classes and bookings board, change statuses, add slots.
 
 WORKFLOWS
 - Book a class: schedule → class detail → plan → confirm → my bookings.
@@ -1396,7 +1396,7 @@ DATA
 Classes (title, when, instructor, level, spots, status). Bookings (member, class, plan, status) with seed data.
 
 SUCCESS
-Role selector switches the entire nav and data view. Creating a booking updates lists and boards immediately. Not a marketing site — an operational app.`,
+Role selector switches the entire nav and data view. Creating a booking updates lists and boards immediately. Not a marketing site - an operational app.`,
     primaryColor: "#0f2744",
     accentColor: "#0d9488",
     roles,

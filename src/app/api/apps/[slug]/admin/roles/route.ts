@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
-/** Only Owner (*) may redefine roles — prevents privilege escalation via custom * caps */
+/** Only Owner (*) may redefine roles - prevents privilege escalation via custom * caps */
 async function requireOwner(slug: string) {
   return requireAppCapability(slug, "*");
 }

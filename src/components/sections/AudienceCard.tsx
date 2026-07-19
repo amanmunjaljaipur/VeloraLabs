@@ -40,9 +40,9 @@ export function AudienceCard({
         <div className="relative -mx-5 -mt-5 mb-5 h-48 overflow-hidden rounded-t-xl bg-[var(--bg-light)] md:-mx-6 md:-mt-6">
           <OptimizedImage
             src={image}
-            alt={`${title} — Verlin Labs AI training program`}
+            alt={`${title} - Verlin Labs AI training program`}
             fill
-            className="object-cover object-center transition-transform duration-300 ease-out group-hover:scale-[1.02]"
+            className="object-cover object-center transition-transform duration-200 ease-out motion-safe:group-hover:scale-[1.02]"
             sizes="(max-width: 768px) 100vw, 400px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-card)]/80 via-transparent to-transparent" />
@@ -55,11 +55,11 @@ export function AudienceCard({
           <Icon className="h-5 w-5" />
         </div>
       )}
-      <h3 className="font-[family-name:var(--font-display)] text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-teal">
+      <h3 className="card-title text-lg transition-colors group-hover:text-teal">
         {title}
       </h3>
       {description && (
-        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-text-secondary">{description}</p>
+        <p className="card-body mt-2 line-clamp-3">{description}</p>
       )}
       {!onClick && (
         <p className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-teal">

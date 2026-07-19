@@ -1,5 +1,5 @@
 /**
- * App Content Agent — generates SEO-ready, premium local shop copy
+ * App Content Agent - generates SEO-ready, premium local shop copy
  * from existing content + interview answers (platform LLM).
  */
 
@@ -112,7 +112,7 @@ export function buildContentFallback(
 
   return {
     seoTitle: `${brand} · ${city} | ${offer.slice(0, 28)}`.slice(0, 60),
-    seoDescription: `${brand} in ${city} — ${offer}. Order via ${methods}.`.slice(0, 160),
+    seoDescription: `${brand} in ${city} - ${offer}. Order via ${methods}.`.slice(0, 160),
     tagline: content.tagline || `Local favourites from ${city}`,
     description:
       content.description ||
@@ -120,7 +120,7 @@ export function buildContentFallback(
     heroHeadline: content.heroHeadline || `Welcome to ${brand}`,
     heroSubheadline:
       content.heroSubheadline ||
-      `Quality from ${city}. Order via ${methods} — we reply personally.`,
+      `Quality from ${city}. Order via ${methods} - we reply personally.`,
     ctaLabel: content.ctaLabel || "See products",
     aboutHtml:
       content.aboutHtml ||
@@ -141,7 +141,7 @@ export function buildContentFallback(
               question: "Do you deliver?",
               answer:
                 content.deliveryNote ||
-                "Ask us about delivery nearby — pickup is always available when listed.",
+                "Ask us about delivery nearby - pickup is always available when listed.",
             },
           ],
     trustBadges:

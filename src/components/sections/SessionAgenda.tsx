@@ -34,7 +34,7 @@ export function SessionAgenda({ agenda }: SessionAgendaProps) {
               2-hour session agenda
             </h2>
             <p className="mt-4 max-w-md text-text-secondary leading-relaxed">
-              Every segment is structured for understanding — with live interaction and room for your
+              Every segment is structured for understanding - with live interaction and room for your
               questions.
             </p>
 
@@ -142,7 +142,7 @@ export function SessionAgenda({ agenda }: SessionAgendaProps) {
 
             <div className="mt-8 rounded-2xl border border-dashed border-teal/30 bg-teal/5 px-5 py-4 text-sm text-text-secondary">
               <span className="font-medium text-foreground">Tip:</span> Pick your audience when
-              booking — we tailor examples for students, engineers, and professionals.
+              booking - we tailor examples for students, engineers, and professionals.
             </div>
           </div>
         </div>

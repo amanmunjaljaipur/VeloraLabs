@@ -4,10 +4,10 @@
  * Real, clickable mock modules for banking/fintech "authenticated" demo pages
  * (dashboard, payments/transfer, card controls). These replace static
  * bodyHtml prose for pages whose path/title match known banking module
- * keywords — see detectBankingModule() below.
+ * keywords - see detectBankingModule() below.
  *
- * Everything here is client-side mocked state — no real money moves, no
- * backend calls — but every button actually does something: state changes,
+ * Everything here is client-side mocked state - no real money moves, no
+ * backend calls - but every button actually does something: state changes,
  * validation runs, a multi-step flow advances. That is the point: the demo
  * should feel like a working product, not a spec document.
  */
@@ -104,7 +104,7 @@ export function DashboardDemo({
           </button>
           <button
             type="button"
-            onClick={() => setStatementNote(`Statement for ${new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })} generated — demo download would start here.`)}
+            onClick={() => setStatementNote(`Statement for ${new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })} generated - demo download would start here.`)}
             className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"
           >
             Download statement
@@ -137,7 +137,7 @@ export function DashboardDemo({
           ))}
         </div>
         <p className="mt-2 text-xs text-text-muted">
-          Demo data for {brandName} — states shown: loaded, mixed credits/debits.
+          Demo data for {brandName} - states shown: loaded, mixed credits/debits.
         </p>
       </div>
     </div>
@@ -300,7 +300,7 @@ export function PaymentsFlowDemo({ theme }: { theme: ShopThemeTokens }) {
       {step === "otp" ? (
         <div className="space-y-3">
           <p className="text-sm text-text-secondary">
-            Enter the 6-digit code sent to your registered phone (demo — any 6 digits work).
+            Enter the 6-digit code sent to your registered phone (demo - any 6 digits work).
           </p>
           <input
             value={otp}
@@ -431,7 +431,7 @@ export function CardControlsDemo({ theme, brandName }: { theme: ShopThemeTokens;
         <div className="mt-4 flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setSavedNote("Saved — new limit applies immediately (demo).")}
+            onClick={() => setSavedNote("Saved - new limit applies immediately (demo).")}
             className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
             style={{ background: theme.primary }}
           >

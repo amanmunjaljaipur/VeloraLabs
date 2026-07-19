@@ -1,5 +1,5 @@
 /**
- * App Studio AI generation — research workflows then emit/patch a Vite React app.
+ * App Studio AI generation - research workflows then emit/patch a Vite React app.
  * Uses request-scoped keys or server env (Groq / Anthropic / XAI / Gemini / OpenAI).
  * Keys never written to git; prefer GEMINI_API_KEY when XAI fails (no credits).
  */
@@ -212,7 +212,7 @@ Return ONLY JSON:
 }
 
 Rules:
-- coreWorkflows: include BOTH happy-path and failure-path notes in step names where relevant (e.g. "Enter amount — reject if over balance").
+- coreWorkflows: include BOTH happy-path and failure-path notes in step names where relevant (e.g. "Enter amount - reject if over balance").
 - screens: for digital banking list 15–20 modules (Home, Accounts, Send money, UPI, Payees, Bills, Cards, Transactions, Statements, Insights, Deposits, Loans, Scheduled, Limits, KYC, Security, Alerts, Disputes, Support, Ops queue).
 - For resume products: Builder, Live preview, Tips, LinkedIn checklist, Review queue, Export.
 - competitors: real names when known (Jupiter, Fi, CRED, PhonePe for India banking; LinkedIn/Naukri for career).
@@ -280,7 +280,7 @@ function heuristicResearch(prompt: string): StudioResearchPack {
       dataEntities: ["Class", "Booking", "Member", "Instructor", "MembershipPlan"],
       techNotes: ["React SPA", "Local mock state", "Tailwind UI"],
       competitors: [
-        { name: "Mindbody", takeaway: "Heavy for small studios — keep booking simple" },
+        { name: "Mindbody", takeaway: "Heavy for small studios - keep booking simple" },
         { name: "Momence", takeaway: "Clean class schedule + packs" },
       ],
     };
@@ -303,7 +303,7 @@ function heuristicResearch(prompt: string): StudioResearchPack {
 
 const GEN_SYSTEM = `You generate a React + TypeScript SPA for Sandpack preview.
 
-CRITICAL OUTPUT FORMAT — return ONLY valid JSON (no markdown fences, no commentary):
+CRITICAL OUTPUT FORMAT - return ONLY valid JSON (no markdown fences, no commentary):
 {"summary":"one sentence","files":{"/src/App.tsx":"...full file...","/src/styles.css":"...","/src/main.tsx":"...","/index.html":"...","/package.json":"..."}}
 
 Rules:
@@ -311,7 +311,7 @@ Rules:
 - Always include at least /src/App.tsx with a default export App component.
 - Prefer a single polished /src/App.tsx (import React) + /src/styles.css rather than many files.
 - Use Tailwind utility classes in className (CDN is loaded by the preview host).
-- Working UI with useState — match the product idea and research workflows.
+- Working UI with useState - match the product idea and research workflows.
 - No API keys, no fetch to external backends. Mock data only.
 - Keep total response under ~6000 tokens so JSON is not truncated.`;
 
@@ -351,7 +351,7 @@ export async function generateStudioApp(input: {
     return {
       files: offlineAppFromPrompt(input.prompt, base),
       summary:
-        "Template only — no AI key. Paste a key under AI key (recommended: free Groq key), or add GROQ_API_KEY on the server.",
+        "Template only - no AI key. Paste a key under AI key (recommended: free Groq key), or add GROQ_API_KEY on the server.",
       research: input.research || null,
       designedBy: "scaffold",
       errorCode: "no_key",
@@ -367,7 +367,7 @@ export async function generateStudioApp(input: {
         .slice(0, 20)
         .map(([p, c]) => `=== ${p} ===\n${c.slice(0, 4000)}`)
         .join("\n\n")
-    : "(new project — generate full scaffold)";
+    : "(new project - generate full scaffold)";
 
   const userPayload = {
     task: isUpdate
@@ -387,7 +387,7 @@ export async function generateStudioApp(input: {
       workflows: input.research?.coreWorkflows?.slice(0, 2),
       screens: input.research?.screens?.slice(0, 6),
       isUpdate,
-      // Don't dump huge previous trees — Groq truncates JSON
+      // Don't dump huge previous trees - Groq truncates JSON
       previousAppSnippet: isUpdate
         ? (input.currentFiles?.["/src/App.tsx"] || "").slice(0, 2500)
         : null,
@@ -435,7 +435,7 @@ export async function generateStudioApp(input: {
       return {
         files: offline,
         summary:
-          "AI response was truncated or unparseable. Loaded a working starter matching your idea — try Build again or shorten the prompt for a full custom gen.",
+          "AI response was truncated or unparseable. Loaded a working starter matching your idea - try Build again or shorten the prompt for a full custom gen.",
         research: input.research || null,
         designedBy: `${used.provider}-parse-fallback`,
         errorCode: undefined, // do not hard-fail the UI
@@ -478,7 +478,7 @@ export async function generateStudioApp(input: {
     // Always return a usable app so Sandpack can render
     return {
       files: offlineAppFromPrompt(input.prompt, base),
-      summary: `${fe.message} Showing a working starter template — fix the AI key or retry.`,
+      summary: `${fe.message} Showing a working starter template - fix the AI key or retry.`,
       research: input.research || null,
       designedBy: "error-fallback",
       errorCode: fe.code === "parse" ? undefined : fe.code,
@@ -568,7 +568,7 @@ async function generateWithGemini(
         if (!res.ok) {
           const t = await res.text().catch(() => "");
           lastErr = `Gemini ${res.status}: ${t.slice(0, 240)}`;
-          // 403/401 — don't thrash models
+          // 403/401 - don't thrash models
           if (res.status === 401 || res.status === 403) throw new Error(lastErr);
           break;
         }
@@ -638,7 +638,7 @@ export default function App() {
         {tab === "app" && (
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Main workspace</h2>
-            <p className="text-slate-600 mt-2">Starter UI — connect a working AI key for a full custom build.</p>
+            <p className="text-slate-600 mt-2">Starter UI - connect a working AI key for a full custom build.</p>
           </section>
         )}
         {tab === "about" && <p className="text-slate-600">Generated by Verlin Labs App Studio.</p>}

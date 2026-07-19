@@ -24,22 +24,22 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
     seoKey: "hubLlmsProductDiscovery",
     targetQuestion: "How do product managers use LLMs for product discovery?",
     eyebrow: "PM playbook",
-    headline: "How to use LLMs for product discovery — without outsourcing your thinking",
+    headline: "How to use LLMs for product discovery - without outsourcing your thinking",
     subheadline:
-      "A practical hub for PMs: interview synthesis, theme clustering, assumption stress-tests, and PRD drafting — with clear boundaries on what LLMs can and cannot verify.",
+      "A practical hub for PMs: interview synthesis, theme clustering, assumption stress-tests, and PRD drafting - with clear boundaries on what LLMs can and cannot verify.",
     sections: [
       {
         title: "The PM discovery problem LLMs actually help with",
         paragraphs: [
-          "Product discovery produces messy qualitative data — interview notes, support tickets, sales call summaries, and stakeholder opinions. LLMs excel at structuring that mess into themes, follow-up questions, and draft outlines when you provide primary sources and checkpoints.",
-          "They do not replace customer contact. The win is speed on synthesis and repetition — not automating judgement about what to build.",
+          "Product discovery produces messy qualitative data - interview notes, support tickets, sales call summaries, and stakeholder opinions. LLMs excel at structuring that mess into themes, follow-up questions, and draft outlines when you provide primary sources and checkpoints.",
+          "They do not replace customer contact. The win is speed on synthesis and repetition - not automating judgement about what to build.",
         ],
       },
       {
         title: "A repeatable workflow (mental model first)",
         paragraphs: [
           "Start with the information pipeline mental model: inputs → compression → output. For discovery, inputs are raw notes; compression is clustering and summarisation; output is a testable problem statement and non-goals.",
-          "Verlin Labs PMs practice this in live sessions with Claude and NotebookLM — always with source links open and a human checkpoint list before anything reaches a PRD.",
+          "Verlin Labs PMs practice this in live sessions with Claude and NotebookLM - always with source links open and a human checkpoint list before anything reaches a PRD.",
         ],
       },
       {
@@ -53,12 +53,12 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
       {
         question: "Can LLMs replace user interviews?",
         answer:
-          "No. They help synthesise interviews you already conducted — clustering themes, drafting follow-ups, and spotting gaps. Customer contact stays human-led; LLMs handle structured repetition.",
+          "No. They help synthesise interviews you already conducted - clustering themes, drafting follow-ups, and spotting gaps. Customer contact stays human-led; LLMs handle structured repetition.",
       },
       {
         question: "Which tools do Verlin Labs PMs use for discovery?",
         answer:
-          "Claude and ChatGPT for drafting and synthesis, NotebookLM for source-grounded research, and modern MVP builders for prototyping. Every tool is taught with evaluation criteria — not vendor hype.",
+          "Claude and ChatGPT for drafting and synthesis, NotebookLM for source-grounded research, and modern MVP builders for prototyping. Every tool is taught with evaluation criteria - not vendor hype.",
       },
     ],
     courseHref: "/courses/professionals",
@@ -76,26 +76,26 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
     seoKey: "hubAiRoadmapPms",
     targetQuestion: "What is the AI learning roadmap for non-technical product managers?",
     eyebrow: "PM roadmap",
-    headline: "AI roadmap for non-technical PMs — literacy, evaluation, then shipping",
+    headline: "AI roadmap for non-technical PMs - literacy, evaluation, then shipping",
     subheadline:
       "You do not need a CS degree. This hub maps what to learn first, what to defer, and how Verlin Labs PMs go from tool demos to shipped MVPs in 16 days.",
     sections: [
       {
-        title: "Phase 1 — AI literacy (weeks 1–2)",
+        title: "Phase 1 - AI literacy (weeks 1–2)",
         paragraphs: [
           "Learn how LLMs behave: tokens, context limits, hallucinations, and when pattern-matching fluency is not factual accuracy. Mental models turn every vendor announcement into a familiar trade-off.",
         ],
       },
       {
-        title: "Phase 2 — Tool evaluation without demo theatre",
+        title: "Phase 2 - Tool evaluation without demo theatre",
         paragraphs: [
           "Build a scorecard: privacy, integration, verifiability, latency, cost at your volume, and failure modes. Ask what happens when retrieval is empty and who owns prompt versioning after model updates.",
         ],
       },
       {
-        title: "Phase 3 — Ship an MVP with vibe coding",
+        title: "Phase 3 - Ship an MVP with vibe coding",
         paragraphs: [
-          "PMs prototype faster with AI-assisted builders. The skill is constraints: user flow, edge cases, and acceptance criteria — not writing every line of production code.",
+          "PMs prototype faster with AI-assisted builders. The skill is constraints: user flow, edge cases, and acceptance criteria - not writing every line of production code.",
         ],
       },
     ],
@@ -108,7 +108,7 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
       {
         question: "Do I need Jira or technical tools experience?",
         answer:
-          "Familiarity with product workflows helps, but we teach AI-specific evaluation and prototyping — including when to pair with engineering and when to stop at a learning prototype.",
+          "Familiarity with product workflows helps, but we teach AI-specific evaluation and prototyping - including when to pair with engineering and when to stop at a learning prototype.",
       },
     ],
     courseHref: "/courses/professionals",
@@ -128,12 +128,12 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
     eyebrow: "Student roadmap",
     headline: "AI learning roadmap for school students (Classes 6–12)",
     subheadline:
-      "Safe AI tool use, mental models before jargon, and a showcase project — how Verlin Labs helps students understand technology they already interact with daily.",
+      "Safe AI tool use, mental models before jargon, and a showcase project - how Verlin Labs helps students understand technology they already interact with daily.",
     sections: [
       {
         title: "Start with understanding, not tool tricks",
         paragraphs: [
-          "Students meet AI through ChatGPT, recommendation feeds, and homework helpers. The roadmap begins with what prediction means, why fluent answers can be wrong, and how to ask better questions — not prompt hacks.",
+          "Students meet AI through ChatGPT, recommendation feeds, and homework helpers. The roadmap begins with what prediction means, why fluent answers can be wrong, and how to ask better questions - not prompt hacks.",
         ],
       },
       {
@@ -145,7 +145,7 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
       {
         title: "From free session to 8-day program",
         paragraphs: [
-          "Book the student-track free session first. The full AI Explorers program adds live cohort sessions, mental models, and demo day — designed for Classes 6–12.",
+          "Book the student-track free session first. The full AI Explorers program adds live cohort sessions, mental models, and demo day - designed for Classes 6–12.",
         ],
       },
     ],
@@ -153,7 +153,7 @@ export const SEMANTIC_HUBS: SemanticHub[] = [
       {
         question: "Is ChatGPT safe for students to use?",
         answer:
-          "With guidance. We teach safe use, verification habits, and when to involve a parent or teacher — not unsupervised dependence on fluent answers.",
+          "With guidance. We teach safe use, verification habits, and when to involve a parent or teacher - not unsupervised dependence on fluent answers.",
       },
       {
         question: "Does the student program require coding?",

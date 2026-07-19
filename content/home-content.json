@@ -1,9 +1,10 @@
 {
   "hero": {
-    "headline": "Verlin Labs — clarity-first learning for the AI age",
-    "subheadline": "Verlin Labs helps you master the frameworks that matter in our rapidly changing world. Free 2-hour session and hands-on programs for students, engineers, and PMs.",
+    "headline": "Verlin Labs - clarity-first learning for the AI age",
+    "subheadline": "Most AI content teaches you which buttons to click. We teach the mental models underneath, so the next tool does not feel like starting over. Start with a free 2-hour live session - no pitch, no credit card, for school students, engineers, and PMs.",
     "illustration": "/images/hero-home-visual.jpg",
-    "illustrationAlt": "Verlin Labs AI training hero — neural network visualization for clarity-first learning"
+    "illustrationAlt": "Neural pathways visualization",
+    "video": "/videos/hero-neural.mp4"
   },
   "whatWeCover": [
     "Mental Models",
@@ -17,66 +18,68 @@
     {
       "step": 1,
       "title": "Discover",
-      "description": "Join a free session and explore.",
+      "description": "Start with a free 2-hour session and see if the teaching style actually clicks for you.",
       "icon": "calendar"
     },
     {
       "step": 2,
       "title": "Understand",
-      "description": "Learn mental models and core concepts.",
+      "description": "Dig into the mental models that make AI systems less of a black box.",
       "icon": "brain"
     },
     {
       "step": 3,
       "title": "Build",
-      "description": "Create real AI projects hands-on from day one.",
+      "description": "Work on real projects from early on - not after weeks of theory.",
       "icon": "wrench"
     },
     {
       "step": 4,
       "title": "Showcase",
-      "description": "Present your project on Demo Day.",
+      "description": "Present what you built on Demo Day.",
       "icon": "rocket"
     }
   ],
   "howItWorksIllustration": {
-    "src": "/images/how-it-works-timeline.jpg",
-    "alt": "How it works — Discover, Understand, Build, and Showcase your AI learning journey from free session to Demo Day"
+    "src": "/images/brand-journey.jpg",
+    "alt": "Learning path stages",
+    "video": "/videos/journey.mp4"
   },
   "learningIllustrations": {
     "mentalModels": {
-      "src": "/images/mental-models-map-illustration.jpg",
-      "alt": "Mental models infographic — turn complexity into clarity from information to understanding"
+      "src": "/images/brand-mental-models-framework.jpg",
+      "alt": "Mental models, not tool lists - scattered tools transforming into an Information, Framework, Clarity stack"
     },
     "handsOn": {
-      "src": "/images/hands-on-mvp-illustration.jpg",
-      "alt": "Instructor leading a hands-on workshop with students around a laptop — practical tech learning from day one"
+      "src": "/images/brand-hands-on.jpg",
+      "alt": "Modular project assembly",
+      "video": "/videos/hands-on.mp4"
     }
   },
   "homeFaqs": [
     {
       "question": "Is the free session really free?",
-      "answer": "Yes — completely free with no hidden fees. We want you to experience our teaching style before considering the full course. No credit card is required to book."
+      "answer": "Yes - completely free with no hidden fees. We want you to experience our teaching style before considering the full course. No credit card is required to book."
     },
     {
       "question": "What is a mental model?",
-      "answer": "A mental model is a simple framework that helps you understand how something works. Instead of memorizing facts, you learn the structure behind AI systems — so new topics feel familiar instead of overwhelming."
+      "answer": "It is a simple framework for how something actually works, not a list of facts to memorize. Once you have the structure behind AI systems in your head, new tools and buzzwords stop feeling like a fresh crisis every time."
     },
     {
       "question": "Do I need any prior AI knowledge?",
-      "answer": "No. We start from clarity-first foundations and adapt depth to your track — students, engineers, or product managers. Bring curiosity; we handle the structure."
+      "answer": "No. We start from clarity-first foundations and adapt depth to your track - students, engineers, or product managers. Bring curiosity; we handle the structure."
     },
     {
       "question": "How is this different from YouTube or courses?",
-      "answer": "Most content dumps information. Verlin Labs teaches through live mental models, audience-tailored pacing, hands-on exercises, and mentor Q&A — so understanding sticks and you know what to do next."
+      "answer": "Honestly, there is a ton of good free stuff on YouTube. The difference here is we slow down for the mental models, answer your messy questions live, and match examples to where you actually are - whether that is Class 8 or leading product at a startup."
     },
     {
-      "question": "Can I join if I'm a complete beginner?",
+      "question": "Can I join if I am a complete beginner?",
       "answer": "Absolutely. The student track and free session are designed for first exposure to AI. We use plain language, visual frameworks, and no jargon until the idea itself is clear."
     },
     {
       "question": "What happens after the free session?",
-      "answer": "You'll receive a summary, resource starter pack, and optional next steps. If the full program fits your goals, we'll share enrollment details — no pressure and no hard sell."
+      "answer": "You will receive a summary, resource starter pack, and optional next steps. If the full program fits your goals, we will share enrollment details - no pressure and no hard sell."
     },
     {
       "question": "Who is this for?",
@@ -92,11 +95,11 @@
     },
     {
       "question": "What topics do your AI programs cover?",
-      "answer": "Programs cover mental models for LLMs and transformers, prompt engineering, responsible AI use, RAG basics, product discovery workflows, portfolio projects, and hands-on tools such as ChatGPT, Claude, Lovable, and Replit — tailored to students, engineers, or product managers."
+      "answer": "Programs cover mental models for LLMs and transformers, prompt engineering, responsible AI use, RAG basics, product discovery workflows, portfolio projects, and hands-on tools such as ChatGPT, Claude, Lovable, and Replit - tailored to students, engineers, or product managers."
     },
     {
       "question": "Do you offer corporate AI training?",
-      "answer": "Yes. Verlin Labs runs corporate AI literacy workshops for teams in India — half-day sessions, multi-week enablement, and executive briefings. Visit the Corporate page or contact us for a tailored proposal."
+      "answer": "Yes. Verlin Labs runs corporate AI literacy workshops for teams in India - half-day sessions, multi-week enablement, and executive briefings. Visit the Corporate page or contact us for a tailored proposal."
     },
     {
       "question": "How much do paid programs cost?",
@@ -112,7 +115,8 @@
     "Maria Gonzalez": "/images/avatar-maria-gonzalez.jpg"
   },
   "freeSessionIllustration": {
-    "src": "/images/free-session-live-illustration.jpg",
-    "alt": "Live online session with instructor teaching and engaged students"
+    "src": "/images/brand-free-session.jpg",
+    "alt": "Session atmosphere",
+    "video": "/videos/free-session.mp4"
   }
 }

@@ -130,11 +130,11 @@ const FALLBACK_SUGGESTIONS = [
   "Is the free session really free?",
   "What are the course prices?",
   "How do I book the free session?",
-  "What's the difference between the three tracks?",
+  "What is the difference between the three tracks?",
 ];
 
 const LOW_CONFIDENCE =
-  "I'm not fully sure about that one.\n\nYou can browse our **FAQ**, book a **free session** to ask live, or **contact us** directly — we'll get you a clear answer.";
+  "I am not fully sure about that one.\n\nYou can browse our **FAQ**, book a **free session** to ask live, or **contact us** directly - we will get you a clear answer.";
 
 export function formatAnswer(entry: KnowledgeEntry): string {
   return formatKnowledgeAnswer(entry);

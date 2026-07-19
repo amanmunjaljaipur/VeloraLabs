@@ -111,7 +111,7 @@ export function AgentsControlPanel() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-text-secondary">
             Every AI / product agent used across Verlin Labs and App Builder. Super Admin can pause
-            runtime agents anytime — public chat, App Builder generate, blog, newsletter, and more.
+            runtime agents anytime - public chat, App Builder generate, blog, newsletter, and more.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       pack,
       exists: Boolean(pack),
-      storage: "app-builder-ops-memory.json (Blob runtime — survives deploys)",
+      storage: "app-builder-ops-memory.json (Blob runtime - survives deploys)",
     });
   }
   const verticals = await listVerticals();

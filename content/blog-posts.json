@@ -1,5 +1,582 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-09T00:00:00.000Z",
-  "posts": []
+  "updatedAt": "2026-07-19T06:00:00.000Z",
+  "posts": [
+    {
+      "id": "manual-langchain-vs-llamaindex-vs-scratch",
+      "slug": "langchain-vs-llamaindex-vs-scratch",
+      "title": "LangChain vs. LlamaIndex vs. Building From Scratch: How to Choose Your AI Application Framework",
+      "description": "A practical decision framework for engineers choosing between LangChain, LlamaIndex, and a hand-rolled stack - matched to your actual bottleneck, not hype.",
+      "summary": "LangChain, LlamaIndex, and building from scratch solve genuinely different problems. This guide breaks down when each one earns its complexity, with a comparative table and a decision framework you can actually apply before you burn two weeks finding out the hard way.",
+      "duration": "11 min",
+      "level": "Intermediate",
+      "audience": "engineers",
+      "type": "Guide",
+      "featured": true,
+      "image": "/images/engineers.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-21T03:30:00.000Z",
+      "tags": ["LangChain", "LlamaIndex", "RAG", "Architecture", "Engineering"],
+      "sections": [
+        {
+          "title": "The Framework Decision You Cannot Google Your Way Out Of",
+          "paragraphs": [
+            "You have a working prototype. Your RAG pipeline answers questions correctly in the demo. Then someone on your team asks: \"Should this be running on LangChain, or should we rip it out and do this in raw Python?\" Suddenly the technical problem you solved feels smaller than the architectural problem you did not.",
+            "This is not a solved question with one right answer, whatever a \"10 best AI frameworks\" listicle tells you. LangChain, LlamaIndex, and building from scratch solve genuinely different problems, and picking wrong costs you weeks of rewiring later - usually right before a demo you cannot afford to blow."
+          ]
+        },
+        {
+          "title": "The Mental Model: Three Kitchens, Three Cooks",
+          "paragraphs": [
+            "Think of building an AI application like running a kitchen.",
+            "Building from scratch is cooking with raw ingredients on an open flame - you control every variable: temperature, timing, plating. Nothing is hidden from you, but you also chop every onion yourself.",
+            "LangChain is a professional kitchen with pre-built stations - a sauté station, a grill station, a plating station - all connected by a head chef (the \"chain\" or \"agent\") who routes dishes between them. Powerful once you learn where everything lives, but you are cooking inside someone else's kitchen layout.",
+            "LlamaIndex is a kitchen built specifically around one job: getting the right ingredients out of a massive pantry fast. It is less about orchestrating cooking steps and more about indexing, retrieving, and serving your data efficiently. If your bottleneck is \"find the right facts in 50,000 documents,\" LlamaIndex's pantry-management systems are purpose-built for exactly that.",
+            "None of these kitchens is \"better.\" They are built for different meals."
+          ]
+        },
+        {
+          "title": "Comparative Breakdown",
+          "table": {
+            "headers": ["Dimension", "LangChain", "LlamaIndex", "From Scratch"],
+            "rows": [
+              ["Best for", "Multi-step agent workflows, tool use, complex chains", "Retrieval-heavy apps over large document sets", "Full control, unusual architectures, tiny footprints"],
+              ["Learning curve", "Moderate-to-steep (many abstractions)", "Gentle for retrieval, steeper for agents", "Steep upfront, but nothing to \"unlearn\" later"],
+              ["Debugging", "Can be opaque - abstractions hide the actual prompt", "More transparent for retrieval steps", "Fully transparent - you wrote every line"],
+              ["Vendor lock-in risk", "Medium - API changes frequently", "Medium - smaller ecosystem, faster to migrate", "None - it is just your code"],
+              ["Time to first prototype", "Fast", "Fast for RAG specifically", "Slower"],
+              ["Time to production-hardened", "Variable - depends how deep you went into abstractions", "Often faster since scope is narrower", "Slower but predictable"]
+            ]
+          },
+          "cta": {
+            "text": "Frameworks are easy to read about and hard to feel in your hands until you have debugged one at 1 a.m. Our Free 2-Hour Live AI Session walks engineers through building a real retrieval pipeline three ways - so you feel the tradeoffs instead of memorizing them.",
+            "label": "Book your free 2-hour session",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "When LangChain Actually Earns Its Complexity",
+          "paragraphs": [
+            "LangChain makes sense when your application needs to make decisions, not just answer questions - calling tools, chaining multiple LLM calls, routing between different logic paths based on what the model decides. Its agent and chain abstractions genuinely save you from reinventing orchestration logic that is easy to get subtly wrong (retry logic, memory management, tool-calling schemas)."
+          ],
+          "bullets": [
+            "Multi-tool agents (search + calculator + database query in one flow)",
+            "Conversational memory across long sessions",
+            "Rapid prototyping when you need something working by Friday",
+            "Teams already invested in the LangChain ecosystem (LangSmith for tracing, LangGraph for stateful agents)"
+          ]
+        },
+        {
+          "title": "When LlamaIndex Is the Right Default",
+          "paragraphs": [
+            "If your core problem is \"I have a lot of documents and I need accurate answers grounded in them,\" LlamaIndex was built for exactly this job. Its indexing strategies - tree indexes, keyword tables, vector stores with metadata filtering - handle retrieval edge cases you would otherwise spend weeks rediscovering yourself: chunking strategy, reranking, query transformation.",
+            "The tradeoff: LlamaIndex is narrower by design. If your application needs complex agentic behavior beyond retrieval, you will likely end up pairing it with something else anyway - which is fine, they are built to interoperate, not compete for the same job."
+          ],
+          "bullets": [
+            "Enterprise document Q&A over PDFs, wikis, or internal knowledge bases",
+            "Multi-tenant retrieval where different users see different document sets",
+            "When retrieval quality, not agent orchestration, is your actual bottleneck"
+          ]
+        },
+        {
+          "title": "When Building From Scratch Is the Discipline, Not the Ego Move",
+          "paragraphs": [
+            "Engineers often reach for a framework by default because it feels like the \"professional\" choice. Sometimes the professional choice is the opposite - a thin wrapper around the model provider's SDK, with your own retrieval and orchestration logic in code you fully own.",
+            "This is not the \"hardcore\" option and LangChain is not the \"lazy\" option - it is a genuine tradeoff between velocity now and control later."
+          ],
+          "bullets": [
+            "Latency-sensitive applications where every millisecond and every dependency matters",
+            "Small, well-defined use cases where a framework's flexibility is pure overhead",
+            "Teams who need to deeply understand failure modes for compliance or debugging reasons",
+            "Long-lived production systems where you do not want to inherit someone else's breaking changes on every upgrade"
+          ]
+        },
+        {
+          "title": "A Decision Framework You Can Actually Use",
+          "paragraphs": [
+            "Ask these three questions, in order, before opening a framework's docs:"
+          ],
+          "bullets": [
+            "Is my bottleneck retrieval accuracy over a large document set? -> Start with LlamaIndex.",
+            "Does my application need multi-step reasoning, tool use, or agent behavior? -> Start with LangChain.",
+            "Do I need full transparency, minimal dependencies, or unusual architecture? -> Build from scratch, and borrow ideas from both frameworks' source code."
+          ]
+        },
+        {
+          "title": "Combine, Do not Commit Blindly",
+          "paragraphs": [
+            "You can also combine approaches - many production systems use LlamaIndex for retrieval and hand-roll the orchestration logic around it, skipping LangChain's abstractions where they do not add value. The point is not loyalty to one library, it is matching the tool to the actual bottleneck in front of you.",
+            "This is exactly the kind of judgment call our [Engineer Track](/ai-for-engineers) is built around - not memorizing API syntax, but building the intuition to know which tool a given problem actually calls for, before you have burned two weeks finding out the hard way."
+          ]
+        }
+      ],
+      "keyTakeaway": "There is no universally \"best\" framework - only the framework that matches your actual bottleneck. Retrieval-heavy problems lean LlamaIndex, orchestration-heavy problems lean LangChain, and control-heavy problems lean scratch-built. Diagnose the bottleneck before picking the tool.",
+      "relatedSlugs": ["rag-vs-finetuning", "how-to-learn-ai-as-an-engineering-student", "transformers-pipeline"],
+      "status": "scheduled",
+      "scheduledAt": "2026-07-21T03:30:00.000Z",
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-19T06:00:00.000Z",
+      "createdBy": "content-team"
+    },
+    {
+      "id": "manual-prompt-engineering-vs-structured-outputs",
+      "slug": "prompt-engineering-vs-structured-outputs",
+      "title": "Prompt Engineering vs. Structured Outputs: How PMs Can Ensure AI Feature Reliability",
+      "description": "A PM's framework for moving past \"the prompt usually works\" and designing AI features that fail predictably instead of silently.",
+      "summary": "Prompt engineering shapes what a model says. Structured outputs guarantee your code can trust the shape it says it in. This guide gives PMs a comparative breakdown and a reliability checklist to use before any AI feature ships.",
+      "duration": "10 min",
+      "level": "Intermediate",
+      "audience": "professionals",
+      "type": "Guide",
+      "featured": true,
+      "image": "/images/audience-professionals-illustration.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-23T03:30:00.000Z",
+      "tags": ["Product Management", "Structured Outputs", "Prompt Engineering", "Reliability"],
+      "sections": [
+        {
+          "title": "The Feature Worked in the Demo. Then It Drifted.",
+          "paragraphs": [
+            "Your AI feature works perfectly in the demo. Three weeks after launch, support tickets start piling up: the model returned a sentence instead of the JSON your app expected, or it \"helpfully\" added a caveat paragraph before the data your parser needed. Nobody touched the prompt. The model just... drifted.",
+            "This is the reliability problem every PM shipping an AI feature eventually hits, and it usually gets misdiagnosed as \"we need better prompts\" when the real fix is architectural: you need structured outputs, not just better wording."
+          ]
+        },
+        {
+          "title": "The Mental Model: Asking Politely vs. Handing Over a Form",
+          "paragraphs": [
+            "Prompt engineering is like asking a very capable but occasionally distracted employee to \"write me a summary in bullet points, please, formatted like this example.\" Most of the time they will get it right. Sometimes they will add an intro sentence you did not ask for, or use dashes instead of your bullet format, because natural language instructions leave room for interpretation - even really precise ones.",
+            "Structured outputs are like handing that same employee an actual form to fill in: name field here, date field here, dropdown menu with exactly these three options. There is no \"interpretation\" of a form - the fields exist or the submission gets rejected. Structured outputs (JSON mode, function calling, schema validation) force the model's response into a shape your code can trust, not just a shape your prompt requested.",
+            "Good prompt engineering still matters - it is how you tell the model what to put in each field. But it stops being your only reliability mechanism, and starts being one layer in a system that also validates and constrains."
+          ]
+        },
+        {
+          "title": "Comparative Breakdown",
+          "table": {
+            "headers": ["Approach", "Reliability", "Effort to implement", "Best for"],
+            "rows": [
+              ["Prompt engineering alone", "Good, not guaranteed - model can still deviate under edge cases", "Low - just iterate on wording", "Early prototypes, low-stakes internal tools"],
+              ["Prompt + few-shot examples", "Better - examples anchor the format", "Low-medium", "Slightly more consistent tone/format needs"],
+              ["Structured outputs (JSON schema / function calling)", "High - malformed responses are rejected or retried automatically", "Medium - requires defining and maintaining a schema", "Any feature where your code parses the model's output"],
+              ["Structured outputs + validation layer", "Highest - schema plus business-rule checks (e.g. \"date must be in the future\")", "Medium-high", "Production features tied to billing, compliance, or user-facing data"]
+            ]
+          },
+          "cta": {
+            "text": "Reading about JSON schemas is one thing. Watching a feature fail in real time when you skip validation - and fixing it live - is what actually makes this stick. Join our Free 2-Hour Live AI Session and build a reliability layer hands-on.",
+            "label": "Book your free 2-hour session",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "Why This Is a PM Problem, Not Just an Engineering One",
+          "paragraphs": [
+            "It is tempting to treat \"make the AI output reliable\" as purely an engineering task. It is not, because the PM is the one who defines what \"reliable\" even means for this feature - what fields are required, what happens when the model is uncertain, what the acceptable failure mode looks like to a user."
+          ],
+          "bullets": [
+            "Define the exact schema before engineering starts: field names, types, required vs optional, allowed value ranges.",
+            "Decide the fallback behavior explicitly: retry once, show a generic message, or route to a human - do not let this get decided implicitly in a catch block.",
+            "Set a measurable reliability bar (e.g. \"95% of responses must pass schema validation on first attempt\") so it is testable, not just a vibe.",
+            "Review failure logs weekly during the first month - most reliability issues cluster around a handful of edge-case inputs you can then explicitly test for."
+          ]
+        },
+        {
+          "title": "A Framework for Evaluating AI Feature Reliability",
+          "paragraphs": [
+            "Before greenlighting an AI feature for production, walk it through this checklist:"
+          ],
+          "bullets": [
+            "Output contract: Is there a strict schema, or is the feature relying on the model 'usually' formatting things correctly?",
+            "Failure visibility: When the model returns something invalid, does anyone find out, or does it silently break downstream?",
+            "Graceful degradation: What does the user see when the AI output fails validation - a broken screen, or a sensible fallback?",
+            "Cost of being wrong: Is this a low-stakes suggestion (a draft the user edits) or a high-stakes output (a number that gets billed)? Match your validation rigor to the stakes.",
+            "Version drift: If the underlying model gets upgraded by the provider, do you have tests that would catch a silent formatting regression?"
+          ]
+        },
+        {
+          "title": "Where Prompt Engineering Still Wins",
+          "paragraphs": [
+            "None of this makes prompt engineering obsolete. Structured outputs control the shape of the response; prompt engineering still controls the quality of what goes inside that shape - tone, reasoning, which facts get prioritized. The best production systems layer both: a well-designed prompt for quality, and a schema-enforced contract for reliability.",
+            "This is precisely the muscle we build in the [PM Track](/ai-for-pms) - not \"learn to write clever prompts,\" but learn to design the whole reliability system around a feature, so quality issues get caught in a test, not in a support ticket."
+          ]
+        }
+      ],
+      "keyTakeaway": "Prompt engineering shapes what the model says. Structured outputs guarantee your code can trust the shape it says it in. Ship AI features with both, and define the reliability bar yourself instead of leaving it to \"the AI usually gets it right.\"",
+      "relatedSlugs": ["how-to-write-an-ai-prd", "ai-for-decision-makers", "how-to-learn-ai-for-product-management"],
+      "status": "scheduled",
+      "scheduledAt": "2026-07-23T03:30:00.000Z",
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-19T06:00:00.000Z",
+      "createdBy": "content-team"
+    },
+    {
+      "id": "manual-how-does-chatgpt-think-tokenization",
+      "slug": "how-does-chatgpt-think-tokenization-explained",
+      "title": "How Does ChatGPT Actually Think? Tokenization and Prediction Explained With Simple Analogies",
+      "description": "A clear, jargon-free explanation of how ChatGPT actually works - tokens, prediction, and why 'confident' does not mean 'correct' - for students and the parents reading over their shoulder.",
+      "summary": "ChatGPT is not thinking the way you think - it is predicting the next token, over and over, based on patterns in enormous amounts of text. This guide breaks tokenization and prediction down with analogies students actually enjoy, and shows why that distinction matters.",
+      "duration": "9 min",
+      "level": "Beginner",
+      "audience": "students",
+      "type": "Article",
+      "featured": true,
+      "image": "/images/audience-students-illustration.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-25T03:30:00.000Z",
+      "tags": ["LLMs", "Students", "Tokenization", "AI Literacy", "Parents"],
+      "sections": [
+        {
+          "title": "It Feels Like Thinking. It Is not - and That is Useful to Know.",
+          "paragraphs": [
+            "When you ask ChatGPT a question and it answers in full sentences, it is easy to assume something is \"thinking\" the way you think - understanding your question, considering options, deciding on an answer. It is not, and understanding what it is actually doing instead is the single most useful thing a student (or a curious parent) can learn about AI this year.",
+            "The honest, slightly less magical answer: ChatGPT is playing an extremely sophisticated game of \"guess the next word,\" over and over, thousands of times per answer, informed by patterns it saw in enormous amounts of text."
+          ]
+        },
+        {
+          "title": "The Mental Model: A Very Well-Read Friend Playing a Guessing Game",
+          "paragraphs": [
+            "Imagine a friend who has read almost every book, website, and conversation ever written down - but instead of remembering facts like a search engine, they remember patterns: which words tend to follow which other words, in which situations.",
+            "Now play a game with this friend: you say the start of a sentence, and they guess the next word, one word at a time, based on everything they have ever read. \"The capital of France is...\" - almost every text they have ever seen that starts this way continues with \"Paris,\" so that is their guess. Do this word by word, thousands of times per answer, and you get something that reads like a thoughtful response - built entirely from pattern-guessing, one small step at a time.",
+            "This is, in simplified form, what a large language model does. It does not \"look up\" the answer to your question. It predicts the most statistically likely next piece of text, given everything before it - including its own answer so far."
+          ]
+        },
+        {
+          "title": "What is Actually a 'Word' to the Model? (Tokenization)",
+          "paragraphs": [
+            "Here is the twist: the model does not even work with whole words. It breaks text into smaller chunks called tokens - sometimes a whole word, sometimes just a few letters, depending on how common that word is."
+          ],
+          "bullets": [
+            "Common words like \"the\" or \"cat\" are usually a single token.",
+            "Longer or less common words like \"tokenization\" might get split into 2-3 pieces: \"token,\" \"iza,\" \"tion.\"",
+            "Even spaces and punctuation are their own tokens."
+          ]
+        },
+        {
+          "title": "What ChatGPT Is and Is not Doing",
+          "table": {
+            "headers": ["It looks like...", "What is actually happening"],
+            "rows": [
+              ["\"It understood my question\"", "It predicted a sequence of tokens statistically likely to follow your question, based on patterns in training text"],
+              ["\"It knows facts\"", "It has strong statistical associations between related tokens - often right, but can be wrong with total confidence (this is what \"hallucination\" means)"],
+              ["\"It is thinking step by step\"", "Techniques like \"chain of thought\" prompting make the model generate its reasoning as visible tokens, which measurably improves the accuracy of its final guess"],
+              ["\"It remembers our earlier conversation\"", "The full conversation so far is fed back in as context for every new prediction - not memory in the human sense, more like re-reading the whole conversation each time"]
+            ]
+          },
+          "cta": {
+            "text": "This is exactly the kind of idea that clicks so much faster when you see it live instead of reading about it. Our Free 2-Hour Live AI Session breaks down how ChatGPT 'thinks' with visual demos students actually enjoy - free, no pressure, no credit card.",
+            "label": "Book your free spot now",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "Why This Matters More Than Knowing Which Buttons to Click",
+          "paragraphs": [
+            "Understanding prediction-not-understanding changes how you use these tools, immediately:"
+          ],
+          "bullets": [
+            "You stop trusting confident-sounding answers automatically - confidence and correctness are not the same thing for a prediction engine.",
+            "You understand why being specific in your question helps - more context means better statistical grounding for its next-word guesses.",
+            "You understand why it can be brilliant at some tasks (patterns it is seen a million times) and strangely bad at others (genuinely novel logic problems, precise counting, very recent events).",
+            "You stop being intimidated by the \"magic\" - it is pattern-matching at a scale humans cannot do by hand, not a mind reading yours."
+          ]
+        },
+        {
+          "title": "A Simple Way to Test This Yourself",
+          "paragraphs": [
+            "Try this with a parent or classmate: ask ChatGPT to write one sentence, then stop it after each word and ask \"what do you think it will say next?\" You will notice you can often guess correctly too - because you are doing the same pattern-recognition trick, just with a smaller \"library\" in your head than the model has.",
+            "This little exercise is a genuinely good mental model check: if a sentence feels \"predictable\" to you as a human reader, that is usually because it followed a common pattern - the exact kind of pattern the model was trained to predict."
+          ]
+        },
+        {
+          "title": "Where This Goes Next",
+          "paragraphs": [
+            "Tokenization and next-word prediction are the foundation, but they are just the entry point into bigger ideas - how models pay \"attention\" to different words in a sentence, why longer conversations can make models lose track of earlier details, and how training data shapes what a model is good and bad at. Our [Student Track](/ai-for-students) builds all of this up gradually, with live analogies and a project you can actually show your parents at the end - not a video to half-watch.",
+            "If you are a parent reading this over your child's shoulder: this is a good moment to ask them what they think the model got wrong in its last answer to them. That question - \"how do you know it is right?\" - is the single most valuable AI literacy habit you can build early."
+          ]
+        }
+      ],
+      "keyTakeaway": "ChatGPT does not understand your question the way a person does - it predicts the most statistically likely next token, over and over, based on patterns in enormous amounts of text. Knowing this changes how you question its answers, not just how you write your prompts.",
+      "relatedSlugs": ["how-llms-work", "neural-networks-analogy", "prompt-engineering-basics"],
+      "status": "scheduled",
+      "scheduledAt": "2026-07-25T03:30:00.000Z",
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-19T06:00:00.000Z",
+      "createdBy": "content-team"
+    },
+    {
+      "id": "manual-ai-safety-for-kids-parents-guide",
+      "slug": "ai-safety-for-kids-parents-guide",
+      "title": "AI Safety for Kids: A Parent's Guide to Chatbots, Screen Time, and Critical Thinking in the AI Era",
+      "description": "A practical, non-alarmist framework for parents to set real rules around AI chatbots - understanding what these tools actually are, not just banning them.",
+      "summary": "AI chatbots are agreeable by design, not because they understand or care. This guide gives parents a mental model for what is actually happening, a healthy-vs-risky usage table, and a concrete framework for setting family rules.",
+      "duration": "9 min",
+      "level": "Beginner",
+      "audience": "students",
+      "type": "Guide",
+      "featured": false,
+      "image": "/images/audience-students-illustration.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-12T03:30:00.000Z",
+      "tags": ["Parents", "AI Safety", "Students", "Critical Thinking"],
+      "sections": [
+        {
+          "title": "Your Child Just Talked to a Chatbot Longer Than They Talked to You",
+          "paragraphs": [
+            "Your child just spent forty-five minutes talking to an AI chatbot about their day - more openly, honestly, than they talked to you at dinner. That is not automatically a crisis. But it is also not nothing, and most parenting advice about \"screen time\" was written for a world of video games and social media feeds, not for something that talks back, remembers context, and sounds like it cares.",
+            "The goal here is not to ban AI chatbots or panic about them. It is to understand what they actually are well enough to set sensible rules - the same way you would want to understand a new road before deciding how early your kid can bike on it alone."
+          ]
+        },
+        {
+          "title": "The Mental Model: An Extremely Agreeable Pen Pal, Not a Person",
+          "paragraphs": [
+            "The easiest way to explain AI chatbots to a child (and to yourself) is: it is a pen pal who has read almost everything ever written, is trained to be helpful and agreeable, and does not actually know your kid, care about them, or remember them tomorrow the way a friend would.",
+            "This \"agreeableness by design\" is the single most important thing to understand. Most AI chatbots are built to keep the conversation going and be pleasant - which means they can validate ideas that should not be validated, avoid pushing back the way a good parent or teacher would, and sound confident even when they are wrong. None of that is malicious. It is just what \"helpful and friendly by default\" produces at scale."
+          ]
+        },
+        {
+          "title": "Healthy vs. Risky AI Use Patterns",
+          "table": {
+            "headers": ["Healthy pattern", "Worth a conversation"],
+            "rows": [
+              ["Using AI to explain a homework concept a different way after trying it themselves", "Using AI to write the whole assignment and submitting it as their own"],
+              ["Asking AI for one perspective, then checking it against a textbook or teacher", "Treating AI's answer as final, without question, especially on opinions or facts"],
+              ["Using AI for brainstorming, then doing the actual thinking and writing themselves", "Having long emotional conversations with AI instead of people, as a regular substitute"],
+              ["Knowing which AI tools they are allowed to use, and for what, by agreement with you", "Using AI tools you do not know about, in ways you have not discussed"]
+            ]
+          },
+          "cta": {
+            "text": "Want to see exactly what your child sees when they open one of these tools, and understand it well enough to set real rules instead of guesses? Our Free 2-Hour Live AI Session for students (with a parent welcome to sit in) walks through this hands-on.",
+            "label": "Book your free spot now",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "A Practical Framework for Setting Rules",
+          "paragraphs": [
+            "Rather than a blanket \"yes\" or \"no\" to AI chatbots, most families do better with a few concrete agreements:"
+          ],
+          "bullets": [
+            "Agree on which tools are okay and for what (homework help vs. casual chatting are different use cases with different risks).",
+            "Talk about the \"verify, do not trust\" habit explicitly - ask your child to show you how they would double-check something the AI told them.",
+            "Set a norm around emotional conversations: it is fine to vent to an AI sometimes, but it should not quietly replace talking to a person when something's actually wrong.",
+            "Review a few real conversations together occasionally, not to snoop, but so they see you engaging with it like any other tool they use."
+          ]
+        },
+        {
+          "title": "What to Watch For, Without Overreacting",
+          "paragraphs": [
+            "Most kids using AI chatbots are fine. A smaller number of warning signs are worth a closer, calmer look rather than an immediate crackdown:"
+          ],
+          "bullets": [
+            "Preferring AI conversations to talking with friends or family, consistently, over weeks - not one bad day.",
+            "Repeating AI-generated opinions as their own without being able to explain the reasoning behind them.",
+            "Getting defensive or secretive specifically about AI conversations, more than about other apps.",
+            "Using AI to avoid a task (writing, thinking, decision-making) they are capable of doing themselves, as a pattern rather than an occasional shortcut."
+          ]
+        },
+        {
+          "title": "The Long Game: Raising a Critical AI User, Not a Cautious One",
+          "paragraphs": [
+            "The families who navigate this best generally are not the ones who restrict AI the hardest - they are the ones who talk about it the most, early and often, the way earlier generations of parents talked about media literacy with TV and, later, the internet. A kid who is used to asking \"how do you know that is true?\" out loud, to a parent, transfers that same skepticism to a chatbot without needing to be told to.",
+            "This is exactly the habit we build into our [Student Track](/ai-for-students) - not just \"how to use ChatGPT,\" but how to question it, verify it, and stay the one doing the thinking."
+          ]
+        }
+      ],
+      "keyTakeaway": "AI chatbots are agreeable by design, not because they understand or care - which means the most protective thing you can teach a child is to verify, not to avoid. Set concrete agreements, watch for patterns not incidents, and keep the conversation about AI as open as the conversation about anything else online.",
+      "relatedSlugs": ["how-does-chatgpt-think-tokenization-explained", "prompt-engineering-basics"],
+      "status": "published",
+      "scheduledAt": null,
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-12T03:30:00.000Z",
+      "createdBy": "content-team"
+    },
+    {
+      "id": "manual-vector-databases-explained-rag",
+      "slug": "vector-databases-explained-rag",
+      "title": "Vector Databases Explained: Why Your RAG Pipeline Needs One (and How to Choose)",
+      "description": "Brute-force similarity search works on 200 documents and falls over at 400,000. A practical guide to vector databases, indexing, and the decisions that matter more than which one you pick.",
+      "summary": "Vector databases exist to make similarity search fast at scale through approximate indexing, not exact comparison. This guide compares pgvector, Pinecone, Weaviate/Qdrant, and FAISS, and walks through the retrieval decisions that matter more than the database choice.",
+      "duration": "10 min",
+      "level": "Advanced",
+      "audience": "engineers",
+      "type": "Guide",
+      "featured": false,
+      "image": "/images/audience-engineers-illustration.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-14T03:30:00.000Z",
+      "tags": ["Vector Databases", "RAG", "Architecture", "Engineering"],
+      "sections": [
+        {
+          "title": "It Worked on 200 Test Documents. Then Someone Loaded 400,000.",
+          "paragraphs": [
+            "Your RAG pipeline works great on the 200 test documents you built it with. Then someone loads in 400,000 real documents, and suddenly retrieval takes eleven seconds and returns half-relevant chunks. The bottleneck usually is not your prompt, your chunking strategy, or even your embedding model - it is the naive similarity search you never meant to ship to production.",
+            "This is the moment every RAG builder discovers vector databases are not an optional infrastructure nicety. They are the difference between a demo and a system that survives real traffic."
+          ]
+        },
+        {
+          "title": "The Mental Model: A Library With a Genius Librarian vs. Reading Every Book",
+          "paragraphs": [
+            "Imagine you need to find every book in a massive library that is \"about\" a topic - not by title match, but by meaning. The naive approach: read every single book, cover to cover, comparing it mentally to your topic. That is what brute-force similarity search does - it compares your query's vector against every single stored vector, one by one. It works for a few hundred documents. It falls over at scale.",
+            "A vector database is the librarian who has already organized the entire library by meaning, using a physical layout where similar books sit near each other on the shelves - so when you ask for \"books like this one,\" they walk directly to the right shelf instead of checking every book in the building. That \"organizing by meaning\" is what indexing algorithms like HNSW or IVF actually do: they build a navigable structure so similarity search becomes fast approximate lookup instead of exhaustive comparison.",
+            "The \"approximate\" part matters too - most vector databases trade a small amount of accuracy for a massive amount of speed, which is almost always the right trade for real applications."
+          ]
+        },
+        {
+          "title": "Choosing a Vector Database",
+          "table": {
+            "headers": ["Option", "Best for", "Watch out for"],
+            "rows": [
+              ["Pgvector (Postgres extension)", "Teams already running Postgres who want one less system to operate", "Slower at very large scale (10M+ vectors) than purpose-built options"],
+              ["Pinecone", "Managed, zero-ops scaling; teams who do not want to run infrastructure", "Cost scales with usage; less control over underlying index tuning"],
+              ["Weaviate / Qdrant (self-hosted or managed)", "Teams wanting hybrid search (keyword + vector) and metadata filtering out of the box", "Requires real operational investment if self-hosted"],
+              ["FAISS (library, not a database)", "Research, prototyping, or embedding vector search inside your own service", "No built-in persistence, metadata filtering, or multi-tenant isolation - you build that yourself"],
+              ["In-memory / naive brute force", "Prototypes under ~10,000 documents", "Falls over fast - do not ship this to production and assume it will scale"]
+            ]
+          },
+          "cta": {
+            "text": "Reading a comparison table is the easy part. Actually watching retrieval latency drop when you swap in a real index - that is the part that makes it click. Our Free 2-Hour Live AI Session walks engineers through exactly this, hands-on.",
+            "label": "Book your free 2-hour session",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "The Decisions That Matter More Than Which Database You Pick",
+          "paragraphs": [
+            "Engineers often spend their planning budget on the \"which vector database\" decision and underspend it on decisions that affect retrieval quality far more:"
+          ],
+          "bullets": [
+            "Chunking strategy: too large and you dilute relevance; too small and you lose context. Test multiple chunk sizes against real queries, do not guess once and move on.",
+            "Metadata filtering: letting you narrow search by date, source, or permission before the similarity search runs, which is often more important than the index algorithm itself.",
+            "Reranking: a second, more expensive pass over your top-k results using a cross-encoder, which reliably improves relevance beyond what pure vector similarity gets you.",
+            "Hybrid search: combining keyword (BM25) search with vector search, since pure semantic search alone can miss exact-match cases (product codes, names, acronyms)."
+          ]
+        },
+        {
+          "title": "A Simple Decision Path",
+          "paragraphs": [
+            "Use this order of questions when choosing:"
+          ],
+          "bullets": [
+            "Already running Postgres and under a few million vectors? -> Start with pgvector, avoid adding a new system.",
+            "Need zero-ops managed scaling and can budget for it? -> Pinecone or a managed Weaviate/Qdrant instance.",
+            "Need hybrid search and rich metadata filtering as first-class features? -> Weaviate or Qdrant.",
+            "Building a research prototype or embedding search inside your own service? -> FAISS, and plan to migrate once you need persistence and multi-tenancy."
+          ]
+        },
+        {
+          "title": "Migration Is a Sign of Health, Not Failure",
+          "paragraphs": [
+            "None of these choices are permanent commitments - most teams migrate at least once as scale and requirements change, and that is a sign of a healthy system, not a planning failure.",
+            "This exact kind of infrastructure judgment - what to optimize first, what to defer - is what we build hands-on in the [Engineer Track](/ai-for-engineers), through a real RAG build rather than a slide about it."
+          ]
+        }
+      ],
+      "keyTakeaway": "Vector databases exist to make similarity search fast at scale through approximate indexing, not exact comparison. But the database choice matters less than chunking, metadata filtering, and reranking - get those right first, then pick infrastructure that fits your operational reality.",
+      "relatedSlugs": ["rag-vs-finetuning", "langchain-vs-llamaindex-vs-scratch", "vector-search-rag-in-practice"],
+      "status": "published",
+      "scheduledAt": null,
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-14T03:30:00.000Z",
+      "createdBy": "content-team"
+    },
+    {
+      "id": "manual-how-to-write-an-ai-prd",
+      "slug": "how-to-write-an-ai-prd",
+      "title": "How to Write an AI PRD: A Product Manager's Framework for Scoping AI Features Without Overpromising",
+      "description": "Your standard PRD template breaks the moment you try to specify AI feature behavior. A practical framework for writing PRDs that survive contact with a probabilistic system.",
+      "summary": "AI features need a different PRD shape because the system is probabilistic, not deterministic. This guide walks PMs through the five sections every AI feature PRD needs, and the overpromising trap that sinks most launches.",
+      "duration": "10 min",
+      "level": "Intermediate",
+      "audience": "professionals",
+      "type": "Guide",
+      "featured": false,
+      "image": "/images/audience-professionals-illustration.jpg",
+      "author": "Verlin Labs",
+      "publishedAt": "2026-07-16T03:30:00.000Z",
+      "tags": ["Product Management", "PRD", "AI Features", "Reliability"],
+      "sections": [
+        {
+          "title": "Your PRD Template Has No Field for 'What If It is Wrong?'",
+          "paragraphs": [
+            "Your standard PRD template has a section called \"Expected Behavior\" with one clean bullet list. Then you try to fill it in for an AI feature, and you hit a wall your template was never built for: the system will not behave the same way twice, \"accuracy\" is not a boolean, and engineering keeps asking \"what should happen when the model gets it wrong?\" - a question your template does not have a field for.",
+            "This is the moment most PMs discover that AI features need a different PRD shape, not just a new section bolted onto the old one. Skip this step and you will ship a feature with no shared definition of \"working,\" which means every stakeholder discovers a different definition of \"broken\" after launch."
+          ]
+        },
+        {
+          "title": "The Mental Model: Specifying a Weather Forecast, Not a Calculator",
+          "paragraphs": [
+            "A traditional software feature is like a calculator: given the same input, you always get the same, correct output. Your PRD can specify exact behavior because the system is deterministic.",
+            "An AI feature is like a weather forecast: it is usually right, occasionally wrong, and its confidence does not always match its accuracy - a \"90% chance of rain\" forecast is still allowed to be wrong sometimes, that is baked into how forecasts work. Writing a PRD for an AI feature means specifying behavior probabilistically: what is the acceptable error rate, what happens on the wrong days, and how does the user find out when to trust it less.",
+            "This reframing changes what your PRD needs to contain - not just \"what should it do,\" but \"what should happen when it is wrong, and how often are we willing to let that happen.\""
+          ]
+        },
+        {
+          "title": "Traditional PRD vs. AI Feature PRD",
+          "table": {
+            "headers": ["Section", "Traditional PRD", "AI Feature PRD"],
+            "rows": [
+              ["Expected behavior", "Exact output for given input", "Acceptable output distribution + confidence handling"],
+              ["Success metric", "Feature works or it does not (bug count)", "Quantified accuracy/reliability bar (e.g. 95% schema-valid, 90% user-rated helpful)"],
+              ["Failure handling", "Edge cases and error states", "Explicit fallback behavior for low-confidence or invalid outputs, reviewed with engineering upfront"],
+              ["Testing", "QA test cases with expected outputs", "Evaluation set of representative + adversarial inputs, re-run after every model or prompt change"],
+              ["Launch readiness", "Feature complete, bugs triaged", "Feature complete + eval scores hit the bar + fallback UX reviewed + monitoring in place"]
+            ]
+          },
+          "cta": {
+            "text": "This framework is easy to nod along to and much harder to apply the first time you actually sit down and write one. Our Free 2-Hour Live AI Session walks PMs through drafting a real AI feature PRD live, mistakes included.",
+            "label": "Book your free 2-hour session",
+            "href": "/free-session"
+          }
+        },
+        {
+          "title": "The Five Sections Every AI Feature PRD Needs",
+          "paragraphs": [
+            "Beyond the standard problem statement and user stories, build these five sections in explicitly:"
+          ],
+          "bullets": [
+            "Output contract: the exact schema or format engineering can rely on - not \"a helpful summary,\" but the literal fields and types expected back.",
+            "Reliability bar: a number, not a feeling - what percentage of responses must meet quality bar X, measured how, checked how often.",
+            "Fallback behavior: what the user sees, specifically, when the model is uncertain, wrong, or returns something invalid - designed intentionally, not left as an engineering afterthought.",
+            "Evaluation set: a living set of test inputs, including deliberately tricky ones, that gets re-run every time the prompt or model changes - this is your regression suite for a system that does not behave deterministically.",
+            "Model dependency risk: what happens to this feature if the underlying model gets upgraded, deprecated, or changes behavior without your input - because it will, on someone else's timeline."
+          ]
+        },
+        {
+          "title": "The Overpromising Trap, and How to Avoid It",
+          "paragraphs": [
+            "The most common AI PRD failure is not technical - it is a PM writing \"the AI will accurately summarize the document\" without defining accurate, without a number, without a plan for what happens on the days it is not. That sentence sounds complete in a review meeting and falls apart the first week after launch."
+          ],
+          "bullets": [
+            "Replace adjectives ('accurate,' 'smart,' 'helpful') with numbers and test cases wherever the PRD makes a quality claim.",
+            "Involve engineering in setting the reliability bar - what is achievable with current models is a technical fact, not a negotiation.",
+            "Present the fallback UX to stakeholders before launch, not after the first bad output goes viral internally.",
+            "Budget review time after launch specifically for checking real usage against your evaluation set - AI features drift in ways traditional features do not."
+          ]
+        },
+        {
+          "title": "Where This Fits Into the Bigger Picture",
+          "paragraphs": [
+            "Writing a good AI PRD is really a specific application of a broader skill: running product discovery for a system that is probabilistic instead of deterministic, which touches everything from how you talk to engineering to how you set expectations with leadership. This is the core of what we build, hands-on, in the [PM Track](/ai-for-pms) - not just how to write the document, but how to think about reliability before a single line of code gets written."
+          ]
+        }
+      ],
+      "keyTakeaway": "AI features need a different PRD shape because the system is probabilistic, not deterministic. Specify the output contract, a quantified reliability bar, and explicit fallback behavior before launch - or you will discover your feature's real definition of 'broken' from a support ticket instead of a spec.",
+      "relatedSlugs": ["prompt-engineering-vs-structured-outputs", "ai-for-decision-makers", "how-to-learn-ai-for-product-management"],
+      "status": "published",
+      "scheduledAt": null,
+      "sequenceId": "manual",
+      "sequenceLabel": "Manually authored",
+      "generatedBy": "manual",
+      "createdAt": "2026-07-16T03:30:00.000Z",
+      "createdBy": "content-team"
+    }
+  ]
 }

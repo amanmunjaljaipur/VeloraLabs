@@ -14,6 +14,8 @@ export function Card({ className, hover, children, onClick, id, role, tabIndex, 
   const classes = cn(
     "card-verlin rounded-xl p-5 text-card-foreground md:p-6",
     hover && "card-verlin-hover",
+    /* Equal height grids need min-w-0 so content never blows columns */
+    "min-w-0",
     className
   );
 
@@ -32,10 +34,10 @@ export function Card({ className, hover, children, onClick, id, role, tabIndex, 
           ? undefined
           : {
               y: HOVER.cardLift,
-              transition: { duration: 0.25, ease: EASE_OUT },
+              transition: { duration: DURATION.hover + 0.04, ease: EASE_OUT },
             }
       }
-      className={classes}
+      className={cn(classes, onClick && "cursor-pointer")}
       onClick={onClick}
       id={id}
       role={role}

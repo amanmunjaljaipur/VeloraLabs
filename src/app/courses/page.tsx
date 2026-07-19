@@ -52,9 +52,10 @@ export default function CoursesPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="Learning tracks"
         title="Courses"
-        subtitle="Choose the course that fits your stage — each track includes the full syllabus and session structure."
-        image="/images/presentation.jpg"
-        imageAlt="Verlin Labs AI courses — structured learning tracks for students, engineers, and PMs"
+        subtitle="Choose the course that fits your stage - each track includes the full syllabus and session structure."
+        image="/images/hq-courses.jpg"
+        imageAlt="Verlin Labs AI courses - frameworks and structured learning tracks"
+        video="/videos/courses.mp4"
       />
 
       <section className="section-y">
@@ -66,7 +67,7 @@ export default function CoursesPage() {
               return (
                 <Link key={slug} href={`/courses/${slug}`} className="block h-full group">
                   <Card hover className="flex h-full flex-col overflow-hidden p-0">
-                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-sky-50/40">
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-bg-light/40">
                       <OptimizedImage
                         src={trackImages[slug]}
                         alt={audienceTrackImageAlt(slug as AudienceSlug, labels[slug])}
@@ -113,7 +114,7 @@ export default function CoursesPage() {
           <SectionHeader
             eyebrow="Get started"
             title="Not sure which course fits?"
-            subtitle="Start with a free 2-hour session — we'll help you pick the right path."
+            subtitle="Start with a free 2-hour session - we will help you pick the right path."
             className="mb-8"
           />
           <div className="text-center">

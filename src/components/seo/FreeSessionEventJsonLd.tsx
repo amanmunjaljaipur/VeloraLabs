@@ -8,7 +8,7 @@ export function FreeSessionEventJsonLd() {
     description:
       "Live clarity-first AI intro session with mental models, hands-on exercises, and a personalized learning path for students, engineers, and product managers.",
     url: `${SITE_ORIGIN}/free-session`,
-    image: `${SITE_ORIGIN}/images/free-session-live-illustration.jpg`,
+    image: `${SITE_ORIGIN}/images/brand-free-session.jpg`,
     eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     duration: "PT2H",

@@ -165,7 +165,7 @@ export function AuthButton({
                   className="flex w-full items-center gap-2 border-b border-border bg-accent-teal/5 px-4 py-3 text-sm font-semibold text-accent-teal transition-colors hover:bg-accent-teal/10"
                 >
                   <LayoutDashboard className="h-4 w-4 shrink-0" />
-                  Admin home — all dashboards
+                  Admin home - all dashboards
                 </Link>
                 <div className="border-b border-border py-1">
                   <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">

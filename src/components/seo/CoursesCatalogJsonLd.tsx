@@ -1,7 +1,7 @@
 import { buildCoursesGraphJsonLd } from "@/lib/course-schema";
 import { SITE_ORIGIN } from "@/lib/seo";
 
-/** @deprecated Prefer CoursesGraphJsonLd — kept for imports that pass listPath. */
+/** @deprecated Prefer CoursesGraphJsonLd - kept for imports that pass listPath. */
 export function CoursesCatalogJsonLd({ listPath = "/courses" }: { listPath?: string } = {}) {
   const jsonLd = buildCoursesGraphJsonLd();
   if (listPath !== "/courses" && jsonLd["@graph"]) {

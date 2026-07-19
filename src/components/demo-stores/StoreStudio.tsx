@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Store Super Admin console — rights scoped to this store module only.
+ * Store Super Admin console - rights scoped to this store module only.
  * Brand/theme, category, CMS, CRM, chatbot training, products, publish to /s/{id}.
  */
 
@@ -534,7 +534,7 @@ export function StoreStudio({
                 <>
                   <h1 className="text-2xl font-bold">Chatbot training</h1>
                   <p className="text-sm text-muted-foreground">
-                    Pretrained only on <strong>this store&apos;s</strong> persona + FAQs — not the
+                    Pretrained only on <strong>this store&apos;s</strong> persona + FAQs - not the
                     platform Verlin chatbot corpus.
                   </p>
                   <Card className="space-y-3 p-5">
@@ -747,7 +747,7 @@ export function StoreStudio({
                     </p>
                     <p className="text-sm">
                       Status:{" "}
-                      <strong>{store.published ? "Published" : "Draft — not public yet"}</strong>
+                      <strong>{store.published ? "Published" : "Draft - not public yet"}</strong>
                     </p>
                     <Button type="button" variant="cta" disabled={busy} onClick={() => void publish()}>
                       {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

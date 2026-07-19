@@ -29,7 +29,7 @@ function resolveEndpoint(secrets: AppLlmSecrets): { url: string; headers: Record
     };
   }
 
-  // Custom OpenAI-compatible — block SSRF to private/metadata hosts
+  // Custom OpenAI-compatible - block SSRF to private/metadata hosts
   const base = (secrets.baseUrl || "").replace(/\/$/, "");
   if (!base) throw new Error("Custom provider requires a base URL (OpenAI-compatible)");
   assertSafeLlmBaseUrl(base);
@@ -81,7 +81,7 @@ export function defaultModelForProvider(provider: LlmProviderKind): string {
 
 /**
  * Call user's LLM (Grok / Groq / custom OpenAI-compatible).
- * API keys are request-scoped only — never written to disk/Blob.
+ * API keys are request-scoped only - never written to disk/Blob.
  */
 export async function callUserLlm(input: {
   secrets: AppLlmSecrets;

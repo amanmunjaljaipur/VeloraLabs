@@ -60,7 +60,7 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
     label: "Agents",
     href: "/admin/agents",
-    description: "Table of all AI/product agents — pause or resume anytime",
+    description: "Table of all AI/product agents - pause or resume anytime",
     superAdminOnly: true,
   },
   {
@@ -71,7 +71,7 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
   {
     label: "App Studio",
     href: "/admin/app-studio",
-    description: "AI app generator — chat, live preview, code, version history",
+    description: "AI app generator - chat, live preview, code, version history",
   },
   {
     label: "50 Demo Apps",

@@ -93,7 +93,7 @@ export async function PATCH(request: Request, context: Ctx) {
             city: content.city,
           })
         : cleaned;
-    // Auto images are https pollinations — keep only safe URLs
+    // Auto images are https pollinations - keep only safe URLs
     content.products = withImages.map((p) => ({
       ...p,
       image: p.image && isSafeMediaUrl(p.image) ? p.image : undefined,

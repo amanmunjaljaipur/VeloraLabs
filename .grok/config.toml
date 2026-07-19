@@ -1,5 +1,13 @@
-[mcp_servers.velora-newsletter]
-url = "https://velora-labs-gamma.vercel.app/api/mcp/newsletter"
-headers = { Authorization = "Bearer ${NEWSLETTER_MCP_API_KEY}" }
+# Project-scoped MCP + skill config for Verlin Labs
+# Docs: ~/.grok/docs/user-guide/07-mcp-servers.md
+
+[mcp_servers."21st"]
+url = "https://21st.dev/api/mcp"
 enabled = true
-tool_timeout_sec = 120
+# Set API_KEY_21ST in your shell or .env.local (do not commit the raw key).
+# Create a key: https://21st.dev/settings/api-keys
+headers = { "x-api-key" = "${API_KEY_21ST}" }
+
+[skills]
+# Prefer local Verlin skills + ui-ux-pro-max
+paths = ["./.grok/skills"]

@@ -239,7 +239,7 @@ export function PageBuilderEditor({ pageId, page, initialContent, onMetaChange }
         status: "draft",
         publishedSections: [],
       }));
-      toast("Page unpublished — live site shows empty until you publish again", "success");
+      toast("Page unpublished - live site shows empty until you publish again", "success");
     } finally {
       setUnpublishing(false);
     }
@@ -284,7 +284,7 @@ export function PageBuilderEditor({ pageId, page, initialContent, onMetaChange }
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{pageMeta.label}</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Drag components, edit properties, preview, then publish — AEM-style page building.
+            Drag components, edit properties, preview, then publish - AEM-style page building.
           </p>
           {pageMeta.publicPath ? (
             <p className="mt-2 font-mono text-xs text-text-muted">{pageMeta.publicPath}</p>
@@ -410,7 +410,7 @@ export function PageBuilderEditor({ pageId, page, initialContent, onMetaChange }
         >
           {content.sections.length === 0 ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 p-8 text-center">
-              <p className="text-sm font-medium text-foreground">Custom template — blank canvas</p>
+              <p className="text-sm font-medium text-foreground">Custom template - blank canvas</p>
               <p className="mt-2 max-w-sm text-sm text-text-secondary">
                 Drag any component from the library onto this canvas (or click +) and arrange them in any order.
               </p>
@@ -460,7 +460,7 @@ export function PageBuilderEditor({ pageId, page, initialContent, onMetaChange }
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
-              <p className="text-sm font-semibold">Preview — draft (not yet published)</p>
+              <p className="text-sm font-semibold">Preview - draft (not yet published)</p>
               <p className="text-xs text-text-secondary">This is how your page will look after publishing.</p>
             </div>
             <button

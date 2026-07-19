@@ -1,6 +1,6 @@
 /**
  * Location-aware colors, logos, and product visuals for non-technical shop owners.
- * No external image APIs — pure deterministic design from city + brand.
+ * No external image APIs - pure deterministic design from city + brand.
  */
 
 export interface LocationBrand {

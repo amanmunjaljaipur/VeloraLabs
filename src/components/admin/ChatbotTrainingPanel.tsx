@@ -527,7 +527,7 @@ export function ChatbotTrainingPanel() {
                     <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">{entry.answer}</p>
                   </td>
                   <td className="px-4 py-3 text-xs text-text-secondary">
-                    {entry.alternateQuestions.length || "—"}
+                    {entry.alternateQuestions.length || " - "}
                   </td>
                   <td className="px-4 py-3">
                     <Badge

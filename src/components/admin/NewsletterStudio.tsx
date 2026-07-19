@@ -409,7 +409,7 @@ export function NewsletterStudio({ mcpUrl }: NewsletterStudioProps) {
                   .
                 </>
               ) : (
-                <> — email delivery skipped (RESEND_API_KEY not configured).</>
+                <> - email delivery skipped (RESEND_API_KEY not configured).</>
               )}
             </p>
           )}

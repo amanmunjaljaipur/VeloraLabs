@@ -76,7 +76,7 @@ export async function POST(request: Request, context: Ctx) {
     applied: true,
     message:
       source === "llm"
-        ? "Wording improved — check Home, About, and FAQ"
+        ? "Wording improved - check Home, About, and FAQ"
         : "Wording filled from your shop details (offline mode)",
   });
 }

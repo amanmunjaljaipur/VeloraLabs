@@ -15,14 +15,14 @@ export function TrainerProfile({ trainer }: TrainerProfileProps) {
       <div className="container-verlin">
         <SectionHeader
           eyebrow="About the instructors"
-          title="Meet Aman Munjal — founder & lead instructor"
+          title="Meet Aman Munjal - founder & lead instructor"
           subtitle="Learn directly from the educator who designed Verlin Labs' mental-model curriculum across every track."
           className="mb-12 md:mb-16"
         />
 
         <div className="card-verlin mx-auto max-w-5xl overflow-hidden p-0 shadow-md">
           <div className="grid lg:grid-cols-[minmax(280px,340px)_1fr]">
-            <div className="relative bg-gradient-to-br from-accent-teal/10 via-background to-sky-50/40 p-8 lg:p-10">
+            <div className="relative bg-gradient-to-br from-accent-teal/10 via-background to-bg-light/40 p-8 lg:p-10">
               <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-2xl border border-accent-teal/20 shadow-lg">
                 <OptimizedImage
                   src={trainer.image}

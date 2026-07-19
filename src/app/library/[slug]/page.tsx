@@ -24,7 +24,7 @@ export async function generateMetadata({
   const item = getLibraryItem(slug);
   if (!item) return { title: "Not Found" };
   return createMetadata({
-    title: `${item.title} — AI ${item.type}`,
+    title: `${item.title} - AI ${item.type}`,
     description: trimMetaDescription(
       `${item.description} ${item.duration} read · ${item.level} · Verlin Labs library.`
     ),

@@ -3,7 +3,7 @@
 /**
  * Production-style multi-module runtime.
  * Every screen, button, and form is wired: create / edit / delete / status /
- * search / filter / navigate — with mock API happy & fail paths.
+ * search / filter / navigate - with mock API happy & fail paths.
  */
 
 import { Badge } from "@/components/ui/Badge";
@@ -234,7 +234,7 @@ export function MultiModuleProductApp({
       setQuery("");
       setStatusFilter("all");
     } else {
-      flash(`No screen mapped for “${item.label}” — opened Home`, "info");
+      flash(`No screen mapped for “${item.label}” - opened Home`, "info");
       const home = visibleScreens.find((s) => s.type === "dashboard") || visibleScreens[0];
       if (home) setScreenId(home.id);
     }
@@ -283,7 +283,7 @@ export function MultiModuleProductApp({
       return;
     }
     if (!role?.canCreate) {
-      flash(`“${role?.label || "This role"}” cannot create — switch role to a creator/admin`, "error");
+      flash(`“${role?.label || "This role"}” cannot create - switch role to a creator/admin`, "error");
       return;
     }
     setFormEntityId(ent.id);
@@ -338,7 +338,7 @@ export function MultiModuleProductApp({
     const blob = Object.values(form).join(" ").toLowerCase();
     if (/\bfail\b/.test(blob) || (form.title || "").toLowerCase().includes("fail")) {
       err[fields[0]?.key || "title"] =
-        "Contains “fail” — used to exercise the error path. Remove it or set Always succeed in Settings.";
+        "Contains “fail” - used to exercise the error path. Remove it or set Always succeed in Settings.";
     }
     setFormErrors(err);
     if (Object.keys(err).length) {
@@ -419,7 +419,7 @@ export function MultiModuleProductApp({
 
   async function setStatus(entityId: string, id: string, status: string) {
     if (!role?.canManage && !role?.canCreate) {
-      flash("Your role cannot change status — switch to a manager/ops role", "error");
+      flash("Your role cannot change status - switch to a manager/ops role", "error");
       return;
     }
     setBusy(`st-${id}`);
@@ -465,7 +465,7 @@ export function MultiModuleProductApp({
 
   async function deleteRecord(entityId: string, id: string) {
     if (!role?.canManage) {
-      flash("Only manager roles can delete — switch role", "error");
+      flash("Only manager roles can delete - switch role", "error");
       return;
     }
     setBusy(`del-${id}`);
@@ -850,7 +850,7 @@ export function MultiModuleProductApp({
               </div>
             )}
 
-            {/* ── Modal form (create / edit) — always interactive ── */}
+            {/* ── Modal form (create / edit) - always interactive ── */}
             {formMode && formEntity && (
               <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-3 sm:items-center">
                 <Card className="max-h-[90dvh] w-full max-w-lg overflow-y-auto p-5 shadow-xl">
@@ -1027,7 +1027,18 @@ export function MultiModuleProductApp({
             )}
 
             {!panel && activeScreen && activeScreen.type !== "dashboard" && (
-              <div className="mb-4 space-y-1">
+              <div className="mb-4 space-y-2">
+                {activeScreen.imageUrl && (
+                  <div className="relative mb-3 h-48 w-full overflow-hidden rounded-2xl border border-border bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeScreen.imageUrl}
+                      alt={activeScreen.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
                 <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
                   {activeScreen.title}
                 </h1>
@@ -1058,6 +1069,17 @@ export function MultiModuleProductApp({
             {/* ── Dashboard ── */}
             {!panel && activeScreen?.type === "dashboard" && (
               <div className="space-y-6">
+                {activeScreen.imageUrl && (
+                  <div className="relative h-48 w-full overflow-hidden rounded-2xl border border-border bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeScreen.imageUrl}
+                      alt={activeScreen.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-accent-teal">
                     {role?.label}
@@ -1172,7 +1194,7 @@ export function MultiModuleProductApp({
                           <CircleDot className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-teal" />
                           <span>
                             <strong className="text-foreground">{r.label}</strong>
-                            <span className="text-muted-foreground"> — {r.description}</span>
+                            <span className="text-muted-foreground"> - {r.description}</span>
                           </span>
                         </button>
                       </li>
@@ -1202,7 +1224,7 @@ export function MultiModuleProductApp({
                     onAdvance={(row) => void advanceStatus(primaryEntity.id, row)}
                     onDelete={(id) => void deleteRecord(primaryEntity.id, id)}
                     onDuplicate={(row) => void duplicateRecord(primaryEntity.id, row)}
-                    emptyCopy="Nothing yet — create your first record."
+                    emptyCopy="Nothing yet - create your first record."
                   />
                 )}
               </div>
@@ -1310,7 +1332,7 @@ export function MultiModuleProductApp({
                   </div>
                 </Card>
                 <Card className="space-y-2 p-5">
-                  <p className="text-sm font-semibold">Roles — tap to switch</p>
+                  <p className="text-sm font-semibold">Roles - tap to switch</p>
                   {spec.roles.map((r) => (
                     <button
                       key={r.id}
@@ -1321,7 +1343,7 @@ export function MultiModuleProductApp({
                         r.id === roleId && "bg-accent-teal/10 font-medium"
                       )}
                     >
-                      {r.label} —{" "}
+                      {r.label} - {" "}
                       <span className="font-normal text-muted-foreground">{r.description}</span>
                     </button>
                   ))}
@@ -1619,6 +1641,17 @@ function WorkspaceBlock({
                         className="w-full text-left"
                         onClick={() => onSelect(r.id === selectedId ? null : r.id)}
                       >
+                        {typeof r.imageUrl === "string" && r.imageUrl && (
+                          <div className="relative mb-2 h-24 w-full overflow-hidden rounded-lg bg-muted border border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={r.imageUrl as string}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
                         <p className="text-sm font-semibold">{titleOf(r, entity.name)}</p>
                         <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
                           {String(r.description || r.notes || r.summary || "")}
@@ -1711,27 +1744,40 @@ function WorkspaceBlock({
                 selectedId === r.id && "ring-2 ring-accent-teal/40"
               )}
             >
-              <button
-                type="button"
-                className="min-w-0 flex-1 text-left"
-                onClick={() => onSelect(r.id === selectedId ? null : r.id)}
-              >
-                <p className="font-semibold">{titleOf(r, entity.name)}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {entity.fields
-                    .filter((f) => f.key !== "title" && f.key !== "name" && f.key !== "status")
-                    .slice(0, 4)
-                    .map((f) => `${f.label}: ${String(r[f.key] ?? "—")}`)
-                    .join(" · ")}
-                </p>
-                {selectedId === r.id && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {String(r.description || r.notes || r.summary || r.body || "No long description.")}
-                  </p>
+              <div className="flex gap-3 min-w-0 flex-1">
+                {typeof r.imageUrl === "string" && r.imageUrl && (
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted border border-border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={r.imageUrl as string}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
                 )}
-              </button>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => onSelect(r.id === selectedId ? null : r.id)}
+                >
+                  <p className="font-semibold">{titleOf(r, entity.name)}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {entity.fields
+                      .filter((f) => f.key !== "title" && f.key !== "name" && f.key !== "status")
+                      .slice(0, 4)
+                      .map((f) => `${f.label}: ${String(r[f.key] ?? " - ")}`)
+                      .join(" · ")}
+                  </p>
+                  {selectedId === r.id && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {String(r.description || r.notes || r.summary || r.body || "No long description.")}
+                    </p>
+                  )}
+                </button>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-muted">{String(r.status || "—")}</Badge>
+                <Badge className="bg-muted">{String(r.status || " - ")}</Badge>
                 {canManage && statuses.length > 0 && (
                   <select
                     className="rounded-lg border border-border bg-background px-2 py-1 text-xs"

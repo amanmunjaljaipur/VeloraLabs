@@ -7,7 +7,7 @@ export function ServiceJsonLd() {
     "@type": "Service",
     name: "Corporate AI Literacy Workshops",
     description:
-      "Tailored corporate AI training for teams in India — live workshops on mental models, responsible AI, LLM fundamentals, and practical evaluation frameworks.",
+      "Tailored corporate AI training for teams in India - live workshops on mental models, responsible AI, LLM fundamentals, and practical evaluation frameworks.",
     provider: {
       "@type": "EducationalOrganization",
       name: "Verlin Labs",

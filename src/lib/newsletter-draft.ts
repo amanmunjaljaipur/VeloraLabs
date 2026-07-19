@@ -49,7 +49,7 @@ export async function sendNewsletterDraft(
   const weekOf = getWeekOfSunday();
   const local = readJsonFile<EditionsStore>(EDITIONS_FILE, '{"editions":[]}');
 
-  // One edition per IST week — prevents double-posts from cron retries
+  // One edition per IST week - prevents double-posts from cron retries
   const existing = local.editions.find((e) => e.weekOf === weekOf);
   if (existing) {
     const email: NewsletterEmailDeliveryResult = {

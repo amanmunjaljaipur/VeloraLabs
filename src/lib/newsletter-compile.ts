@@ -57,11 +57,11 @@ export function compileNewsletterEdition(
   const weekLabel = formatWeekLabel(weekOf);
   const intro =
     options?.intro ??
-    "Your weekly clarity-first roundup of AI and technology — curated for builders, students, and professionals.";
+    "Your weekly clarity-first roundup of AI and technology - curated for builders, students, and professionals.";
   const publishedAt = options?.publishedAt ?? new Date().toISOString();
   const editionId = `edition-${weekOf}`;
   const slug = editionSlug(weekOf);
-  const title = `Verlin Labs Weekly — ${weekLabel}`;
+  const title = `Verlin Labs Weekly - ${weekLabel}`;
 
   const bodyMarkdown = items.map((item, i) => itemMarkdown(item, i + 1)).join("\n\n");
   const markdown = [
@@ -75,7 +75,7 @@ export function compileNewsletterEdition(
     "",
     "---",
     "",
-    "*You're receiving this because you follow Verlin Labs. [Subscribe on our site](/newsletter) for more.*",
+    "*You are receiving this because you follow Verlin Labs. [Subscribe on our site](/newsletter) for more.*",
   ].join("\n");
 
   const bodyHtml = items.map((item, i) => itemHtml(item, i + 1)).join("");

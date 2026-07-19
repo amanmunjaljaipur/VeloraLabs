@@ -50,7 +50,7 @@ export default function BlogPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="Blog"
         title="Ideas worth understanding"
-        subtitle="Clarity-first articles on AI fundamentals, product thinking, and mental models — published with full date and time."
+        subtitle="Clarity-first articles on AI fundamentals, product thinking, and mental models - published with full date and time."
         align="center"
         compact
       />

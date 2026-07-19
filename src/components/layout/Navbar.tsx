@@ -40,14 +40,16 @@ function NavLink({
       href={href}
       onClick={onClick}
       className={cn(
-        "group relative whitespace-nowrap text-sm font-medium tracking-tight transition-colors duration-150",
+        "group relative cursor-pointer whitespace-nowrap text-sm font-medium tracking-tight",
+        "transition-colors duration-200 ease-out",
         active ? "text-teal" : "text-foreground/70 hover:text-foreground"
       )}
     >
       {children}
       <span
         className={cn(
-          "absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal transition-all duration-150 ease-out",
+          "absolute -bottom-1 left-0 h-0.5 rounded-full bg-accent-teal",
+          "transition-[width] duration-200 ease-out",
           active ? "w-full" : "w-0 group-hover:w-full"
         )}
         aria-hidden="true"
@@ -94,7 +96,7 @@ export function Navbar({ nav }: NavbarProps) {
           "sticky top-0 z-50 w-full transition-all duration-200 ease-out",
           scrolled
             ? "border-b border-border/80 bg-[var(--canvas)]/95 shadow-sm backdrop-blur-xl backdrop-saturate-150"
-            : "border-b border-transparent bg-[var(--canvas)]/90 backdrop-blur-md"
+            : "border-b border-border/50 bg-[var(--canvas)]/90 backdrop-blur-md"
         )}
       >
         <nav
@@ -103,7 +105,7 @@ export function Navbar({ nav }: NavbarProps) {
         >
           <VerlinLogo className="mr-1 shrink-0 sm:mr-2" />
 
-          <div className="hidden flex-1 items-center justify-center gap-x-4 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-6 2xl:gap-x-7">
+          <div className="hidden min-w-0 flex-1 items-center justify-start gap-x-3 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-5 2xl:gap-x-6">
             {navItems.map((item) =>
               isExternal(item.href) ? (
                 <a
@@ -182,7 +184,7 @@ export function Navbar({ nav }: NavbarProps) {
               animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               exit={reduceMotion ? undefined : { opacity: 0, y: -16 }}
               transition={{ duration: DURATION.menu, ease: EASE_OUT }}
-              className="fixed inset-x-0 top-16 z-[70] max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background shadow-xl lg:hidden md:top-[4.25rem] md:max-h-[calc(100dvh-4.25rem)]"
+              className="fixed inset-x-0 top-14 z-[70] max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-border bg-background shadow-xl lg:hidden md:top-16 md:max-h-[calc(100dvh-4rem)]"
             >
               <div className="container-verlin-nav flex flex-col gap-1 py-4">
                 {navItems.map((item) =>
@@ -214,16 +216,16 @@ export function Navbar({ nav }: NavbarProps) {
                     </Link>
                   )
                 )}
-                <div className="mt-3 border-t border-border pt-4">
+                <div className="mt-3 flex flex-col gap-3 border-t border-border pt-4">
                   <AuthButton className="w-full justify-center" />
+                  {!isEnrolled && (
+                    <Link href="/free-session" className="block w-full" onClick={closeMobile}>
+                      <Button variant="cta" className="w-full justify-center">
+                        Book Free Session
+                      </Button>
+                    </Link>
+                  )}
                 </div>
-                {!isEnrolled && (
-                  <Link href="/free-session" className="mt-3 block" onClick={closeMobile}>
-                    <Button variant="cta" className="w-full">
-                      Book Free Session
-                    </Button>
-                  </Link>
-                )}
               </div>
             </motion.div>
           </>

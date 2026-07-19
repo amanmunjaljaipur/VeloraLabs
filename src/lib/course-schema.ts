@@ -84,7 +84,7 @@ export function buildCourseJsonLd({
     },
     hasCourseInstance: {
       "@type": "CourseInstance",
-      name: `${course.title} — live online cohort`,
+      name: `${course.title} - live online cohort`,
       courseMode: "online",
       courseWorkload: course.duration,
       inLanguage: "en-IN",

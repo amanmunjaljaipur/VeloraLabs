@@ -106,7 +106,7 @@ export function EcomLocalShopApp({
   slug?: string;
   appUser?: { email: string; name: string } | null;
 }) {
-  // Client-side page state — avoids full RSC re-fetch (which was 404ing when Blob lag/empty seed)
+  // Client-side page state - avoids full RSC re-fetch (which was 404ing when Blob lag/empty seed)
   const [localPage, setLocalPage] = useState<PageKey>(() => parsePage(pathSegments[0]));
   const [category, setCategory] = useState("");
   const [orderMsg, setOrderMsg] = useState("");
@@ -158,7 +158,7 @@ export function EcomLocalShopApp({
     });
     if (!res.ok) {
       const data = (await res.json()) as { error?: string };
-      setOrderMsg(data.error || "Could not place order — sign in first or add your email on contact.");
+      setOrderMsg(data.error || "Could not place order - sign in first or add your email on contact.");
       return;
     }
     setOrderMsg(`Order placed for ${product.name}. The shop will contact you.`);
@@ -485,8 +485,7 @@ export function EcomLocalShopApp({
                 style={{ color: theme.primary }}
               >
                 Message us on WhatsApp
-              </a>{" "}
-              — we will guide you step by step.
+              </a>{" "} - we will guide you step by step.
             </p>
           ) : null}
         </section>
@@ -530,7 +529,7 @@ export function EcomLocalShopApp({
       {page === "faq" && (
         <section className="mx-auto max-w-3xl px-4 py-12" data-tour="faq">
           <h1 className="text-2xl font-semibold">Help & FAQ</h1>
-          <p className="mt-1 text-sm text-text-secondary">Simple answers — no tech talk.</p>
+          <p className="mt-1 text-sm text-text-secondary">Simple answers - no tech talk.</p>
           <div className="mt-6 space-y-4">
             {content.faqs.map((f, i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-4">

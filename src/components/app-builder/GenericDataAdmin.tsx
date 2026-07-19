@@ -386,7 +386,7 @@ function inputTypeFor(type: string): string {
 }
 
 function formatCell(value: unknown): string {
-  if (value === undefined || value === null || value === "") return "—";
+  if (value === undefined || value === null || value === "") return " - ";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);

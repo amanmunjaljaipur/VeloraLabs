@@ -27,7 +27,7 @@ export default async function NewsletterPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="Newsletter"
         title="Weekly clarity on AI and technology"
-        subtitle="Mental models, frameworks, and practical insights — published every Sunday (IST). Subscribe only when you want it in your inbox."
+        subtitle="Mental models, frameworks, and practical insights - published every Sunday (IST). Subscribe only when you want it in your inbox."
         align="center"
         compact
       />
@@ -40,14 +40,14 @@ export default async function NewsletterPage() {
       />
 
       <section className="section-y border-t border-border bg-muted/15">
-        <div className="container-verlin mx-auto max-w-3xl px-4 md:px-8">
+        <div className="container-verlin mx-auto !max-w-3xl px-4 md:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold text-foreground md:text-2xl">
                 Published editions
               </h2>
               <p className="mt-2 text-sm text-text-secondary">
-                Read any past weekly roundup online — no subscription required.
+                Read any past weekly roundup online - no subscription required.
               </p>
             </div>
             {editions.length > 0 && (

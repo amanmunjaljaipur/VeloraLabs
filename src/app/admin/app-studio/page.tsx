@@ -3,7 +3,7 @@ import { noIndexMetadata } from "@/lib/page-metadata";
 
 export const metadata = noIndexMetadata(
   "App Studio",
-  "AI app generator — research workflows, generate React apps, live preview.",
+  "AI app generator - research workflows, generate React apps, live preview.",
   "/admin/app-studio"
 );
 

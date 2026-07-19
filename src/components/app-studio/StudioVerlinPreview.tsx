@@ -273,7 +273,7 @@ export function StudioVerlinPreview({
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
                 Built for {(content as { city?: string }).city || "your customers"} with a clear
-                workflow — research-backed pages from App Studio.
+                workflow - research-backed pages from App Studio.
               </p>
             </section>
           )}

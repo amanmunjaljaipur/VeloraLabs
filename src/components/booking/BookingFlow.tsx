@@ -178,7 +178,7 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
         {selectedDate && (
           <div>
             <h3 className="text-base font-semibold mb-4">
-              2. Time slots — {formatDate(selectedDate)}
+              2. Time slots - {formatDate(selectedDate)}
             </h3>
             {loadingSlots && (
               <div className="flex items-center justify-center py-16">

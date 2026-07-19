@@ -49,7 +49,7 @@ export function ArticleLearningPath({ item }: ArticleLearningPathProps) {
         <div>
           <h2 className="text-lg font-semibold text-foreground">Verified learning path</h2>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            This {item.type.toLowerCase()} connects to live Verlin Labs programs — not generic AI
+            This {item.type.toLowerCase()} connects to live Verlin Labs programs - not generic AI
             content. Apply these frameworks in a cohort with mentor feedback and a capstone demo.
           </p>
         </div>
@@ -102,7 +102,7 @@ export function ArticleLearningPath({ item }: ArticleLearningPathProps) {
               </a>
             </span>
           ))}
-          . Covered hands-on in live sessions — not affiliate links.
+          . Covered hands-on in live sessions - not affiliate links.
         </p>
       </div>
 

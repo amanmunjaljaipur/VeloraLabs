@@ -32,7 +32,7 @@ export const BLOG_SEQUENCES: BlogSequence[] = [
     label: "AI for Students",
     description: "Safe, useful AI habits for Classes 6–12",
     topicPrompt:
-      "Write a guide for school students (Classes 6–12) on using AI safely and effectively for learning — not cheating. Practical tips parents and teachers would approve of.",
+      "Write a guide for school students (Classes 6–12) on using AI safely and effectively for learning - not cheating. Practical tips parents and teachers would approve of.",
     defaultTags: ["Students", "Safe AI use", "Learning"],
     audience: "students",
     level: "Beginner",

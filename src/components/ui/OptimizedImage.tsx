@@ -15,7 +15,7 @@ export type OptimizedImageProps = ImageProps & {
 
 /**
  * Next/Image wrapper with lazy loading, skeleton loader, and accessible alt text.
- * Always pass a meaningful `alt` — empty string only for pure decoration.
+ * Always pass a meaningful `alt` - empty string only for pure decoration.
  */
 export function OptimizedImage({
   aboveFold = false,

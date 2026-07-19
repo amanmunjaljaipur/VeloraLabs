@@ -1,6 +1,6 @@
 {
   "headline": "Trusted clarity-first AI education",
-  "summary": "Learners across India choose Verlin Labs for live sessions, mental models, and hands-on programs — with open learning on YouTube and LinkedIn.",
+  "summary": "Learners across India choose Verlin Labs for live sessions, mental models, and hands-on programs - with open learning on YouTube and LinkedIn.",
   "channels": [
     {
       "name": "YouTube",
@@ -17,7 +17,7 @@
     {
       "name": "Newsletter",
       "href": "/newsletter",
-      "description": "Weekly mental models and AI frameworks — curated for students, engineers, and PMs",
+      "description": "Weekly mental models and AI frameworks - curated for students, engineers, and PMs",
       "category": "Published insights",
       "internal": true
     }
@@ -26,7 +26,7 @@
     {
       "name": "YouTube",
       "href": "https://youtube.com/@verlinlabs",
-      "note": "Free AI explainers and session highlights — cite and share"
+      "note": "Free AI explainers and session highlights - cite and share"
     },
     {
       "name": "LinkedIn",

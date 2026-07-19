@@ -47,7 +47,7 @@ export async function POST() {
       fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
       fs.writeFileSync(OUT_FILE, JSON.stringify(index));
     } catch {
-      // public/ may be read-only on Vercel — runtime/Blob index still updated
+      // public/ may be read-only on Vercel - runtime/Blob index still updated
     }
 
     markTrainingComplete();

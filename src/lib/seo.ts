@@ -4,7 +4,7 @@ import { trimMetaDescription } from "@/lib/meta-description";
 export const SITE_NAME = "Verlin Labs";
 export const SITE_ORIGIN = "https://www.verlinlabs.com";
 
-const DEFAULT_OG_IMAGE = "/images/hero-side.jpg";
+const DEFAULT_OG_IMAGE = "/images/brand-hero-clarity.jpg";
 
 /**
  * Build per-page metadata with canonical URLs, robots, and social cards.
@@ -58,7 +58,7 @@ export function createMetadata({
           url: image,
           width: 1200,
           height: 630,
-          alt: `${title} — ${SITE_NAME}`,
+          alt: `${title} - ${SITE_NAME}`,
         },
       ],
     },

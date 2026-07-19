@@ -43,13 +43,13 @@ export function FreeSessionBooking() {
             <div className="relative hidden overflow-hidden rounded-2xl border border-border lg:block">
               <div className="relative aspect-[4/3]">
                 <Image
-                  src="/images/workshop.jpg"
+                  src="/images/brand-free-session.jpg"
                   alt={SITE_IMAGE_ALT.freeSessionWorkshop}
                   fill
-                  className="object-cover"
+                  className="object-cover motion-safe:hero-ken-burns"
                   sizes="300px"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-deep-teal/80 via-deep-teal/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-dark)]/80 via-[var(--surface-dark)]/20 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4">
                   <p className="text-sm font-medium text-white">Live, interactive, and tailored to you</p>
                 </div>

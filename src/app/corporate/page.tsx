@@ -20,7 +20,7 @@ import { CORPORATE_SEO_BLOCK } from "@/lib/seo-content";
 export const metadata = staticPageMetadata("corporate", "/corporate");
 
 const outcomes = [
-  "Shared vocabulary for AI, agents, and automation — without buzzword bingo",
+  "Shared vocabulary for AI, agents, and automation - without buzzword bingo",
   "Hands-on exercises using tools your team already has access to",
   "Frameworks for evaluating AI features, risks, and build-vs-buy decisions",
   "Follow-up resource pack and optional office hours for managers",
@@ -46,7 +46,7 @@ const formats = [
     duration: "90 minutes",
     audience: "Leadership and decision-makers",
     description:
-      "Strategy-level clarity on capabilities, limits, governance, and where to invest — no slide-deck theater.",
+      "Strategy-level clarity on capabilities, limits, governance, and where to invest - no slide-deck theater.",
   },
 ];
 
@@ -66,15 +66,17 @@ export default function CorporatePage() {
         eyebrow="For teams"
         title="Corporate & Team Workshops"
         subtitle="Clarity-first AI literacy for teams that need to move fast without guessing"
-        align="center"
+        image="/images/brand-hands-on.jpg"
+        imageAlt="Hands-on team workshop - building practical AI fluency together"
+        video="/videos/corporate.mp4"
         compact
       />
 
       <section className="section-y">
-        <div className="container-verlin max-w-5xl space-y-16">
+        <div className="container-verlin !max-w-5xl space-y-16">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-lg leading-relaxed text-text-secondary">
-              We run live workshops for product, engineering, and business teams — the same
+              We run live workshops for product, engineering, and business teams - the same
               clarity-first approach as our public programs, with examples and pacing tailored
               to your stack, industry, and goals.
             </p>
@@ -157,7 +159,7 @@ export default function CorporatePage() {
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                   Share team size, goals, timeline, and any tools you use. We&apos;ll reply with
-                  format options, indicative pricing, and availability — usually within 2
+                  format options, indicative pricing, and availability - usually within 2
                   business days.
                 </p>
               </div>

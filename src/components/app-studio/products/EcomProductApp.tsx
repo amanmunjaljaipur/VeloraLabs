@@ -2,10 +2,10 @@
 
 /**
  * Dual-portal marketplace product:
- * 1) Shopper storefront — browse, bag, checkout, track, returns
- * 2) Seller Hub — separate B2B portal (dashboard, listings, inventory,
- *    fulfilment orders, returns, settlements/P&L) — not the customer UI
- * 3) Ops desk — trust & safety
+ * 1) Shopper storefront - browse, bag, checkout, track, returns
+ * 2) Seller Hub - separate B2B portal (dashboard, listings, inventory,
+ *    fulfilment orders, returns, settlements/P&L) - not the customer UI
+ * 3) Ops desk - trust & safety
  *
  * Modelled on real seller hubs (Seller Central / Flipkart Seller Hub style jobs)
  * with original Verlin Labs visual design.
@@ -591,7 +591,7 @@ export function EcomProductApp({
       endpoint: "POST /shop/orders",
       mode: pathMode,
       payload: { cart, address, pay, name },
-      failMessage: "Payment failed — try another method or change sandbox in Account",
+      failMessage: "Payment failed - try another method or change sandbox in Account",
       successMessage: "Order placed",
       onSuccess: () => {
         const id = `HM-${10000 + Math.floor(Math.random() * 90000)}`;
@@ -645,7 +645,7 @@ export function EcomProductApp({
   }
 
   async function shopperAdvance(id: string) {
-    // Shoppers only “track” — seller advances fulfilment. Tracking just shows message.
+    // Shoppers only “track” - seller advances fulfilment. Tracking just shows message.
     const o = orders.find((x) => x.id === id);
     if (!o) return;
     flash(`Tracking: ${o.status} · ${o.eta}`, "info");
@@ -826,7 +826,7 @@ export function EcomProductApp({
       mode: pathMode,
       payload: { id },
       failMessage: "Return not eligible",
-      successMessage: "Return requested — seller will review",
+      successMessage: "Return requested - seller will review",
       onSuccess: () => {
         setOrders((prev) =>
           prev.map((x) =>
@@ -894,7 +894,7 @@ export function EcomProductApp({
   );
 
   // ═══════════════════════════════════════════════════════════════════════
-  // SELLER HUB — completely separate portal
+  // SELLER HUB - completely separate portal
   // ═══════════════════════════════════════════════════════════════════════
   if (portal === "seller") {
     const nav: Array<{ id: SellerPage; label: string; icon: typeof Home; badge?: number }> = [
@@ -926,7 +926,7 @@ export function EcomProductApp({
                 {brand} <span className="font-normal text-white/70">Seller Hub</span>
               </p>
               <p className="text-[10px] text-white/60">
-                Listings · fulfilment · settlements — not the shopper storefront
+                Listings · fulfilment · settlements - not the shopper storefront
               </p>
             </div>
           </div>
@@ -957,7 +957,7 @@ export function EcomProductApp({
         )}
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          {/* Seller left nav — industry standard hub layout */}
+          {/* Seller left nav - industry standard hub layout */}
           <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-card md:flex">
             <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
               <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -1449,7 +1449,7 @@ export function EcomProductApp({
                   <h1 className="text-2xl font-bold">Payments & P&amp;L</h1>
                   <p className="text-sm text-muted-foreground">
                     Settlement view: what sold, what the marketplace kept, what goods cost you, and
-                    return drag — like Seller Hub payments + business reports.
+                    return drag - like Seller Hub payments + business reports.
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Card className="p-4">

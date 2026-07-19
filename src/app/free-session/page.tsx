@@ -42,14 +42,14 @@ export default function FreeSessionPage() {
       <FaqPageJsonLd items={sessionFaqs} path="/free-session" />
       <HowToJsonLd
         name="How to book your free Verlin Labs AI intro session"
-        description="Book a free 2-hour live AI session — choose your track, pick a slot, and experience clarity-first teaching."
+        description="Book a free 2-hour live AI session - choose your track, pick a slot, and experience clarity-first teaching."
         path="/free-session"
         steps={FREE_SESSION_BOOKING_STEPS}
         totalTime="PT2H"
       />
       <HowToJsonLd
         name="What happens during the 2-hour Verlin Labs intro session"
-        description="A structured live agenda — welcome, mental models, audience-tailored AI deep-dive, hands-on exercise, and Q&A."
+        description="A structured live agenda - welcome, mental models, audience-tailored AI deep-dive, hands-on exercise, and Q&A."
         path="/free-session"
         steps={getFreeSessionHowToSteps()}
         totalTime="PT2H"
@@ -72,7 +72,7 @@ export default function FreeSessionPage() {
           <SectionHeader
             eyebrow="Audience paths"
             title="Sessions tailored to your background"
-            subtitle="Select your audience type when booking — content adapts for students, engineers, and professionals."
+            subtitle="Select your audience type when booking - content adapts for students, engineers, and professionals."
             align="left"
             className="mb-12"
           />

@@ -43,16 +43,17 @@ export default function MentalModelsPage() {
         breadcrumbs={breadcrumbs}
         eyebrow="Frameworks"
         title="Mental Models Hub"
-        subtitle="Reusable frameworks with full explanations, real-world examples, and step-by-step application — not just definitions."
-        image="/images/mental-models.jpg"
-        imageAlt="Verlin Labs AI mental models — visual frameworks for understanding LLMs and complex technology"
+        subtitle="Reusable frameworks with full explanations, real-world examples, and step-by-step application - not just definitions."
+        image="/images/hq-mental-hub.jpg"
+        imageAlt="Verlin Labs AI mental models - visual frameworks for understanding LLMs and complex technology"
+        video="/videos/mental-models-hub.mp4"
       />
 
       <section className="border-b border-border/80 bg-muted/20">
         <div className="container-verlin py-8">
           <p className="max-w-3xl text-body text-sm">
             Each model includes an overview, key principles, how to apply it, examples, common mistakes,
-            and a concise takeaway — structured like professional concept guides used in top learning
+            and a concise takeaway - structured like professional concept guides used in top learning
             platforms.
             {lastUpdated && (
               <> Last updated {formatContentDateTime(lastUpdated)}.</>

@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 /**
- * Vercel Cron — weekly newsletter (generate from web + publish + email).
+ * Vercel Cron - weekly newsletter (generate from web + publish + email).
  * Schedule: Sunday 03:30 UTC (~09:00 IST).
  *
  * Idempotent: if this IST week already has an edition, returns success without

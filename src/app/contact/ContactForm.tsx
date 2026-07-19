@@ -125,7 +125,7 @@ export function ContactForm() {
         <h2 className="mt-6 text-2xl font-semibold text-foreground">Message received</h2>
         <p className="mt-3 text-text-secondary leading-relaxed">
           Thank you for reaching out. We typically respond within 24–48 hours on business days.
-          There&apos;s no obligation — we&apos;ll answer your question and suggest next steps only if
+          There&apos;s no obligation - we&apos;ll answer your question and suggest next steps only if
           they&apos;re helpful for you.
         </p>
         <Button className="mt-8" variant="secondary" onClick={() => setSubmitted(false)}>
@@ -168,7 +168,7 @@ export function ContactForm() {
         />
 
         <Select
-          label="I'm reaching out about *"
+          label="I am reaching out about *"
           options={TOPICS.map((t) => ({ value: t.value, label: t.label }))}
           error={errors.topic?.message}
           {...register("topic")}
@@ -182,7 +182,7 @@ export function ContactForm() {
             id="message"
             rows={6}
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-text-secondary/60 focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none"
-            placeholder="Tell us what you're looking for — goals, team size, timeline, or questions."
+            placeholder="Tell us what you are looking for - goals, team size, timeline, or questions."
             {...register("message")}
           />
           {errors.message && (

@@ -27,7 +27,7 @@ function discoveryResponse(request: NextRequest) {
       name: "velora-newsletter-email",
       version: "1.0.0",
       description:
-        "Verlin Labs newsletter MCP — generate AI digests, email PDF editions, and manage subscribers.",
+        "Verlin Labs newsletter MCP - generate AI digests, email PDF editions, and manage subscribers.",
       transport: "streamable-http",
       mcpUrl,
       authentication: {
@@ -44,7 +44,7 @@ function discoveryResponse(request: NextRequest) {
         "newsletter_add_subscriber",
       ],
       scheduledTask: {
-        description: "Grok scheduled task — publish and email the Verlin Labs weekly blog",
+        description: "Grok scheduled task - publish and email the Verlin Labs weekly blog",
         interval: "7d",
         prompt:
           "Use the Verlin Labs newsletter MCP. Call newsletter_publish_weekly to generate a fresh edition from the latest AI news, publish it on the site, and email the PDF to all subscribers. Report the edition title, public URL, and how many emails were sent.",
@@ -78,7 +78,7 @@ function discoveryResponse(request: NextRequest) {
 async function handleMcpProtocol(request: NextRequest): Promise<Response> {
   if (!verifyNewsletterMcpKey(request)) {
     return NextResponse.json(
-      { error: "Unauthorized — provide Authorization: Bearer <key> or x-api-key header" },
+      { error: "Unauthorized - provide Authorization: Bearer <key> or x-api-key header" },
       { status: 401, headers: MCP_CORS_HEADERS }
     );
   }

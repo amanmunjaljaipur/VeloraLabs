@@ -192,7 +192,7 @@ export function GenericAppRuntime({
     ? content.nav
     : content.pages.map((p) => ({ path: p.path, label: p.title }));
 
-  // Known interactive demo modules — real clickable state instead of static
+  // Known interactive demo modules - real clickable state instead of static
   // bodyHtml prose, for pages that are supposed to be a working screen
   // (dashboard, transfer/payments, card controls) rather than marketing copy.
   const isBanking = content.appKind === "digital-banking";
@@ -418,7 +418,7 @@ export function GenericAppRuntime({
             </div>
           ) : null}
 
-          {/* Quick links to all app pages — keep navigation obvious */}
+          {/* Quick links to all app pages - keep navigation obvious */}
           <div className="mt-10">
             <h2 className="text-lg font-semibold" style={{ color: theme.secondary }}>
               Explore

@@ -117,7 +117,7 @@ export async function themeFromWebsiteUrl(
       logoCandidateUrl,
       sampledFrom: "defaults (no colours found on page)",
       notes: logoCandidateUrl
-        ? "No strong colours in HTML — try Build theme from logo after saving the logo link."
+        ? "No strong colours in HTML - try Build theme from logo after saving the logo link."
         : "No colours found. Upload a logo or theme photo instead.",
     };
   }

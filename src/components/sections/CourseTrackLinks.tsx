@@ -25,7 +25,7 @@ interface CourseTrackLinksProps {
 
 export function CourseTrackLinks({
   title = "Apply mental models in a live program",
-  subtitle = "Each track turns frameworks into hands-on projects, mentor feedback, and a capstone demo — pick the path that matches your role.",
+  subtitle = "Each track turns frameworks into hands-on projects, mentor feedback, and a capstone demo - pick the path that matches your role.",
   className,
 }: CourseTrackLinksProps) {
   const audiences = getAudiences();

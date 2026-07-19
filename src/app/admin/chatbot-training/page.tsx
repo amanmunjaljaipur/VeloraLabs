@@ -24,7 +24,7 @@ export default async function ChatbotTrainingPage() {
     <>
       <PageHeader
         title="Chatbot Training"
-        subtitle="Curate labeled question–answer pairs, import from Excel, export backups, and retrain the on-site assistant — no external API required."
+        subtitle="Curate labeled question–answer pairs, import from Excel, export backups, and retrain the on-site assistant - no external API required."
       />
       <ChatbotTrainingPanel />
     </>

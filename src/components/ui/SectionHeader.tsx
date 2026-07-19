@@ -11,6 +11,7 @@ interface SectionHeaderProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
+  /** Default center for site-wide editorial consistency */
   align?: "center" | "left";
   className?: string;
 }
@@ -28,12 +29,15 @@ export function SectionHeader({
   return (
     <MotionReveal
       className={cn(
+        "w-full",
         centered && "mx-auto max-w-2xl text-center",
-        !centered && "max-w-2xl",
+        !centered && "max-w-2xl text-left",
         className
       )}
     >
-      {eyebrow && <p className="section-eyebrow mb-4">{eyebrow}</p>}
+      {eyebrow && (
+        <p className={cn("section-eyebrow", centered && "mx-auto")}>{eyebrow}</p>
+      )}
       <h2 className="section-title">
         {hasBrand ? (
           <VerlinBrandText
@@ -46,7 +50,9 @@ export function SectionHeader({
         )}
       </h2>
       {subtitle && (
-        <p className={cn("section-subtitle", centered && "mx-auto")}>{subtitle}</p>
+        <p className={cn("section-subtitle", centered && "mx-auto")}>
+          {subtitle}
+        </p>
       )}
     </MotionReveal>
   );

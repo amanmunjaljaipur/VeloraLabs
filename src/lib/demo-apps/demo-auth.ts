@@ -8,7 +8,7 @@ export type DemoAppUser = {
   id: string;
   email: string;
   name: string;
-  /** bcrypt-like not needed — demo sandboxes only; stored as simple hash */
+  /** bcrypt-like not needed - demo sandboxes only; stored as simple hash */
   passwordHash: string;
   /** app_admin can use all product roles; member is locked to default */
   access: "app_admin" | "member";

@@ -50,12 +50,14 @@ export default function TestimonialsPage() {
         eyebrow="Social proof"
         title="What learners are saying"
         subtitle="Real feedback from students, engineers, product managers, and parents who experienced clarity-first learning with Verlin Labs."
-        align="center"
+        image="/images/hq-testimonials.jpg"
+        imageAlt="Learners connecting with clarity-first AI training"
+        video="/videos/testimonials.mp4"
         compact
       />
 
       <section className="section-y">
-        <div className="container-verlin max-w-5xl space-y-14">
+        <div className="container-verlin !max-w-5xl space-y-14">
           {audienceSections.map((section) => {
             const items = testimonials.filter((t) => t.audience === section.key);
 
@@ -79,10 +81,10 @@ export default function TestimonialsPage() {
       <TrustSignals compact />
 
       <section className="border-t border-border bg-muted/20 py-12 md:py-16">
-        <div className="container-verlin max-w-2xl text-center">
+        <div className="container-verlin !max-w-2xl text-center">
           <h2 className="text-xl font-semibold text-foreground">See for yourself</h2>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            Start with a free 2-hour session — experience how we teach before you commit to a
+            Start with a free 2-hour session - experience how we teach before you commit to a
             full program.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

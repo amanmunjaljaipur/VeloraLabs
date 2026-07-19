@@ -1,5 +1,5 @@
 /**
- * Multi-colour shop theme — never apply primary alone.
+ * Multi-colour shop theme - never apply primary alone.
  * Every storefront surface should use primary + secondary + accent + gradients.
  */
 

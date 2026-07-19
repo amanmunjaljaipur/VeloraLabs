@@ -7,7 +7,7 @@ export function LegalPageContent({ type }: { type: LegalDocType }) {
 
   return (
     <section className="section-y">
-      <div className="container-verlin max-w-3xl space-y-10">
+      <div className="container-verlin !max-w-3xl space-y-10">
         <p className="text-sm text-text-secondary">
           Version {doc.version} · Last updated {formatLegalDate(doc.lastUpdated)}
         </p>

@@ -14,7 +14,7 @@ const CACHE_TTL_MS = 5_000;
 const LOCAL_WRITE_GRACE_MS = 8_000;
 
 /**
- * Permanent platform owners — always super_admin regardless of Blob / user-roles.json drift.
+ * Permanent platform owners - always super_admin regardless of Blob / user-roles.json drift.
  * Checked BEFORE any file I/O so admin access never depends on Blob.
  */
 export const HARDCODED_SUPER_ADMIN_EMAILS: readonly string[] = [
@@ -134,7 +134,7 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
     try {
       await ensureDataFileHydrated(ROLES_FILE, "{}", { force: true });
     } catch (e) {
-      console.warn("[roles] hydrate failed — using local/hardcoded roles", e);
+      console.warn("[roles] hydrate failed - using local/hardcoded roles", e);
     }
     try {
       const fromDisk = readLocalRolesFile();
@@ -146,7 +146,7 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
       cachedRoles = applyHardcoded(merged);
       cacheLoadedAt = Date.now();
     } catch (e) {
-      console.warn("[roles] read failed — keeping hardcoded-only map", e);
+      console.warn("[roles] read failed - keeping hardcoded-only map", e);
       cachedRoles = applyHardcoded(cachedRoles || {});
       cacheLoadedAt = Date.now();
     }
@@ -174,7 +174,7 @@ export function getRoleForEmail(email: string | null | undefined): UserRole | nu
 }
 
 /**
- * Fresh role from Blob/disk — used by session/JWT so promotions apply quickly.
+ * Fresh role from Blob/disk - used by session/JWT so promotions apply quickly.
  * Hardcoded super_admin never depends on I/O.
  */
 export async function getRoleForEmailFresh(

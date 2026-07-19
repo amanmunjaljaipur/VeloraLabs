@@ -30,7 +30,7 @@ export default async function AdminNewsletterPage() {
     <>
       <PageHeader
         title="Newsletter Studio"
-        subtitle="Create a clarity-first AI digest from the latest internet news, preview it, and send whenever you're ready."
+        subtitle="Create a clarity-first AI digest from the latest internet news, preview it, and send whenever you are ready."
       />
       <NewsletterStudio mcpUrl={mcpUrl} />
     </>

@@ -90,7 +90,7 @@ export async function answerWithLlm(input: {
   const query = input.message.trim();
   if (!query) {
     return {
-      answer: "Ask me anything about Verlin Labs — free session, courses, pricing, or how we teach.",
+      answer: "Ask me anything about Verlin Labs - free session, courses, pricing, or how we teach.",
       links: [
         { label: "Free session", href: "/free-session" },
         { label: "FAQ", href: "/faq" },

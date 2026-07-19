@@ -39,7 +39,7 @@ function templatePost(input: {
       title: "Why this matters",
       paragraphs: [
         `${topicBit} is one of the ideas we return to often at Verlin Labs. Without a clear mental model, AI tools feel magical one day and frustrating the next.`,
-        "This article keeps the explanation practical — so students, engineers, and product managers can apply it the same day.",
+        "This article keeps the explanation practical - so students, engineers, and product managers can apply it the same day.",
       ],
     },
     {
@@ -51,19 +51,19 @@ function templatePost(input: {
       bullets: [
         "Name the concept in plain language before using jargon.",
         "Connect it to a real task you already do (homework, code review, PRD).",
-        "Define what success looks like — then check the AI output against that bar.",
+        "Define what success looks like - then check the AI output against that bar.",
       ],
     },
     {
       title: "How to apply it today",
       paragraphs: [
         "Pick one workflow this week. Write the goal in one sentence, list constraints, and ask the model only for drafts you will review.",
-        "At Verlin Labs we practice this live — clarity first, tools second — so the habit sticks beyond a single chat session.",
+        "At Verlin Labs we practice this live - clarity first, tools second - so the habit sticks beyond a single chat session.",
       ],
       bullets: [
         "Start with a free session if you want guided practice.",
         "Use the library and mental models hub for deeper frameworks.",
-        "Share what you learned with a peer — teaching locks the model in.",
+        "Share what you learned with a peer - teaching locks the model in.",
       ],
     },
   ];
@@ -72,7 +72,7 @@ function templatePost(input: {
     id: `blog-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     slug,
     title,
-    description: `A practical Verlin Labs guide on ${topicBit.toLowerCase()} — clarity-first AI learning without the hype.`,
+    description: `A practical Verlin Labs guide on ${topicBit.toLowerCase()} - clarity-first AI learning without the hype.`,
     summary: `Learn ${topicBit.toLowerCase()} with a simple structure you can reuse in school, engineering, or product work.`,
     duration: estimateDuration(sections),
     level: sequence.level,

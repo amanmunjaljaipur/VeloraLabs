@@ -218,7 +218,7 @@ export function toSandpackReactTsFiles(files: StudioFileMap): Record<string, str
     `export default function App() { return <div style={{padding:24}}>App Studio</div>; }`;
 
   let appCode = app;
-  // Sandpack react-ts already provides React in scope via classic JSX sometimes — ensure import
+  // Sandpack react-ts already provides React in scope via classic JSX sometimes - ensure import
   if (!/from\s+['"]react['"]/.test(appCode) && !/require\(['"]react['"]\)/.test(appCode)) {
     appCode = `import React from "react";\n${appCode}`;
   }
@@ -233,7 +233,7 @@ export function toSandpackReactTsFiles(files: StudioFileMap): Record<string, str
     }
   }
 
-  // index entry — keep template default if we don't override heavily
+  // index entry - keep template default if we don't override heavily
   const main = get("/src/main.tsx", "/src/index.tsx", "/index.tsx");
   if (main && !main.includes("createRoot") === false) {
     // Prefer Sandpack default index; only set if custom

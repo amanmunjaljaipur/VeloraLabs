@@ -19,7 +19,7 @@ export const FREE_SESSION_BOOKING_STEPS: HowToStepInput[] = [
   },
   {
     name: "Pick a live time slot",
-    text: "Book a free 2-hour session on the calendar — no credit card required.",
+    text: "Book a free 2-hour session on the calendar - no credit card required.",
   },
   {
     name: "Join the live session",

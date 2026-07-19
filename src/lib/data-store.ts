@@ -6,7 +6,7 @@ import path from "path";
 const CONTENT_DIR = path.join(process.cwd(), "content");
 const BLOB_PREFIX = "verlin-labs/data/";
 
-/** Runtime data owned by production Blob — never seed from git on Vercel. */
+/** Runtime data owned by production Blob - never seed from git on Vercel. */
 export const RUNTIME_DATA_FILES = new Set([
   "video-progress.json",
   "course-progress.json",
@@ -33,7 +33,7 @@ export const RUNTIME_DATA_FILES = new Set([
   "blog-posts.json",
   "app-builder-projects.json",
   "app-builder-tenants.json",
-  /** App Builder ops memory (research + experience) — survives deploys, never git-seeded */
+  /** App Builder ops memory (research + experience) - survives deploys, never git-seeded */
   "app-builder-ops-memory.json",
   /** Super Admin agent pause/resume controls */
   "agent-controls.json",
@@ -254,7 +254,9 @@ export async function hydrateAllFromBlob(): Promise<void> {
 
 export function readJsonFile<T>(filename: string, defaultContent = "{}"): T {
   const filePath = ensureRuntimeFile(filename, defaultContent);
-  return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
+  // Strip UTF-8 BOM (PowerShell Set-Content -Encoding UTF8 adds it on Windows)
+  const raw = fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, "");
+  return JSON.parse(raw) as T;
 }
 
 export function writeJsonFile(filename: string, data: unknown, defaultContent = "{}"): void {
@@ -271,7 +273,7 @@ export function writeJsonFile(filename: string, data: unknown, defaultContent = 
     scheduleBlobPersist(filename, content);
   } else if (isVercelRuntime() && !isBlobEnabled()) {
     console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set — ${filename} will be lost on the next deploy.`
+      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
     );
   }
 }
@@ -298,7 +300,7 @@ export async function writeJsonFileAsync(
     }
   } else if (isVercelRuntime() && !isBlobEnabled()) {
     console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set — ${filename} will be lost on the next deploy.`
+      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
     );
   }
 }
@@ -321,7 +323,7 @@ export function writeTextFile(filename: string, content: string, defaultContent 
     scheduleBlobPersist(filename, content);
   } else if (isVercelRuntime() && !isBlobEnabled()) {
     console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set — ${filename} will be lost on the next deploy.`
+      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
     );
   }
 }

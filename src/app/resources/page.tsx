@@ -18,7 +18,7 @@ export default function ResourcesPage() {
       <PageHeader
         breadcrumbs={breadcrumbs}
         title="Resources Hub"
-        subtitle="Library, blog, mental models, downloads, and curated tools — everything in one place for clarity-first learners."
+        subtitle="Library, blog, mental models, downloads, and curated tools - everything in one place for clarity-first learners."
         image="/images/mental-models.jpg"
         imageAlt="Learning resources and mental models"
       />

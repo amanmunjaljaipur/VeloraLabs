@@ -94,7 +94,7 @@ export function FaqClient({ categories, totalCount }: FaqClientProps) {
             {isSearching ? (
               <>
                 {resultCount} result{resultCount === 1 ? "" : "s"} found
-                {resultCount === 0 && " — try different keywords"}
+                {resultCount === 0 && " - try different keywords"}
               </>
             ) : (
               <>Search across {totalCount} answers in {categories.length} categories</>
@@ -149,7 +149,7 @@ export function FaqClient({ categories, totalCount }: FaqClientProps) {
             Didn&apos;t find what you were looking for?
           </h2>
           <p className="mt-4 text-text-secondary leading-relaxed">
-            Book a free session to experience how we teach, or send us a message — we typically
+            Book a free session to experience how we teach, or send us a message - we typically
             respond within 24–48 hours.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

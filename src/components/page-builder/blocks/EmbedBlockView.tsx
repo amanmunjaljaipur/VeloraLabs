@@ -19,7 +19,7 @@ export function EmbedBlockView({ props }: { props: EmbedBlockProps }) {
         className="overflow-hidden rounded-2xl border border-border bg-muted/20"
         style={{ minHeight: minH }}
         title={props.title || "Embedded content"}
-        // CMS-authored embed — admin-only editors; same trust model as rich text
+        // CMS-authored embed - admin-only editors; same trust model as rich text
         dangerouslySetInnerHTML={{ __html: props.html }}
       />
     </section>

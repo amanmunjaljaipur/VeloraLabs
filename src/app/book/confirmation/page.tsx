@@ -63,7 +63,7 @@ function ConfirmationContent() {
           <ul className="space-y-3 text-sm text-text-secondary">
             <li>1. Check your email for a confirmation with the session link.</li>
             <li>2. Add the session to your calendar so you don&apos;t miss it.</li>
-            <li>3. No preparation needed — just bring curiosity.</li>
+            <li>3. No preparation needed - just bring curiosity.</li>
             <li>4. After the session, we&apos;ll share a personalized learning path.</li>
           </ul>
         </Card>

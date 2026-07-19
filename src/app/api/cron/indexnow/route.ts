@@ -8,7 +8,7 @@ import {
 import { NextResponse } from "next/server";
 
 /**
- * Vercel Cron — ping IndexNow with all sitemap URLs (Bing, Yandex, etc.).
+ * Vercel Cron - ping IndexNow with all sitemap URLs (Bing, Yandex, etc.).
  * GET /api/cron/indexnow
  * Authorization: Bearer <CRON_SECRET>
  */

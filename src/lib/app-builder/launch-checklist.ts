@@ -32,13 +32,13 @@ export function buildLaunchChecklist(input: {
     {
       id: "open",
       title: "Open your live shop link",
-      detail: `Check ${input.publicPath} on your phone — this is what customers will see.`,
+      detail: `Check ${input.publicPath} on your phone - this is what customers will see.`,
       doneHint: "Open shop",
     },
     {
       id: "tour",
       title: "Take the guided tour once",
-      detail: "Use “Take a tour” in the top bar (shop or admin) — overlay arrows point at each feature.",
+      detail: "Use “Take a tour” in the top bar (shop or admin) - overlay arrows point at each feature.",
     },
     {
       id: "products",
@@ -52,12 +52,12 @@ export function buildLaunchChecklist(input: {
       id: "logo",
       title: input.hasLogo ? "Confirm your logo looks good" : "Upload logo & build theme colours",
       detail:
-        "Dashboard → Brand & theme — upload logo, multi-colour theme from image. Overview → Improve shop wording for SEO-ready copy.",
+        "Dashboard → Brand & theme - upload logo, multi-colour theme from image. Overview → Improve shop wording for SEO-ready copy.",
     },
     {
       id: "whatsapp",
       title: "Test WhatsApp / call buttons",
-      detail: "From Contact and product order — make sure your number opens correctly.",
+      detail: "From Contact and product order - make sure your number opens correctly.",
     },
     {
       id: "share",
@@ -66,7 +66,7 @@ export function buildLaunchChecklist(input: {
         : share.includes("instagram")
           ? "Put the shop link in Instagram bio"
           : "Share your shop link with 5 customers",
-      detail: "Industry leaders grow by sharing the catalog link first — friends, status, board at shop.",
+      detail: "Industry leaders grow by sharing the catalog link first - friends, status, board at shop.",
     },
     {
       id: "payment",
@@ -80,7 +80,7 @@ export function buildLaunchChecklist(input: {
       title: shipping.includes("pickup")
         ? "Write clear pickup instructions"
         : "Confirm delivery area on the Help page",
-      detail: "Dashboard → Site CMS → FAQ / Contact — reduce “do you deliver?” chats.",
+      detail: "Dashboard → Site CMS → FAQ / Contact - reduce “do you deliver?” chats.",
     },
     {
       id: "crm",

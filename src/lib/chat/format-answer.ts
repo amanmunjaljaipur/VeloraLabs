@@ -94,7 +94,7 @@ export function formatKnowledgeAnswer(entry: KnowledgeEntry): string {
       blocks.push("Current introductory program pricing across all tracks:");
     }
     blocks.push(buildPricingTableMarkdown());
-    blocks.push("The **free 2-hour introductory session** is always free — no payment required to book.");
+    blocks.push("The **free 2-hour introductory session** is always free - no payment required to book.");
   } else {
     blocks.push(...splitIntoParagraphs(answerText));
   }

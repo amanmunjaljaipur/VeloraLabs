@@ -60,7 +60,7 @@ export function researchToVerlinContent(input: {
         <p>${escapeHtml(research.summary)}</p>
         <p><strong>Who it's for:</strong> ${escapeHtml((research.targetUsers || []).join(", ") || "Primary users")}</p>
         ${workflow ? `<p><strong>${escapeHtml(workflow.name)}:</strong></p>${stepsHtml}` : ""}
-        <p>Built with Verlin Labs App Studio — live product pages use Verlin UI components.</p>
+        <p>Built with Verlin Labs App Studio - live product pages use Verlin UI components.</p>
       `;
     } else if (/faq/i.test(label)) {
       body = `

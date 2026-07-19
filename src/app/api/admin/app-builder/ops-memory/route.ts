@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     const ctx = await getAgentContext({ verticalId, experienceLimit: 30 });
     return NextResponse.json({
       ...ctx,
-      note: "Operational memory — stored in Blob, not reset by product deploys",
+      note: "Operational memory - stored in Blob, not reset by product deploys",
     });
   }
 

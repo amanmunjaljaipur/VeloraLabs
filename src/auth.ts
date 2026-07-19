@@ -244,7 +244,7 @@ export const authOptions: NextAuthConfig = {
         }
 
         if (email) {
-          // Hardcoded owners never wait on Blob — assign immediately
+          // Hardcoded owners never wait on Blob - assign immediately
           const role = isHardcodedSuperAdmin(email)
             ? ("super_admin" as const)
             : getRoleForEmail(email);
@@ -295,7 +295,7 @@ export const authOptions: NextAuthConfig = {
             console.warn("[auth] ensureKnownUser failed", e);
           }
 
-          // Fresh role — hardcoded super_admin is sync-safe even if Blob is down
+          // Fresh role - hardcoded super_admin is sync-safe even if Blob is down
           let role = await getRoleForEmailFresh(session.user.email);
           if (!role && isHardcodedSuperAdmin(session.user.email)) {
             role = "super_admin";

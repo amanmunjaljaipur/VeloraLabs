@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * App Builder V2 runtime — renders generated products with Verlin Labs'
+ * App Builder V2 runtime - renders generated products with Verlin Labs'
  * real UI components (Button, Card, Input, Select, SectionHeader, Badge)
  * instead of a per-app generated colour theme. Every "intake" style page
  * (apply, book, sign up, get a quote, contact, ...) is a real form wired to
  * a live submit endpoint, so the product works end to end regardless of
- * what the user described in their prompt — not just for a fixed list of
+ * what the user described in their prompt - not just for a fixed list of
  * verticals.
  */
 
@@ -70,7 +70,7 @@ function inputTypeFor(type: string): string {
   }
 }
 
-/** Real form for an intake page, backed by a data model — creates a genuine record. */
+/** Real form for an intake page, backed by a data model - creates a genuine record. */
 function ModelIntakeForm({
   slug,
   model,
@@ -156,7 +156,7 @@ function ModelIntakeForm({
   );
 }
 
-/** Fallback intake form when the plan has no matching data model — a real contact/inquiry. */
+/** Fallback intake form when the plan has no matching data model - a real contact/inquiry. */
 function InquiryIntakeForm({ slug }: { slug: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

@@ -5,7 +5,7 @@ interface VerlinBrandMarkProps {
   className?: string;
 }
 
-/** Theme-aligned flowing V mark — teal gradient from the design system. */
+/** Theme-aligned flowing V mark - teal gradient from the design system. */
 export function VerlinBrandMark({ className }: VerlinBrandMarkProps) {
   const rawId = useId();
   const gradientId = `verlin-v-${rawId.replace(/:/g, "")}`;
@@ -33,7 +33,7 @@ export function VerlinBrandMark({ className }: VerlinBrandMarkProps) {
         </linearGradient>
       </defs>
 
-      {/* Flowing ribbon V — left arm */}
+      {/* Flowing ribbon V - left arm */}
       <path
         d="M8.5 7.2c-1 .6-1.4 1.9-.9 3 3.2 8.2 7 16.8 12.2 25.2.9.2 1.7.2 2.5 0-4.8-8-8.2-16-10.8-24-.4-1.1 0-2.2.9-2.8.1-.1.3-.2.5-.2.1 0 .4.1.6.1Z"
         fill={`url(#${gradientId})`}

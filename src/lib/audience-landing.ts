@@ -20,12 +20,12 @@ const STUDENT_FAQS: AccordionItem[] = [
   {
     question: "What age group is AI for Students designed for?",
     answer:
-      "Verlin Labs' student track is built for Classes 6–12. Examples, pacing, and tool use are age-appropriate — with plain-language mental models instead of exam-style jargon.",
+      "Verlin Labs' student track is built for Classes 6–12. Examples, pacing, and tool use are age-appropriate - with plain-language mental models instead of exam-style jargon.",
   },
   {
     question: "Does my child need coding experience?",
     answer:
-      "No prior coding is required. We focus on understanding how AI works, using tools safely, and building a showcase project — curiosity matters more than technical background.",
+      "No prior coding is required. We focus on understanding how AI works, using tools safely, and building a showcase project - curiosity matters more than technical background.",
   },
   {
     question: "Can students try before enrolling in the full program?",
@@ -43,12 +43,12 @@ const PM_FAQS: AccordionItem[] = [
   {
     question: "What will I be able to do after AI for PMs training?",
     answer:
-      "Evaluate vendors honestly, lead AI-assisted discovery, ship a capstone MVP, and present trade-offs to stakeholders — with mental models you can reuse on every new tool release.",
+      "Evaluate vendors honestly, lead AI-assisted discovery, ship a capstone MVP, and present trade-offs to stakeholders - with mental models you can reuse on every new tool release.",
   },
   {
     question: "Is there a free way to experience the teaching style?",
     answer:
-      "Book the free 2-hour session and select Product Manager as your role. Content adapts to PM workflows — tool evaluation, product thinking, and live Q&A.",
+      "Book the free 2-hour session and select Product Manager as your role. Content adapts to PM workflows - tool evaluation, product thinking, and live Q&A.",
   },
 ];
 
@@ -61,7 +61,7 @@ const ENGINEER_FAQS: AccordionItem[] = [
   {
     question: "What topics does the engineer track cover?",
     answer:
-      "LLM fundamentals, transformers as information pipelines, RAG, fine-tuning vs prompting, portfolio projects, and interview prep — taught with mental models, not slide dumps.",
+      "LLM fundamentals, transformers as information pipelines, RAG, fine-tuning vs prompting, portfolio projects, and interview prep - taught with mental models, not slide dumps.",
   },
   {
     question: "How do I know if Verlin Labs fits my level?",
@@ -76,18 +76,18 @@ export const AUDIENCE_LANDING: Record<string, AudienceLandingConfig> = {
     path: "/ai-for-students",
     seoKey: "aiForStudents",
     eyebrow: "AI for school students",
-    headline: "AI for Students — learn how technology works, not just how to use it",
+    headline: "AI for Students - learn how technology works, not just how to use it",
     subheadline:
-      "Verlin Labs helps Classes 6–12 students understand AI through mental models, safe tool practice, and a hands-on showcase project — with live instruction from founder Aman Munjal.",
+      "My own kids are starting to hear about AI everywhere - at school, on their phones, from friends. This 8-day track is what I'd want them to sit through: everyday analogies, safe tool practice, and a showcase project they are actually proud to demo, taught live by founder Aman Munjal.",
     benefits: [
-      "Everyday analogies — no scary jargon or exam cramming",
+      "Everyday analogies - no scary jargon or exam cramming",
       "Safe, age-appropriate AI tool use with clear boundaries",
       "8-day live program with showcase demo day",
       "Free 2-hour session to experience teaching before you enroll",
     ],
     howToName: "How to start learning AI as a school student at Verlin Labs",
     howToDescription:
-      "A clarity-first path from free session to full student program — mental models, live sessions, and a showcase project.",
+      "A clarity-first path from free session to full student program - mental models, live sessions, and a showcase project.",
     howToSteps: [
       { name: "Book a free session", text: "Choose the student track and pick a live 2-hour intro slot." },
       { name: "Learn mental models live", text: "See how Verlin Labs explains AI with visual frameworks and Q&A." },
@@ -106,18 +106,18 @@ export const AUDIENCE_LANDING: Record<string, AudienceLandingConfig> = {
     path: "/ai-for-pms",
     seoKey: "aiForPms",
     eyebrow: "AI for product managers",
-    headline: "AI for Product Managers — evaluate tools, ship MVPs, lead with clarity",
+    headline: "AI for Product Managers - evaluate tools, ship MVPs, lead with clarity",
     subheadline:
-      "Verlin Labs trains PMs to adopt AI responsibly — mental models for LLMs, AI-assisted discovery, PRDs, vibe-coding MVPs, and capstone demo day with live mentor feedback.",
+      "I have sat through enough AI vendor demos to know the theatre from the substance. This program is my attempt to give PMs the same filter - mental models for LLMs, AI-assisted discovery, PRDs, vibe-coding MVPs, and a capstone demo day with real feedback, not applause.",
     benefits: [
       "Evaluate AI vendors without demo-day theatre",
       "AI-assisted discovery, PRDs, and stakeholder-ready narratives",
-      "Build and present a capstone MVP — not just slide decks",
+      "Build and present a capstone MVP - not just slide decks",
       "16-day live cohort with PM-specific examples throughout",
     ],
     howToName: "How product managers learn AI at Verlin Labs",
     howToDescription:
-      "From free intro session to capstone demo — a structured PM path for AI literacy and product leadership.",
+      "From free intro session to capstone demo - a structured PM path for AI literacy and product leadership.",
     howToSteps: [
       { name: "Book a PM free session", text: "Select Product Manager when booking the 2-hour intro." },
       { name: "Build AI literacy", text: "Learn mental models for LLMs, hallucinations, and tool boundaries." },
@@ -136,14 +136,14 @@ export const AUDIENCE_LANDING: Record<string, AudienceLandingConfig> = {
     path: "/ai-for-engineers",
     seoKey: "aiForEngineers",
     eyebrow: "AI for college engineers",
-    headline: "AI for Engineers — from LLM fundamentals to portfolio-ready projects",
+    headline: "AI for Engineers - from LLM fundamentals to portfolio-ready projects",
     subheadline:
-      "Verlin Labs helps college engineers build durable intuition for transformers, RAG, and modern AI systems — with live sessions, mental models, and interview-ready portfolio work.",
+      "I wish I'd had this when I was first trying to make sense of transformers and RAG. This track builds durable intuition, not just tutorial recall - live sessions, mental models, and portfolio work that actually survives an interview.",
     benefits: [
       "Transformers and LLMs explained as information pipelines",
       "Hands-on API projects and portfolio pieces recruiters can evaluate",
       "10-day intensive with responsible AI and system-design thinking",
-      "Free session first — experience pacing and depth before enrolling",
+      "Free session first - experience pacing and depth before enrolling",
     ],
     howToName: "How college engineers learn AI at Verlin Labs",
     howToDescription:

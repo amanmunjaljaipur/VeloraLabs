@@ -131,8 +131,8 @@ export function AudienceCoursePage({
               <p className="mt-2 text-text-secondary max-w-2xl">
                 {isMyCourse
                   ? accessibleDays === "all"
-                    ? `${visiblePhases.length} modules · ${dayCount} lessons — pick up any session below.`
-                    : `${dayCount} lesson${dayCount === 1 ? "" : "s"} available to you — open a module to watch the video or training document.`
+                    ? `${visiblePhases.length} modules · ${dayCount} lessons - pick up any session below.`
+                    : `${dayCount} lesson${dayCount === 1 ? "" : "s"} available to you - open a module to watch the video or training document.`
                   : course.description}
               </p>
             </div>
@@ -163,7 +163,7 @@ export function AudienceCoursePage({
                   <Button size="lg" className="w-full">Book Free Session First</Button>
                 </Link>
                 <Link href="/contact">
-                  <Button size="lg" variant="secondary" className="w-full">Enroll Now — Contact Us</Button>
+                  <Button size="lg" variant="secondary" className="w-full">Enroll Now - Contact Us</Button>
                 </Link>
               </div>
             </Card>

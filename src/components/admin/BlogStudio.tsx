@@ -119,7 +119,7 @@ export function BlogStudio() {
       toast(
         data.post?.generatedBy === "ai"
           ? "Blog generated with AI and saved"
-          : "Blog created (template — add GROQ_API_KEY for AI copy)",
+          : "Blog created (template - add GROQ_API_KEY for AI copy)",
         "success"
       );
       setCustomTopic("");

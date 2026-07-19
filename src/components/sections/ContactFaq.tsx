@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "How quickly will I get a reply?",
     answer:
-      "We aim to respond within 24–48 hours on business days. Urgent free-session scheduling questions are usually faster — often the same day.",
+      "We aim to respond within 24–48 hours on business days. Urgent free-session scheduling questions are usually faster - often the same day.",
   },
   {
     question: "Can I book a session directly?",
@@ -17,7 +17,7 @@ const faqs = [
   {
     question: "Do you offer corporate or team training?",
     answer:
-      "Yes. We run clarity-first workshops for teams — tailored examples, live Q&A, and follow-up resources. Mention your team size and goals in the form and we'll share options.",
+      "Yes. We run clarity-first workshops for teams - tailored examples, live Q&A, and follow-up resources. Mention your team size and goals in the form and we will share options.",
   },
   {
     question: "Is there a physical office I can visit?",
@@ -27,12 +27,12 @@ const faqs = [
   {
     question: "Will you try to sell me a paid program?",
     answer:
-      "No pressure. We'll answer your question honestly. Paid enrollment is discussed only if it's genuinely relevant to your goals — many people use only the free session and library resources.",
+      "No pressure. We will answer your question honestly. Paid enrollment is discussed only if it is genuinely relevant to your goals - many people use only the free session and library resources.",
   },
   {
     question: "What should I include in my message?",
     answer:
-      "Your background, what you're trying to learn or solve, team size (if applicable), and any timeline. The more context you share, the more useful our reply will be.",
+      "Your background, what you are trying to learn or solve, team size (if applicable), and any timeline. The more context you share, the more useful our reply will be.",
   },
 ];
 
@@ -44,7 +44,7 @@ export function ContactExpectations() {
           <div>
             <h2 className="text-2xl font-semibold text-foreground md:text-3xl">What to expect</h2>
             <p className="mt-4 text-text-secondary leading-relaxed">
-              We read every message personally. You&apos;ll get a clear, human reply — not an
+              We read every message personally. You&apos;ll get a clear, human reply - not an
               auto-generated funnel.
             </p>
             <ul className="mt-8 space-y-4">
@@ -62,7 +62,7 @@ export function ContactExpectations() {
                 {
                   icon: MapPin,
                   title: "No obligation",
-                  text: "Asking a question doesn't enroll you in anything. Explore at your own pace.",
+                  text: "Asking a question does not enroll you in anything. Explore at your own pace.",
                 },
               ].map((item) => {
                 const Icon = item.icon;
@@ -84,7 +84,7 @@ export function ContactExpectations() {
           <Card className="p-6 md:p-8">
             <h3 className="text-lg font-semibold text-foreground">Contact FAQ</h3>
             <p className="mt-2 text-sm text-text-secondary">
-              More answers about programs, sessions, and learning — on our{" "}
+              More answers about programs, sessions, and learning - on our{" "}
               <Link href="/faq" className="font-medium text-accent-teal hover:underline">
                 full FAQ page
               </Link>
@@ -105,7 +105,7 @@ export function ContactReassurance() {
     <section className="py-12 md:py-16">
       <div className="mx-auto max-w-3xl px-4 text-center md:px-8">
         <p className="text-lg font-medium text-foreground">
-          Verlin Labs exists to make AI and technology understandable — not overwhelming.
+          Verlin Labs exists to make AI and technology understandable - not overwhelming.
         </p>
         <p className="mt-3 text-text-secondary leading-relaxed">
           However you reach out, you&apos;ll be met with clarity, respect, and practical guidance.

@@ -42,7 +42,7 @@ export async function GET() {
         label: "Grok (xAI)",
         plainLabel: platformGrokReady
           ? "Grok (platform default for super admin)"
-          : "Grok — smart AI helper from xAI",
+          : "Grok - smart AI helper from xAI",
         defaultModel: defaultModelForProvider("xai"),
         baseUrl: "https://api.x.ai/v1",
         hint: platformGrokReady
@@ -52,7 +52,7 @@ export async function GET() {
       {
         id: "groq" as const,
         label: "Groq (often free)",
-        plainLabel: "Groq — fast free-tier AI helper",
+        plainLabel: "Groq - fast free-tier AI helper",
         defaultModel: defaultModelForProvider("groq"),
         baseUrl: "https://api.groq.com/openai/v1",
         hint: "Paste the key from console.groq.com. We never save it.",
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unknown app type" }, { status: 400 });
   }
 
-  // Answers optional — user may skip all questions; prompt is enough
+  // Answers optional - user may skip all questions; prompt is enough
   const answers = Array.isArray(body.answers) ? body.answers : [];
   const brandAnswer = answers.find((a) => a.id === "brandName")?.answer?.trim();
   if (!brandAnswer) {

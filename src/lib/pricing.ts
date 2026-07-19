@@ -1,4 +1,4 @@
-/** Introductory offer — discounted list prices */
+/** Introductory offer - discounted list prices */
 export const INTRO_OFFER_LABEL = "Introductory offer";
 
 /** List price (INR) → fixed introductory sale price */
@@ -45,5 +45,5 @@ export function getIntroPricing(price: string): IntroPricing {
 }
 
 export function buildIntroOfferSummary(): string {
-  return "All full programs currently have an introductory discount off list price.\n\nThe free 2-hour session remains completely free — no payment required to book.";
+  return "All full programs currently have an introductory discount off list price.\n\nThe free 2-hour session remains completely free - no payment required to book.";
 }
