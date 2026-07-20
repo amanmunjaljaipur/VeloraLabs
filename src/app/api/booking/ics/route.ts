@@ -26,15 +26,11 @@ export async function GET(req: NextRequest) {
     attendeeEmail: booking.email,
   });
 
-  // buildBookingIcs returns a Node Buffer; NextResponse needs a BodyInit,
-  // so pass its bytes as a Uint8Array.
-  const icsBytes = new Uint8Array(
-    ics.buffer,
-    ics.byteOffset,
-    ics.byteLength
-  );
+  // buildBookingIcs returns a Node Buffer; ICS is UTF-8 text, so pass it
+  // as a string (a valid BodyInit) to avoid Buffer/Uint8Array typing issues.
+  const icsText = ics.toString("utf8");
 
-  return new NextResponse(icsBytes, {
+  return new NextResponse(icsText, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
       "Content-Disposition": 'attachment; filename="verlin-labs-free-session.ics"',
