@@ -9,14 +9,40 @@ import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
-import { fetchSlots, createBooking, type TimeSlot } from "@/lib/booking/calcom";
 import { cn, formatDate } from "@/lib/utils";
-import { submitForm } from "@/lib/submit-to-sheets";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+interface ApiSlot {
+  id: string;
+  time: string;
+  total: number;
+  available: number;
+}
+
+interface BookingRecord {
+  id: string;
+  date: string;
+  time: string;
+  name: string;
+  email: string;
+  audience: string;
+}
+
+function dateKey(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+async function fetchSlots(date: Date): Promise<ApiSlot[]> {
+  const res = await fetch(`/api/booking/slots?date=${dateKey(date)}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data.slots) ? data.slots : [];
+}
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,23 +59,40 @@ interface BookingFlowProps {
 export function BookingFlow({ defaultAudience }: BookingFlowProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const isLoggedIn = Boolean(session?.user);
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [slots, setSlots] = useState<ApiSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<ApiSlot | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // OTP step (logged-out users only)
+  const [showOtpStep, setShowOtpStep] = useState(false);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { audience: defaultAudience || "" },
   });
+
+  useEffect(() => {
+    if (session?.user?.name) setValue("name", session.user.name);
+    if (session?.user?.email) setValue("email", session.user.email);
+  }, [session, setValue]);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -68,57 +111,149 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
     setShowConfirm(true);
   });
 
+  const goToConfirmationPage = (booking: BookingRecord) => {
+    const params = new URLSearchParams({
+      date: booking.date,
+      time: booking.time,
+      name: booking.name,
+      bookingId: booking.id,
+    });
+    router.push(`/book/confirmation?${params.toString()}`);
+  };
+
   const onConfirmBooking = async () => {
     const values = getValues();
     if (!selectedDate || !selectedSlot) return;
 
     setSubmitting(true);
-    const result = await createBooking({
-      name: values.name,
-      email: values.email,
-      date: selectedDate.toISOString().split("T")[0],
-      slotId: selectedSlot.id,
-      audience: values.audience,
-    });
-    setSubmitting(false);
-    setShowConfirm(false);
 
-    if (result.error === "slot_unavailable") {
-      setShowUnavailable(true);
-      return;
+    try {
+      if (isLoggedIn) {
+        const res = await fetch("/api/booking/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            date: dateKey(selectedDate),
+            slotId: selectedSlot.id,
+            audience: values.audience,
+          }),
+        });
+        const data = await res.json();
+
+        if (res.status === 409 || data.error === "slot_unavailable") {
+          setShowConfirm(false);
+          setShowUnavailable(true);
+          return;
+        }
+        if (!res.ok) {
+          toast("Something went wrong. Please try again.", "error");
+          return;
+        }
+
+        setShowConfirm(false);
+        goToConfirmationPage(data.booking);
+        return;
+      }
+
+      // Logged-out path: request an OTP first, do not book yet.
+      const res = await fetch("/api/booking/otp/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateKey(selectedDate),
+          slotId: selectedSlot.id,
+          name: values.name,
+          email: values.email,
+          audience: values.audience,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.status === 409 || data.error === "slot_unavailable") {
+        setShowConfirm(false);
+        setShowUnavailable(true);
+        return;
+      }
+      if (!res.ok) {
+        toast(
+          data.error === "email_failed"
+            ? "We could not send a confirmation code. Please try again."
+            : "Something went wrong. Please try again.",
+          "error"
+        );
+        return;
+      }
+
+      setChallengeId(data.challengeId);
+      setOtpError(null);
+      setOtpCode("");
+      setShowConfirm(false);
+      setShowOtpStep(true);
+    } finally {
+      setSubmitting(false);
     }
-    if (!result.success) {
-      toast("Something went wrong. Please try again.", "error");
-      return;
+  };
+
+  const onResendOtp = async () => {
+    const values = getValues();
+    if (!selectedDate || !selectedSlot) return;
+    setResending(true);
+    try {
+      const res = await fetch("/api/booking/otp/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateKey(selectedDate),
+          slotId: selectedSlot.id,
+          name: values.name,
+          email: values.email,
+          audience: values.audience,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast("Could not resend the code. Please try again.", "error");
+        return;
+      }
+      setChallengeId(data.challengeId);
+      setOtpError(null);
+      toast("A new code has been sent to your email.", "success");
+    } finally {
+      setResending(false);
     }
+  };
 
-    const sheetResult = await submitForm({
-      type: "booking",
-      name: values.name,
-      email: values.email,
-      audience: values.audience,
-      date: selectedDate.toISOString().split("T")[0],
-      time: selectedSlot.time,
-      bookingId: result.bookingId || "",
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      status: "Confirmed",
-      source: "Free Session Calendar",
-    });
+  const onVerifyOtp = async () => {
+    if (!challengeId || !otpCode) return;
+    setVerifying(true);
+    setOtpError(null);
+    try {
+      const res = await fetch("/api/booking/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeId, code: otpCode }),
+      });
+      const data = await res.json();
 
-    if (!sheetResult.ok) {
-      toast(
-        "Booking confirmed, but we could not save your details. Contact support if you need a copy of your booking.",
-        "warning"
-      );
+      if (res.status === 409 || data.error === "slot_unavailable") {
+        setShowOtpStep(false);
+        setShowUnavailable(true);
+        return;
+      }
+      if (res.status === 410) {
+        setOtpError("This code expired. Request a new one below.");
+        return;
+      }
+      if (!res.ok) {
+        setOtpError("That code did not match. Please try again.");
+        return;
+      }
+
+      setShowOtpStep(false);
+      goToConfirmationPage(data.booking);
+    } finally {
+      setVerifying(false);
     }
-
-    const params = new URLSearchParams({
-      date: selectedDate.toISOString().split("T")[0],
-      time: selectedSlot.time,
-      name: values.name,
-      bookingId: result.bookingId || "",
-    });
-    router.push(`/book/confirmation?${params.toString()}`);
   };
 
   const availableSlots = slots.filter((s) => s.available > 0);
@@ -219,9 +354,32 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
       {selectedSlot && (
       <form onSubmit={onRequestConfirm} className="rounded-2xl border border-border bg-muted/40 p-6 space-y-6">
         <h3 className="text-base font-semibold">3. Your details</h3>
+        {isLoggedIn && (
+          <p className="text-sm text-text-secondary">
+            Signed in as {session?.user?.email} - we will email your confirmation immediately, no code needed.
+          </p>
+        )}
+        {!isLoggedIn && (
+          <p className="text-sm text-text-secondary">
+            Not signed in - we will send a confirmation code to your email before your seat is booked.
+          </p>
+        )}
         <div className="grid gap-6 md:grid-cols-2">
-          <Input label="Full Name" placeholder="Your name" error={errors.name?.message} {...register("name")} />
-          <Input label="Email" type="email" placeholder="you@example.com" error={errors.email?.message} {...register("email")} />
+          <Input
+            label="Full Name"
+            placeholder="Your name"
+            error={errors.name?.message}
+            disabled={isLoggedIn}
+            {...register("name")}
+          />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            disabled={isLoggedIn}
+            {...register("email")}
+          />
         </div>
         <Select
           label="Audience Type"
@@ -235,7 +393,7 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
           {...register("audience")}
         />
         <Button type="submit" size="lg" className="w-full sm:w-auto">
-          Confirm booking
+          {isLoggedIn ? "Confirm booking" : "Send confirmation code"}
         </Button>
       </form>
       )}
@@ -250,12 +408,52 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
               <p><span className="text-text-secondary">Email:</span> {getValues("email")}</p>
             </div>
           )}
+          {!isLoggedIn && (
+            <p className="text-xs text-text-secondary">
+              We will email a 6-digit code to confirm this address before the seat is booked.
+            </p>
+          )}
           <div className="flex gap-3">
             <Button variant="secondary" className="flex-1" onClick={() => setShowConfirm(false)}>
               Edit Selection
             </Button>
             <Button className="flex-1" loading={submitting} onClick={onConfirmBooking}>
-              Confirm & Book
+              {isLoggedIn ? "Confirm & Book" : "Send Code"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showOtpStep} onClose={() => setShowOtpStep(false)} title="Enter Confirmation Code">
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary">
+            We sent a 6-digit code to <strong>{getValues("email")}</strong>. Enter it below to confirm your seat.
+          </p>
+          <Input
+            label="Confirmation Code"
+            placeholder="123456"
+            inputMode="numeric"
+            maxLength={6}
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            error={otpError ?? undefined}
+          />
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={onResendOtp}
+              loading={resending}
+            >
+              Resend Code
+            </Button>
+            <Button
+              className="flex-1"
+              loading={verifying}
+              disabled={otpCode.length < 4}
+              onClick={onVerifyOtp}
+            >
+              Verify & Book
             </Button>
           </div>
         </div>

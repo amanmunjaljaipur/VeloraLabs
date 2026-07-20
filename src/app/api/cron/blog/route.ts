@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, ...paused, publishedCount: 0 });
   }
 
-  const published = publishDueBlogPosts();
+  const published = await publishDueBlogPosts();
   return NextResponse.json({
     success: true,
     publishedCount: published.length,

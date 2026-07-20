@@ -22,6 +22,11 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "Bookings, leads, learners, and trends",
   },
   {
+    label: "Free Session Bookings",
+    href: "/admin/bookings",
+    description: "Live slot occupancy and booking list for the 5 daily slots",
+  },
+  {
     label: "Site CMS",
     href: "/admin/site-cms",
     description: "Edit pages, copy, images, and content",

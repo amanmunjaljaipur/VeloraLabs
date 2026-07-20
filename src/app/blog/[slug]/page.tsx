@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const scheduled = getBlogPostBySlug(slug);
+  const scheduled = await getBlogPostBySlug(slug);
   if (scheduled?.status === "published") {
     return createMetadata({
       title: `${scheduled.title} - Blog`,
@@ -49,7 +49,7 @@ export default async function BlogArticlePage({
 }) {
   const { slug } = await params;
 
-  const scheduled = getBlogPostBySlug(slug);
+  const scheduled = await getBlogPostBySlug(slug);
   if (scheduled && scheduled.status !== "published") {
     notFound();
   }

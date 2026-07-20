@@ -13,13 +13,13 @@ function estimateDuration(sections: BlogSection[]): string {
   return `${mins} min`;
 }
 
-function templatePost(input: {
+async function templatePost(input: {
   sequenceId: string;
   customTopic?: string;
   scheduledAt: string | null;
   status: BlogPost["status"];
   createdBy?: string;
-}): BlogPost {
+}): Promise<BlogPost> {
   const sequence = getBlogSequence(input.sequenceId);
   if (!sequence) {
     throw new Error("Unknown blog sequence");
@@ -29,7 +29,7 @@ function templatePost(input: {
     ? input.customTopic.trim()
     : sequence.label;
   const title = `${topicBit}: a clarity-first guide`;
-  const existing = listBlogPosts();
+  const existing = await listBlogPosts();
   const slug = uniqueBlogSlug(title, existing);
   const now = new Date().toISOString();
   const publishAt = input.scheduledAt ?? now;
@@ -149,7 +149,7 @@ export async function generateBlogPost(input: {
   }
 
   const topic = input.customTopic?.trim() || sequence.topicPrompt;
-  const recentTitles = listBlogPosts()
+  const recentTitles = (await listBlogPosts())
     .slice(0, 8)
     .map((p) => p.title)
     .join("; ");
@@ -193,7 +193,7 @@ Write a fresh article for the Verlin Labs blog.`,
       throw new Error("Incomplete AI article");
     }
 
-    const existing = listBlogPosts();
+    const existing = await listBlogPosts();
     const slug = uniqueBlogSlug(parsed.title, existing);
     const now = new Date().toISOString();
     const publishAt = scheduledAt ?? now;
@@ -239,3 +239,4 @@ Write a fresh article for the Verlin Labs blog.`,
     });
   }
 }
+

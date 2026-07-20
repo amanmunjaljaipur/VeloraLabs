@@ -16,11 +16,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata = staticPageMetadata("blog", "/blog");
 
-export default function BlogPage() {
+export default async function BlogPage() {
   const libraryPosts = getLibraryItems().filter((item) =>
     ["Article", "Guide", "Workshop"].includes(item.type)
   );
-  const scheduledPublished = getPublishedBlogPosts().map(blogPostToLibraryItem);
+  const scheduledPublished = (await getPublishedBlogPosts()).map(blogPostToLibraryItem);
 
   // Prefer scheduled blog posts when slug collides; show newest first
   const bySlug = new Map<string, (typeof libraryPosts)[0] & { href?: string }>();

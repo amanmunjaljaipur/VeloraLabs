@@ -1,4 +1,8 @@
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import {
+  ensureDataFileHydrated,
+  readJsonFile,
+  writeJsonFileAsync,
+} from "@/lib/data-store";
 import type { LibraryItem } from "@/lib/content";
 import type { BlogPost, BlogPostStatus, BlogStore } from "@/lib/blog/types";
 
@@ -10,6 +14,8 @@ const EMPTY: BlogStore = {
   posts: [],
 };
 
+const EMPTY_JSON = JSON.stringify(EMPTY);
+
 function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -18,8 +24,8 @@ function slugify(input: string): string {
     .slice(0, 72);
 }
 
-export function readBlogStore(): BlogStore {
-  const data = readJsonFile<BlogStore>(BLOG_FILE, JSON.stringify(EMPTY));
+function readLocal(): BlogStore {
+  const data = readJsonFile<BlogStore>(BLOG_FILE, EMPTY_JSON);
   return {
     version: data.version ?? 1,
     updatedAt: data.updatedAt ?? EMPTY.updatedAt,
@@ -27,17 +33,58 @@ export function readBlogStore(): BlogStore {
   };
 }
 
-export function writeBlogStore(store: BlogStore): void {
-  writeJsonFile(BLOG_FILE, {
-    ...store,
-    updatedAt: new Date().toISOString(),
-  });
+let loadPromise: Promise<void> | null = null;
+let cache: BlogStore | null = null;
+let cacheAt = 0;
+const CACHE_TTL_MS = 3_000;
+
+/**
+ * Always force-hydrate from Blob on Vercel before reading. Without this, each
+ * serverless instance keeps reading its own /tmp snapshot from cold start
+ * forever - so an admin who publishes a post on one instance, then has their
+ * next request routed to a different warm instance, sees the pre-publish
+ * state and it looks like "publish" silently did nothing. Same pattern as
+ * app-builder/store.ts and roles.ts.
+ */
+export async function ensureBlogStoreLoaded(force = false): Promise<BlogStore> {
+  if (!force && cache && Date.now() - cacheAt < CACHE_TTL_MS) {
+    return cache;
+  }
+
+  if (loadPromise) {
+    await loadPromise;
+    return cache ?? readLocal();
+  }
+
+  loadPromise = (async () => {
+    await ensureDataFileHydrated(BLOG_FILE, EMPTY_JSON, { force: true });
+    cache = readLocal();
+    cacheAt = Date.now();
+  })();
+
+  try {
+    await loadPromise;
+  } finally {
+    loadPromise = null;
+  }
+
+  return cache ?? readLocal();
 }
 
-export function listBlogPosts(filter?: {
+export async function writeBlogStore(store: BlogStore): Promise<void> {
+  const next = { ...store, updatedAt: new Date().toISOString() };
+  // Await the Blob upload so other serverless instances see the change on
+  // their very next force-hydrated read, not just eventually.
+  await writeJsonFileAsync(BLOG_FILE, next, EMPTY_JSON);
+  cache = next;
+  cacheAt = Date.now();
+}
+
+export async function listBlogPosts(filter?: {
   status?: BlogPostStatus | BlogPostStatus[];
-}): BlogPost[] {
-  const posts = readBlogStore().posts;
+}): Promise<BlogPost[]> {
+  const store = await ensureBlogStoreLoaded();
+  const posts = store.posts;
   if (!filter?.status) {
     return [...posts].sort((a, b) =>
       (b.scheduledAt ?? b.publishedAt).localeCompare(a.scheduledAt ?? a.publishedAt)
@@ -51,12 +98,14 @@ export function listBlogPosts(filter?: {
     );
 }
 
-export function getBlogPost(id: string): BlogPost | undefined {
-  return readBlogStore().posts.find((p) => p.id === id);
+export async function getBlogPost(id: string): Promise<BlogPost | undefined> {
+  const store = await ensureBlogStoreLoaded();
+  return store.posts.find((p) => p.id === id);
 }
 
-export function getBlogPostBySlug(slug: string): BlogPost | undefined {
-  return readBlogStore().posts.find((p) => p.slug === slug);
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const store = await ensureBlogStoreLoaded();
+  return store.posts.find((p) => p.slug === slug);
 }
 
 export function uniqueBlogSlug(title: string, existing: BlogPost[]): string {
@@ -70,24 +119,26 @@ export function uniqueBlogSlug(title: string, existing: BlogPost[]): string {
   return slug;
 }
 
-export function saveBlogPost(post: BlogPost): BlogPost {
-  const store = readBlogStore();
+export async function saveBlogPost(post: BlogPost): Promise<BlogPost> {
+  // Force-hydrate right before the read-modify-write so we merge onto the
+  // latest cross-instance state instead of clobbering it with a stale local copy.
+  const store = await ensureBlogStoreLoaded(true);
   const idx = store.posts.findIndex((p) => p.id === post.id);
+  const nextPosts = [...store.posts];
   if (idx >= 0) {
-    store.posts[idx] = post;
+    nextPosts[idx] = post;
   } else {
-    store.posts.unshift(post);
+    nextPosts.unshift(post);
   }
-  writeBlogStore(store);
+  await writeBlogStore({ ...store, posts: nextPosts });
   return post;
 }
 
-export function deleteBlogPost(id: string): boolean {
-  const store = readBlogStore();
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  const store = await ensureBlogStoreLoaded(true);
   const next = store.posts.filter((p) => p.id !== id);
   if (next.length === store.posts.length) return false;
-  store.posts = next;
-  writeBlogStore(store);
+  await writeBlogStore({ ...store, posts: next });
   return true;
 }
 
@@ -115,26 +166,26 @@ export function blogPostToLibraryItem(post: BlogPost): LibraryItem {
 }
 
 /** Published scheduled blogs for public /blog and /blog/[slug] */
-export function getPublishedBlogPosts(): BlogPost[] {
-  return listBlogPosts({ status: "published" }).sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt)
-  );
+export async function getPublishedBlogPosts(): Promise<BlogPost[]> {
+  const posts = await listBlogPosts({ status: "published" });
+  return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 }
 
 /** Due scheduled posts whose scheduledAt is now or past */
-export function getDueScheduledPosts(now = new Date()): BlogPost[] {
+export async function getDueScheduledPosts(now = new Date()): Promise<BlogPost[]> {
   const ts = now.toISOString();
-  return readBlogStore().posts.filter(
+  const store = await ensureBlogStoreLoaded(true);
+  return store.posts.filter(
     (p) => p.status === "scheduled" && p.scheduledAt && p.scheduledAt <= ts
   );
 }
 
-export function publishDueBlogPosts(now = new Date()): BlogPost[] {
-  const store = readBlogStore();
+export async function publishDueBlogPosts(now = new Date()): Promise<BlogPost[]> {
+  const store = await ensureBlogStoreLoaded(true);
   const ts = now.toISOString();
   const published: BlogPost[] = [];
 
-  store.posts = store.posts.map((post) => {
+  const nextPosts = store.posts.map((post) => {
     if (post.status === "scheduled" && post.scheduledAt && post.scheduledAt <= ts) {
       const next: BlogPost = {
         ...post,
@@ -149,7 +200,7 @@ export function publishDueBlogPosts(now = new Date()): BlogPost[] {
   });
 
   if (published.length > 0) {
-    writeBlogStore(store);
+    await writeBlogStore({ ...store, posts: nextPosts });
   }
   return published;
 }

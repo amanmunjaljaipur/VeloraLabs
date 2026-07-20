@@ -37,6 +37,14 @@ export const RUNTIME_DATA_FILES = new Set([
   "app-builder-ops-memory.json",
   /** Super Admin agent pause/resume controls */
   "agent-controls.json",
+  /** Free-session bookings - real capacity/slot data, must survive deploys */
+  "free-session-bookings.json",
+  /** Short-lived OTP challenges for unauthenticated booking confirmation */
+  "booking-otp-challenges.json",
+  /** Published demo storefronts (App Builder / App Studio) - user-generated */
+  "demo-published-stores.json",
+  /** Saved demo app customizations - user-generated */
+  "demo-apps-customizations.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -55,6 +63,11 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "app-builder-tenants.json",
   "app-builder-ops-memory.json",
   "agent-controls.json",
+  // Booking capacity/OTP must be strongly consistent - two people reading
+  // stale slot counts across serverless instances is exactly the race
+  // condition this whole rebuild exists to close.
+  "free-session-bookings.json",
+  "booking-otp-challenges.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

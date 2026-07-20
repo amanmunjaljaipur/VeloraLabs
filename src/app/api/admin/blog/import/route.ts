@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         throw new Error("scheduledAt is required when status is scheduled");
       }
 
-      const existingPosts = [...listBlogPosts(), ...saved];
+      const existingPosts = [...(await listBlogPosts()), ...saved];
       const slug = input.slug?.trim() || uniqueBlogSlug(input.title, existingPosts);
       const now = new Date().toISOString();
 
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         createdBy: session.user?.email ?? undefined,
       };
 
-      saveBlogPost(post);
+      await saveBlogPost(post);
       saved.push(post);
     } catch (error) {
       errors.push({

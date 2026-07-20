@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const posts = listBlogPosts();
+  const posts = await listBlogPosts();
   const lastPublished = posts.find((p) => p.status === "published");
   const llm = getLlmPublicInfo();
 
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       post.scheduledAt = null;
     }
 
-    saveBlogPost(post);
+    await saveBlogPost(post);
 
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { generateICS } from "@/lib/booking/calcom";
 import { formatDate, formatTime } from "@/lib/utils";
 import { Calendar, CheckCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -13,18 +12,11 @@ function ConfirmationContent() {
   const params = useSearchParams();
   const date = params.get("date") || "";
   const time = params.get("time") || "";
-  const name = params.get("name") || "Guest";
   const bookingId = params.get("bookingId") || "";
 
   const handleAddToCalendar = () => {
-    const ics = generateICS(date, time, name);
-    const blob = new Blob([ics], { type: "text/calendar" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "verlin-labs-session.ics";
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!bookingId) return;
+    window.location.href = `/api/booking/ics?bookingId=${encodeURIComponent(bookingId)}`;
   };
 
   const displayDate = date ? formatDate(new Date(date)) : "TBD";

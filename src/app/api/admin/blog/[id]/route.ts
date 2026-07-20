@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await context.params;
-  const post = getBlogPost(id);
+  const post = await getBlogPost(id);
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ post });
 }
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await context.params;
-  const existing = getBlogPost(id);
+  const existing = await getBlogPost(id);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   let body: {
@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     }
   }
 
-  saveBlogPost(next);
+  await saveBlogPost(next);
   return NextResponse.json({ post: next });
 }
 
@@ -88,7 +88,7 @@ export async function DELETE(_req: NextRequest, context: Ctx) {
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await context.params;
-  if (!deleteBlogPost(id)) {
+  if (!(await deleteBlogPost(id))) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
