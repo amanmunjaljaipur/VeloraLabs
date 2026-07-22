@@ -21,7 +21,7 @@ export function TestimonialCard({ quote, name, role, audience }: TestimonialCard
   const avatarSrc = TESTIMONIAL_AVATARS[name];
 
   return (
-    <Card hover className="relative flex h-full flex-col overflow-hidden">
+    <Card hover variant="glass" className="relative flex h-full flex-col overflow-hidden">
       <div
         className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 rounded-full bg-accent-teal/5"
         aria-hidden="true"

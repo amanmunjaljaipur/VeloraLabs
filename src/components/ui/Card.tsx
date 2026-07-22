@@ -7,12 +7,16 @@ import { HTMLAttributes } from "react";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
+  /** "glass" = frosted, translucent premium surface (Cult UI-inspired) instead of the flat card. */
+  variant?: "default" | "glass";
 }
 
-export function Card({ className, hover, children, onClick, id, role, tabIndex, "aria-label": ariaLabel }: CardProps) {
+export function Card({ className, hover, variant = "default", children, onClick, id, role, tabIndex, "aria-label": ariaLabel }: CardProps) {
   const reduceMotion = useReducedMotion();
   const classes = cn(
-    "card-verlin rounded-xl p-5 text-card-foreground md:p-6",
+    variant === "glass"
+      ? "surface-glass rounded-xl border border-border/60 p-5 text-card-foreground shadow-glow-teal md:p-6"
+      : "card-verlin rounded-xl p-5 text-card-foreground md:p-6",
     hover && "card-verlin-hover",
     /* Equal height grids need min-w-0 so content never blows columns */
     "min-w-0",

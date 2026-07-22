@@ -34,6 +34,15 @@ export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
 
   return (
     <section className="hero-dark relative overflow-hidden bg-[var(--surface-dark)]">
+      {/* Ambient drifting glow - premium atmosphere behind the hero copy, kept low-opacity so it never competes with the video panel. */}
+      <div
+        className="hero-orb hero-orb-teal animate-orb-drift-a pointer-events-none absolute -left-24 top-0 h-96 w-96 opacity-30"
+        aria-hidden="true"
+      />
+      <div
+        className="hero-orb hero-orb-amber animate-orb-drift-b pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 opacity-20"
+        aria-hidden="true"
+      />
       <div className="relative grid lg:min-h-[min(86vh,800px)] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div className="relative z-20 flex items-center py-14 md:py-16 lg:py-20">
           <div className="container-verlin w-full">

@@ -13,8 +13,12 @@ export function CinematicCta() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="section-y border-y border-border bg-[var(--surface-dark)]">
-      <div className="container-verlin">
+    <section className="section-y relative overflow-hidden border-y border-border bg-[var(--surface-dark)]">
+      <div
+        className="hero-orb hero-orb-teal animate-orb-drift-b pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 opacity-20"
+        aria-hidden="true"
+      />
+      <div className="container-verlin relative">
         <div className="grid-editorial items-center lg:grid-cols-2 lg:gap-16">
           <motion.div
             className="w-full max-w-xl text-left"
@@ -25,7 +29,7 @@ export function CinematicCta() {
           >
             <p className="section-eyebrow section-eyebrow--on-dark">Free intro</p>
             <h2 className="mt-4 font-[family-name:var(--font-display)] text-[clamp(1.75rem,3.2vw,2.5rem)] font-medium tracking-tight text-white">
-              Experience the teaching before you commit
+              Experience the <span className="text-gradient-flow">teaching</span> before you commit
             </h2>
             <p className="mt-4 text-base leading-relaxed text-white/85 md:text-lg">
               Two live hours. Mental models, hands-on exercises, and a path that

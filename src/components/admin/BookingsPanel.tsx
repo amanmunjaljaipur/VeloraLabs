@@ -2,9 +2,11 @@
 
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { CountUp } from "@/components/ui/CountUp";
+import { MotionStagger, MotionStaggerItem } from "@/components/ui/MotionReveal";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { CalendarCheck, Loader2, Users } from "lucide-react";
+import { CalendarCheck, Loader2, TrendingUp, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface SlotStat {
@@ -110,6 +112,7 @@ export function BookingsPanel() {
   const next7 = data.stats.slice(0, 7);
   const totalBookedNext7 = next7.reduce((sum, d) => sum + d.totalBooked, 0);
   const totalCapacityNext7 = next7.reduce((sum, d) => sum + d.totalCapacity, 0);
+  const fillRate = totalCapacityNext7 > 0 ? Math.round((totalBookedNext7 / totalCapacityNext7) * 100) : 0;
 
   return (
     <section className="container-verlin space-y-6 pb-16">
@@ -124,41 +127,91 @@ export function BookingsPanel() {
             engineers, and professionals.
           </p>
         </div>
-        <p className="text-sm font-medium text-foreground">
-          {totalBookedNext7} / {totalCapacityNext7} booked next 7 days · {data.totalBookings} total
-        </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {next7.map((day) => (
-          <Card key={day.date} className="p-4">
-            <p className="text-sm font-semibold text-foreground">{formatDayLabel(day.date)}</p>
-            {day.slots.length === 0 ? (
-              <p className="mt-2 text-xs text-text-secondary">Weekend - no slots</p>
-            ) : (
-              <>
-                <p className="mt-1 text-xs text-text-secondary">
-                  {day.totalBooked} / {day.totalCapacity} booked
-                </p>
-                <div className="mt-3 space-y-1.5">
-                  {day.slots.map((slot) => (
-                    <div key={slot.id} className="flex items-center justify-between text-xs">
-                      <span className="text-text-secondary">{slot.time}</span>
-                      <span
-                        className={cn(
-                          "font-medium",
-                          slot.available === 0 ? "text-red-500" : "text-foreground"
-                        )}
-                      >
-                        {slot.booked}/{slot.total}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+      {/* KPI summary row - frosted stat cards with animated counters. */}
+      <MotionStagger className="grid gap-3 sm:grid-cols-3">
+        <MotionStaggerItem>
+          <Card variant="glass" className="p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
+              Booked · next 7 days
+            </p>
+            <p className="mt-2 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-teal">
+              <CountUp value={String(totalBookedNext7)} /> <span className="text-lg text-text-secondary">/ {totalCapacityNext7}</span>
+            </p>
           </Card>
-        ))}
+        </MotionStaggerItem>
+        <MotionStaggerItem>
+          <Card variant="glass" className="p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
+              Fill rate · next 7 days
+            </p>
+            <p className="mt-2 flex items-center gap-2 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-foreground">
+              <CountUp value={`${fillRate}%`} />
+              <TrendingUp className="h-5 w-5 text-accent-teal" aria-hidden="true" />
+            </p>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-accent-teal transition-[width] duration-700 ease-out"
+                style={{ width: `${fillRate}%` }}
+              />
+            </div>
+          </Card>
+        </MotionStaggerItem>
+        <MotionStaggerItem>
+          <Card variant="glass" className="p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
+              Total bookings (all time)
+            </p>
+            <p className="mt-2 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-cta-amber">
+              <CountUp value={String(data.totalBookings)} />
+            </p>
+          </Card>
+        </MotionStaggerItem>
+      </MotionStagger>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {next7.map((day) => {
+          const dayFillRate = day.totalCapacity > 0 ? Math.round((day.totalBooked / day.totalCapacity) * 100) : 0;
+          return (
+            <Card key={day.date} className="p-4">
+              <p className="text-sm font-semibold text-foreground">{formatDayLabel(day.date)}</p>
+              {day.slots.length === 0 ? (
+                <p className="mt-2 text-xs text-text-secondary">Weekend - no slots</p>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {day.totalBooked} / {day.totalCapacity} booked
+                  </p>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-[width] duration-700 ease-out",
+                        dayFillRate >= 100 ? "bg-red-500" : "bg-accent-teal"
+                      )}
+                      style={{ width: `${Math.min(100, dayFillRate)}%` }}
+                    />
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {day.slots.map((slot) => (
+                      <div key={slot.id} className="flex items-center justify-between text-xs">
+                        <span className="text-text-secondary">{slot.time}</span>
+                        <span
+                          className={cn(
+                            "font-medium",
+                            slot.available === 0 ? "text-red-500" : "text-foreground"
+                          )}
+                        >
+                          {slot.booked}/{slot.total}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Card>
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap gap-2">
