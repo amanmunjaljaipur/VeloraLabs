@@ -15,7 +15,7 @@ export function CinematicCta() {
   return (
     <section className="section-y relative overflow-hidden border-y border-border bg-[var(--surface-dark)]">
       <div
-        className="hero-orb hero-orb-teal animate-orb-drift-b pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 opacity-20"
+        className="hero-orb hero-orb-teal animate-orb-drift-b pointer-events-none absolute -right-20 top-1/2 h-96 w-96 -translate-y-1/2 opacity-60 mix-blend-screen"
         aria-hidden="true"
       />
       <div className="container-verlin relative">
