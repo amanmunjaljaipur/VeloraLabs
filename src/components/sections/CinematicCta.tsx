@@ -24,7 +24,7 @@ export function CinematicCta() {
             className="w-full max-w-xl text-left"
             initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-10%" }}
+            viewport={{ once: false, margin: "-10% 0px -10% 0px" }}
             transition={{ duration: DURATION.reveal, ease: EASE_OUT }}
           >
             <p className="section-eyebrow section-eyebrow--on-dark">Free intro</p>
@@ -67,7 +67,7 @@ export function CinematicCta() {
             className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 shadow-lg"
             initial={reduceMotion ? false : { opacity: 0, x: 12 }}
             whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-10%" }}
+            viewport={{ once: false, margin: "-10% 0px -10% 0px" }}
             transition={{ duration: DURATION.reveal, delay: 0.05, ease: EASE_OUT }}
           >
             <OptimizedImage

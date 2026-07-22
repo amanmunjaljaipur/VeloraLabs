@@ -77,7 +77,7 @@ export function AudienceCard({
 
   if (onClick) {
     return (
-      <Card hover className={cn(cardClass, "cursor-pointer")} onClick={onClick}>
+      <Card hover variant="glass" className={cn(cardClass, "cursor-pointer")} onClick={onClick}>
         {inner}
       </Card>
     );
@@ -85,7 +85,7 @@ export function AudienceCard({
 
   return (
     <Link href={href} className="block h-full group">
-      <Card hover className={cardClass}>
+      <Card hover variant="glass" className={cardClass}>
         {inner}
       </Card>
     </Link>

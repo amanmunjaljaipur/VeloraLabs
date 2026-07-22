@@ -13,6 +13,7 @@ import { SiteExploreLinks } from "@/components/layout/SiteExploreLinks";
 import { CoursesGraphJsonLd } from "@/components/seo/CoursesGraphJsonLd";
 import { audienceTrackImageAlt } from "@/lib/image-alt";
 import { staticPageMetadata } from "@/lib/page-metadata";
+import { BRAND_MEDIA } from "@/lib/brand-media";
 import type { AudienceSlug } from "@/lib/content";
 
 export const metadata = staticPageMetadata("courses", "/courses");
@@ -53,9 +54,9 @@ export default function CoursesPage() {
         eyebrow="Learning tracks"
         title="Courses"
         subtitle="Choose the course that fits your stage - each track includes the full syllabus and session structure."
-        image="/images/hq-courses.jpg"
-        imageAlt="Verlin Labs AI courses - frameworks and structured learning tracks"
-        video="/videos/courses.mp4"
+        image={BRAND_MEDIA.courses.image}
+        imageAlt={BRAND_MEDIA.courses.alt}
+        video={BRAND_MEDIA.courses.video}
       />
 
       <section className="section-y">

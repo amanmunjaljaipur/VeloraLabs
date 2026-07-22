@@ -38,7 +38,7 @@ export function ContentCard({
 
   return (
     <Link href={`${hrefBase}/${slug}`} className="group block h-full">
-      <Card hover className="flex h-full flex-col overflow-hidden p-0">
+      <Card hover variant="glass" className="flex h-full flex-col overflow-hidden p-0">
         <div className="relative h-44 overflow-hidden rounded-t-xl bg-[var(--bg-light)]">
           <OptimizedImage
             src={image}

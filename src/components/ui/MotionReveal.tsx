@@ -25,7 +25,7 @@ export function MotionReveal({
     <motion.div
       initial={reduceMotion ? false : { opacity: REVEAL.opacity, y }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10% 0px" }}
+      viewport={{ once: false, margin: "-10% 0px -10% 0px" }}
       transition={{ duration: DURATION.reveal, delay, ease: EASE_OUT }}
       className={className}
       {...props}
@@ -50,7 +50,7 @@ export function MotionStagger({
     <motion.div
       initial={reduceMotion ? false : "hidden"}
       whileInView={reduceMotion ? undefined : "visible"}
-      viewport={{ once: true, margin: "-8% 0px" }}
+      viewport={{ once: false, margin: "-8% 0px -8% 0px" }}
       variants={{
         hidden: {},
         visible: {

@@ -4,6 +4,7 @@ import { SiteExploreLinks } from "@/components/layout/SiteExploreLinks";
 import { FaqJsonLd } from "@/components/seo/FaqJsonLd";
 import { staticPageMetadata } from "@/lib/page-metadata";
 import { getSiteFaqCategories, getTotalFaqCount } from "@/lib/cms/faq-content-data";
+import { BRAND_MEDIA } from "@/lib/brand-media";
 import { FaqClient } from "./FaqClient";
 
 export const metadata = staticPageMetadata("faq", "/faq");
@@ -25,9 +26,8 @@ export default function FaqPage() {
         eyebrow="Help center"
         title="Frequently Asked Questions"
         subtitle="Everything you need to know about learning with Verlin Labs"
-        image="/images/brand-free-session.jpg"
-        imageAlt="Answers and guidance for Verlin Labs learners"
-        video="/videos/faq.mp4"
+        image={BRAND_MEDIA.faq.image}
+        imageAlt={BRAND_MEDIA.faq.alt}
         compact
       />
 

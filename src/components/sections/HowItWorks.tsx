@@ -49,7 +49,7 @@ export function HowItWorks({
           className="relative mb-[var(--stack-gap)] overflow-hidden rounded-2xl border border-border shadow-[var(--shadow-md)]"
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
+          viewport={{ once: false, margin: "-40px 0px -40px 0px" }}
           transition={{ duration: DURATION.reveal, ease: EASE_OUT }}
         >
           <div className="relative aspect-[16/9] w-full md:aspect-[21/9]">
@@ -74,7 +74,7 @@ export function HowItWorks({
             const Icon = icons[item.icon as keyof typeof icons];
             return (
               <MotionStaggerItem key={item.step}>
-                <motion.div className="card-verlin h-full p-5 text-left md:p-6">
+                <motion.div className="surface-glass h-full rounded-xl border border-border/60 p-5 text-left shadow-glow-teal md:p-6">
                   <motion.div
                     whileHover={
                       reduceMotion

@@ -44,7 +44,7 @@ export function LearningSplit({
       )}
       initial={reduceMotion ? false : { opacity: 0, y: 20 }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
+      viewport={{ once: false, margin: "-80px 0px -80px 0px" }}
       transition={{ duration: DURATION.reveal + 0.06, ease: EASE_OUT }}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/80 shadow-[var(--shadow-md)]">

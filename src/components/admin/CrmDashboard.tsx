@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
+import { CountUp } from "@/components/ui/CountUp";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import type { CrmDashboardData } from "@/lib/crm/service";
@@ -297,9 +298,11 @@ export function CrmDashboard() {
           { label: "Session booked", value: data.stats.byStage.session_booked },
           { label: "Enrolled", value: data.stats.byStage.enrolled },
         ].map((stat) => (
-          <Card key={stat.label} className="p-4">
+          <Card key={stat.label} variant="glass" className="p-4">
             <p className="text-xs uppercase tracking-wide text-text-secondary">{stat.label}</p>
-            <p className="mt-2 text-3xl font-semibold text-foreground">{stat.value}</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">
+              <CountUp value={String(stat.value)} />
+            </p>
           </Card>
         ))}
       </div>

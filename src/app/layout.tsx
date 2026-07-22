@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { AdminSiteChrome } from "@/components/admin/AdminSiteChrome";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
 import { RolePendingNotice } from "@/components/auth/RolePendingNotice";
@@ -176,7 +177,9 @@ export default async function RootLayout({
               <Navbar nav={getHeaderNavLinks()} />
               <RolePendingNotice />
               <AdminSiteChrome>
-                <main id="main" className="flex-1">{children}</main>
+                <main id="main" className="flex-1">
+                  <PageTransition>{children}</PageTransition>
+                </main>
               </AdminSiteChrome>
               <Footer
                 tagline={site.footer.tagline}

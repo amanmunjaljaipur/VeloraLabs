@@ -62,7 +62,7 @@ export function Newsletter({
           className="mx-auto max-w-2xl text-center"
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: false, margin: "-10% 0px -10% 0px" }}
           transition={{ duration: 0.4 }}
         >
           <h2 className="section-title">{title}</h2>

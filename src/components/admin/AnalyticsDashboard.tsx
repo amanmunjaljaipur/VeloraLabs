@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
+import { CountUp } from "@/components/ui/CountUp";
 import { cn } from "@/lib/utils";
 import type { AnalyticsDashboardData, CountBucket } from "@/lib/analytics/service";
 import {
@@ -56,11 +57,13 @@ function TrendCard({
   icon: typeof Users;
 }) {
   return (
-    <Card className="p-4">
+    <Card variant="glass" className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-text-secondary">{label}</p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{last30}</p>
+          <p className="mt-2 text-2xl font-semibold text-foreground">
+            <CountUp value={String(last30)} />
+          </p>
           <p className="mt-1 text-xs text-text-secondary">Last 30 days</p>
         </div>
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-teal/10 text-accent-teal">
@@ -119,11 +122,13 @@ export function AnalyticsDashboard() {
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="p-4">
+            <Card key={stat.label} variant="glass" className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-text-secondary">{stat.label}</p>
-                  <p className="mt-2 text-3xl font-semibold text-foreground">{stat.value}</p>
+                  <p className="mt-2 text-3xl font-semibold text-foreground">
+                    <CountUp value={String(stat.value)} />
+                  </p>
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-teal/10 text-accent-teal">
                   <Icon className="h-4 w-4" aria-hidden />
