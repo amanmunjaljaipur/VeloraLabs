@@ -5,27 +5,35 @@ import { ArrowRight, BookOpen, Wrench } from "lucide-react";
 
 const AUDIENCE_PATHS: Record<
   Exclude<AudienceSlug, never> | "all",
-  { landing: string; course: string; label: string }
+  { landing: string; course: string; label: string; product: string; productLabel: string }
 > = {
   all: {
     landing: "/programs",
     course: "/courses",
     label: "Explore Verlin Labs programs",
+    product: "/products",
+    productLabel: "Browse packaged offerings",
   },
   students: {
     landing: "/ai-for-students",
     course: "/courses/students",
     label: "AI training for school students",
+    product: "/products#student-bundle",
+    productLabel: "AI Explorers Starter Pack",
   },
   engineers: {
     landing: "/ai-for-engineers",
     course: "/courses/engineers",
     label: "AI training for college engineers",
+    product: "/products#engineer-toolkit",
+    productLabel: "AI Engineering Toolkit",
   },
   professionals: {
     landing: "/ai-for-pms",
     course: "/courses/professionals",
     label: "AI training for product managers",
+    product: "/products#pm-toolkit",
+    productLabel: "AI Product Manager Toolkit",
   },
 };
 
@@ -63,6 +71,10 @@ export function ArticleLearningPath({ item }: ArticleLearningPathProps) {
           {" · "}
           <Link href={path.course} className="font-medium text-teal hover:underline">
             Full course syllabus
+          </Link>
+          {" · "}
+          <Link href={path.product} className="font-medium text-teal hover:underline">
+            {path.productLabel}
           </Link>
         </li>
         {item.tags.some((t) => /product|pm|discovery/i.test(t)) && (

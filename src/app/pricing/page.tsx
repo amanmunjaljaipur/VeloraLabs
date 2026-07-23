@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SiteExploreLinks } from "@/components/layout/SiteExploreLinks";
+import { ConversionJourney } from "@/components/sections/ConversionJourney";
 import { staticPageMetadata } from "@/lib/page-metadata";
 import { getIntroPricing } from "@/lib/pricing";
 import { getAllCourseTracks } from "@/lib/content";
@@ -170,6 +171,8 @@ export default function PricingPage() {
           </p>
         </div>
       </section>
+
+      <ConversionJourney />
 
       <section className="section-y bg-muted/30">
         <div className="container-verlin">

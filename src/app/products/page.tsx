@@ -141,7 +141,13 @@ export default function ProductsPage() {
             {bundles.map((bundle) => {
               const Icon = bundle.icon;
               return (
-                <Card key={bundle.slug} hover variant="glass" className="flex h-full flex-col overflow-hidden p-0">
+                <Card
+                  key={bundle.slug}
+                  id={bundle.slug}
+                  hover
+                  variant="glass"
+                  className="flex h-full flex-col overflow-hidden p-0 scroll-mt-24"
+                >
                   <div className="relative h-48 overflow-hidden bg-gradient-to-br from-accent-teal/5 via-background to-bg-light/40">
                     <OptimizedImage
                       src={bundle.image}

@@ -103,6 +103,40 @@ export const PAGE_SEO = {
       "AI MVP for PMs",
     ],
   },
+  demo: {
+    title: "Try It - Interactive Mental Model Demo",
+    description:
+      "Try Verlin Labs' mental-model approach live - pick a topic and see the clarity-first breakdown we teach in every course, powered by our public API.",
+    keywords: [
+      "AI mental model demo",
+      "try Verlin Labs",
+      "interactive AI learning demo",
+      "mental model example",
+    ],
+  },
+  docs: {
+    title: "Developer Docs - Public API & Integration Guide",
+    description:
+      "Verlin Labs developer documentation - public read-only API for mental-model content, sample dataset, and integration guide for partners and enterprises.",
+    keywords: [
+      "Verlin Labs API",
+      "AI education API",
+      "mental models API",
+      "developer documentation",
+      "integration guide",
+    ],
+  },
+  caseStudies: {
+    title: "Case Studies - Learner Stories",
+    description:
+      "Real Verlin Labs learner stories - how mental-model training changed the way students, engineers, and product managers think about AI.",
+    keywords: [
+      "Verlin Labs case studies",
+      "AI training success stories",
+      "learner outcomes",
+      "AI education results",
+    ],
+  },
   pricing: {
     title: "Pricing - Plans for Students, Professionals & Enterprises",
     description:
