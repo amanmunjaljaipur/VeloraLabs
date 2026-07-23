@@ -53,9 +53,14 @@ const audienceLabels = {
 
 interface LibraryArticleProps {
   item: LibraryItem;
+  /** Canonical route this article is actually served from - `/library` or `/blog`.
+   * Must match the live page URL exactly, or share links (LinkedIn, X, etc.)
+   * will point to a 404 and break link previews. */
+  basePath?: "/library" | "/blog";
 }
 
-export function LibraryArticle({ item }: LibraryArticleProps) {
+export function LibraryArticle({ item, basePath = "/library" }: LibraryArticleProps) {
+  const shareUrl = `${basePath}/${item.slug}`;
   return (
     <article>
       <div className="relative h-56 overflow-hidden border-b border-border sm:h-72 md:h-96">
@@ -96,7 +101,7 @@ export function LibraryArticle({ item }: LibraryArticleProps) {
 
         <p className="mt-6 text-lg leading-relaxed text-text-secondary">{item.summary}</p>
 
-        <ShareButtons url={`/library/${item.slug}`} title={item.title} className="mt-6" />
+        <ShareButtons url={shareUrl} title={item.title} className="mt-6" />
 
         <AuthorByline />
         <ArticleLearningPath item={item} />
@@ -190,7 +195,7 @@ export function LibraryArticle({ item }: LibraryArticleProps) {
 
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-sm text-text-secondary">Found this useful? Pass it along.</p>
-          <ShareButtons url={`/library/${item.slug}`} title={item.title} className="mt-3" />
+          <ShareButtons url={shareUrl} title={item.title} className="mt-3" />
         </div>
       </div>
     </article>

@@ -83,7 +83,7 @@ export default async function BlogArticlePage({
           </div>
         </div>
       ) : null}
-      <LibraryArticle item={item} />
+      <LibraryArticle item={item} basePath="/blog" />
       <CourseTrackLinks className="section-y border-t border-border bg-muted/15" />
       <section className="py-12 text-center">
         <Link href="/blog">

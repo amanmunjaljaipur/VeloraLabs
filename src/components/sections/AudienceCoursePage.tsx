@@ -12,9 +12,9 @@ import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import Link from "next/link";
 
 const audienceImages: Record<AudienceSlug, string> = {
-  students: "/images/audience-students-illustration.jpg",
-  engineers: "/images/audience-engineers-illustration.jpg",
-  professionals: "/images/audience-professionals-illustration.jpg",
+  students: "/images/audience-students-illustration-v2.jpg",
+  engineers: "/images/audience-engineers-illustration-v2.jpg",
+  professionals: "/images/audience-professionals-illustration-v2.jpg",
 };
 
 const audienceLabels: Record<AudienceSlug, string> = {

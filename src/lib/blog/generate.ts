@@ -2,6 +2,7 @@ import { createChatCompletion, isLlmConfigured } from "@/lib/chat/llm-client";
 import { getBlogSequence } from "@/lib/blog/sequences";
 import type { BlogPost, BlogSection } from "@/lib/blog/types";
 import { listBlogPosts, uniqueBlogSlug } from "@/lib/blog/store";
+import { buildImageSearchQuery, fetchBlogCoverImage } from "@/lib/blog/image-search";
 
 function estimateDuration(sections: BlogSection[]): string {
   const words = sections.reduce((sum, s) => {
@@ -33,6 +34,15 @@ async function templatePost(input: {
   const slug = uniqueBlogSlug(title, existing);
   const now = new Date().toISOString();
   const publishAt = input.scheduledAt ?? now;
+
+  const coverImage = await fetchBlogCoverImage({
+    query: buildImageSearchQuery({
+      title,
+      tags: sequence.defaultTags,
+      sequenceLabel: sequence.label,
+    }),
+    slug,
+  });
 
   const sections: BlogSection[] = [
     {
@@ -79,7 +89,7 @@ async function templatePost(input: {
     audience: sequence.audience,
     type: "Article",
     featured: false,
-    image: sequence.image,
+    image: coverImage ?? sequence.image,
     author: "Verlin Labs",
     publishedAt: publishAt,
     tags: sequence.defaultTags,
@@ -197,6 +207,16 @@ Write a fresh article for the Verlin Labs blog.`,
     const slug = uniqueBlogSlug(parsed.title, existing);
     const now = new Date().toISOString();
     const publishAt = scheduledAt ?? now;
+    const tags = parsed.tags?.length ? parsed.tags.slice(0, 6) : sequence.defaultTags;
+
+    const coverImage = await fetchBlogCoverImage({
+      query: buildImageSearchQuery({
+        title: parsed.title,
+        tags,
+        sequenceLabel: sequence.label,
+      }),
+      slug,
+    });
 
     return {
       id: `blog-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
@@ -209,10 +229,10 @@ Write a fresh article for the Verlin Labs blog.`,
       audience: sequence.audience,
       type: "Article",
       featured: false,
-      image: sequence.image,
+      image: coverImage ?? sequence.image,
       author: "Verlin Labs",
       publishedAt: publishAt,
-      tags: parsed.tags?.length ? parsed.tags.slice(0, 6) : sequence.defaultTags,
+      tags,
       sections: parsed.sections.map((s) => ({
         title: s.title,
         paragraphs: s.paragraphs ?? [],

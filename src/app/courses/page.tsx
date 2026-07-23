@@ -31,9 +31,9 @@ const labels = {
 };
 
 const trackImages = {
-  students: "/images/audience-students-illustration.jpg",
-  engineers: "/images/audience-engineers-illustration.jpg",
-  professionals: "/images/audience-professionals-illustration.jpg",
+  students: "/images/audience-students-illustration-v2.jpg",
+  engineers: "/images/audience-engineers-illustration-v2.jpg",
+  professionals: "/images/audience-professionals-illustration-v2.jpg",
 };
 
 export default function CoursesPage() {

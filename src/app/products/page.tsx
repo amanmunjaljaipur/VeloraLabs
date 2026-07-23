@@ -50,7 +50,7 @@ export default function ProductsPage() {
       title: "AI Explorers Starter Pack",
       description:
         "Everything a school student (Classes 6-12) needs to start using AI safely and confidently - the free session plus the full 8-day program.",
-      image: "/images/audience-students-illustration.jpg",
+      image: "/images/audience-students-illustration-v2.jpg",
       imageAlt: "School student AI bundle illustration",
       includes: [
         "Free 2-hour intro session",
@@ -70,7 +70,7 @@ export default function ProductsPage() {
       title: "AI Engineering Toolkit",
       description:
         "Practical AI-engineering literacy for college engineers - RAG, embeddings, evals, and tool use, built around real portfolio projects.",
-      image: "/images/audience-engineers-illustration.jpg",
+      image: "/images/audience-engineers-illustration-v2.jpg",
       imageAlt: "College engineer AI toolkit illustration",
       includes: [
         `${engineerTrack.course.duration} live program`,
@@ -90,7 +90,7 @@ export default function ProductsPage() {
       title: "AI Product Manager Toolkit",
       description:
         "From AI literacy to shipping your own MVP - discovery, PRDs, vendor evaluation, and a demo-day capstone for product managers.",
-      image: "/images/audience-professionals-illustration.jpg",
+      image: "/images/audience-professionals-illustration-v2.jpg",
       imageAlt: "Product manager AI toolkit illustration",
       includes: [
         `${professionalTrack.course.duration} live program`,

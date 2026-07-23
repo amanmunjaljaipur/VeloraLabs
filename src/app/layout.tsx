@@ -9,6 +9,7 @@ import { AdminSiteChrome } from "@/components/admin/AdminSiteChrome";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { ChatWidgetLoader } from "@/components/chat/ChatWidgetLoader";
 import { RolePendingNotice } from "@/components/auth/RolePendingNotice";
@@ -168,6 +169,7 @@ export default async function RootLayout({
         <SessionProvider>
           <ThemeProvider>
             <ToastProvider>
+              <NavigationProgress />
               <a
                 href="#main"
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-teal focus:ring-offset-2"
