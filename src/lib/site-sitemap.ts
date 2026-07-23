@@ -25,6 +25,12 @@ export interface SitemapPage {
   inFooter?: boolean;
   priority?: number;
   changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"];
+  /**
+   * Groups an inHeader page under a header dropdown ("Products" or "Learn")
+   * instead of rendering it as a flat top-level link - keeps Product
+   * Offerings visually separated from Learning Content in the nav.
+   */
+  navGroup?: "products" | "learn";
 }
 
 export interface SitemapSection {
@@ -63,7 +69,34 @@ const STATIC_PAGES: SitemapPage[] = [
     section: "programs",
     inHeader: true,
     inFooter: true,
+    navGroup: "products",
     priority: 0.9,
+    changeFrequency: "weekly",
+  },
+  {
+    href: "/pricing",
+    label: "Pricing",
+    title: "Pricing",
+    description:
+      "Transparent pricing - a free trial session, per-track pricing for students, engineers, and PMs, and custom enterprise plans.",
+    section: "programs",
+    inHeader: true,
+    inFooter: true,
+    navGroup: "products",
+    priority: 0.85,
+    changeFrequency: "weekly",
+  },
+  {
+    href: "/products",
+    label: "Products",
+    title: "Product Catalog",
+    description:
+      "Packaged offerings - AI literacy courses, PM and engineer toolkits, student bundles, and corporate workshops.",
+    section: "programs",
+    inHeader: true,
+    inFooter: true,
+    navGroup: "products",
+    priority: 0.85,
     changeFrequency: "weekly",
   },
   {
@@ -86,6 +119,7 @@ const STATIC_PAGES: SitemapPage[] = [
     section: "programs",
     inHeader: true,
     inFooter: true,
+    navGroup: "products",
     priority: 0.85,
     changeFrequency: "weekly",
   },
@@ -156,7 +190,9 @@ const STATIC_PAGES: SitemapPage[] = [
     title: "Corporate & Team Workshops",
     description: "Clarity-first AI literacy workshops tailored for teams and organizations.",
     section: "programs",
+    inHeader: true,
     inFooter: true,
+    navGroup: "products",
     priority: 0.75,
     changeFrequency: "monthly",
   },
@@ -166,7 +202,9 @@ const STATIC_PAGES: SitemapPage[] = [
     title: "Library",
     description: "Articles, guides, and workshops on AI and technology - organized for clarity.",
     section: "learn",
+    inHeader: true,
     inFooter: true,
+    navGroup: "learn",
     priority: 0.7,
     changeFrequency: "weekly",
   },
@@ -176,7 +214,9 @@ const STATIC_PAGES: SitemapPage[] = [
     title: "Blog",
     description: "Practical notes and updates from the Verlin Labs team.",
     section: "learn",
+    inHeader: true,
     inFooter: true,
+    navGroup: "learn",
     priority: 0.65,
     changeFrequency: "weekly",
   },
@@ -218,6 +258,7 @@ const STATIC_PAGES: SitemapPage[] = [
     section: "learn",
     inHeader: true,
     inFooter: true,
+    navGroup: "learn",
     priority: 0.75,
     changeFrequency: "monthly",
   },
@@ -227,7 +268,9 @@ const STATIC_PAGES: SitemapPage[] = [
     title: "Resources Hub",
     description: "Library, blog, mental models, downloads, and curated tools for clarity-first learners.",
     section: "learn",
+    inHeader: true,
     inFooter: true,
+    navGroup: "learn",
     priority: 0.65,
     changeFrequency: "monthly",
   },
@@ -521,10 +564,16 @@ export function getSitemapPage(href: string): SitemapPage | undefined {
   return getAllSitemapPages().find((page) => page.href === href);
 }
 
-export function getHeaderNavLinks(): { label: string; href: string }[] {
+export interface HeaderNavLink {
+  label: string;
+  href: string;
+  navGroup?: "products" | "learn";
+}
+
+export function getHeaderNavLinks(): HeaderNavLink[] {
   return getAllSitemapPages()
     .filter((page) => page.inHeader)
-    .map(({ label, href }) => ({ label, href }));
+    .map(({ label, href, navGroup }) => ({ label, href, navGroup }));
 }
 
 export function buildFooterLinkGroups(): FooterLinkGroup[] {

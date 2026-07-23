@@ -52,7 +52,8 @@ export function BlogClient({ posts }: { posts: LibraryItem[] }) {
     });
   }, [sorted, search, category]);
 
-  const [featured, ...rest] = filtered;
+  const featured = filtered[0];
+  const rest = useMemo(() => filtered.slice(1), [filtered]);
   const { shown, hasMore, loadMore, remaining, total } = useLoadMore(rest, BLOG_PAGE_SIZE);
   const isIllustration = featured?.image.includes("thumb-") || featured?.image.includes("-illustration");
 

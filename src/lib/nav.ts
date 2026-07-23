@@ -2,6 +2,9 @@
 const NAV_ACTIVE_PREFIXES: Record<string, string[]> = {
   "/free-session": ["/free-session"],
   "/courses": ["/courses"],
+  "/pricing": ["/pricing"],
+  "/products": ["/products"],
+  "/corporate": ["/corporate"],
   "/library": ["/library"],
   "/mental-models": ["/mental-models"],
   "/about": ["/about"],

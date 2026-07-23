@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
 import {
   compileNewsletterEdition,
   type CompiledNewsletter,
@@ -32,44 +32,44 @@ interface NewsletterEditionsStore {
   editions: CompiledNewsletter[];
 }
 
-function readLocalUpdates(): NewsUpdatesStore {
-  return readJsonFile<NewsUpdatesStore>(NEWS_UPDATES_FILE, '{"items":[]}');
-}
-
-function writeLocalUpdates(store: NewsUpdatesStore): void {
-  writeJsonFile(NEWS_UPDATES_FILE, store, '{"items":[]}');
-}
-
-function readLocalEditions(): NewsletterEditionsStore {
+function readLocalEditionsCached(): NewsletterEditionsStore {
   return readJsonFile<NewsletterEditionsStore>(NEWSLETTER_EDITIONS_FILE, '{"editions":[]}');
 }
 
-function writeLocalEditions(store: NewsletterEditionsStore): void {
-  writeJsonFile(NEWSLETTER_EDITIONS_FILE, store, '{"editions":[]}');
+/**
+ * Force a fresh Blob pull before reading. Required for the weekly-edition
+ * dedupe check and the cron pipeline - a cold serverless instance must not
+ * see an empty local cache and re-publish/re-email a week that's already
+ * gone out from a different instance.
+ */
+async function readLocalEditionsHydrated(): Promise<NewsletterEditionsStore> {
+  await ensureDataFileHydrated(NEWSLETTER_EDITIONS_FILE, '{"editions":[]}', { force: true });
+  return readJsonFile<NewsletterEditionsStore>(NEWSLETTER_EDITIONS_FILE, '{"editions":[]}');
 }
 
-function loadAllUpdates(): StoredNewsUpdate[] {
-  return readLocalUpdates().items;
+async function readLocalUpdatesHydrated(): Promise<NewsUpdatesStore> {
+  await ensureDataFileHydrated(NEWS_UPDATES_FILE, '{"items":[]}', { force: true });
+  return readJsonFile<NewsUpdatesStore>(NEWS_UPDATES_FILE, '{"items":[]}');
 }
 
-function saveAllUpdates(items: StoredNewsUpdate[]): void {
-  writeLocalUpdates({ items });
+async function saveAllUpdates(items: StoredNewsUpdate[]): Promise<void> {
+  await writeJsonFileAsync(NEWS_UPDATES_FILE, { items }, '{"items":[]}');
 }
 
-function loadAllEditions(): CompiledNewsletter[] {
-  return readLocalEditions().editions;
-}
-
-function saveEdition(edition: CompiledNewsletter): void {
-  const local = readLocalEditions();
+async function saveEdition(edition: CompiledNewsletter): Promise<void> {
+  const local = await readLocalEditionsHydrated();
   const withoutDuplicate = local.editions.filter((e) => e.weekOf !== edition.weekOf);
-  writeLocalEditions({ editions: [edition, ...withoutDuplicate] });
+  await writeJsonFileAsync(
+    NEWSLETTER_EDITIONS_FILE,
+    { editions: [edition, ...withoutDuplicate] },
+    '{"editions":[]}'
+  );
 }
 
 export async function ingestNewsUpdates(
   inputs: NewsUpdateInput[]
 ): Promise<StoredNewsUpdate[]> {
-  const existing = loadAllUpdates();
+  const existing = (await readLocalUpdatesHydrated()).items;
   const created: StoredNewsUpdate[] = [];
 
   for (const input of inputs) {
@@ -88,7 +88,7 @@ export async function ingestNewsUpdates(
     existing.push(item);
   }
 
-  saveAllUpdates(existing);
+  await saveAllUpdates(existing);
   return created;
 }
 
@@ -96,7 +96,7 @@ export async function listNewsUpdates(filters?: {
   weekOf?: string;
   status?: "pending" | "published";
 }): Promise<StoredNewsUpdate[]> {
-  let items = loadAllUpdates();
+  let items = (await readLocalUpdatesHydrated()).items;
   if (filters?.weekOf) {
     items = items.filter((item) => item.weekOf === filters.weekOf);
   }
@@ -111,12 +111,12 @@ export async function publishWeeklyNewsletter(options?: {
   intro?: string;
 }): Promise<CompiledNewsletter> {
   const weekOf = options?.weekOf ?? getWeekOfSunday();
-  const existingEditions = loadAllEditions();
+  const existingEditions = (await readLocalEditionsHydrated()).editions;
   if (existingEditions.some((edition) => edition.weekOf === weekOf)) {
     throw new Error(`Newsletter already published for week of ${weekOf}`);
   }
 
-  const all = loadAllUpdates();
+  const all = (await readLocalUpdatesHydrated()).items;
   const pending = all.filter((item) => item.weekOf === weekOf && item.status === "pending");
 
   if (pending.length === 0) {
@@ -132,8 +132,8 @@ export async function publishWeeklyNewsletter(options?: {
       ? { ...item, status: "published" as const }
       : item
   );
-  saveAllUpdates(updated);
-  saveEdition(edition);
+  await saveAllUpdates(updated);
+  await saveEdition(edition);
 
   return edition;
 }
@@ -146,9 +146,9 @@ function sortEditionsNewestFirst(editions: CompiledNewsletter[]): CompiledNewsle
   });
 }
 
-/** Fast path for public pages - reads local cache only. */
+/** Fast path for public pages - reads local cache only, may be briefly stale. */
 export function listPublishedNewsletterEditionsCached(): CompiledNewsletter[] {
-  return sortEditionsNewestFirst(readLocalEditions().editions);
+  return sortEditionsNewestFirst(readLocalEditionsCached().editions);
 }
 
 export function getLatestNewsletterEditionCached(): CompiledNewsletter | null {
@@ -157,12 +157,13 @@ export function getLatestNewsletterEditionCached(): CompiledNewsletter | null {
 }
 
 export function getNewsletterEditionBySlugCached(slug: string): CompiledNewsletter | null {
-  const editions = readLocalEditions().editions;
+  const editions = readLocalEditionsCached().editions;
   return editions.find((edition) => edition.slug === slug) ?? null;
 }
 
+/** Strongly-consistent (force-hydrated) - use for correctness checks like weekly dedupe. */
 export async function listPublishedNewsletterEditions(): Promise<CompiledNewsletter[]> {
-  return sortEditionsNewestFirst(loadAllEditions());
+  return sortEditionsNewestFirst((await readLocalEditionsHydrated()).editions);
 }
 
 export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter | null> {
@@ -173,6 +174,6 @@ export async function getLatestNewsletterEdition(): Promise<CompiledNewsletter |
 export async function getNewsletterEditionBySlug(
   slug: string
 ): Promise<CompiledNewsletter | null> {
-  const editions = loadAllEditions();
+  const editions = (await readLocalEditionsHydrated()).editions;
   return editions.find((edition) => edition.slug === slug) ?? null;
 }

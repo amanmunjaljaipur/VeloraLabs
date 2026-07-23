@@ -103,6 +103,32 @@ export const PAGE_SEO = {
       "AI MVP for PMs",
     ],
   },
+  pricing: {
+    title: "Pricing - Plans for Students, Professionals & Enterprises",
+    description:
+      "Verlin Labs pricing - a free 2-hour trial session, transparent INR pricing for student, engineer, and product manager tracks, and custom enterprise plans for teams.",
+    keywords: [
+      "Verlin Labs pricing",
+      "AI course pricing India",
+      "AI training cost",
+      "student AI course price",
+      "enterprise AI training pricing",
+      "free AI trial session",
+    ],
+  },
+  products: {
+    title: "Product Catalog - Courses, Toolkits & Bundles",
+    description:
+      "Explore Verlin Labs packaged offerings - AI literacy courses, PM and engineer toolkits, and student bundles, each built on our clarity-first mental-model framework.",
+    keywords: [
+      "AI literacy course",
+      "PM AI toolkit",
+      "engineer AI toolkit",
+      "student AI bundle",
+      "Verlin Labs products",
+      "AI training packages India",
+    ],
+  },
   corporate: {
     title: "Corporate AI Literacy Workshops for Teams",
     description:

@@ -1,6 +1,6 @@
 import {
   getLatestNewsletterEditionCached,
-  listPublishedNewsletterEditionsCached,
+  listPublishedNewsletterEditions,
 } from "@/lib/news-updates";
 import { getWeekOfSunday } from "@/lib/news-week";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
@@ -72,7 +72,9 @@ function editionResult(
  */
 export async function publishWeeklyNewsletterViaMcp(): Promise<PublishWeeklyResult> {
   const weekOf = getWeekOfSunday();
-  const existing = listPublishedNewsletterEditionsCached().find((e) => e.weekOf === weekOf);
+  // Strongly-consistent read - a cold cron instance must see editions
+  // published by other instances, not an empty local cache.
+  const existing = (await listPublishedNewsletterEditions()).find((e) => e.weekOf === weekOf);
   if (existing) {
     return editionResult(existing, { generated: false, alreadyPublished: true });
   }

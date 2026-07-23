@@ -1,4 +1,4 @@
-import { readJsonFile, writeJsonFile } from "@/lib/data-store";
+import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
 import type { CompiledNewsletter } from "@/lib/newsletter-compile";
 import type { NewsletterDraftContent } from "@/lib/newsletter-rich-compile";
 import { deliverNewsletterByEmail, type NewsletterEmailDeliveryResult } from "@/lib/newsletter-email";
@@ -18,12 +18,16 @@ interface EditionsStore {
   editions: CompiledNewsletter[];
 }
 
-function readLocalDraft(): NewsletterDraftContent | null {
+// Force a fresh Blob pull before every read/write on this file - a cold
+// serverless instance (e.g. the weekly cron) must not see a stale/empty
+// local draft or duplicate an edition another instance already sent.
+async function readLocalDraft(): Promise<NewsletterDraftContent | null> {
+  await ensureDataFileHydrated(DRAFT_FILE, '{"draft":null}', { force: true });
   return readJsonFile<DraftStore>(DRAFT_FILE, '{"draft":null}').draft;
 }
 
-function writeLocalDraft(draft: NewsletterDraftContent | null): void {
-  writeJsonFile(DRAFT_FILE, { draft }, '{"draft":null}');
+async function writeLocalDraft(draft: NewsletterDraftContent | null): Promise<void> {
+  await writeJsonFileAsync(DRAFT_FILE, { draft }, '{"draft":null}');
 }
 
 export async function loadNewsletterDraft(): Promise<NewsletterDraftContent | null> {
@@ -31,11 +35,11 @@ export async function loadNewsletterDraft(): Promise<NewsletterDraftContent | nu
 }
 
 export async function saveNewsletterDraft(draft: NewsletterDraftContent): Promise<void> {
-  writeLocalDraft(draft);
+  await writeLocalDraft(draft);
 }
 
 export async function clearNewsletterDraft(): Promise<void> {
-  writeLocalDraft(null);
+  await writeLocalDraft(null);
 }
 
 export interface SendNewsletterResult {
@@ -47,6 +51,7 @@ export async function sendNewsletterDraft(
   draft: NewsletterDraftContent
 ): Promise<SendNewsletterResult> {
   const weekOf = getWeekOfSunday();
+  await ensureDataFileHydrated(EDITIONS_FILE, '{"editions":[]}', { force: true });
   const local = readJsonFile<EditionsStore>(EDITIONS_FILE, '{"editions":[]}');
 
   // One edition per IST week - prevents double-posts from cron retries
@@ -77,7 +82,11 @@ export async function sendNewsletterDraft(
     publishedAt,
   };
 
-  writeJsonFile(EDITIONS_FILE, { editions: [edition, ...local.editions] }, '{"editions":[]}');
+  await writeJsonFileAsync(
+    EDITIONS_FILE,
+    { editions: [edition, ...local.editions] },
+    '{"editions":[]}'
+  );
 
   const email = await deliverNewsletterByEmail(draft, edition);
 

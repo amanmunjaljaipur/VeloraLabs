@@ -6,18 +6,19 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { DURATION, EASE_OUT } from "@/lib/motion";
 import { isNavLinkActive } from "@/lib/nav";
+import type { HeaderNavLink } from "@/lib/site-sitemap";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ExternalLink, Menu, X } from "lucide-react";
+import { ChevronDown, ExternalLink, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const MY_COURSE_NAV = { label: "My Course", href: "/my-course" };
 
 interface NavbarProps {
-  nav: { label: string; href: string }[];
+  nav: HeaderNavLink[];
 }
 
 function isExternal(href: string) {
@@ -58,6 +59,86 @@ function NavLink({
   );
 }
 
+/** Desktop dropdown - groups Product Offerings and Learning Content separately. */
+function NavDropdown({
+  label,
+  items,
+  isActive,
+}: {
+  label: string;
+  items: HeaderNavLink[];
+  isActive: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="true"
+        className={cn(
+          "group inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-sm font-medium tracking-tight",
+          "transition-colors duration-200 ease-out",
+          isActive ? "text-teal" : "text-foreground/70 hover:text-foreground"
+        )}
+      >
+        {label}
+        <ChevronDown
+          className={cn("h-3.5 w-3.5 transition-transform duration-200", open && "rotate-180")}
+          aria-hidden="true"
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+            transition={{ duration: DURATION.menu, ease: EASE_OUT }}
+            className="absolute left-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-[var(--canvas)] shadow-lg"
+          >
+            <ul className="py-1.5">
+              {items.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function Navbar({ nav }: NavbarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -67,7 +148,11 @@ export function Navbar({ nav }: NavbarProps) {
   const isEnrolled = session?.user?.enrolledLearner ?? false;
   const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
   const learnerNav = isEnrolled ? [MY_COURSE_NAV] : [];
-  const navItems = [...learnerNav, ...baseNav];
+
+  // Group into Products / Learn dropdowns; everything else stays flat.
+  const productItems = baseNav.filter((item) => item.navGroup === "products");
+  const learnItems = baseNav.filter((item) => item.navGroup === "learn");
+  const flatItems = [...learnerNav, ...baseNav.filter((item) => !item.navGroup)];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -87,6 +172,7 @@ export function Navbar({ nav }: NavbarProps) {
   }, [mobileOpen]);
 
   const isActive = (href: string) => isNavLinkActive(pathname, href);
+  const isGroupActive = (items: HeaderNavLink[]) => items.some((item) => isActive(item.href));
   const closeMobile = () => setMobileOpen(false);
 
   return (
@@ -106,7 +192,13 @@ export function Navbar({ nav }: NavbarProps) {
           <VerlinLogo className="mr-1 shrink-0 sm:mr-2" />
 
           <div className="hidden min-w-0 flex-1 items-center justify-start gap-x-3 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-5 2xl:gap-x-6">
-            {navItems.map((item) =>
+            {productItems.length > 0 && (
+              <NavDropdown label="Products" items={productItems} isActive={isGroupActive(productItems)} />
+            )}
+            {learnItems.length > 0 && (
+              <NavDropdown label="Learning" items={learnItems} isActive={isGroupActive(learnItems)} />
+            )}
+            {flatItems.map((item) =>
               isExternal(item.href) ? (
                 <a
                   key={item.href}
@@ -187,7 +279,7 @@ export function Navbar({ nav }: NavbarProps) {
               className="fixed inset-x-0 top-14 z-[70] max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-border bg-background shadow-xl lg:hidden md:top-16 md:max-h-[calc(100dvh-4rem)]"
             >
               <div className="container-verlin-nav flex flex-col gap-1 py-4">
-                {navItems.map((item) =>
+                {flatItems.map((item) =>
                   isExternal(item.href) ? (
                     <a
                       key={item.href}
@@ -216,6 +308,53 @@ export function Navbar({ nav }: NavbarProps) {
                     </Link>
                   )
                 )}
+
+                {productItems.length > 0 && (
+                  <div className="mt-2 border-t border-border pt-3">
+                    <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                      Products
+                    </p>
+                    {productItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-xl px-3 py-3.5 text-sm font-medium transition-colors hover:bg-muted",
+                          isActive(item.href)
+                            ? "bg-accent-teal/10 text-accent-teal"
+                            : "text-foreground/80 hover:text-foreground"
+                        )}
+                        onClick={closeMobile}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
+                {learnItems.length > 0 && (
+                  <div className="mt-2 border-t border-border pt-3">
+                    <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                      Learning
+                    </p>
+                    {learnItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-xl px-3 py-3.5 text-sm font-medium transition-colors hover:bg-muted",
+                          isActive(item.href)
+                            ? "bg-accent-teal/10 text-accent-teal"
+                            : "text-foreground/80 hover:text-foreground"
+                        )}
+                        onClick={closeMobile}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
                 <div className="mt-3 flex flex-col gap-3 border-t border-border pt-4">
                   <AuthButton className="w-full justify-center" />
                   {!isEnrolled && (
