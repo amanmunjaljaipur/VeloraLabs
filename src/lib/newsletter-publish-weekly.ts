@@ -1,6 +1,7 @@
 import {
   getLatestNewsletterEditionCached,
   listPublishedNewsletterEditions,
+  listPublishedNewsletterEditionsCached,
 } from "@/lib/news-updates";
 import { getWeekOfSunday } from "@/lib/news-week";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
