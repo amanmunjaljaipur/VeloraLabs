@@ -149,7 +149,9 @@ export async function postToFacebookPage(
   imageUrl?: string
 ): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
   const path = imageUrl ? `/${pageId}/photos` : `/${pageId}/feed`;
-  const params = imageUrl ? { url: imageUrl, caption: message } : { message };
+  const params: Record<string, string> = imageUrl
+    ? { url: imageUrl, caption: message }
+    : { message };
 
   const data = await graphFetch<{ id?: string; post_id?: string }>(path, {
     ...params,
