@@ -13,6 +13,7 @@ import {
   Landmark,
   LayoutDashboard,
   MessageSquareQuote,
+  Megaphone,
   Rocket,
   LayoutGrid,
   Newspaper,
@@ -45,6 +46,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/demo-apps": Rocket,
   "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
+  "/admin/marketing": Megaphone,
   "/newsletter/weekly": ScrollText,
   "/admin/bookings": ScrollText,
 };

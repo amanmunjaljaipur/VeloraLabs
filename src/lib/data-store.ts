@@ -49,6 +49,10 @@ export const RUNTIME_DATA_FILES = new Set([
   "booking-slot-templates.json",
   /** User-submitted testimonials awaiting/after admin review */
   "testimonial-submissions.json",
+  /** Connected marketing account OAuth tokens (Facebook/Instagram/LinkedIn) - sensitive, admin-only */
+  "marketing-accounts.json",
+  /** Ledger of posts published through the Marketing Board, with platform post IDs for analytics lookups */
+  "marketing-posts.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -76,6 +80,8 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "booking-otp-challenges.json",
   "booking-slot-templates.json",
   "testimonial-submissions.json",
+  "marketing-accounts.json",
+  "marketing-posts.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

@@ -122,6 +122,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     group: "Growth",
   },
   {
+    label: "Marketing Board",
+    href: "/admin/marketing",
+    description: "Post to Instagram, Facebook, and LinkedIn from one screen and see performance",
+    group: "Growth",
+  },
+  {
     label: "Agents",
     href: "/admin/agents",
     description: "Table of all AI/product agents - pause or resume anytime",
