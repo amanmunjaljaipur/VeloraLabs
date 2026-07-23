@@ -299,7 +299,7 @@ export const authOptions: NextAuthConfig = {
           session.user.id = token.sub;
         }
         if (session.user && token.authProvider) {
-          session.user.authProvider = token.authProvider;
+          session.user.authProvider = token.authProvider as AuthProvider | undefined;
         }
         if (session.user?.email) {
           try {
