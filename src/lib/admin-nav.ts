@@ -27,6 +27,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     description: "Live slot occupancy and booking list for the 5 daily slots",
   },
   {
+    label: "Session Slots",
+    href: "/admin/bookings/slots",
+    description: "Manage bookable time slots by category - Free, Students, Engineers, Professionals",
+    superAdminOnly: true,
+  },
+  {
     label: "Site CMS",
     href: "/admin/site-cms",
     description: "Edit pages, copy, images, and content",

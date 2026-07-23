@@ -45,16 +45,20 @@ export function PageHeader({
   imageAlt = "",
   video,
   imageFit = "cover",
-  align = "left",
+  align,
   compact,
   breadcrumbs,
   children,
   cta,
 }: PageHeaderProps) {
   const reduceMotion = useReducedMotion();
-  const textCenter = align === "center";
   const { hasBrand, rest: titleRest } = splitVerlinBrandTitle(title);
   const hasMedia = Boolean(image);
+  // Simple, single-column title blocks (no side image) read as centered by
+  // default - this is what makes pages like /blog look right. Pages with a
+  // side image keep their copy left-aligned next to it unless a caller
+  // explicitly overrides align. An explicit align prop always wins.
+  const textCenter = align ? align === "center" : !hasMedia;
 
   return (
     <section

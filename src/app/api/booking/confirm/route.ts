@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
     email,
     audience: audience as BookingAudience,
     confirmedVia: "logged_in",
+    // Booking audience doubles as the slot category (students/engineers/
+    // professionals each have their own pool, falling back to "free").
+    category: audience as BookingAudience,
   });
 
   if (!outcome.ok) {

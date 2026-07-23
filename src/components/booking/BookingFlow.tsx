@@ -37,8 +37,10 @@ function dateKey(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
-async function fetchSlots(date: Date): Promise<ApiSlot[]> {
-  const res = await fetch(`/api/booking/slots?date=${dateKey(date)}`);
+async function fetchSlots(date: Date, audience?: string): Promise<ApiSlot[]> {
+  const params = new URLSearchParams({ date: dateKey(date) });
+  if (audience) params.set("audience", audience);
+  const res = await fetch(`/api/booking/slots?${params.toString()}`);
   if (!res.ok) return [];
   const data = await res.json();
   return Array.isArray(data.slots) ? data.slots : [];
@@ -84,24 +86,30 @@ export function BookingFlow({ defaultAudience }: BookingFlowProps) {
     formState: { errors },
     getValues,
     setValue,
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { audience: defaultAudience || "" },
   });
+
+  const selectedAudience = watch("audience");
 
   useEffect(() => {
     if (session?.user?.name) setValue("name", session.user.name);
     if (session?.user?.email) setValue("email", session.user.email);
   }, [session, setValue]);
 
+  // Slots are scoped per track (Free Session / Students / Engineers /
+  // Professionals - see /admin/bookings/slots), so re-fetch whenever the
+  // chosen date OR audience changes, not just the date.
   useEffect(() => {
     if (!selectedDate) return;
     setLoadingSlots(true);
     setSelectedSlot(null);
-    fetchSlots(selectedDate)
+    fetchSlots(selectedDate, selectedAudience)
       .then(setSlots)
       .finally(() => setLoadingSlots(false));
-  }, [selectedDate]);
+  }, [selectedDate, selectedAudience]);
 
   const onRequestConfirm = handleSubmit(() => {
     if (!selectedDate || !selectedSlot) {

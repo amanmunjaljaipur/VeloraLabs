@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     email,
     audience,
     confirmedVia: "otp",
+    category: audience,
   });
 
   if (!outcome.ok) {

@@ -4,6 +4,14 @@ import {
   readJsonFile,
   writeJsonFileAsync,
 } from "@/lib/data-store";
+import {
+  getSlotPoolForAudience,
+  SLOT_CATEGORIES,
+  type SlotCategory,
+} from "@/lib/booking/slots-store";
+
+export { SLOT_CATEGORIES };
+export type { SlotCategory };
 
 const BOOKINGS_FILE = "free-session-bookings.json";
 const DEFAULT_STORE = '{"version":1,"bookings":[]}';
@@ -18,9 +26,11 @@ export interface SlotDefinition {
 }
 
 /**
- * Five daily slots, one shared pool across students/engineers/professionals -
- * no per-track slots. This is intentional: the free session is a single
- * cohort experience, not three separate calendars.
+ * Five daily slots - the original shared pool, kept as the "free" category's
+ * default/fallback so nothing that depended on the old behavior breaks. A
+ * super admin can now also define separate per-track slot pools (Free,
+ * Students, Engineers, Professionals) via /admin/bookings/slots - see
+ * src/lib/booking/slots-store.ts.
  */
 export const DAILY_SLOTS: SlotDefinition[] = [
   { id: "s1", time: "10:00", capacity: 5 },
@@ -105,12 +115,22 @@ export interface SlotAvailability {
   available: number;
 }
 
-export async function getSlotsForDate(dateKey: string): Promise<SlotAvailability[]> {
+/**
+ * Slot availability for a date, scoped to an audience category (Free
+ * Session, Students, Engineers, Professionals - see slots-store.ts). Falls
+ * back to the "free" pool if the category has no admin-defined slots yet,
+ * so this stays backward compatible for existing callers that don't pass a
+ * category.
+ */
+export async function getSlotsForDate(
+  dateKey: string,
+  category: SlotCategory = "free"
+): Promise<SlotAvailability[]> {
   if (!isValidDateKey(dateKey) || isWeekend(dateKey)) return [];
 
-  const store = await readStore();
+  const [store, pool] = await Promise.all([readStore(), getSlotPoolForAudience(category)]);
   const bookings = store.bookings.filter((b) => b.date === dateKey);
-  return DAILY_SLOTS.map((slot) => {
+  return pool.map((slot) => {
     const booked = bookings.filter((b) => b.slotId === slot.id).length;
     return {
       id: slot.id,
@@ -128,6 +148,8 @@ export type BookingAttempt = {
   email: string;
   audience: BookingAudience;
   confirmedVia: "logged_in" | "otp";
+  /** Which slot pool this booking is drawn from - defaults to "free". */
+  category?: SlotCategory;
 };
 
 export type BookingOutcome =
@@ -145,7 +167,8 @@ export async function createConfirmedBooking(attempt: BookingAttempt): Promise<B
     if (!isValidDateKey(attempt.date) || isWeekend(attempt.date)) {
       return { ok: false, error: "invalid_date" };
     }
-    const slotDef = DAILY_SLOTS.find((s) => s.id === attempt.slotId);
+    const pool = await getSlotPoolForAudience(attempt.category ?? "free");
+    const slotDef = pool.find((s) => s.id === attempt.slotId);
     if (!slotDef) return { ok: false, error: "invalid_slot" };
 
     const store = await readStore();

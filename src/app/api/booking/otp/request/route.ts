@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_date" }, { status: 400 });
   }
 
-  const slots = await getSlotsForDate(date);
+  const slots = await getSlotsForDate(date, audience);
   const slot = slots.find((s) => s.id === slotId);
   if (!slot) {
     return NextResponse.json({ error: "invalid_slot" }, { status: 400 });
