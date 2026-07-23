@@ -149,7 +149,7 @@ export function HomeFreeSessionForm() {
                     className="w-full"
                     loading={submitting}
                   >
-                    Start free 2-hour session
+                    Book Free Session
                   </Button>
                   <p className="text-center text-xs text-text-muted">
                     Prefer to pick a date now?{" "}

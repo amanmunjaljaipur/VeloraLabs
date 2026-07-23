@@ -2,9 +2,9 @@ import type { AccordionItem } from "@/components/ui/Accordion";
 import { BRAND_MEDIA } from "@/lib/brand-media";
 
 export const HOME_HERO = {
-  headline: "Verlin Labs - clarity-first learning for the AI age",
+  headline: "Verlin Labs - understand AI, then build with it",
   subheadline:
-    "Master the frameworks that matter. Free 2-hour live session and hands-on programs for students, engineers, and product managers.",
+    "Start with a free 2-hour live session, then a hands-on program built for your stage - school, college, or work. Mental models first, hype never.",
   illustration: BRAND_MEDIA.homeHero.image,
   illustrationAlt: BRAND_MEDIA.homeHero.alt,
   video: BRAND_MEDIA.homeHero.video,
@@ -79,12 +79,12 @@ export const HOME_FAQS: AccordionItem[] = [
   {
     question: "Do I need any prior AI knowledge?",
     answer:
-      "No. We start from clarity-first foundations and adapt depth to your track - students, engineers, or product managers. Bring curiosity; we handle the structure.",
+      "No. We start from zero and adapt the depth to your track - student, engineer, or product manager. Bring curiosity; we handle the structure.",
   },
   {
     question: "How is this different from YouTube or courses?",
     answer:
-      "Most content dumps information. Verlin Labs teaches through live mental models, audience-tailored pacing, hands-on exercises, and mentor Q&A - so understanding sticks and you know what to do next.",
+      "Videos hand you information. We teach live, with mental models, hands-on exercises, and mentor Q&A - so it actually sticks and you know what to do next.",
   },
   {
     question: "Can I join if I'm a complete beginner?",

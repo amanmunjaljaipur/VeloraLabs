@@ -160,10 +160,10 @@ export function AudienceCoursePage({
               <p className="mt-2 text-text-secondary">{course.duration}</p>
               <div className="mt-8 flex flex-col gap-3">
                 <Link href={`/free-session?audience=${slug}`}>
-                  <Button size="lg" className="w-full">Book Free Session First</Button>
+                  <Button size="lg" className="w-full">Book Free Session</Button>
                 </Link>
                 <Link href="/contact">
-                  <Button size="lg" variant="secondary" className="w-full">Enroll Now - Contact Us</Button>
+                  <Button size="lg" variant="secondary" className="w-full">Talk to Us About Enrolling</Button>
                 </Link>
               </div>
             </Card>

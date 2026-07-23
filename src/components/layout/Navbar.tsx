@@ -191,7 +191,13 @@ export function Navbar({ nav }: NavbarProps) {
         >
           <VerlinLogo className="mr-1 shrink-0 sm:mr-2" />
 
-          <div className="hidden min-w-0 flex-1 items-center justify-start gap-x-3 overflow-x-auto scrollbar-hide lg:flex xl:gap-x-5 2xl:gap-x-6">
+          {/* No overflow-x-auto here: per CSS spec, setting overflow-x on an
+              axis forces the other axis to compute as "auto" too, which
+              clips the absolutely-positioned dropdown panels below this row
+              (they'd render, just invisibly clipped). Nav is compact enough
+              now (2 dropdowns + a few flat links) that horizontal scroll
+              isn't needed at the lg+ breakpoint this row appears at. */}
+          <div className="hidden min-w-0 flex-1 items-center justify-start gap-x-3 lg:flex xl:gap-x-5 2xl:gap-x-6">
             {productItems.length > 0 && (
               <NavDropdown label="Products" items={productItems} isActive={isGroupActive(productItems)} />
             )}

@@ -89,7 +89,7 @@ export function HeroSection({ hero = HOME_HERO }: HeroSectionProps) {
                     size="lg"
                     className="justify-center sm:min-w-[15rem]"
                   >
-                    Start free 2-hour session
+                    Book Free Session
                   </ButtonLink>
                   <ButtonLink
                     href="/courses"
