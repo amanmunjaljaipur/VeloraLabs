@@ -47,10 +47,13 @@ export async function fetchRecentAiHeadlines(limit = 5): Promise<string[]> {
     if (!res.ok) return [];
 
     const data = (await res.json()) as { hits?: HnHit[] };
-    const titles = (data.hits ?? [])
-      .map((h) => h.title?.trim())
-      .filter((t): t is string => Boolean(t) && t.length < 140)
-      .filter((t) => ALLOW_KEYWORDS.test(t) && !BLOCK_KEYWORDS.test(t));
+    const titles: string[] = [];
+    for (const hit of data.hits ?? []) {
+      const title = hit.title?.trim();
+      if (!title || title.length >= 140) continue;
+      if (!ALLOW_KEYWORDS.test(title) || BLOCK_KEYWORDS.test(title)) continue;
+      titles.push(title);
+    }
 
     return Array.from(new Set(titles)).slice(0, limit);
   } catch (error) {
