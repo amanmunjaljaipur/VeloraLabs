@@ -6,7 +6,7 @@ import {
 import { getAllManualUsers, getManualUserByEmail } from "@/lib/manual-users";
 import { ensureRolesLoaded, hasCustomRoleAssignment } from "@/lib/roles";
 
-export type AuthProvider = "google" | "credentials";
+export type AuthProvider = "google" | "linkedin" | "credentials";
 
 export interface KnownUserRecord {
   email: string;

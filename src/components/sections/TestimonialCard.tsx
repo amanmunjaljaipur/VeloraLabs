@@ -9,6 +9,7 @@ interface TestimonialCardProps {
   name: string;
   role: string;
   audience: string;
+  image?: string | null;
 }
 
 const audienceLabels: Record<string, string> = {
@@ -17,8 +18,8 @@ const audienceLabels: Record<string, string> = {
   professionals: "Professional",
 };
 
-export function TestimonialCard({ quote, name, role, audience }: TestimonialCardProps) {
-  const avatarSrc = TESTIMONIAL_AVATARS[name];
+export function TestimonialCard({ quote, name, role, audience, image }: TestimonialCardProps) {
+  const avatarSrc = image || TESTIMONIAL_AVATARS[name];
 
   return (
     <Card hover variant="glass" className="relative flex h-full flex-col overflow-hidden">

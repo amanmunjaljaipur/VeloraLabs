@@ -78,6 +78,7 @@ export interface Testimonial {
   name: string;
   role: string;
   audience: AudienceSlug;
+  image?: string | null;
 }
 
 export interface TrainerProfile {

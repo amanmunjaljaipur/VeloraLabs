@@ -1,7 +1,7 @@
 {
   "hero": {
-    "headline": "Verlin Labs - clarity-first learning for the AI age",
-    "subheadline": "Most AI content teaches you which buttons to click. We teach the mental models underneath, so the next tool does not feel like starting over. Start with a free 2-hour live session - no pitch, no credit card, for school students, engineers, and PMs.",
+    "headline": "Verlin Labs - AI knowledge that does not expire",
+    "subheadline": "A new AI tool shows up almost every month, and suddenly you are back to square one. We fix that by teaching the thinking behind the tools, not just which buttons to press - so the next one feels familiar in minutes, not weeks. Free 2-hour live session, no pitch, no card. Built for school students, engineers, and product managers.",
     "illustration": "/images/hero-home-visual.jpg",
     "illustrationAlt": "Neural pathways visualization",
     "video": "/videos/hero-neural.mp4"

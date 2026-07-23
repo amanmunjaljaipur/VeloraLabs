@@ -47,6 +47,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "demo-apps-customizations.json",
   /** Super-admin-managed session slots, categorized by audience track */
   "booking-slot-templates.json",
+  /** User-submitted testimonials awaiting/after admin review */
+  "testimonial-submissions.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -73,6 +75,7 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "free-session-bookings.json",
   "booking-otp-challenges.json",
   "booking-slot-templates.json",
+  "testimonial-submissions.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

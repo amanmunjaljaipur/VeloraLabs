@@ -2,12 +2,16 @@ import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SiteExploreLinks } from "@/components/layout/SiteExploreLinks";
 import { TestimonialCard } from "@/components/sections/TestimonialCard";
+import { TestimonialSubmitForm } from "@/components/testimonials/TestimonialSubmitForm";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getTestimonials } from "@/lib/content";
+import { getApprovedSubmissionsAsTestimonials } from "@/lib/testimonial-submissions";
 import { staticPageMetadata } from "@/lib/page-metadata";
 import { TestimonialsJsonLd } from "@/components/seo/TestimonialsJsonLd";
 import { TrustSignals } from "@/components/sections/TrustSignals";
 import type { AudienceSlug } from "@/lib/content";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = staticPageMetadata("testimonials", "/testimonials");
 
@@ -33,8 +37,9 @@ const audienceSections: {
   },
 ];
 
-export default function TestimonialsPage() {
-  const testimonials = getTestimonials();
+export default async function TestimonialsPage() {
+  const approvedSubmissions = await getApprovedSubmissionsAsTestimonials();
+  const testimonials = [...approvedSubmissions, ...getTestimonials()];
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -79,6 +84,19 @@ export default function TestimonialsPage() {
       </section>
 
       <TrustSignals compact />
+
+      <section className="section-y border-t border-border">
+        <div className="container-verlin !max-w-2xl text-center">
+          <h2 className="text-xl font-semibold text-foreground">Share your experience</h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-text-secondary">
+            Sign in with LinkedIn to bring your name and photo along automatically, add your own
+            words, and submit for review.
+          </p>
+        </div>
+        <div className="mt-8">
+          <TestimonialSubmitForm />
+        </div>
+      </section>
 
       <section className="border-t border-border bg-muted/20 py-12 md:py-16">
         <div className="container-verlin !max-w-2xl text-center">

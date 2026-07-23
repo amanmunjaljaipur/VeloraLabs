@@ -60,6 +60,12 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     group: "Content",
   },
   {
+    label: "Testimonials Review",
+    href: "/admin/testimonials",
+    description: "Approve or reject learner-submitted testimonials",
+    group: "Content",
+  },
+  {
     label: "Free Session Bookings",
     href: "/admin/bookings",
     description: "Slot occupancy, booking list, and session slot management",

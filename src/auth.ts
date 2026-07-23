@@ -1,6 +1,7 @@
 import NextAuth, { CredentialsSignin, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import LinkedInProvider from "next-auth/providers/linkedin";
 import { signInSchema } from "@/lib/auth-validation";
 import { isEnrolledLearner } from "@/lib/enrollment";
 import {
@@ -50,7 +51,9 @@ class EmailNotVerifiedSignIn extends CredentialsSignin {
 const authSecret = resolveAuthSecret();
 
 function resolveAuthProvider(accountProvider?: string | null): AuthProvider {
-  return accountProvider === "google" ? "google" : "credentials";
+  if (accountProvider === "google") return "google";
+  if (accountProvider === "linkedin") return "linkedin";
+  return "credentials";
 }
 
 function resolveSignInEmail(
@@ -89,6 +92,17 @@ export const authOptions: NextAuthConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
+    // Only registered when credentials are configured, so the login/testimonial
+    // pages can safely check for its presence without erroring in environments
+    // (e.g. local dev) where a LinkedIn app has not been set up yet.
+    ...(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+      ? [
+          LinkedInProvider({
+            clientId: process.env.LINKEDIN_CLIENT_ID,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Email and Password",
       credentials: {
@@ -283,6 +297,9 @@ export const authOptions: NextAuthConfig = {
 
         if (session.user && token.sub) {
           session.user.id = token.sub;
+        }
+        if (session.user && token.authProvider) {
+          session.user.authProvider = token.authProvider;
         }
         if (session.user?.email) {
           try {

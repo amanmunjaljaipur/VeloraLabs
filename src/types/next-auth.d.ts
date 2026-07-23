@@ -13,6 +13,7 @@ declare module "next-auth" {
       legalPrivacyVersion?: number;
       requiredLegalTermsVersion?: number;
       requiredLegalPrivacyVersion?: number;
+      authProvider?: AuthProvider;
     } & DefaultSession["user"];
   }
 }

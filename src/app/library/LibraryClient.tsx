@@ -1,7 +1,5 @@
 "use client";
 
-import { BreadcrumbJsonLd } from "@/components/layout/BreadcrumbJsonLd";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentCard } from "@/components/sections/ContentCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterTabs } from "@/components/ui/FilterTabs";
@@ -81,24 +79,8 @@ export function LibraryClient({
     setType("");
   };
 
-  const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "Library" },
-  ];
-
   return (
     <>
-      <BreadcrumbJsonLd items={breadcrumbs} currentPath="/library" />
-      <PageHeader
-        breadcrumbs={breadcrumbs}
-        eyebrow="Resources"
-        title="Content Library"
-        subtitle="Articles, guides, and workshops - organized for clarity."
-        image="/images/brand-mental-models.jpg"
-        imageAlt="Curated AI learning resources"
-        video="/videos/library.mp4"
-      />
-
       <section className="section-y">
         <div className="container-verlin">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
