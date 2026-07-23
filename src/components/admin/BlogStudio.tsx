@@ -7,6 +7,7 @@ import type { BlogPost, BlogSequence } from "@/lib/blog/types";
 import { formatContentDateTime } from "@/lib/utils";
 import {
   CalendarClock,
+  Eye,
   ExternalLink,
   Loader2,
   Pencil,
@@ -334,6 +335,12 @@ export function BlogStudio() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Link href={`/admin/blog/preview/${post.id}`} target="_blank">
+                      <Button variant="secondary" size="sm">
+                        <Eye className="mr-1 h-3.5 w-3.5" />
+                        Preview
+                      </Button>
+                    </Link>
                     {post.status === "published" ? (
                       <Link href={`/blog/${post.slug}`} target="_blank">
                         <Button variant="secondary" size="sm">

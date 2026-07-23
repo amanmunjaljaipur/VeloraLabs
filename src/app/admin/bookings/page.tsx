@@ -26,6 +26,7 @@ export default async function AdminBookingsPage() {
       <PageHeader
         title="Free Session Bookings"
         subtitle="See how many of the 5 daily slots are booked, shared across students, engineers, and professionals."
+        cta={{ label: "Manage session slots by category", href: "/admin/bookings/slots", variant: "secondary" }}
       />
       <BookingsPanel />
     </>

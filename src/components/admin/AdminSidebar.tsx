@@ -1,6 +1,6 @@
 "use client";
 
-import { getAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
+import { getGroupedAdminMenuLinks, isSuperAdminRole } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/roles";
 import {
@@ -44,6 +44,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/verlin-bank": Landmark,
   "/admin/newsletter": Newspaper,
   "/newsletter/weekly": ScrollText,
+  "/admin/bookings": ScrollText,
 };
 
 function isActivePath(pathname: string, href: string): boolean {
@@ -64,7 +65,8 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ role, collapsed = false, onToggle }: AdminSidebarProps) {
   const pathname = usePathname();
-  const links = getAdminMenuLinks(role);
+  const groups = getGroupedAdminMenuLinks(role);
+  const links = groups.flatMap((g) => g.links);
   const isSuperAdmin = isSuperAdminRole(role);
   const hidden = HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
@@ -127,50 +129,63 @@ export function AdminSidebar({ role, collapsed = false, onToggle }: AdminSidebar
             )}
           </div>
 
-          <ul className="mt-2 flex-1 space-y-1">
-            {links.map((link) => {
-              const Icon = ICONS[link.href] ?? Shield;
-              const active = isActivePath(pathname, link.href);
+          <div className="mt-2 flex-1 space-y-4">
+            {groups.map((section) => (
+              <div key={section.group}>
+                {!collapsed && (
+                  <p className="px-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                    {section.group}
+                  </p>
+                )}
+                <ul className="space-y-1">
+                  {section.links.map((link) => {
+                    const Icon = ICONS[link.href] ?? Shield;
+                    const active = isActivePath(pathname, link.href);
 
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    title={collapsed ? link.label : undefined}
-                    className={cn(
-                      "flex rounded-xl transition-colors",
-                      collapsed
-                        ? "items-center justify-center px-2 py-2.5"
-                        : "items-start gap-2.5 px-2 py-2.5",
-                      active
-                        ? "bg-accent-teal/10 text-accent-teal"
-                        : "text-foreground hover:bg-muted"
-                    )}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <Icon
-                      className={cn(
-                        "h-4 w-4 shrink-0",
-                        collapsed ? "" : "mt-0.5",
-                        active ? "text-accent-teal" : "text-text-secondary"
-                      )}
-                      aria-hidden="true"
-                    />
-                    {!collapsed && (
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium leading-snug">{link.label}</span>
-                        {link.description && (
-                          <span className="mt-0.5 block text-xs leading-snug text-text-secondary">
-                            {link.description}
-                          </span>
-                        )}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          title={collapsed ? link.label : undefined}
+                          className={cn(
+                            "flex rounded-xl transition-colors",
+                            collapsed
+                              ? "items-center justify-center px-2 py-2.5"
+                              : "items-start gap-2.5 px-2 py-2.5",
+                            active
+                              ? "bg-accent-teal/10 text-accent-teal"
+                              : "text-foreground hover:bg-muted"
+                          )}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <Icon
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              collapsed ? "" : "mt-0.5",
+                              active ? "text-accent-teal" : "text-text-secondary"
+                            )}
+                            aria-hidden="true"
+                          />
+                          {!collapsed && (
+                            <span className="min-w-0">
+                              <span className="block text-sm font-medium leading-snug">
+                                {link.label}
+                              </span>
+                              {link.description && (
+                                <span className="mt-0.5 block text-xs leading-snug text-text-secondary">
+                                  {link.description}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
 
           {onToggle && (
             <div className={cn("mt-auto border-t border-border pt-3", collapsed ? "px-1" : "px-2")}>

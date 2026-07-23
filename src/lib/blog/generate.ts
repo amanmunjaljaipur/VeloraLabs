@@ -3,6 +3,7 @@ import { getBlogSequence } from "@/lib/blog/sequences";
 import type { BlogPost, BlogSection } from "@/lib/blog/types";
 import { listBlogPosts, uniqueBlogSlug } from "@/lib/blog/store";
 import { buildImageSearchQuery, fetchBlogCoverImage } from "@/lib/blog/image-search";
+import { fetchRecentAiHeadlines } from "@/lib/blog/news-context";
 
 function estimateDuration(sections: BlogSection[]): string {
   const words = sections.reduce((sum, s) => {
@@ -74,6 +75,13 @@ async function templatePost(input: {
         "Start with a free session if you want guided practice.",
         "Use the library and mental models hub for deeper frameworks.",
         "Share what you learned with a peer - teaching locks the model in.",
+      ],
+    },
+    {
+      title: "How Verlin Labs helps you build on this",
+      paragraphs: [
+        `${topicBit} is a small example of a larger habit Verlin Labs teaches: understand the mental model before reaching for the tool. That order is what separates someone who can use AI from someone who can reason about it.`,
+        "The relevant Verlin Labs track turns this kind of idea into a guided project - a live session, a real build, and mentor feedback - so the concept survives past the first read.",
       ],
     },
   ];
@@ -163,13 +171,23 @@ export async function generateBlogPost(input: {
     .slice(0, 8)
     .map((p) => p.title)
     .join("; ");
+  const headlines = await fetchRecentAiHeadlines();
 
   try {
     const { content } = await createChatCompletion({
       messages: [
         {
           role: "system",
-          content: `You are the Verlin Labs editorial assistant. Write clarity-first educational blog articles for AI learners in India (students, engineers, PMs).
+          content: `You are the Verlin Labs editorial team, writing clarity-first educational articles for AI learners in India - students, engineers, and product managers.
+
+VOICE AND STYLE (strict):
+- Write in a professional, precise register - the tone of a thoughtful practitioner explaining something clearly, not a marketer or a chatbot.
+- Never use contractions (write "do not" not "don't", "it is" not "it's", "you will" not "you'll", "cannot" not "can't").
+- Never use first-person filler phrases that reveal AI authorship, such as "I'd", "I've", "let's dive in", "in today's fast-paced world", "unlock the power of", "game-changer", "in conclusion", or "as an AI". Do not editorialize about the writing process itself.
+- Avoid generic AI-content tells: excessive rhetorical questions, listicle throat-clearing, and empty superlatives ("revolutionary", "cutting-edge", "seamless").
+- Open with a concrete idea or observation, not a restatement of the title.
+- Every article must close with a short section explicitly tying the topic back to Verlin Labs' philosophy - mental models before tools, understanding before hype - and how a learner would build on that thinking inside a Verlin Labs track (student, engineer, or PM program). This must read as an earned conclusion, not an ad.
+
 Return ONLY valid JSON with this shape:
 {
   "title": string,
@@ -181,7 +199,7 @@ Return ONLY valid JSON with this shape:
     { "title": string, "paragraphs": string[], "bullets": string[] (optional) }
   ]
 }
-Rules: 3-5 sections, practical tone, no hype, no invented product claims, no markdown fences if possible.`,
+Rules: 4-6 sections including the closing "Verlin Labs" tie-in section, practical tone, no hype, no invented product claims or statistics, no markdown fences.`,
         },
         {
           role: "user",
@@ -190,11 +208,16 @@ Audience: ${sequence.audience}
 Level: ${sequence.level}
 Topic brief: ${topic}
 Avoid repeating these recent titles: ${recentTitles || "none"}
-Write a fresh article for the Verlin Labs blog.`,
+${
+  headlines.length
+    ? `Optional market context - recent, well-discussed AI/tech stories (use only if genuinely relevant to ground the angle; do not report these as breaking news, do not state specifics you are not certain of, and ignore entirely if none fit this topic): ${headlines.join("; ")}`
+    : ""
+}
+Write a fresh article for the Verlin Labs blog, ending with the required Verlin Labs tie-in section.`,
         },
       ],
-      temperature: 0.55,
-      maxTokens: 2500,
+      temperature: 0.5,
+      maxTokens: 2800,
       timeoutMs: 45000,
     });
 

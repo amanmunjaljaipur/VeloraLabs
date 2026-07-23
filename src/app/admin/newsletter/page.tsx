@@ -31,6 +31,7 @@ export default async function AdminNewsletterPage() {
       <PageHeader
         title="Newsletter Studio"
         subtitle="Create a clarity-first AI digest from the latest internet news, preview it, and send whenever you are ready."
+        cta={{ label: "View published editions", href: "/newsletter/weekly", variant: "secondary" }}
       />
       <NewsletterStudio mcpUrl={mcpUrl} />
     </>

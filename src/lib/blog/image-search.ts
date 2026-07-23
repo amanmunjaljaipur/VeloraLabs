@@ -41,37 +41,54 @@ export function buildImageSearchQuery(input: {
   sequenceLabel: string;
 }): string {
   const topicWords = input.tags.slice(0, 2).join(" ") || input.sequenceLabel;
-  // Keep it short - Openverse (like most stock search) works best with 2-4
-  // concrete nouns, not full sentences.
-  return `${topicWords} technology abstract professional`.trim();
+  // Keep it short - Openverse (like most stock search) works best with 2-3
+  // concrete nouns, not full sentences. Combining too many qualifier words
+  // with the license/size filters below was returning zero results, which
+  // silently fell back to the same static image every time.
+  return `${topicWords} technology`.trim();
 }
 
-async function searchOpenverse(query: string): Promise<OpenverseResult | null> {
+/**
+ * Single Openverse query attempt. Deliberately does NOT filter by
+ * orientation/aspect_ratio/size server-side - Openverse's combined filters
+ * are strict enough that a specific 2-3 word query plus those constraints
+ * regularly returns zero results. Width is filtered client-side instead,
+ * against a wider fetched batch.
+ */
+async function searchOpenverseOnce(query: string): Promise<OpenverseResult[]> {
   const params = new URLSearchParams({
     q: query,
     license_type: "commercial,modification",
-    orientation: "wide",
-    aspect_ratio: "wide",
-    size: "large",
     mature: "false",
-    page_size: "10",
+    page_size: "20",
   });
 
   const res = await fetch(`${OPENVERSE_SEARCH_URL}?${params.toString()}`, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     headers: { Accept: "application/json" },
   });
-  if (!res.ok) return null;
+  if (!res.ok) return [];
 
   const data = (await res.json()) as { results?: OpenverseResult[] };
-  const candidates = (data.results ?? []).filter(
-    (r) => r.url && (r.width ?? 0) >= 800
-  );
+  return (data.results ?? []).filter((r) => r.url && (r.width ?? 0) >= 640);
+}
+
+async function searchOpenverse(query: string): Promise<OpenverseResult | null> {
+  // Try the specific query first, then progressively broaden so a niche
+  // topic phrase never results in "no image found" - falls all the way
+  // back to a generic AI-education query as a last resort.
+  const attempts = [query, query.split(" ").slice(0, 2).join(" "), "artificial intelligence"];
+
+  let candidates: OpenverseResult[] = [];
+  for (const attempt of attempts) {
+    candidates = await searchOpenverseOnce(attempt);
+    if (candidates.length > 0) break;
+  }
   if (!candidates.length) return null;
 
   // Pick pseudo-randomly among the top candidates so repeated posts in the
   // same sequence don't all grab the #1 result.
-  const pick = candidates[Math.floor(Math.random() * Math.min(candidates.length, 6))];
+  const pick = candidates[Math.floor(Math.random() * Math.min(candidates.length, 8))];
   return pick ?? null;
 }
 
