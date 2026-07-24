@@ -69,6 +69,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-email-templates.json",
   /** AI-suggested cold-outreach prospects, pending human confirmation before becoming leads */
   "marketing-prospects.json",
+  /** Daily AI Growth Advisor memory - strategy history the LLM reads back for "learns daily" */
+  "marketing-growth-memory.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */

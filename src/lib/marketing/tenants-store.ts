@@ -32,12 +32,15 @@ export interface Tenant {
   /** Emails allowed to act as admin/super_admin within this tenant's Marketing Board */
   memberEmails: string[];
   plan: TenantPlan;
+  /** When true, the daily growth-advisor cron auto-executes its recommended actions instead of just logging them for review */
+  autoGrowthEnabled: boolean;
   createdAt: string;
 }
 
 async function readAll(): Promise<Tenant[]> {
   await ensureDataFileHydrated(TENANTS_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<Tenant[]>(TENANTS_FILE, DEFAULT_JSON);
+  const all = readJsonFile<Tenant[]>(TENANTS_FILE, DEFAULT_JSON);
+  return all.map((t) => (typeof t.autoGrowthEnabled === "boolean" ? t : { ...t, autoGrowthEnabled: false }));
 }
 
 async function writeAll(items: Tenant[]): Promise<void> {
@@ -85,6 +88,7 @@ export async function ensureDefaultTenant(ownerEmail: string): Promise<Tenant> {
     ownerEmail,
     memberEmails: [ownerEmail],
     plan: "internal",
+    autoGrowthEnabled: false,
     createdAt: new Date().toISOString(),
   };
   all.push(tenant);
@@ -110,6 +114,7 @@ export async function createTenant(input: { name: string; ownerEmail: string; pl
     ownerEmail: input.ownerEmail.trim().toLowerCase(),
     memberEmails: [input.ownerEmail.trim().toLowerCase()],
     plan: input.plan ?? "trial",
+    autoGrowthEnabled: false,
     createdAt: new Date().toISOString(),
   };
   all.push(tenant);
@@ -126,5 +131,15 @@ export async function addTenantMember(tenantId: string, email: string): Promise<
     tenant.memberEmails.push(normalized);
     await writeAll(all);
   }
+  return tenant;
+}
+
+/** Toggles whether the daily growth-advisor cron auto-executes for this workspace vs. just logging recommendations. */
+export async function setAutoGrowth(tenantId: string, enabled: boolean): Promise<Tenant | null> {
+  const all = await readAll();
+  const tenant = all.find((t) => t.id === tenantId);
+  if (!tenant) return null;
+  tenant.autoGrowthEnabled = enabled;
+  await writeAll(all);
   return tenant;
 }

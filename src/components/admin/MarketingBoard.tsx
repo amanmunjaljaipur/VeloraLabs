@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { GrowthAdvisor } from "@/components/admin/GrowthAdvisor";
 import {
   AlertTriangle,
   CalendarClock,
@@ -146,7 +147,7 @@ export function MarketingBoard() {
   const [xConfigured, setXConfigured] = useState(false);
   const [rows, setRows] = useState<PerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"create" | "scheduled" | "performance">("create");
+  const [activeTab, setActiveTab] = useState<"create" | "scheduled" | "performance" | "growth">("create");
 
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -624,6 +625,7 @@ export function MarketingBoard() {
             { key: "create", label: "Create" },
             { key: "scheduled", label: `Scheduled${scheduledPosts.length > 0 ? ` (${scheduledPosts.length})` : ""}` },
             { key: "performance", label: `Performance${rows.length > 0 ? ` (${rows.length})` : ""}` },
+            { key: "growth", label: "Growth" },
           ] as const
         ).map((tab) => (
           <button
@@ -1201,6 +1203,8 @@ export function MarketingBoard() {
         )}
       </Card>
       )}
+
+      {activeTab === "growth" && <GrowthAdvisor />}
     </div>
   );
 }
