@@ -6,15 +6,20 @@ import { useToast } from "@/components/ui/Toast";
 import { GrowthAdvisor } from "@/components/admin/GrowthAdvisor";
 import {
   AlertTriangle,
+  BarChart3,
   CalendarClock,
+  CheckCircle2,
   ChevronDown,
   Flame,
   ImagePlus,
+  Layers,
   Link2,
   Loader2,
+  Megaphone,
   Send,
   Sparkles,
   Trash2,
+  TrendingUp,
   Unlink,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -82,11 +87,16 @@ const FORMAT_LABELS: Record<ViralIdea["format"], string> = {
   "pdf-document": "PDF document",
 };
 
-const PLATFORM_META: Record<string, { label: string; letter: string; bg: string }> = {
-  instagram: { label: "Instagram", letter: "IG", bg: "bg-pink-600" },
-  facebook: { label: "Facebook", letter: "FB", bg: "bg-blue-600" },
-  linkedin: { label: "LinkedIn", letter: "IN", bg: "bg-sky-700" },
-  x: { label: "X", letter: "X", bg: "bg-neutral-900" },
+const PLATFORM_META: Record<string, { label: string; letter: string; bg: string; gradient: string }> = {
+  instagram: {
+    label: "Instagram",
+    letter: "IG",
+    bg: "bg-pink-600",
+    gradient: "bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600",
+  },
+  facebook: { label: "Facebook", letter: "FB", bg: "bg-blue-600", gradient: "bg-gradient-to-br from-blue-500 to-blue-700" },
+  linkedin: { label: "LinkedIn", letter: "IN", bg: "bg-sky-700", gradient: "bg-gradient-to-br from-sky-500 to-sky-800" },
+  x: { label: "X", letter: "X", bg: "bg-neutral-900", gradient: "bg-gradient-to-br from-neutral-700 to-neutral-950" },
 };
 
 const TARGET_PLATFORMS = ["instagram", "facebook", "linkedin", "x"] as const;
@@ -97,6 +107,7 @@ function platformMeta(platform: string) {
       label: platform,
       letter: platform.slice(0, 2).toUpperCase(),
       bg: "bg-muted-foreground",
+      gradient: "bg-muted-foreground",
     }
   );
 }
@@ -230,6 +241,16 @@ export function MarketingBoard() {
     }
     return map;
   }, [accounts]);
+
+  const totalReach = useMemo(
+    () =>
+      rows.reduce(
+        (sum, r) =>
+          sum + r.targets.reduce((s, t) => s + (t.analytics?.reach ?? t.analytics?.impressions ?? 0), 0),
+        0
+      ),
+    [rows]
+  );
 
   // Facebook and Instagram share one Meta OAuth flow; LinkedIn and X each have their own.
   const platformConnect = useMemo<Record<(typeof TARGET_PLATFORMS)[number], { configured: boolean; href: string }>>(
@@ -509,26 +530,76 @@ export function MarketingBoard() {
 
   return (
     <div className="space-y-8">
+      {/* Page header - identity + at-a-glance stats, like a standalone product dashboard */}
+      <div className="flex flex-col gap-5 border-b border-border/60 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal to-navy text-white shadow-sm"
+            aria-hidden="true"
+          >
+            <Megaphone className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Marketing Board</h1>
+            <p className="mt-0.5 text-sm text-text-secondary">
+              One place to plan, publish, and grow across every channel - no third-party vendor in between.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs">
+            <Link2 className="h-3.5 w-3.5 text-teal" aria-hidden="true" />
+            <span className="font-semibold text-foreground">{accounts.length}</span>
+            <span className="text-text-secondary">connected</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs">
+            <CalendarClock className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+            <span className="font-semibold text-foreground">{scheduledPosts.length}</span>
+            <span className="text-text-secondary">scheduled</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs">
+            <BarChart3 className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
+            <span className="font-semibold text-foreground">{rows.length}</span>
+            <span className="text-text-secondary">published</span>
+          </div>
+          {totalReach > 0 && (
+            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs">
+              <TrendingUp className="h-3.5 w-3.5 text-orange-500" aria-hidden="true" />
+              <span className="font-semibold text-foreground">{totalReach.toLocaleString()}</span>
+              <span className="text-text-secondary">reach</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Connection status */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {TARGET_PLATFORMS.map((platform) => {
           const meta = platformMeta(platform);
           const connectedAccounts = accountsByPlatform.get(platform) ?? [];
           const { configured, href: connectHref } = platformConnect[platform];
+          const isConnected = connectedAccounts.length > 0;
 
           return (
-            <Card key={platform} className="p-4">
+            <Card key={platform} hover className="p-4">
               <div className="flex items-center gap-3">
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${meta.bg}`}
+                  className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm ${meta.gradient}`}
                   aria-hidden="true"
                 >
                   {meta.letter}
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card ${
+                      isConnected ? "bg-emerald-500" : "bg-muted-foreground/50"
+                    }`}
+                    aria-hidden="true"
+                  />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-foreground">{meta.label}</p>
                   <p className="truncate text-xs text-text-secondary">
-                    {connectedAccounts.length > 0
+                    {isConnected
                       ? `${connectedAccounts.length} connected`
                       : configured
                         ? "Not connected"
@@ -575,10 +646,10 @@ export function MarketingBoard() {
       </div>
 
       {/* Email Suite - 5th channel, lives on its own page (inbox/leads/campaigns need more room) */}
-      <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card hover className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white shadow-sm"
             aria-hidden="true"
           >
             @
@@ -619,28 +690,42 @@ export function MarketingBoard() {
       )}
 
       {/* Section tabs - keeps the board from being one long scroll */}
-      <div className="flex gap-2 border-b border-border/60">
+      <div className="flex flex-wrap gap-1 rounded-xl border border-border bg-muted/40 p-1 sm:inline-flex">
         {(
           [
-            { key: "create", label: "Create" },
-            { key: "scheduled", label: `Scheduled${scheduledPosts.length > 0 ? ` (${scheduledPosts.length})` : ""}` },
-            { key: "performance", label: `Performance${rows.length > 0 ? ` (${rows.length})` : ""}` },
-            { key: "growth", label: "Growth" },
+            { key: "create", label: "Create", icon: Sparkles, count: 0 },
+            { key: "scheduled", label: "Scheduled", icon: CalendarClock, count: scheduledPosts.length },
+            { key: "performance", label: "Performance", icon: BarChart3, count: rows.length },
+            { key: "growth", label: "Growth", icon: TrendingUp, count: 0 },
           ] as const
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? "border-b-2 border-primary text-foreground"
-                : "text-text-secondary hover:text-foreground"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        ).map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
+                active
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-text-secondary hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              {tab.label}
+              {tab.count > 0 && (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                    active ? "bg-teal/15 text-teal" : "bg-muted text-text-secondary"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "create" && (
@@ -885,12 +970,13 @@ export function MarketingBoard() {
                   key={mode}
                   type="button"
                   onClick={() => setContentMode(mode)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     contentMode === mode
                       ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
                       : "border-border text-text-secondary hover:bg-muted"
                   }`}
                 >
+                  {mode === "carousel" && <Layers className="h-3 w-3" aria-hidden="true" />}
                   {label}
                 </button>
               ))}
@@ -950,6 +1036,7 @@ export function MarketingBoard() {
                   >
                     <PlatformBadge platform={account.platform} />
                     {account.name}
+                    {isSelected && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
                   </button>
                 );
               })}
@@ -1048,10 +1135,13 @@ export function MarketingBoard() {
         </p>
 
         {rows.length === 0 ? (
-          <p className="mt-6 text-sm text-text-secondary">
-            Nothing published yet. Once you publish a post above, it will show up here with its
-            performance.
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
+            <BarChart3 className="h-8 w-8 text-text-secondary/50" aria-hidden="true" />
+            <p className="text-sm text-text-secondary">
+              Nothing published yet. Once you publish a post above, it will show up here with its
+              performance.
+            </p>
+          </div>
         ) : (
           <>
             <div className="mt-4 flex flex-wrap gap-2">
