@@ -257,7 +257,7 @@ export function MarketingBoard() {
                   {meta.letter}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-foreground">{meta.label}</p>
+                  <p className="truncate font-semibold text-foreground">{meta.label}</p>
                   <p className="truncate text-xs text-text-secondary">
                     {connectedAccounts.length > 0
                       ? `${connectedAccounts.length} connected`
@@ -267,7 +267,7 @@ export function MarketingBoard() {
                   </p>
                 </div>
                 {isSuperAdmin && (
-                  <a href={configured ? connectHref : undefined}>
+                  <a href={configured ? connectHref : undefined} className="shrink-0">
                     <Button variant="secondary" size="sm" disabled={!configured}>
                       <Link2 className="h-3.5 w-3.5" /> Connect
                     </Button>
