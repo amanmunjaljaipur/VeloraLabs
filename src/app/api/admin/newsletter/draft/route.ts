@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const weekStatus = getWeeklyNewsletterStatus();
+  const weekStatus = await getWeeklyNewsletterStatus();
   const draft = await loadNewsletterDraft();
 
   if (!draft || draft.status === "sent") {

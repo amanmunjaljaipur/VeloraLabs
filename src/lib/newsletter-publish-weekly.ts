@@ -1,7 +1,6 @@
 import {
-  getLatestNewsletterEditionCached,
+  getLatestNewsletterEdition,
   listPublishedNewsletterEditions,
-  listPublishedNewsletterEditionsCached,
 } from "@/lib/news-updates";
 import { getWeekOfSunday } from "@/lib/news-week";
 import { loadNewsletterDraft, sendNewsletterDraft } from "@/lib/newsletter-draft";
@@ -113,11 +112,19 @@ export async function publishWeeklyNewsletterViaMcp(): Promise<PublishWeeklyResu
   );
 }
 
-/** Status helper for admin / health checks */
-export function getWeeklyNewsletterStatus() {
+/**
+ * Status helper for admin / health checks. Force-hydrates from Blob (same
+ * as the public pages) so a cold serverless instance - which is exactly
+ * what every fresh Vercel deploy spins up - reports the real published
+ * editions instead of an empty local /tmp cache. The old "Cached" reads
+ * skipped hydration entirely, so this looked like "newsletter data gets
+ * deleted on every deploy" until some other request happened to warm the
+ * instance first.
+ */
+export async function getWeeklyNewsletterStatus() {
   const weekOf = getWeekOfSunday();
-  const latest = getLatestNewsletterEditionCached();
-  const thisWeek = listPublishedNewsletterEditionsCached().find((e) => e.weekOf === weekOf);
+  const latest = await getLatestNewsletterEdition();
+  const thisWeek = (await listPublishedNewsletterEditions()).find((e) => e.weekOf === weekOf);
   return {
     weekOf,
     publishedThisWeek: Boolean(thisWeek),

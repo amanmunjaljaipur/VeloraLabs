@@ -52,8 +52,14 @@ async function writeAll(items: ConnectedAccount[]): Promise<void> {
 }
 
 export function toPublicAccount(account: ConnectedAccount): PublicAccount {
+  // Accounts with a refresh token (currently just X) renew themselves
+  // silently via getValidXAccessToken - surfacing "expiring soon" for those
+  // is a false alarm every admin would see immediately after connecting,
+  // not something that actually needs action.
   const expiringSoon = Boolean(
-    account.expiresAt && new Date(account.expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
+    !account.refreshToken &&
+      account.expiresAt &&
+      new Date(account.expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
   );
   return {
     id: account.id,

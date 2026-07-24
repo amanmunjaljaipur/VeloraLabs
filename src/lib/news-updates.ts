@@ -32,10 +32,6 @@ interface NewsletterEditionsStore {
   editions: CompiledNewsletter[];
 }
 
-function readLocalEditionsCached(): NewsletterEditionsStore {
-  return readJsonFile<NewsletterEditionsStore>(NEWSLETTER_EDITIONS_FILE, '{"editions":[]}');
-}
-
 /**
  * Force a fresh Blob pull before reading. Required for the weekly-edition
  * dedupe check and the cron pipeline - a cold serverless instance must not
@@ -144,21 +140,6 @@ function sortEditionsNewestFirst(editions: CompiledNewsletter[]): CompiledNewsle
     if (weekCompare !== 0) return weekCompare;
     return b.publishedAt.localeCompare(a.publishedAt);
   });
-}
-
-/** Fast path for public pages - reads local cache only, may be briefly stale. */
-export function listPublishedNewsletterEditionsCached(): CompiledNewsletter[] {
-  return sortEditionsNewestFirst(readLocalEditionsCached().editions);
-}
-
-export function getLatestNewsletterEditionCached(): CompiledNewsletter | null {
-  const editions = listPublishedNewsletterEditionsCached();
-  return editions[0] ?? null;
-}
-
-export function getNewsletterEditionBySlugCached(slug: string): CompiledNewsletter | null {
-  const editions = readLocalEditionsCached().editions;
-  return editions.find((edition) => edition.slug === slug) ?? null;
 }
 
 /** Strongly-consistent (force-hydrated) - use for correctness checks like weekly dedupe. */
