@@ -65,6 +65,10 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-email-suppression.json",
   /** Workspace/tenant records - the multi-tenant isolation boundary for the whole Marketing Board */
   "marketing-tenants.json",
+  /** Reusable/AI-generated email templates for the Email Suite composer */
+  "marketing-email-templates.json",
+  /** AI-suggested cold-outreach prospects, pending human confirmation before becoming leads */
+  "marketing-prospects.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
