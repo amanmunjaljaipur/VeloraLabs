@@ -15,6 +15,18 @@
       "category": "Professional network"
     },
     {
+      "name": "Instagram",
+      "href": "https://www.instagram.com/verlin.labs/",
+      "description": "Visual AI explainers, carousels, and session moments from @verlin.labs",
+      "category": "Visual community"
+    },
+    {
+      "name": "X",
+      "href": "https://x.com/Verlin_Labs",
+      "description": "Quick AI takes, threads, and live program updates from @Verlin_Labs",
+      "category": "Real-time updates"
+    },
+    {
       "name": "Newsletter",
       "href": "/newsletter",
       "description": "Weekly mental models and AI frameworks - curated for students, engineers, and PMs",
@@ -32,6 +44,21 @@
       "name": "LinkedIn",
       "href": "https://www.linkedin.com/company/verlin-labs/",
       "note": "Founder updates and program announcements"
+    },
+    {
+      "name": "Instagram",
+      "href": "https://www.instagram.com/verlin.labs/",
+      "note": "Visual explainers, session moments, and behind-the-scenes"
+    },
+    {
+      "name": "X",
+      "href": "https://x.com/Verlin_Labs",
+      "note": "Quick AI takes, threads, and program updates"
+    },
+    {
+      "name": "Facebook",
+      "href": "https://www.facebook.com/profile.php?id=61588756291259",
+      "note": "Community updates and free session announcements"
     },
     {
       "name": "Google Search",

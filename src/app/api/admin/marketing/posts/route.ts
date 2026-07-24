@@ -1,9 +1,7 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
-import { getConnectedAccount } from "@/lib/marketing/accounts-store";
-import { listMarketingPosts, recordMarketingPost, type PostTarget } from "@/lib/marketing/posts-store";
-import { postToFacebookPage, postToInstagram } from "@/lib/marketing/meta-client";
-import { postToLinkedInOrganization } from "@/lib/marketing/linkedin-client";
-import { getValidXAccessToken, postToX } from "@/lib/marketing/x-client";
+import { listMarketingPosts, recordMarketingPost } from "@/lib/marketing/posts-store";
+import { publishToAccounts } from "@/lib/marketing/publisher";
+import { createScheduledPost } from "@/lib/marketing/scheduled-posts-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -17,12 +15,12 @@ export async function GET() {
 }
 
 /**
- * Publish to one or more connected accounts in a single call. Each target
- * platform is attempted independently and a failure on one (expired
- * token, rate limit, missing image for Instagram) never blocks the
- * others - the response reports per-target success/failure so the admin
- * sees exactly what went out and what did not.
- * Body: { content, imageUrl?, accountIds: string[] }
+ * Publish to one or more connected accounts - immediately, or at a
+ * scheduled time. Immediate publishing goes through the shared publisher
+ * (per-target isolation: one platform failing never blocks the others).
+ * With a future scheduledAt, the post is queued instead and the marketing
+ * cron publishes it when due.
+ * Body: { content, imageUrl?, accountIds: string[], scheduledAt?: ISO string }
  */
 export async function POST(req: NextRequest) {
   const session = await requireCmsEditor();
@@ -34,6 +32,7 @@ export async function POST(req: NextRequest) {
   const accountIds = Array.isArray(body?.accountIds)
     ? body.accountIds.filter((id: unknown) => typeof id === "string")
     : [];
+  const scheduledAtRaw = typeof body?.scheduledAt === "string" ? body.scheduledAt : "";
 
   if (!content || content.length > 3000) {
     return NextResponse.json({ error: "Post content must be 1-3000 characters" }, { status: 400 });
@@ -42,74 +41,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Choose at least one connected account" }, { status: 400 });
   }
 
-  const targets: PostTarget[] = [];
-
-  for (const accountId of accountIds) {
-    const account = await getConnectedAccount(accountId);
-    if (!account) {
-      targets.push({ accountId, platform: "facebook", status: "failed", platformPostId: null, error: "Account not found" });
-      continue;
+  if (scheduledAtRaw) {
+    const scheduledAt = new Date(scheduledAtRaw);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      return NextResponse.json({ error: "Invalid schedule time" }, { status: 400 });
     }
-
-    if (account.platform === "facebook") {
-      const result = await postToFacebookPage(account.externalId, account.accessToken, content, imageUrl ?? undefined);
-      targets.push({
-        accountId,
-        platform: "facebook",
-        status: result.ok ? "published" : "failed",
-        platformPostId: result.ok ? result.postId : null,
-        error: result.ok ? undefined : result.error,
-      });
-    } else if (account.platform === "instagram") {
-      if (!imageUrl) {
-        targets.push({
-          accountId,
-          platform: "instagram",
-          status: "failed",
-          platformPostId: null,
-          error: "Instagram requires an image",
-        });
-        continue;
-      }
-      const result = await postToInstagram(account.externalId, account.accessToken, content, imageUrl);
-      targets.push({
-        accountId,
-        platform: "instagram",
-        status: result.ok ? "published" : "failed",
-        platformPostId: result.ok ? result.postId : null,
-        error: result.ok ? undefined : result.error,
-      });
-    } else if (account.platform === "linkedin") {
-      const result = await postToLinkedInOrganization(account.externalId, account.accessToken, content);
-      targets.push({
-        accountId,
-        platform: "linkedin",
-        status: result.ok ? "published" : "failed",
-        platformPostId: result.ok ? result.postId : null,
-        error: result.ok ? undefined : result.error,
-      });
-    } else if (account.platform === "x") {
-      const accessToken = await getValidXAccessToken(account);
-      if (!accessToken) {
-        targets.push({
-          accountId,
-          platform: "x",
-          status: "failed",
-          platformPostId: null,
-          error: "X token expired and could not be refreshed - reconnect X",
-        });
-        continue;
-      }
-      const result = await postToX(accessToken, content);
-      targets.push({
-        accountId,
-        platform: "x",
-        status: result.ok ? "published" : "failed",
-        platformPostId: result.ok ? result.postId : null,
-        error: result.ok ? undefined : result.error,
-      });
+    if (scheduledAt.getTime() <= Date.now() + 60_000) {
+      return NextResponse.json(
+        { error: "Schedule time must be at least a minute in the future" },
+        { status: 400 }
+      );
     }
+    const scheduled = await createScheduledPost({
+      content,
+      imageUrl,
+      accountIds,
+      scheduledAt: scheduledAt.toISOString(),
+      createdBy: session.user?.email ?? "unknown",
+    });
+    return NextResponse.json({ scheduled }, { status: 201 });
   }
+
+  const targets = await publishToAccounts(accountIds, content, imageUrl);
 
   const post = await recordMarketingPost({
     content,

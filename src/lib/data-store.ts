@@ -53,6 +53,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-accounts.json",
   /** Ledger of posts published through the Marketing Board, with platform post IDs for analytics lookups */
   "marketing-posts.json",
+  /** Queue of Marketing Board posts scheduled for later publishing (drained by /api/cron/marketing) */
+  "marketing-scheduled-posts.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -82,6 +84,9 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "testimonial-submissions.json",
   "marketing-accounts.json",
   "marketing-posts.json",
+  // Scheduler claims entries before publishing - a stale read across
+  // instances would double-post to real social accounts.
+  "marketing-scheduled-posts.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

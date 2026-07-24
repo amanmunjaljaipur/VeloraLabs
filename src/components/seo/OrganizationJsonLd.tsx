@@ -1,5 +1,5 @@
 import { CONTACT_EMAIL } from "@/lib/brand-email";
-import { LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL } from "@/lib/brand-social";
+import { ALL_SOCIAL_URLS } from "@/lib/brand-social";
 import { getLeadTrainer } from "@/lib/content";
 import { SITE_ORIGIN } from "@/lib/seo";
 
@@ -53,8 +53,7 @@ export function OrganizationJsonLd() {
       },
     ],
     sameAs: [
-      LINKEDIN_COMPANY_URL,
-      YOUTUBE_CHANNEL_URL,
+      ...ALL_SOCIAL_URLS,
       `${SITE_ORIGIN}/testimonials`,
       `${SITE_ORIGIN}/newsletter`,
       `${SITE_ORIGIN}/library`,

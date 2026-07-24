@@ -20,6 +20,9 @@
     "social": [
       { "label": "LinkedIn", "href": "https://www.linkedin.com/company/verlin-labs/" },
       { "label": "YouTube", "href": "https://youtube.com/@verlinlabs?si=8HP1JaV5lprlc7zp" },
+      { "label": "Instagram", "href": "https://www.instagram.com/verlin.labs/" },
+      { "label": "X", "href": "https://x.com/Verlin_Labs" },
+      { "label": "Facebook", "href": "https://www.facebook.com/profile.php?id=61588756291259" },
       { "label": "Newsletter", "href": "/newsletter" }
     ]
   },

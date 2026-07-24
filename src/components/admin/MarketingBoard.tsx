@@ -3,10 +3,23 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
-import { AlertTriangle, ImagePlus, Link2, Loader2, Send, Sparkles, Unlink } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  ChevronDown,
+  Flame,
+  ImagePlus,
+  Link2,
+  Loader2,
+  Send,
+  Sparkles,
+  Trash2,
+  Unlink,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { upload } from "@vercel/blob/client";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface PublicAccount {
   id: string;
@@ -36,6 +49,37 @@ interface PerformanceRow {
   post: MarketingPost;
   targets: { platform: string; status: string; analytics: Record<string, number> | null }[];
 }
+
+interface ViralIdea {
+  platform: PublicAccount["platform"];
+  topic: string;
+  hook: string;
+  content: string;
+  hashtags: string[];
+  imageStyle: string;
+  imagePrompt: string;
+  format: "single-image" | "carousel" | "text-only" | "pdf-document";
+  viralityScore: number;
+  rationale: string;
+  bestTimeHint: string;
+}
+
+interface ScheduledPost {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  accountIds: string[];
+  scheduledAt: string;
+  status: "scheduled" | "published" | "failed";
+  error?: string;
+}
+
+const FORMAT_LABELS: Record<ViralIdea["format"], string> = {
+  "single-image": "Single image",
+  carousel: "Carousel",
+  "text-only": "Text only",
+  "pdf-document": "PDF document",
+};
 
 const PLATFORM_META: Record<string, { label: string; letter: string; bg: string }> = {
   instagram: { label: "Instagram", letter: "IG", bg: "bg-pink-600" },
@@ -114,21 +158,43 @@ export function MarketingBoard() {
   const [aiImagePrompt, setAiImagePrompt] = useState("");
   const [aiImageGenerating, setAiImageGenerating] = useState(false);
 
+  const [viralTopic, setViralTopic] = useState("");
+  const [viralPlatforms, setViralPlatforms] = useState<Set<string>>(new Set(TARGET_PLATFORMS));
+  const [viralLoading, setViralLoading] = useState(false);
+  const [viralIdeas, setViralIdeas] = useState<ViralIdea[]>([]);
+  const [applyingIdea, setApplyingIdea] = useState<number | null>(null);
+  const [autoPilot, setAutoPilot] = useState(false);
+
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+
+  const [perfFilter, setPerfFilter] = useState<string>("all");
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [accountsRes, performanceRes] = await Promise.all([
+      const [accountsRes, performanceRes, scheduledRes] = await Promise.all([
         fetch("/api/admin/marketing/accounts", { cache: "no-store" }),
         fetch("/api/admin/marketing/performance", { cache: "no-store" }),
+        fetch("/api/admin/marketing/scheduled", { cache: "no-store" }),
       ]);
       const accountsData = await accountsRes.json();
       const performanceData = await performanceRes.json();
+      const scheduledData = await scheduledRes.json().catch(() => ({}));
 
       setAccounts(accountsData.accounts ?? []);
       setMetaConfigured(Boolean(accountsData.metaConfigured));
       setLinkedinConfigured(Boolean(accountsData.linkedinConfigured));
       setXConfigured(Boolean(accountsData.xConfigured));
       setRows(performanceData.rows ?? []);
+      setScheduledPosts(
+        ((scheduledData.posts ?? []) as ScheduledPost[]).filter((p) => p.status === "scheduled")
+      );
     } catch {
       toast("Could not load the marketing board", "error");
     } finally {
@@ -198,6 +264,7 @@ export function MarketingBoard() {
           content,
           accountIds: Array.from(selected),
           ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+          ...(scheduledAt ? { scheduledAt: new Date(scheduledAt).toISOString() } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -205,6 +272,8 @@ export function MarketingBoard() {
 
       if (!res.ok) {
         toast(data.error || "Could not publish", "error");
+      } else if (data.scheduled) {
+        toast(`Scheduled for ${new Date(data.scheduled.scheduledAt).toLocaleString()}`, "success");
       } else if (anyFailed) {
         toast("Published to some platforms - check the table below for details", "warning");
       } else {
@@ -213,6 +282,7 @@ export function MarketingBoard() {
       setContent("");
       setImageUrl("");
       setSelected(new Set());
+      setScheduledAt("");
       void load();
     } catch {
       toast("Could not publish", "error");
@@ -274,6 +344,109 @@ export function MarketingBoard() {
       toast("Image generation failed", "error");
     } finally {
       setAiImageGenerating(false);
+    }
+  }
+
+  async function handleGenerateViral() {
+    setViralLoading(true);
+    setViralIdeas([]);
+    try {
+      const res = await fetch("/api/admin/marketing/ai/viral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: viralTopic.trim() || undefined,
+          platforms: Array.from(viralPlatforms),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not generate viral ideas", "error");
+        return;
+      }
+      const ideas: ViralIdea[] = (data.ideas ?? []).sort(
+        (a: ViralIdea, b: ViralIdea) => b.viralityScore - a.viralityScore
+      );
+      setViralIdeas(ideas);
+      if (autoPilot && ideas.length > 0) {
+        // Full auto: take the highest-scoring idea straight into the composer
+        // (copy + generated image + matching accounts preselected).
+        await applyIdea(ideas[0]!, 0);
+        toast("Auto-pilot: top idea loaded - review and hit Publish", "success");
+      }
+    } catch {
+      toast("Could not generate viral ideas", "error");
+    } finally {
+      setViralLoading(false);
+    }
+  }
+
+  async function applyIdea(idea: ViralIdea, index: number) {
+    setApplyingIdea(index);
+    try {
+      setContent(idea.content);
+      setAiImagePrompt(idea.imagePrompt);
+
+      // Preselect every connected account on the idea's platform.
+      const matching = accounts.filter((a) => a.platform === idea.platform).map((a) => a.id);
+      if (matching.length > 0) setSelected(new Set(matching));
+
+      // Text-only formats skip image generation; everything else gets the
+      // suggested image created right away so the post is one click from done.
+      if (idea.format !== "text-only" && idea.imagePrompt) {
+        const res = await fetch("/api/admin/marketing/ai/image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: idea.imagePrompt }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.url) {
+          setImageUrl(data.url);
+        } else {
+          toast(data.error || "Image generation failed - post text is ready anyway", "warning");
+        }
+      } else {
+        setImageUrl("");
+      }
+      document.getElementById("marketing-composer")?.scrollIntoView({ behavior: "smooth" });
+    } finally {
+      setApplyingIdea(null);
+    }
+  }
+
+  async function handleFileUpload(file: File) {
+    setUploading(true);
+    try {
+      const blob = await upload(`marketing-media/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/marketing/upload",
+      });
+      setImageUrl(blob.url);
+      toast(
+        file.type.startsWith("video/")
+          ? "Video uploaded - Facebook supports it today; Instagram/LinkedIn/X video is coming"
+          : "Uploaded",
+        "success"
+      );
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Upload failed", "error");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleCancelScheduled(id: string) {
+    setCancelingId(id);
+    try {
+      const res = await fetch(`/api/admin/marketing/scheduled?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast("Scheduled post cancelled", "success");
+      void load();
+    } catch {
+      toast("Could not cancel", "error");
+    } finally {
+      setCancelingId(null);
     }
   }
 
@@ -387,8 +560,140 @@ export function MarketingBoard() {
         </Card>
       )}
 
-      {/* Composer */}
+      {/* Viral ideas */}
       <Card className="p-6">
+        <div className="flex items-center gap-2">
+          <Flame className="h-5 w-5 text-orange-500" aria-hidden="true" />
+          <h2 className="text-lg font-semibold text-foreground">Viral ideas</h2>
+        </div>
+        <p className="mt-1 text-sm text-text-secondary">
+          AI scans this week&apos;s AI news (or your topic) and proposes the most viral-worthy post per
+          platform - hook, copy, hashtags, image style, and format - scored for reach.
+        </p>
+
+        <div className="mt-5 space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={viralTopic}
+              onChange={(e) => setViralTopic(e.target.value)}
+              placeholder="Topic (optional - leave empty to auto-pick from this week's AI news)"
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+            />
+            <Button variant="cta" size="sm" loading={viralLoading} onClick={handleGenerateViral}>
+              <Flame className="h-3.5 w-3.5" /> Find viral angles
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {TARGET_PLATFORMS.map((platform) => {
+              const active = viralPlatforms.has(platform);
+              return (
+                <button
+                  key={platform}
+                  type="button"
+                  onClick={() =>
+                    setViralPlatforms((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(platform)) next.delete(platform);
+                      else next.add(platform);
+                      return next.size === 0 ? new Set(TARGET_PLATFORMS) : next;
+                    })
+                  }
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                      : "border-border text-text-secondary hover:bg-muted"
+                  }`}
+                >
+                  <PlatformBadge platform={platform} />
+                  {platformMeta(platform).label}
+                </button>
+              );
+            })}
+            <label className="ml-auto flex cursor-pointer items-center gap-2 text-xs text-text-secondary">
+              <input
+                type="checkbox"
+                checked={autoPilot}
+                onChange={(e) => setAutoPilot(e.target.checked)}
+                className="h-3.5 w-3.5 accent-teal"
+              />
+              Auto-pilot: load the top idea into the composer automatically
+            </label>
+          </div>
+
+          {viralIdeas.length > 0 && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {viralIdeas.map((idea, i) => (
+                <div key={`${idea.platform}-${i}`} className="flex flex-col rounded-xl border border-border bg-background p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <PlatformBadge platform={idea.platform} />
+                      <span className="text-sm font-semibold text-foreground">
+                        {platformMeta(idea.platform).label}
+                      </span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-text-secondary">
+                        {FORMAT_LABELS[idea.format]}
+                      </span>
+                    </div>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        idea.viralityScore >= 70
+                          ? "bg-orange-500/15 text-orange-600"
+                          : idea.viralityScore >= 40
+                            ? "bg-amber-500/15 text-amber-600"
+                            : "bg-muted text-text-secondary"
+                      }`}
+                      title="Estimated virality"
+                    >
+                      {idea.viralityScore}
+                    </span>
+                  </div>
+
+                  {idea.hook && <p className="mt-3 font-semibold text-foreground">{idea.hook}</p>}
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-text-secondary">{idea.content}</p>
+
+                  {idea.hashtags.length > 0 && (
+                    <p className="mt-2 text-xs text-teal">{idea.hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" ")}</p>
+                  )}
+
+                  <div className="mt-3 space-y-1 text-xs text-text-secondary">
+                    {idea.imageStyle && (
+                      <p>
+                        <span className="font-medium text-foreground">Image:</span> {idea.imageStyle}
+                      </p>
+                    )}
+                    {idea.rationale && (
+                      <p>
+                        <span className="font-medium text-foreground">Why it spreads:</span> {idea.rationale}
+                      </p>
+                    )}
+                    {idea.bestTimeHint && (
+                      <p>
+                        <span className="font-medium text-foreground">Best time:</span> {idea.bestTimeHint}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-auto pt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={applyingIdea === i}
+                      onClick={() => applyIdea(idea, i)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Use this (copy + image + accounts)
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Composer */}
+      <Card className="p-6" id="marketing-composer">
         <h2 className="text-lg font-semibold text-foreground">Compose</h2>
         <p className="mt-1 text-sm text-text-secondary">
           Write once, choose where it goes, publish everywhere in one click.
@@ -423,13 +728,33 @@ export function MarketingBoard() {
             placeholder="What do you want to share?"
             className="w-full resize-none rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-teal"
           />
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="Image URL (required for Instagram, optional elsewhere)"
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-teal"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="Media URL (image required for Instagram; or upload your own below)"
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-teal"
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleFileUpload(file);
+              }}
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImagePlus className="h-3.5 w-3.5" /> Upload image / video
+            </Button>
+          </div>
 
           <div className="flex flex-col gap-2 rounded-lg border border-dashed border-teal/40 bg-teal/5 p-3 sm:flex-row sm:items-center">
             <ImagePlus className="hidden h-4 w-4 shrink-0 text-teal sm:block" aria-hidden="true" />
@@ -452,8 +777,13 @@ export function MarketingBoard() {
           </div>
           {imageUrl && (
             <div className="overflow-hidden rounded-lg border border-border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary/dynamic image URL, not a static local asset */}
-              <img src={imageUrl} alt="Post image preview" className="max-h-56 w-full object-contain" />
+              {/\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(imageUrl) ? (
+                // eslint-disable-next-line jsx-a11y/media-has-caption -- ad-hoc preview of the admin's own upload
+                <video src={imageUrl} controls className="max-h-56 w-full object-contain" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- arbitrary/dynamic image URL, not a static local asset
+                <img src={imageUrl} alt="Post media preview" className="max-h-56 w-full object-contain" />
+              )}
             </div>
           )}
 
@@ -484,17 +814,91 @@ export function MarketingBoard() {
             </div>
           )}
 
-          <Button variant="cta" size="lg" loading={publishing} onClick={handlePublish}>
-            <Send className="h-4 w-4" /> Publish now
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button variant="cta" size="lg" loading={publishing} onClick={handlePublish}>
+              {scheduledAt ? (
+                <>
+                  <CalendarClock className="h-4 w-4" /> Schedule post
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" /> Publish now
+                </>
+              )}
+            </Button>
+            <div className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                aria-label="Schedule for later (optional)"
+              />
+              {scheduledAt && (
+                <button
+                  type="button"
+                  onClick={() => setScheduledAt("")}
+                  className="text-xs text-text-secondary hover:text-foreground"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </Card>
 
-      {/* Unified performance */}
+      {/* Scheduled queue */}
+      {scheduledPosts.length > 0 && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-foreground">Scheduled</h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            Queued posts publish automatically at their scheduled time - no need to keep this page open.
+          </p>
+          <ul className="mt-4 divide-y divide-border/60">
+            {scheduledPosts.map((sp) => {
+              const spAccounts = sp.accountIds
+                .map((id) => accounts.find((a) => a.id === id))
+                .filter((a): a is PublicAccount => Boolean(a));
+              return (
+                <li key={sp.id} className="flex items-center justify-between gap-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-foreground">{sp.content}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                      <span className="font-medium text-teal">
+                        {new Date(sp.scheduledAt).toLocaleString()}
+                      </span>
+                      <span className="flex gap-1">
+                        {spAccounts.map((a) => (
+                          <PlatformBadge key={a.id} platform={a.platform} />
+                        ))}
+                      </span>
+                      {sp.imageUrl && <span>with image</span>}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelScheduled(sp.id)}
+                    disabled={cancelingId === sp.id}
+                    className="shrink-0 text-text-secondary transition-colors hover:text-red-600"
+                    aria-label="Cancel scheduled post"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+
+      {/* Per-channel performance */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground">Performance</h2>
         <p className="mt-1 text-sm text-text-secondary">
-          Every post published through this board, across every platform, in one place.
+          Every post published through this board. Filter by channel, click a row for the full
+          per-platform metric breakdown.
         </p>
 
         {rows.length === 0 ? (
@@ -503,59 +907,153 @@ export function MarketingBoard() {
             performance.
           </p>
         ) : (
-          <div className="mt-5 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
-                  <th className="pb-2 pr-4 font-medium">Post</th>
-                  <th className="pb-2 pr-4 font-medium">Platforms</th>
-                  <th className="pb-2 pr-4 font-medium">Reach</th>
-                  <th className="pb-2 pr-4 font-medium">Engagement</th>
-                  <th className="pb-2 font-medium">Published</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(({ post, targets }) => {
-                  const reach = targets.reduce(
-                    (sum, t) => sum + (t.analytics?.reach ?? t.analytics?.impressions ?? 0),
-                    0
-                  );
-                  const engagement = targets.reduce(
-                    (sum, t) =>
-                      sum +
-                      (t.analytics
-                        ? (t.analytics.likes ?? 0) +
-                          (t.analytics.comments ?? 0) +
-                          (t.analytics.shares ?? 0) +
-                          (t.analytics.post_engaged_users ?? 0)
-                        : 0),
-                    0
-                  );
-                  const hasAnyData = targets.some((t) => t.analytics);
+          <>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {["all", ...TARGET_PLATFORMS].map((p) => {
+                const active = perfFilter === p;
+                const count =
+                  p === "all"
+                    ? rows.length
+                    : rows.filter((r) => r.targets.some((t) => t.platform === p)).length;
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPerfFilter(p)}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      active
+                        ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                        : "border-border text-text-secondary hover:bg-muted"
+                    }`}
+                  >
+                    {p === "all" ? "All channels" : platformMeta(p).label}
+                    <span className={active ? "opacity-80" : "text-text-muted"}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-                  return (
-                    <tr key={post.id} className="border-b border-border/60">
-                      <td className="max-w-xs truncate py-3 pr-4 text-foreground">{post.content}</td>
-                      <td className="py-3 pr-4">
-                        <div className="flex gap-1">
-                          {targets.map((t, i) => (
-                            <span key={i} title={t.status === "failed" ? "Failed to publish" : undefined}>
-                              <PlatformBadge platform={t.platform} />
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3 pr-4 text-text-secondary">{hasAnyData ? reach : "No data yet"}</td>
-                      <td className="py-3 pr-4 text-text-secondary">{hasAnyData ? engagement : "No data yet"}</td>
-                      <td className="py-3 text-text-secondary">
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+                    <th className="pb-2 pr-4 font-medium">Post</th>
+                    <th className="pb-2 pr-4 font-medium">Platforms</th>
+                    <th className="pb-2 pr-4 font-medium">Reach</th>
+                    <th className="pb-2 pr-4 font-medium">Engagement</th>
+                    <th className="pb-2 pr-4 font-medium">Published</th>
+                    <th className="pb-2 font-medium" aria-label="Details" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows
+                    .filter(
+                      ({ targets }) =>
+                        perfFilter === "all" || targets.some((t) => t.platform === perfFilter)
+                    )
+                    .map(({ post, targets }) => {
+                      const visibleTargets =
+                        perfFilter === "all"
+                          ? targets
+                          : targets.filter((t) => t.platform === perfFilter);
+                      const reach = visibleTargets.reduce(
+                        (sum, t) => sum + (t.analytics?.reach ?? t.analytics?.impressions ?? 0),
+                        0
+                      );
+                      const engagement = visibleTargets.reduce(
+                        (sum, t) =>
+                          sum +
+                          (t.analytics
+                            ? (t.analytics.likes ?? 0) +
+                              (t.analytics.comments ?? 0) +
+                              (t.analytics.shares ?? 0) +
+                              (t.analytics.post_engaged_users ?? 0)
+                            : 0),
+                        0
+                      );
+                      const hasAnyData = visibleTargets.some((t) => t.analytics);
+                      const expanded = expandedPostId === post.id;
+
+                      return (
+                        <Fragment key={post.id}>
+                          <tr
+                            className="cursor-pointer border-b border-border/60 transition-colors hover:bg-muted/40"
+                            onClick={() => setExpandedPostId(expanded ? null : post.id)}
+                          >
+                            <td className="max-w-xs truncate py-3 pr-4 text-foreground">{post.content}</td>
+                            <td className="py-3 pr-4">
+                              <div className="flex gap-1">
+                                {visibleTargets.map((t, i) => (
+                                  <span key={i} title={t.status === "failed" ? "Failed to publish" : undefined}>
+                                    <PlatformBadge platform={t.platform} />
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-3 pr-4 text-text-secondary">{hasAnyData ? reach : "No data yet"}</td>
+                            <td className="py-3 pr-4 text-text-secondary">{hasAnyData ? engagement : "No data yet"}</td>
+                            <td className="py-3 pr-4 text-text-secondary">
+                              {new Date(post.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 text-text-secondary">
+                              <ChevronDown
+                                className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+                                aria-hidden="true"
+                              />
+                            </td>
+                          </tr>
+                          {expanded && (
+                            <tr className="border-b border-border/60 bg-muted/30">
+                              <td colSpan={6} className="px-2 py-4">
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                  {targets.map((t, i) => (
+                                    <div key={i} className="rounded-lg border border-border bg-background p-3">
+                                      <div className="flex items-center gap-2">
+                                        <PlatformBadge platform={t.platform} />
+                                        <span className="text-sm font-semibold text-foreground">
+                                          {platformMeta(t.platform).label}
+                                        </span>
+                                        <span
+                                          className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                            t.status === "published"
+                                              ? "bg-teal/15 text-teal"
+                                              : "bg-red-500/15 text-red-600"
+                                          }`}
+                                        >
+                                          {t.status}
+                                        </span>
+                                      </div>
+                                      {t.analytics && Object.keys(t.analytics).length > 0 ? (
+                                        <dl className="mt-2 space-y-1">
+                                          {Object.entries(t.analytics).map(([key, value]) => (
+                                            <div key={key} className="flex justify-between text-xs">
+                                              <dt className="capitalize text-text-secondary">
+                                                {key.replaceAll("_", " ")}
+                                              </dt>
+                                              <dd className="font-medium text-foreground">{value}</dd>
+                                            </div>
+                                          ))}
+                                        </dl>
+                                      ) : (
+                                        <p className="mt-2 text-xs text-text-secondary">
+                                          {t.status === "published"
+                                            ? "No analytics reported yet - check back soon"
+                                            : "Not published on this platform"}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Card>
     </div>

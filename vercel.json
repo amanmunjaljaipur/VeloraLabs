@@ -2,7 +2,12 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "verlinlabs.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "verlinlabs.com"
+        }
+      ],
       "destination": "https://www.verlinlabs.com/:path*",
       "permanent": true
     }
@@ -19,6 +24,10 @@
     {
       "path": "/api/cron/blog",
       "schedule": "15 4 * * *"
+    },
+    {
+      "path": "/api/cron/marketing",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

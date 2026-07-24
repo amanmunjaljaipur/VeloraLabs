@@ -1,4 +1,4 @@
-import { LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL } from "@/lib/brand-social";
+import { ALL_SOCIAL_URLS } from "@/lib/brand-social";
 import { SITE_ORIGIN } from "@/lib/seo";
 
 export function WebSiteJsonLd() {
@@ -23,7 +23,7 @@ export function WebSiteJsonLd() {
       name: "Verlin Labs",
       url: SITE_ORIGIN,
     },
-    sameAs: [LINKEDIN_COMPANY_URL, YOUTUBE_CHANNEL_URL],
+    sameAs: [...ALL_SOCIAL_URLS],
     potentialAction: {
       "@type": "SearchAction",
       target: {

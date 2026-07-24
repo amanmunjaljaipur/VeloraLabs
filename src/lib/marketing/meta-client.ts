@@ -162,6 +162,23 @@ export async function postToFacebookPage(
   return { ok: true, postId: data.post_id ?? data.id ?? "" };
 }
 
+/** Facebook Pages accept hosted video by URL - the one platform where video posting is a single call. */
+export async function postVideoToFacebookPage(
+  pageId: string,
+  pageAccessToken: string,
+  description: string,
+  videoUrl: string
+): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
+  const data = await graphFetch<{ id?: string }>(`/${pageId}/videos`, {
+    file_url: videoUrl,
+    description,
+    access_token: pageAccessToken,
+  }, { method: "POST" });
+
+  if (!data?.id) return { ok: false, error: "Facebook did not accept the video" };
+  return { ok: true, postId: data.id };
+}
+
 /** Instagram publishing is always two steps: create a media container, then publish it. */
 export async function postToInstagram(
   igBusinessAccountId: string,
