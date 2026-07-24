@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
-import { AlertTriangle, Link2, Loader2, Send, Unlink } from "lucide-react";
+import { AlertTriangle, ImagePlus, Link2, Loader2, Send, Sparkles, Unlink } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -109,6 +109,11 @@ export function MarketingBoard() {
   const [publishing, setPublishing] = useState(false);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
 
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiWriting, setAiWriting] = useState(false);
+  const [aiImagePrompt, setAiImagePrompt] = useState("");
+  const [aiImageGenerating, setAiImageGenerating] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -213,6 +218,62 @@ export function MarketingBoard() {
       toast("Could not publish", "error");
     } finally {
       setPublishing(false);
+    }
+  }
+
+  async function handleAiCompose() {
+    if (!aiPrompt.trim()) {
+      toast("Describe what you want to post about first", "warning");
+      return;
+    }
+    setAiWriting(true);
+    try {
+      const platforms = Array.from(selected)
+        .map((id) => accounts.find((a) => a.id === id)?.platform)
+        .filter((p): p is PublicAccount["platform"] => Boolean(p));
+
+      const res = await fetch("/api/admin/marketing/ai/compose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt, platforms }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "AI writing failed", "error");
+        return;
+      }
+      setContent(data.content ?? "");
+      toast("Draft written - edit anything you like", "success");
+    } catch {
+      toast("AI writing failed", "error");
+    } finally {
+      setAiWriting(false);
+    }
+  }
+
+  async function handleAiImage() {
+    if (!aiImagePrompt.trim()) {
+      toast("Describe the image you want first", "warning");
+      return;
+    }
+    setAiImageGenerating(true);
+    try {
+      const res = await fetch("/api/admin/marketing/ai/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiImagePrompt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Image generation failed", "error");
+        return;
+      }
+      setImageUrl(data.url ?? "");
+      toast("Image generated", "success");
+    } catch {
+      toast("Image generation failed", "error");
+    } finally {
+      setAiImageGenerating(false);
     }
   }
 
@@ -334,6 +395,26 @@ export function MarketingBoard() {
         </p>
 
         <div className="mt-5 space-y-4">
+          <div className="flex flex-col gap-2 rounded-lg border border-dashed border-teal/40 bg-teal/5 p-3 sm:flex-row sm:items-center">
+            <Sparkles className="hidden h-4 w-4 shrink-0 text-teal sm:block" aria-hidden="true" />
+            <input
+              type="text"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleAiCompose();
+                }
+              }}
+              placeholder="Tell AI what to post about..."
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+            />
+            <Button variant="secondary" size="sm" loading={aiWriting} onClick={handleAiCompose}>
+              <Sparkles className="h-3.5 w-3.5" /> Write with AI
+            </Button>
+          </div>
+
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -349,6 +430,32 @@ export function MarketingBoard() {
             placeholder="Image URL (required for Instagram, optional elsewhere)"
             className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-teal"
           />
+
+          <div className="flex flex-col gap-2 rounded-lg border border-dashed border-teal/40 bg-teal/5 p-3 sm:flex-row sm:items-center">
+            <ImagePlus className="hidden h-4 w-4 shrink-0 text-teal sm:block" aria-hidden="true" />
+            <input
+              type="text"
+              value={aiImagePrompt}
+              onChange={(e) => setAiImagePrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleAiImage();
+                }
+              }}
+              placeholder="Describe an image for AI to generate..."
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+            />
+            <Button variant="secondary" size="sm" loading={aiImageGenerating} onClick={handleAiImage}>
+              <ImagePlus className="h-3.5 w-3.5" /> Generate with AI
+            </Button>
+          </div>
+          {imageUrl && (
+            <div className="overflow-hidden rounded-lg border border-border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary/dynamic image URL, not a static local asset */}
+              <img src={imageUrl} alt="Post image preview" className="max-h-56 w-full object-contain" />
+            </div>
+          )}
 
           {accounts.length === 0 ? (
             <p className="text-sm text-text-secondary">
