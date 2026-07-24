@@ -33,6 +33,18 @@ export async function POST(req: NextRequest) {
     ? body.accountIds.filter((id: unknown) => typeof id === "string")
     : [];
   const scheduledAtRaw = typeof body?.scheduledAt === "string" ? body.scheduledAt : "";
+  const imageUrls = Array.isArray(body?.imageUrls)
+    ? body.imageUrls.filter((u: unknown): u is string => typeof u === "string" && u.trim().length > 0)
+    : [];
+  const slides = Array.isArray(body?.slides)
+    ? body.slides
+        .filter((s: unknown): s is { heading: string; body?: string } => Boolean(s) && typeof s === "object")
+        .map((s: { heading?: unknown; body?: unknown }) => ({
+          heading: typeof s.heading === "string" ? s.heading : "",
+          body: typeof s.body === "string" ? s.body : undefined,
+        }))
+        .filter((s: { heading: string }) => s.heading.trim().length > 0)
+    : [];
 
   if (!content || content.length > 3000) {
     return NextResponse.json({ error: "Post content must be 1-3000 characters" }, { status: 400 });
@@ -55,6 +67,8 @@ export async function POST(req: NextRequest) {
     const scheduled = await createScheduledPost({
       content,
       imageUrl,
+      imageUrls,
+      slides,
       accountIds,
       scheduledAt: scheduledAt.toISOString(),
       createdBy: session.user?.email ?? "unknown",
@@ -62,7 +76,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ scheduled }, { status: 201 });
   }
 
-  const targets = await publishToAccounts(accountIds, content, imageUrl);
+  const targets = await publishToAccounts(accountIds, content, imageUrl, { imageUrls, slides });
 
   const post = await recordMarketingPost({
     content,

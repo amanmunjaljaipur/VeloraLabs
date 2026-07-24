@@ -1,8 +1,15 @@
 import { getConnectedAccount } from "@/lib/marketing/accounts-store";
 import type { PostTarget } from "@/lib/marketing/posts-store";
-import { postToFacebookPage, postToInstagram, postVideoToFacebookPage } from "@/lib/marketing/meta-client";
-import { postToLinkedInOrganization } from "@/lib/marketing/linkedin-client";
+import {
+  postCarouselToFacebookPage,
+  postCarouselToInstagram,
+  postToFacebookPage,
+  postToInstagram,
+  postVideoToFacebookPage,
+} from "@/lib/marketing/meta-client";
+import { postDocumentToLinkedInOrganization, postToLinkedInOrganization } from "@/lib/marketing/linkedin-client";
 import { getValidXAccessToken, postToX } from "@/lib/marketing/x-client";
+import { buildSlideDeckPdf, type SlideInput } from "@/lib/marketing/slide-deck";
 
 /**
  * The one place that knows how to publish a piece of content to a list of
@@ -21,10 +28,15 @@ function isVideoUrl(url: string | null): boolean {
 export async function publishToAccounts(
   accountIds: string[],
   content: string,
-  imageUrl: string | null
+  imageUrl: string | null,
+  extra?: { imageUrls?: string[]; slides?: SlideInput[] }
 ): Promise<PostTarget[]> {
   const targets: PostTarget[] = [];
   const video = isVideoUrl(imageUrl);
+  const carouselUrls = extra?.imageUrls?.filter(Boolean) ?? [];
+  const isCarousel = carouselUrls.length >= 2;
+  const slides = extra?.slides?.filter((s) => s.heading?.trim()) ?? [];
+  const isDocumentPost = slides.length >= 2;
 
   for (const accountId of accountIds) {
     const account = await getConnectedAccount(accountId);
@@ -40,9 +52,11 @@ export async function publishToAccounts(
     }
 
     if (account.platform === "facebook") {
-      const result = video
-        ? await postVideoToFacebookPage(account.externalId, account.accessToken, content, imageUrl as string)
-        : await postToFacebookPage(account.externalId, account.accessToken, content, imageUrl ?? undefined);
+      const result = isCarousel
+        ? await postCarouselToFacebookPage(account.externalId, account.accessToken, content, carouselUrls)
+        : video
+          ? await postVideoToFacebookPage(account.externalId, account.accessToken, content, imageUrl as string)
+          : await postToFacebookPage(account.externalId, account.accessToken, content, imageUrl ?? undefined);
       targets.push({
         accountId,
         platform: "facebook",
@@ -51,6 +65,17 @@ export async function publishToAccounts(
         error: result.ok ? undefined : result.error,
       });
     } else if (account.platform === "instagram") {
+      if (isCarousel) {
+        const result = await postCarouselToInstagram(account.externalId, account.accessToken, content, carouselUrls);
+        targets.push({
+          accountId,
+          platform: "instagram",
+          status: result.ok ? "published" : "failed",
+          platformPostId: result.ok ? result.postId : null,
+          error: result.ok ? undefined : result.error,
+        });
+        continue;
+      }
       if (!imageUrl) {
         targets.push({
           accountId,
@@ -80,6 +105,34 @@ export async function publishToAccounts(
         error: result.ok ? undefined : result.error,
       });
     } else if (account.platform === "linkedin") {
+      if (isDocumentPost) {
+        try {
+          const pdfBytes = await buildSlideDeckPdf({ slides, brandLabel: "Verlin Labs" });
+          const result = await postDocumentToLinkedInOrganization(
+            account.externalId,
+            account.accessToken,
+            content,
+            pdfBytes,
+            slides[0]?.heading ?? "Post"
+          );
+          targets.push({
+            accountId,
+            platform: "linkedin",
+            status: result.ok ? "published" : "failed",
+            platformPostId: result.ok ? result.postId : null,
+            error: result.ok ? undefined : result.error,
+          });
+        } catch {
+          targets.push({
+            accountId,
+            platform: "linkedin",
+            status: "failed",
+            platformPostId: null,
+            error: "Could not build the slide-deck PDF",
+          });
+        }
+        continue;
+      }
       const result = await postToLinkedInOrganization(account.externalId, account.accessToken, content);
       targets.push({
         accountId,

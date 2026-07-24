@@ -175,6 +175,10 @@ export function MarketingBoard() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [contentMode, setContentMode] = useState<"single" | "carousel" | "pdf-slides">("single");
+  const [carouselUrlsText, setCarouselUrlsText] = useState("");
+  const [slidesText, setSlidesText] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -257,6 +261,33 @@ export function MarketingBoard() {
 
     setPublishing(true);
     try {
+      const carouselUrls =
+        contentMode === "carousel"
+          ? carouselUrlsText.split("\n").map((l) => l.trim()).filter(Boolean)
+          : [];
+      const slides =
+        contentMode === "pdf-slides"
+          ? slidesText
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean)
+              .map((line) => {
+                const [heading, ...rest] = line.split("|");
+                return { heading: (heading ?? "").trim(), body: rest.join("|").trim() || undefined };
+              })
+          : [];
+
+      if (contentMode === "carousel" && carouselUrls.length < 2) {
+        toast("Add at least 2 image URLs for a carousel (one per line)", "warning");
+        setPublishing(false);
+        return;
+      }
+      if (contentMode === "pdf-slides" && slides.length < 2) {
+        toast("Add at least 2 slides for a PDF document post (one per line)", "warning");
+        setPublishing(false);
+        return;
+      }
+
       const res = await fetch("/api/admin/marketing/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,6 +295,8 @@ export function MarketingBoard() {
           content,
           accountIds: Array.from(selected),
           ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+          ...(carouselUrls.length > 0 ? { imageUrls: carouselUrls } : {}),
+          ...(slides.length > 0 ? { slides } : {}),
           ...(scheduledAt ? { scheduledAt: new Date(scheduledAt).toISOString() } : {}),
         }),
       });
@@ -786,6 +819,63 @@ export function MarketingBoard() {
               )}
             </div>
           )}
+
+          <div className="rounded-lg border border-border p-3">
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  ["single", "Single image / video"],
+                  ["carousel", "Carousel (IG / FB)"],
+                  ["pdf-slides", "PDF slides (LinkedIn)"],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setContentMode(mode)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    contentMode === mode
+                      ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                      : "border-border text-text-secondary hover:bg-muted"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {contentMode === "carousel" && (
+              <div className="mt-3">
+                <textarea
+                  value={carouselUrlsText}
+                  onChange={(e) => setCarouselUrlsText(e.target.value)}
+                  rows={4}
+                  placeholder={"One image URL per line (2-10 images)\nhttps://...\nhttps://..."}
+                  className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <p className="mt-1 text-xs text-text-secondary">
+                  Publishes as a native multi-image carousel on Instagram and Facebook. LinkedIn and X post
+                  the first image only.
+                </p>
+              </div>
+            )}
+
+            {contentMode === "pdf-slides" && (
+              <div className="mt-3">
+                <textarea
+                  value={slidesText}
+                  onChange={(e) => setSlidesText(e.target.value)}
+                  rows={5}
+                  placeholder={"One slide per line: Heading | Optional body text\nWhy most AI advice is wrong | Most tips assume you already understand the model\n..."}
+                  className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <p className="mt-1 text-xs text-text-secondary">
+                  Compiles a swipeable PDF document post for LinkedIn (2026&apos;s top-performing organic
+                  format). Other platforms fall back to the text content above.
+                </p>
+              </div>
+            )}
+          </div>
 
           {accounts.length === 0 ? (
             <p className="text-sm text-text-secondary">

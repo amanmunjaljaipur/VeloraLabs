@@ -177,6 +177,83 @@ export async function postToLinkedInOrganization(
   }
 }
 
+/**
+ * LinkedIn document (PDF carousel) post - LinkedIn's top-performing organic
+ * format as of 2026: a multi-page PDF that renders as swipeable slides.
+ * Three-step Documents API flow: register the upload, PUT the raw PDF
+ * bytes to the returned URL, then reference the resulting document urn in
+ * a normal Posts API call (same endpoint postToLinkedInOrganization uses,
+ * just with a DOCUMENT content block instead of an image).
+ */
+export async function postDocumentToLinkedInOrganization(
+  organizationUrn: string,
+  accessToken: string,
+  commentary: string,
+  pdfBytes: Uint8Array,
+  documentTitle: string
+): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
+  const registration = await restFetch<{
+    value?: { uploadUrl?: string; document?: string };
+  }>("/documents?action=initializeUpload", accessToken, {
+    method: "POST",
+    body: JSON.stringify({ initializeUploadRequest: { owner: organizationUrn } }),
+  });
+
+  const uploadUrl = registration?.value?.uploadUrl;
+  const documentUrn = registration?.value?.document;
+  if (!uploadUrl || !documentUrn) {
+    return { ok: false, error: "LinkedIn rejected the document upload registration" };
+  }
+
+  try {
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: pdfBytes as BodyInit,
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!uploadRes.ok) {
+      return { ok: false, error: "LinkedIn rejected the PDF file upload" };
+    }
+  } catch (error) {
+    console.error("[marketing/linkedin] document upload errored", error);
+    return { ok: false, error: "PDF upload to LinkedIn failed" };
+  }
+
+  const body = {
+    author: organizationUrn,
+    commentary,
+    visibility: "PUBLIC",
+    distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] },
+    lifecycleState: "PUBLISHED",
+    content: { media: { id: documentUrn, title: documentTitle } },
+  };
+
+  try {
+    const res = await fetch(`${REST_BASE}/posts`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "LinkedIn-Version": LINKEDIN_API_VERSION,
+        "X-Restli-Protocol-Version": "2.0.0",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    const postId = res.headers.get("x-restli-id") ?? res.headers.get("x-linkedin-id");
+    if (!res.ok || !postId) {
+      const errBody = await res.text().catch(() => "");
+      console.error("[marketing/linkedin] document post failed", res.status, errBody);
+      return { ok: false, error: "LinkedIn did not accept the document post" };
+    }
+    return { ok: true, postId };
+  } catch (error) {
+    console.error("[marketing/linkedin] document post errored", error);
+    return { ok: false, error: "LinkedIn request failed" };
+  }
+}
+
 export async function getLinkedInPostAnalytics(
   postUrn: string,
   organizationUrn: string,

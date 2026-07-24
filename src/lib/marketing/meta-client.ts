@@ -179,6 +179,82 @@ export async function postVideoToFacebookPage(
   return { ok: true, postId: data.id };
 }
 
+/** Facebook multi-photo carousel post: upload each photo unpublished, then attach all of them to one feed post. */
+export async function postCarouselToFacebookPage(
+  pageId: string,
+  pageAccessToken: string,
+  message: string,
+  imageUrls: string[]
+): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
+  if (imageUrls.length < 2) return { ok: false, error: "A carousel needs at least 2 images" };
+  if (imageUrls.length > 10) return { ok: false, error: "Facebook carousels support at most 10 images" };
+
+  const mediaIds: string[] = [];
+  for (const url of imageUrls) {
+    const uploaded = await graphFetch<{ id?: string }>(
+      `/${pageId}/photos`,
+      { url, published: "false", access_token: pageAccessToken },
+      { method: "POST" }
+    );
+    if (!uploaded?.id) return { ok: false, error: "Facebook rejected one of the carousel images" };
+    mediaIds.push(uploaded.id);
+  }
+
+  const data = await graphFetch<{ id?: string; post_id?: string }>(
+    `/${pageId}/feed`,
+    {
+      message,
+      attached_media: JSON.stringify(mediaIds.map((id) => ({ media_fbid: id }))),
+      access_token: pageAccessToken,
+    },
+    { method: "POST" }
+  );
+  if (!data) return { ok: false, error: "Facebook did not accept the carousel post" };
+  return { ok: true, postId: data.post_id ?? data.id ?? "" };
+}
+
+/** Instagram carousel: each image becomes a carousel-item container, then a parent CAROUSEL container publishes them together. */
+export async function postCarouselToInstagram(
+  igBusinessAccountId: string,
+  pageAccessToken: string,
+  caption: string,
+  imageUrls: string[]
+): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
+  if (imageUrls.length < 2) return { ok: false, error: "A carousel needs at least 2 images" };
+  if (imageUrls.length > 10) return { ok: false, error: "Instagram carousels support at most 10 images" };
+
+  const childIds: string[] = [];
+  for (const url of imageUrls) {
+    const child = await graphFetch<{ id?: string }>(
+      `/${igBusinessAccountId}/media`,
+      { image_url: url, is_carousel_item: "true", access_token: pageAccessToken },
+      { method: "POST" }
+    );
+    if (!child?.id) return { ok: false, error: "Instagram rejected one of the carousel images" };
+    childIds.push(child.id);
+  }
+
+  const container = await graphFetch<{ id?: string }>(
+    `/${igBusinessAccountId}/media`,
+    {
+      media_type: "CAROUSEL",
+      children: childIds.join(","),
+      caption,
+      access_token: pageAccessToken,
+    },
+    { method: "POST" }
+  );
+  if (!container?.id) return { ok: false, error: "Instagram rejected the carousel container" };
+
+  const published = await graphFetch<{ id?: string }>(
+    `/${igBusinessAccountId}/media_publish`,
+    { creation_id: container.id, access_token: pageAccessToken },
+    { method: "POST" }
+  );
+  if (!published?.id) return { ok: false, error: "Instagram accepted the carousel but publishing failed" };
+  return { ok: true, postId: published.id };
+}
+
 /** Instagram publishing is always two steps: create a media container, then publish it. */
 export async function postToInstagram(
   igBusinessAccountId: string,

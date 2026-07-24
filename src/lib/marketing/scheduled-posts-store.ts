@@ -11,10 +11,17 @@ import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/
 const SCHEDULED_FILE = "marketing-scheduled-posts.json";
 const DEFAULT_JSON = "[]";
 
+export interface ScheduledSlide {
+  heading: string;
+  body?: string;
+}
+
 export interface ScheduledPost {
   id: string;
   content: string;
   imageUrl: string | null;
+  imageUrls?: string[];
+  slides?: ScheduledSlide[];
   accountIds: string[];
   /** ISO timestamp the post becomes due */
   scheduledAt: string;
@@ -43,6 +50,8 @@ export async function listScheduledPosts(): Promise<ScheduledPost[]> {
 export async function createScheduledPost(input: {
   content: string;
   imageUrl: string | null;
+  imageUrls?: string[];
+  slides?: ScheduledSlide[];
   accountIds: string[];
   scheduledAt: string;
   createdBy: string;
@@ -52,6 +61,8 @@ export async function createScheduledPost(input: {
     id: randomUUID(),
     content: input.content,
     imageUrl: input.imageUrl,
+    imageUrls: input.imageUrls?.length ? input.imageUrls : undefined,
+    slides: input.slides?.length ? input.slides : undefined,
     accountIds: input.accountIds,
     scheduledAt: input.scheduledAt,
     status: "scheduled",
