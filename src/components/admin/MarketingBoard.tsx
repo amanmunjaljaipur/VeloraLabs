@@ -572,6 +572,29 @@ export function MarketingBoard() {
         })}
       </div>
 
+      {/* Email Suite - 5th channel, lives on its own page (inbox/leads/campaigns need more room) */}
+      <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white"
+            aria-hidden="true"
+          >
+            @
+          </span>
+          <div className="min-w-0">
+            <p className="font-semibold text-foreground">Email Suite</p>
+            <p className="text-xs text-text-secondary">
+              Inbox with AI triage, lead capture, and campaign sends - the 5th channel
+            </p>
+          </div>
+        </div>
+        <a href="/admin/marketing/email" className="shrink-0">
+          <Button variant="secondary" size="sm">
+            Open Email Suite
+          </Button>
+        </a>
+      </Card>
+
       {!metaConfigured && !linkedinConfigured && !xConfigured && (
         <Card className="flex items-start gap-4 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />

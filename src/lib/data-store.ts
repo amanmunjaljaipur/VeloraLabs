@@ -55,6 +55,14 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-posts.json",
   /** Queue of Marketing Board posts scheduled for later publishing (drained by /api/cron/marketing) */
   "marketing-scheduled-posts.json",
+  /** Cached inbox metadata (tags/priority/AI summary) for the Email Suite */
+  "marketing-inbox.json",
+  /** Email Suite leads captured from inbox triage / manual entry / website */
+  "marketing-leads.json",
+  /** Email Suite campaign definitions and send results */
+  "marketing-email-campaigns.json",
+  /** CAN-SPAM/GDPR unsubscribe suppression list for campaign sends */
+  "marketing-email-suppression.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -87,6 +95,10 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   // Scheduler claims entries before publishing - a stale read across
   // instances would double-post to real social accounts.
   "marketing-scheduled-posts.json",
+  // Suppression must be strongly consistent - a stale read could re-email
+  // someone who just unsubscribed.
+  "marketing-email-suppression.json",
+  "marketing-email-campaigns.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();
