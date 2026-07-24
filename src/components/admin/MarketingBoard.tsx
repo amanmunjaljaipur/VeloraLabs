@@ -146,6 +146,7 @@ export function MarketingBoard() {
   const [xConfigured, setXConfigured] = useState(false);
   const [rows, setRows] = useState<PerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"create" | "scheduled" | "performance">("create");
 
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -616,6 +617,32 @@ export function MarketingBoard() {
         </Card>
       )}
 
+      {/* Section tabs - keeps the board from being one long scroll */}
+      <div className="flex gap-2 border-b border-border/60">
+        {(
+          [
+            { key: "create", label: "Create" },
+            { key: "scheduled", label: `Scheduled${scheduledPosts.length > 0 ? ` (${scheduledPosts.length})` : ""}` },
+            { key: "performance", label: `Performance${rows.length > 0 ? ` (${rows.length})` : ""}` },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? "border-b-2 border-primary text-foreground"
+                : "text-text-secondary hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "create" && (
+        <>
       {/* Viral ideas */}
       <Card className="p-6">
         <div className="flex items-center gap-2">
@@ -962,8 +989,11 @@ export function MarketingBoard() {
         </div>
       </Card>
 
+        </>
+      )}
+
       {/* Scheduled queue */}
-      {scheduledPosts.length > 0 && (
+      {activeTab === "scheduled" && scheduledPosts.length > 0 && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-foreground">Scheduled</h2>
           <p className="mt-1 text-sm text-text-secondary">
@@ -1007,6 +1037,7 @@ export function MarketingBoard() {
       )}
 
       {/* Per-channel performance */}
+      {activeTab === "performance" && (
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground">Performance</h2>
         <p className="mt-1 text-sm text-text-secondary">
@@ -1169,6 +1200,7 @@ export function MarketingBoard() {
           </>
         )}
       </Card>
+      )}
     </div>
   );
 }
