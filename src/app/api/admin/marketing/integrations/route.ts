@@ -1,5 +1,6 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { listPublicAccounts } from "@/lib/marketing/accounts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const accounts = await listPublicAccounts();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const accounts = await listPublicAccounts(tenantId);
   return NextResponse.json({ configured: true, integrations: accounts });
 }

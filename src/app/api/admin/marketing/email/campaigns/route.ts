@@ -1,6 +1,7 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { cancelCampaign, completeCampaign, createCampaign, listCampaigns } from "@/lib/marketing/campaigns-store";
 import { sendCampaignNow } from "@/lib/marketing/campaign-sender";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -10,7 +11,8 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const campaigns = await listCampaigns();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const campaigns = await listCampaigns(tenantId);
   return NextResponse.json({ campaigns });
 }
 
@@ -50,7 +52,9 @@ export async function POST(req: NextRequest) {
     scheduledAt = parsed.toISOString();
   }
 
+  const tenantId = await resolveTenantId(session.user?.email);
   const campaign = await createCampaign({
+    tenantId,
     subject,
     html,
     recipients,
@@ -80,6 +84,7 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const ok = await cancelCampaign(id);
+  const tenantId = await resolveTenantId(session.user?.email);
+  const ok = await cancelCampaign(id, tenantId);
   return NextResponse.json({ canceled: ok });
 }

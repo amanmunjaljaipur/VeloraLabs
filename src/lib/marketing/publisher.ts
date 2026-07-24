@@ -26,6 +26,7 @@ function isVideoUrl(url: string | null): boolean {
 }
 
 export async function publishToAccounts(
+  tenantId: string,
   accountIds: string[],
   content: string,
   imageUrl: string | null,
@@ -39,7 +40,7 @@ export async function publishToAccounts(
   const isDocumentPost = slides.length >= 2;
 
   for (const accountId of accountIds) {
-    const account = await getConnectedAccount(accountId);
+    const account = await getConnectedAccount(accountId, tenantId);
     if (!account) {
       targets.push({
         accountId,

@@ -141,6 +141,7 @@ export async function refreshXAccessToken(refreshToken: string): Promise<TokenRe
  * should treat as "needs reconnect".
  */
 export async function getValidXAccessToken(account: {
+  tenantId: string;
   externalId: string;
   name: string;
   picture?: string | null;
@@ -157,6 +158,7 @@ export async function getValidXAccessToken(account: {
   if (!refreshed) return null;
 
   await upsertConnectedAccount({
+    tenantId: account.tenantId,
     platform: "x",
     externalId: account.externalId,
     name: account.name,

@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
+import { DEFAULT_TENANT_ID } from "@/lib/marketing/tenants-store";
 
 /**
  * Queue of posts scheduled for later publishing. The marketing cron picks
@@ -18,6 +19,7 @@ export interface ScheduledSlide {
 
 export interface ScheduledPost {
   id: string;
+  tenantId: string;
   content: string;
   imageUrl: string | null;
   imageUrls?: string[];
@@ -35,19 +37,21 @@ export interface ScheduledPost {
 
 async function readAll(): Promise<ScheduledPost[]> {
   await ensureDataFileHydrated(SCHEDULED_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<ScheduledPost[]>(SCHEDULED_FILE, DEFAULT_JSON);
+  const all = readJsonFile<ScheduledPost[]>(SCHEDULED_FILE, DEFAULT_JSON);
+  return all.map((p) => (p.tenantId ? p : { ...p, tenantId: DEFAULT_TENANT_ID }));
 }
 
 async function writeAll(items: ScheduledPost[]): Promise<void> {
   await writeJsonFileAsync(SCHEDULED_FILE, items, DEFAULT_JSON);
 }
 
-export async function listScheduledPosts(): Promise<ScheduledPost[]> {
+export async function listScheduledPosts(tenantId: string): Promise<ScheduledPost[]> {
   const all = await readAll();
-  return [...all].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  return all.filter((p) => p.tenantId === tenantId).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
 }
 
 export async function createScheduledPost(input: {
+  tenantId: string;
   content: string;
   imageUrl: string | null;
   imageUrls?: string[];
@@ -59,6 +63,7 @@ export async function createScheduledPost(input: {
   const all = await readAll();
   const record: ScheduledPost = {
     id: randomUUID(),
+    tenantId: input.tenantId,
     content: input.content,
     imageUrl: input.imageUrl,
     imageUrls: input.imageUrls?.length ? input.imageUrls : undefined,
@@ -74,9 +79,9 @@ export async function createScheduledPost(input: {
   return record;
 }
 
-export async function cancelScheduledPost(id: string): Promise<boolean> {
+export async function cancelScheduledPost(id: string, tenantId: string): Promise<boolean> {
   const all = await readAll();
-  const idx = all.findIndex((p) => p.id === id && p.status === "scheduled");
+  const idx = all.findIndex((p) => p.id === id && p.tenantId === tenantId && p.status === "scheduled");
   if (idx === -1) return false;
   all.splice(idx, 1);
   await writeAll(all);

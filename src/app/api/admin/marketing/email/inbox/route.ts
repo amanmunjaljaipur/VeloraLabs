@@ -2,6 +2,7 @@ import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { listInboxEntries, syncInbox, updateInboxEntry, type InboxEntry } from "@/lib/marketing/inbox-store";
 import { triageEmail } from "@/lib/marketing/ai-email-assist";
 import { upsertLead } from "@/lib/marketing/leads-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { isLlmConfigured } from "@/lib/chat/llm-client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,7 +13,8 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const entries = await listInboxEntries();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const entries = await listInboxEntries(tenantId);
   return NextResponse.json({ entries });
 }
 
@@ -25,27 +27,28 @@ export async function POST(req: NextRequest) {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const tenantId = await resolveTenantId(session.user?.email);
   const body = await req.json().catch(() => null);
   const action = body?.action;
 
   if (action === "sync") {
-    const { synced } = await syncInbox(50);
+    const { synced } = await syncInbox(tenantId, 50);
     let triaged = 0;
 
     if (synced > 0 && isLlmConfigured()) {
-      const entries = await listInboxEntries();
+      const entries = await listInboxEntries(tenantId);
       const untriaged = entries.filter((e) => !e.aiSummary).slice(0, 20);
       for (const entry of untriaged) {
         try {
           const triage = await triageEmail({ from: entry.from, subject: entry.subject, body: entry.bodyText });
-          await updateInboxEntry(entry.uid, {
+          await updateInboxEntry(entry.uid, tenantId, {
             aiSummary: triage.summary || null,
             tag: triage.tag,
             priority: triage.priority,
           });
           triaged += 1;
           if (triage.tag === "lead") {
-            await upsertLead({ email: entry.from, name: entry.fromName, source: "inbox" });
+            await upsertLead({ tenantId, email: entry.from, name: entry.fromName, source: "inbox" });
           }
         } catch (error) {
           console.error(`Email triage failed for uid ${entry.uid}:`, error);
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (typeof patch.priority === "string") cleanPatch.priority = patch.priority;
     if (typeof patch.read === "boolean") cleanPatch.read = patch.read;
     if (typeof patch.archived === "boolean") cleanPatch.archived = patch.archived;
-    const entry = await updateInboxEntry(uid, cleanPatch);
+    const entry = await updateInboxEntry(uid, tenantId, cleanPatch);
     if (!entry) return NextResponse.json({ error: "Message not found" }, { status: 404 });
     return NextResponse.json({ entry });
   }

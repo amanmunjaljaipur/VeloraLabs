@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
 import type { MarketingPlatform } from "@/lib/marketing/accounts-store";
+import { DEFAULT_TENANT_ID } from "@/lib/marketing/tenants-store";
 
 /**
  * Our own ledger of what has been published through the Marketing Board.
@@ -23,6 +24,7 @@ export interface PostTarget {
 
 export interface MarketingPost {
   id: string;
+  tenantId: string;
   content: string;
   imageUrl: string | null;
   targets: PostTarget[];
@@ -32,19 +34,21 @@ export interface MarketingPost {
 
 async function readAll(): Promise<MarketingPost[]> {
   await ensureDataFileHydrated(POSTS_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<MarketingPost[]>(POSTS_FILE, DEFAULT_JSON);
+  const all = readJsonFile<MarketingPost[]>(POSTS_FILE, DEFAULT_JSON);
+  return all.map((p) => (p.tenantId ? p : { ...p, tenantId: DEFAULT_TENANT_ID }));
 }
 
 async function writeAll(items: MarketingPost[]): Promise<void> {
   await writeJsonFileAsync(POSTS_FILE, items, DEFAULT_JSON);
 }
 
-export async function listMarketingPosts(): Promise<MarketingPost[]> {
+export async function listMarketingPosts(tenantId: string): Promise<MarketingPost[]> {
   const all = await readAll();
-  return [...all].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return all.filter((p) => p.tenantId === tenantId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function recordMarketingPost(input: {
+  tenantId: string;
   content: string;
   imageUrl: string | null;
   targets: PostTarget[];
@@ -53,6 +57,7 @@ export async function recordMarketingPost(input: {
   const all = await readAll();
   const record: MarketingPost = {
     id: randomUUID(),
+    tenantId: input.tenantId,
     content: input.content,
     imageUrl: input.imageUrl,
     targets: input.targets,

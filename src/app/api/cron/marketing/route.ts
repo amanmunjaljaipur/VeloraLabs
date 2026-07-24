@@ -28,11 +28,15 @@ export async function GET(request: NextRequest) {
 
   for (const scheduled of due) {
     try {
-      const targets = await publishToAccounts(scheduled.accountIds, scheduled.content, scheduled.imageUrl, {
-        imageUrls: scheduled.imageUrls,
-        slides: scheduled.slides,
-      });
+      const targets = await publishToAccounts(
+        scheduled.tenantId,
+        scheduled.accountIds,
+        scheduled.content,
+        scheduled.imageUrl,
+        { imageUrls: scheduled.imageUrls, slides: scheduled.slides }
+      );
       const post = await recordMarketingPost({
+        tenantId: scheduled.tenantId,
         content: scheduled.content,
         imageUrl: scheduled.imageUrl,
         targets,

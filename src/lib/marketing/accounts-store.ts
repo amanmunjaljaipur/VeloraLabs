@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
+import { DEFAULT_TENANT_ID } from "@/lib/marketing/tenants-store";
 
 /**
  * Server-only store for connected marketing account credentials (Facebook
@@ -10,6 +11,13 @@ import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/
  * file itself is sensitive, so it is Blob-persisted with the same
  * strong-write guarantee as other auth-adjacent stores, and it is never
  * read by anything client-side.
+ *
+ * Every record carries a tenantId so one workspace's connected accounts
+ * (and their tokens) are never visible to, or postable by, another -
+ * that's the core of the multi-tenant isolation. Records written before
+ * tenants existed have no tenantId in storage; readAll() backfills them to
+ * DEFAULT_TENANT_ID in memory so Verlin Labs' own pre-existing connections
+ * keep working without a migration script.
  */
 
 const ACCOUNTS_FILE = "marketing-accounts.json";
@@ -19,6 +27,7 @@ export type MarketingPlatform = "facebook" | "instagram" | "linkedin" | "x";
 
 export interface ConnectedAccount {
   id: string;
+  tenantId: string;
   platform: MarketingPlatform;
   /** Facebook Page ID, Instagram Business Account ID, LinkedIn organization URN, or X user ID */
   externalId: string;
@@ -44,7 +53,8 @@ export interface PublicAccount {
 
 async function readAll(): Promise<ConnectedAccount[]> {
   await ensureDataFileHydrated(ACCOUNTS_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<ConnectedAccount[]>(ACCOUNTS_FILE, DEFAULT_JSON);
+  const all = readJsonFile<ConnectedAccount[]>(ACCOUNTS_FILE, DEFAULT_JSON);
+  return all.map((a) => (a.tenantId ? a : { ...a, tenantId: DEFAULT_TENANT_ID }));
 }
 
 async function writeAll(items: ConnectedAccount[]): Promise<void> {
@@ -70,18 +80,24 @@ export function toPublicAccount(account: ConnectedAccount): PublicAccount {
   };
 }
 
-export async function listConnectedAccounts(): Promise<ConnectedAccount[]> {
-  return readAll();
+export async function listConnectedAccounts(tenantId: string): Promise<ConnectedAccount[]> {
+  const all = await readAll();
+  return all.filter((a) => a.tenantId === tenantId);
 }
 
-export async function listPublicAccounts(): Promise<PublicAccount[]> {
-  const all = await readAll();
+export async function listPublicAccounts(tenantId: string): Promise<PublicAccount[]> {
+  const all = await listConnectedAccounts(tenantId);
   return all.map(toPublicAccount);
 }
 
-export async function getConnectedAccount(id: string): Promise<ConnectedAccount | null> {
+/**
+ * Scoped by tenantId so an account ID from one workspace can never be used
+ * (accidentally or by a crafted request) to publish through, or read the
+ * token of, another workspace's connected account.
+ */
+export async function getConnectedAccount(id: string, tenantId: string): Promise<ConnectedAccount | null> {
   const all = await readAll();
-  return all.find((a) => a.id === id) ?? null;
+  return all.find((a) => a.id === id && a.tenantId === tenantId) ?? null;
 }
 
 /**
@@ -92,6 +108,7 @@ export async function getConnectedAccount(id: string): Promise<ConnectedAccount 
  * existing row in place", not "create a new one".
  */
 export async function upsertConnectedAccount(input: {
+  tenantId: string;
   platform: MarketingPlatform;
   externalId: string;
   name: string;
@@ -102,10 +119,13 @@ export async function upsertConnectedAccount(input: {
   connectedBy: string;
 }): Promise<ConnectedAccount> {
   const all = await readAll();
-  const idx = all.findIndex((a) => a.platform === input.platform && a.externalId === input.externalId);
+  const idx = all.findIndex(
+    (a) => a.tenantId === input.tenantId && a.platform === input.platform && a.externalId === input.externalId
+  );
 
   const record: ConnectedAccount = {
     id: idx >= 0 ? all[idx]!.id : randomUUID(),
+    tenantId: input.tenantId,
     platform: input.platform,
     externalId: input.externalId,
     name: input.name,
@@ -124,9 +144,9 @@ export async function upsertConnectedAccount(input: {
   return record;
 }
 
-export async function disconnectAccount(id: string): Promise<boolean> {
+export async function disconnectAccount(id: string, tenantId: string): Promise<boolean> {
   const all = await readAll();
-  const next = all.filter((a) => a.id !== id);
+  const next = all.filter((a) => !(a.id === id && a.tenantId === tenantId));
   if (next.length === all.length) return false;
   await writeAll(next);
   return true;

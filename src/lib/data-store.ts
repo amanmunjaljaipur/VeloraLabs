@@ -63,6 +63,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-email-campaigns.json",
   /** CAN-SPAM/GDPR unsubscribe suppression list for campaign sends */
   "marketing-email-suppression.json",
+  /** Workspace/tenant records - the multi-tenant isolation boundary for the whole Marketing Board */
+  "marketing-tenants.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -99,6 +101,10 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   // someone who just unsubscribed.
   "marketing-email-suppression.json",
   "marketing-email-campaigns.json",
+  // Tenant membership gates data access for every other store above - must
+  // be strongly consistent so a just-added member sees their workspace
+  // immediately rather than falling through to "default".
+  "marketing-tenants.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

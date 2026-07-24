@@ -2,6 +2,7 @@ import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
 import { disconnectAccount, listPublicAccounts } from "@/lib/marketing/accounts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { isMetaConfigured } from "@/lib/marketing/meta-client";
 import { isLinkedInOrgConfigured } from "@/lib/marketing/linkedin-client";
 import { isXConfigured } from "@/lib/marketing/x-client";
@@ -9,12 +10,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-/** Connected accounts, safe to show admin+super_admin. Never includes tokens. */
+/** Connected accounts, safe to show admin+super_admin. Never includes tokens. Scoped to the caller's workspace. */
 export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const accounts = await listPublicAccounts();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const accounts = await listPublicAccounts(tenantId);
   return NextResponse.json({
     accounts,
     metaConfigured: isMetaConfigured(),
@@ -34,7 +36,8 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-  const removed = await disconnectAccount(id);
+  const tenantId = await resolveTenantId(session.user?.email);
+  const removed = await disconnectAccount(id, tenantId);
   if (!removed) return NextResponse.json({ error: "Account not found" }, { status: 404 });
 
   return NextResponse.json({ ok: true });

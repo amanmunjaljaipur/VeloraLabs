@@ -3,6 +3,7 @@ import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
 import { discoverPages, exchangeCodeForUserToken, getLongLivedUserToken } from "@/lib/marketing/meta-client";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -41,10 +42,12 @@ export async function GET(req: NextRequest) {
   if (pages.length === 0) return fail("meta_no_pages_found");
 
   const connectedBy = session!.user!.email as string;
+  const tenantId = await resolveTenantId(connectedBy);
 
   for (const page of pages) {
     // Page access tokens derived from a long-lived user token effectively do not expire.
     await upsertConnectedAccount({
+      tenantId,
       platform: "facebook",
       externalId: page.pageId,
       name: page.pageName,
@@ -56,6 +59,7 @@ export async function GET(req: NextRequest) {
 
     if (page.instagramBusinessAccountId) {
       await upsertConnectedAccount({
+        tenantId,
         platform: "instagram",
         externalId: page.instagramBusinessAccountId,
         name: page.instagramUsername ? `@${page.instagramUsername}` : `${page.pageName} (Instagram)`,

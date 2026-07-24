@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
+import { DEFAULT_TENANT_ID } from "@/lib/marketing/tenants-store";
 
 /**
  * Email campaigns for the Email Suite - the "email" equivalent of the
@@ -18,6 +19,7 @@ export type CampaignStatus = "draft" | "scheduled" | "sent" | "failed";
 
 export interface Campaign {
   id: string;
+  tenantId: string;
   subject: string;
   html: string;
   /** Explicit recipient addresses */
@@ -35,19 +37,21 @@ export interface Campaign {
 
 async function readAll(): Promise<Campaign[]> {
   await ensureDataFileHydrated(CAMPAIGNS_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<Campaign[]>(CAMPAIGNS_FILE, DEFAULT_JSON);
+  const all = readJsonFile<Campaign[]>(CAMPAIGNS_FILE, DEFAULT_JSON);
+  return all.map((c) => (c.tenantId ? c : { ...c, tenantId: DEFAULT_TENANT_ID }));
 }
 
 async function writeAll(items: Campaign[]): Promise<void> {
   await writeJsonFileAsync(CAMPAIGNS_FILE, items, DEFAULT_JSON);
 }
 
-export async function listCampaigns(): Promise<Campaign[]> {
+export async function listCampaigns(tenantId: string): Promise<Campaign[]> {
   const all = await readAll();
-  return [...all].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return all.filter((c) => c.tenantId === tenantId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function createCampaign(input: {
+  tenantId: string;
   subject: string;
   html: string;
   recipients: string[];
@@ -58,6 +62,7 @@ export async function createCampaign(input: {
   const all = await readAll();
   const campaign: Campaign = {
     id: randomUUID(),
+    tenantId: input.tenantId,
     subject: input.subject,
     html: input.html,
     recipients: input.recipients,
@@ -75,14 +80,14 @@ export async function createCampaign(input: {
   return campaign;
 }
 
-export async function getCampaign(id: string): Promise<Campaign | null> {
+export async function getCampaign(id: string, tenantId: string): Promise<Campaign | null> {
   const all = await readAll();
-  return all.find((c) => c.id === id) ?? null;
+  return all.find((c) => c.id === id && c.tenantId === tenantId) ?? null;
 }
 
-export async function cancelCampaign(id: string): Promise<boolean> {
+export async function cancelCampaign(id: string, tenantId: string): Promise<boolean> {
   const all = await readAll();
-  const idx = all.findIndex((c) => c.id === id && c.status === "scheduled");
+  const idx = all.findIndex((c) => c.id === id && c.tenantId === tenantId && c.status === "scheduled");
   if (idx === -1) return false;
   all.splice(idx, 1);
   await writeAll(all);

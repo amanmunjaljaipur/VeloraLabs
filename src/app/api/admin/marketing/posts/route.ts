@@ -2,6 +2,7 @@ import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { listMarketingPosts, recordMarketingPost } from "@/lib/marketing/posts-store";
 import { publishToAccounts } from "@/lib/marketing/publisher";
 import { createScheduledPost } from "@/lib/marketing/scheduled-posts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -10,7 +11,8 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const posts = await listMarketingPosts();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const posts = await listMarketingPosts(tenantId);
   return NextResponse.json({ posts });
 }
 
@@ -53,6 +55,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Choose at least one connected account" }, { status: 400 });
   }
 
+  const tenantId = await resolveTenantId(session.user?.email);
+
   if (scheduledAtRaw) {
     const scheduledAt = new Date(scheduledAtRaw);
     if (Number.isNaN(scheduledAt.getTime())) {
@@ -65,6 +69,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const scheduled = await createScheduledPost({
+      tenantId,
       content,
       imageUrl,
       imageUrls,
@@ -76,9 +81,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ scheduled }, { status: 201 });
   }
 
-  const targets = await publishToAccounts(accountIds, content, imageUrl, { imageUrls, slides });
+  const targets = await publishToAccounts(tenantId, accountIds, content, imageUrl, { imageUrls, slides });
 
   const post = await recordMarketingPost({
+    tenantId,
     content,
     imageUrl,
     targets,

@@ -1,6 +1,7 @@
 import { requireCmsEditor } from "@/lib/cms/admin-auth";
 import { getConnectedAccount } from "@/lib/marketing/accounts-store";
 import { listMarketingPosts, type MarketingPost } from "@/lib/marketing/posts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { getFacebookPostInsights, getInstagramMediaInsights } from "@/lib/marketing/meta-client";
 import { getLinkedInPostAnalytics } from "@/lib/marketing/linkedin-client";
 import { getValidXAccessToken, getXPostAnalytics } from "@/lib/marketing/x-client";
@@ -29,7 +30,8 @@ export async function GET() {
   const session = await requireCmsEditor();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const posts = await listMarketingPosts();
+  const tenantId = await resolveTenantId(session.user?.email);
+  const posts = await listMarketingPosts(tenantId);
 
   const rows: PerformanceRow[] = await Promise.all(
     posts.map(async (post) => {
@@ -39,7 +41,7 @@ export async function GET() {
             return { platform: target.platform, status: target.status, analytics: null };
           }
 
-          const account = await getConnectedAccount(target.accountId);
+          const account = await getConnectedAccount(target.accountId, tenantId);
           if (!account) return { platform: target.platform, status: target.status, analytics: null };
 
           let analytics: Record<string, number> | null = null;

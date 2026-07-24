@@ -3,6 +3,7 @@ import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
 import { discoverOrganizations, exchangeCodeForToken } from "@/lib/marketing/linkedin-client";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -38,10 +39,12 @@ export async function GET(req: NextRequest) {
   if (orgs.length === 0) return fail("linkedin_no_organizations_found");
 
   const connectedBy = session!.user!.email as string;
+  const tenantId = await resolveTenantId(connectedBy);
   const expiresAt = new Date(Date.now() + token.expiresInSeconds * 1000).toISOString();
 
   for (const org of orgs) {
     await upsertConnectedAccount({
+      tenantId,
       platform: "linkedin",
       externalId: org.organizationUrn,
       name: org.name,

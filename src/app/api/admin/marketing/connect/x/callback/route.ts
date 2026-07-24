@@ -3,6 +3,7 @@ import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
 import { discoverXAccount, exchangeCodeForToken } from "@/lib/marketing/x-client";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { consumePkceVerifier, verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,9 +44,11 @@ export async function GET(req: NextRequest) {
   if (!account) return fail("x_no_account_found");
 
   const connectedBy = session!.user!.email as string;
+  const tenantId = await resolveTenantId(connectedBy);
   const expiresAt = new Date(Date.now() + token.expiresInSeconds * 1000).toISOString();
 
   await upsertConnectedAccount({
+    tenantId,
     platform: "x",
     externalId: account.userId,
     name: `@${account.username}`,

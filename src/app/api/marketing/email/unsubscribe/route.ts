@@ -7,13 +7,14 @@ export const runtime = "nodejs";
 /** Public, unauthenticated - clicked directly from an email footer. Token is an HMAC, not a secret to protect. */
 export async function GET(req: NextRequest) {
   const email = req.nextUrl.searchParams.get("email")?.trim() ?? "";
+  const tenantId = req.nextUrl.searchParams.get("tenant")?.trim() ?? "default";
   const token = req.nextUrl.searchParams.get("token")?.trim() ?? "";
 
-  if (!email || !token || !verifyUnsubscribeToken(email, token)) {
+  if (!email || !token || !verifyUnsubscribeToken(email, tenantId, token)) {
     return new NextResponse("Invalid or expired unsubscribe link.", { status: 400 });
   }
 
-  await addSuppression(email, "unsubscribed");
+  await addSuppression(email, tenantId, "unsubscribed");
 
   return new NextResponse(
     `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Unsubscribed</title>
