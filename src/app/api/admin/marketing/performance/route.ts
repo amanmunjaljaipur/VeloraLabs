@@ -3,6 +3,7 @@ import { getConnectedAccount } from "@/lib/marketing/accounts-store";
 import { listMarketingPosts, type MarketingPost } from "@/lib/marketing/posts-store";
 import { getFacebookPostInsights, getInstagramMediaInsights } from "@/lib/marketing/meta-client";
 import { getLinkedInPostAnalytics } from "@/lib/marketing/linkedin-client";
+import { getValidXAccessToken, getXPostAnalytics } from "@/lib/marketing/x-client";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -53,6 +54,9 @@ export async function GET() {
                 account.externalId,
                 account.accessToken
               );
+            } else if (target.platform === "x") {
+              const accessToken = await getValidXAccessToken(account);
+              analytics = accessToken ? await getXPostAnalytics(target.platformPostId, accessToken) : null;
             }
           } catch {
             analytics = null;

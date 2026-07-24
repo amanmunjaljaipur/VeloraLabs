@@ -4,29 +4,31 @@ import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/
 /**
  * Server-only store for connected marketing account credentials (Facebook
  * Page tokens, Instagram Business Account IDs, LinkedIn organization
- * tokens). Access tokens NEVER leave this module - every API route and
- * every client-facing shape strips them before returning. This mirrors how
- * manual-users.json stores password hashes, not plaintext: the file itself
- * is sensitive, so it is Blob-persisted with the same strong-write
- * guarantee as other auth-adjacent stores, and it is never read by
- * anything client-side.
+ * tokens, X user tokens). Access tokens NEVER leave this module - every API
+ * route and every client-facing shape strips them before returning. This
+ * mirrors how manual-users.json stores password hashes, not plaintext: the
+ * file itself is sensitive, so it is Blob-persisted with the same
+ * strong-write guarantee as other auth-adjacent stores, and it is never
+ * read by anything client-side.
  */
 
 const ACCOUNTS_FILE = "marketing-accounts.json";
 const DEFAULT_JSON = "[]";
 
-export type MarketingPlatform = "facebook" | "instagram" | "linkedin";
+export type MarketingPlatform = "facebook" | "instagram" | "linkedin" | "x";
 
 export interface ConnectedAccount {
   id: string;
   platform: MarketingPlatform;
-  /** Facebook Page ID, Instagram Business Account ID, or LinkedIn organization URN */
+  /** Facebook Page ID, Instagram Business Account ID, LinkedIn organization URN, or X user ID */
   externalId: string;
   name: string;
   picture?: string | null;
   accessToken: string;
-  /** Facebook long-lived Page tokens do not expire; LinkedIn tokens do - null means "does not expire" */
+  /** Facebook long-lived Page tokens do not expire; LinkedIn and X tokens do - null means "does not expire" */
   expiresAt: string | null;
+  /** X only: needed to mint a new access token via refresh_token once expiresAt passes (offline.access scope) */
+  refreshToken?: string | null;
   connectedBy: string;
   connectedAt: string;
 }
@@ -76,7 +78,13 @@ export async function getConnectedAccount(id: string): Promise<ConnectedAccount 
   return all.find((a) => a.id === id) ?? null;
 }
 
-/** Upsert by (platform, externalId) so re-connecting refreshes the token instead of duplicating the row. */
+/**
+ * Upsert by (platform, externalId) so re-connecting refreshes the token
+ * instead of duplicating the row. Also used internally by the X client to
+ * write back a rotated access/refresh token pair after a silent refresh -
+ * same reasoning applies: same (platform, externalId) means "update the
+ * existing row in place", not "create a new one".
+ */
 export async function upsertConnectedAccount(input: {
   platform: MarketingPlatform;
   externalId: string;
@@ -84,6 +92,7 @@ export async function upsertConnectedAccount(input: {
   picture?: string | null;
   accessToken: string;
   expiresAt: string | null;
+  refreshToken?: string | null;
   connectedBy: string;
 }): Promise<ConnectedAccount> {
   const all = await readAll();
@@ -97,6 +106,7 @@ export async function upsertConnectedAccount(input: {
     picture: input.picture ?? null,
     accessToken: input.accessToken,
     expiresAt: input.expiresAt,
+    refreshToken: input.refreshToken ?? (idx >= 0 ? all[idx]!.refreshToken ?? null : null),
     connectedBy: input.connectedBy,
     connectedAt: idx >= 0 ? all[idx]!.connectedAt : new Date().toISOString(),
   };

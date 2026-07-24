@@ -4,6 +4,7 @@ import { isSuperAdminRole } from "@/lib/session-access";
 import { disconnectAccount, listPublicAccounts } from "@/lib/marketing/accounts-store";
 import { isMetaConfigured } from "@/lib/marketing/meta-client";
 import { isLinkedInOrgConfigured } from "@/lib/marketing/linkedin-client";
+import { isXConfigured } from "@/lib/marketing/x-client";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ export async function GET() {
     accounts,
     metaConfigured: isMetaConfigured(),
     linkedinConfigured: isLinkedInOrgConfigured(),
+    xConfigured: isXConfigured(),
   });
 }
 

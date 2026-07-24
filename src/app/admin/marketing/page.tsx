@@ -7,7 +7,7 @@ import { Suspense } from "react";
 
 export const metadata = createMetadata({
   title: "Marketing Board",
-  description: "Post to Instagram, Facebook, and LinkedIn from one screen and see performance.",
+  description: "Post to Instagram, Facebook, LinkedIn, and X from one screen and see performance.",
   path: "/admin/marketing",
   noIndex: true,
 });
@@ -27,7 +27,7 @@ export default async function AdminMarketingPage() {
     <>
       <PageHeader
         title="Marketing Board"
-        subtitle="Connect Instagram, Facebook, and LinkedIn once, publish to all three from one composer, and see how each post is doing in one place."
+        subtitle="Connect Instagram, Facebook, LinkedIn, and X once, publish to all four from one composer, and see how each post is doing in one place."
       />
       <Suspense fallback={<div className="h-64 w-full animate-pulse rounded-2xl bg-muted" />}>
         <MarketingBoard />

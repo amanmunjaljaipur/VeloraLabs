@@ -3,6 +3,7 @@ import { getConnectedAccount } from "@/lib/marketing/accounts-store";
 import { listMarketingPosts, recordMarketingPost, type PostTarget } from "@/lib/marketing/posts-store";
 import { postToFacebookPage, postToInstagram } from "@/lib/marketing/meta-client";
 import { postToLinkedInOrganization } from "@/lib/marketing/linkedin-client";
+import { getValidXAccessToken, postToX } from "@/lib/marketing/x-client";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -83,6 +84,26 @@ export async function POST(req: NextRequest) {
       targets.push({
         accountId,
         platform: "linkedin",
+        status: result.ok ? "published" : "failed",
+        platformPostId: result.ok ? result.postId : null,
+        error: result.ok ? undefined : result.error,
+      });
+    } else if (account.platform === "x") {
+      const accessToken = await getValidXAccessToken(account);
+      if (!accessToken) {
+        targets.push({
+          accountId,
+          platform: "x",
+          status: "failed",
+          platformPostId: null,
+          error: "X token expired and could not be refreshed - reconnect X",
+        });
+        continue;
+      }
+      const result = await postToX(accessToken, content);
+      targets.push({
+        accountId,
+        platform: "x",
         status: result.ok ? "published" : "failed",
         platformPostId: result.ok ? result.postId : null,
         error: result.ok ? undefined : result.error,

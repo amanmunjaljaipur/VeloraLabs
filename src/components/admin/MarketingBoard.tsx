@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface PublicAccount {
   id: string;
-  platform: "facebook" | "instagram" | "linkedin";
+  platform: "facebook" | "instagram" | "linkedin" | "x";
   name: string;
   picture?: string | null;
   expiringSoon: boolean;
@@ -41,9 +41,10 @@ const PLATFORM_META: Record<string, { label: string; letter: string; bg: string 
   instagram: { label: "Instagram", letter: "IG", bg: "bg-pink-600" },
   facebook: { label: "Facebook", letter: "FB", bg: "bg-blue-600" },
   linkedin: { label: "LinkedIn", letter: "IN", bg: "bg-sky-700" },
+  x: { label: "X", letter: "X", bg: "bg-neutral-900" },
 };
 
-const TARGET_PLATFORMS = ["instagram", "facebook", "linkedin"] as const;
+const TARGET_PLATFORMS = ["instagram", "facebook", "linkedin", "x"] as const;
 
 function platformMeta(platform: string) {
   return (
@@ -73,14 +74,19 @@ const ERROR_MESSAGES: Record<string, string> = {
   meta_not_configured: "Meta app credentials are not set up yet - add META_APP_ID and META_APP_SECRET",
   linkedin_not_configured:
     "LinkedIn app credentials are not set up yet - add LINKEDIN_ORG_CLIENT_ID and LINKEDIN_ORG_CLIENT_SECRET",
+  x_not_configured: "X app credentials are not set up yet - add X_CLIENT_ID and X_CLIENT_SECRET",
   meta_denied: "Meta connection was cancelled",
   linkedin_denied: "LinkedIn connection was cancelled",
+  x_denied: "X connection was cancelled",
   state_mismatch: "That connection attempt expired - try again",
   meta_no_pages_found: "No Facebook Pages found for this account",
   linkedin_no_organizations_found: "No LinkedIn Company Pages found for this account",
+  x_no_account_found: "Could not read the X account - try again",
   meta_token_exchange_failed: "Meta did not accept the connection - try again",
   meta_long_lived_exchange_failed: "Meta did not accept the connection - try again",
   linkedin_token_exchange_failed: "LinkedIn did not accept the connection - try again",
+  x_token_exchange_failed: "X did not accept the connection - try again",
+  x_pkce_missing: "That connection attempt expired - try again",
 };
 
 export function MarketingBoard() {
@@ -93,6 +99,7 @@ export function MarketingBoard() {
   const [accounts, setAccounts] = useState<PublicAccount[]>([]);
   const [metaConfigured, setMetaConfigured] = useState(false);
   const [linkedinConfigured, setLinkedinConfigured] = useState(false);
+  const [xConfigured, setXConfigured] = useState(false);
   const [rows, setRows] = useState<PerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -115,6 +122,7 @@ export function MarketingBoard() {
       setAccounts(accountsData.accounts ?? []);
       setMetaConfigured(Boolean(accountsData.metaConfigured));
       setLinkedinConfigured(Boolean(accountsData.linkedinConfigured));
+      setXConfigured(Boolean(accountsData.xConfigured));
       setRows(performanceData.rows ?? []);
     } catch {
       toast("Could not load the marketing board", "error");
@@ -145,6 +153,17 @@ export function MarketingBoard() {
     }
     return map;
   }, [accounts]);
+
+  // Facebook and Instagram share one Meta OAuth flow; LinkedIn and X each have their own.
+  const platformConnect = useMemo<Record<(typeof TARGET_PLATFORMS)[number], { configured: boolean; href: string }>>(
+    () => ({
+      facebook: { configured: metaConfigured, href: "/api/admin/marketing/connect/meta" },
+      instagram: { configured: metaConfigured, href: "/api/admin/marketing/connect/meta" },
+      linkedin: { configured: linkedinConfigured, href: "/api/admin/marketing/connect/linkedin" },
+      x: { configured: xConfigured, href: "/api/admin/marketing/connect/x" },
+    }),
+    [metaConfigured, linkedinConfigured, xConfigured]
+  );
 
   function toggleSelected(id: string) {
     setSelected((prev) => {
@@ -222,13 +241,11 @@ export function MarketingBoard() {
   return (
     <div className="space-y-8">
       {/* Connection status */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {TARGET_PLATFORMS.map((platform) => {
           const meta = platformMeta(platform);
           const connectedAccounts = accountsByPlatform.get(platform) ?? [];
-          const configured = platform === "linkedin" ? linkedinConfigured : metaConfigured;
-          const connectHref =
-            platform === "linkedin" ? "/api/admin/marketing/connect/linkedin" : "/api/admin/marketing/connect/meta";
+          const { configured, href: connectHref } = platformConnect[platform];
 
           return (
             <Card key={platform} className="p-4">
@@ -288,19 +305,22 @@ export function MarketingBoard() {
         })}
       </div>
 
-      {!metaConfigured && !linkedinConfigured && (
+      {!metaConfigured && !linkedinConfigured && !xConfigured && (
         <Card className="flex items-start gap-4 p-6">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
           <div>
             <p className="font-semibold text-foreground">No platforms configured yet</p>
             <p className="mt-1 text-sm text-text-secondary">
-              This board talks directly to Meta and LinkedIn - no third-party vendor in between.
+              This board talks directly to Meta, LinkedIn, and X - no third-party vendor in between.
               Set <code className="rounded bg-muted px-1.5 py-0.5 text-xs">META_APP_ID</code> /{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 text-xs">META_APP_SECRET</code> for
-              Instagram and Facebook, and{" "}
+              Instagram and Facebook,{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 text-xs">LINKEDIN_ORG_CLIENT_ID</code> /{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 text-xs">LINKEDIN_ORG_CLIENT_SECRET</code>{" "}
-              for LinkedIn, then a super admin can connect each account above.
+              for LinkedIn, and{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">X_CLIENT_ID</code> /{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">X_CLIENT_SECRET</code> for X,
+              then a super admin can connect each account above.
             </p>
           </div>
         </Card>
