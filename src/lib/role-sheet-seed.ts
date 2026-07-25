@@ -1,15 +1,14 @@
 import fs from "fs";
 import path from "path";
 import { buildUserNameMap, readRepoRoleAssignments } from "@/lib/user-directory";
-import { USER_ROLES, type UserRole } from "@/types/roles";
+import { getDisplayRoleFrom, type StoredAssignment } from "@/lib/roles";
+import type { UserRole } from "@/types/roles";
 
 export interface RoleSheetSeedRow {
   email: string;
   name: string;
   role: UserRole;
 }
-
-const VALID_ROLES = new Set<string>(USER_ROLES);
 
 function readJsonFile<T>(relativePath: string, fallback: T): T {
   const filePath = path.join(process.cwd(), "content", relativePath);
@@ -21,31 +20,32 @@ function readJsonFile<T>(relativePath: string, fallback: T): T {
   }
 }
 
-/** Build role rows from local JSON files (repo seed data). */
+/** Build role rows from local JSON files (repo seed data). Only ever shows one role per user (the active one) - this predates multi-role. */
 export function buildRoleSheetSeedRows(): RoleSheetSeedRow[] {
-  const roles = readJsonFile<Record<string, UserRole>>("user-roles.json", {});
+  const roles = readJsonFile<Record<string, StoredAssignment>>("user-roles.json", {});
   const names = buildUserNameMap();
 
   return Object.entries(roles)
-    .map(([email, role]) => ({
+    .map(([email, raw]) => ({
       email: email.toLowerCase().trim(),
       name: names[email.toLowerCase()] ?? "",
-      role,
+      role: getDisplayRoleFrom(raw),
     }))
+    .filter((row): row is RoleSheetSeedRow => row.role !== null)
     .sort((a, b) => a.email.localeCompare(b.email));
 }
 
-/** Build role rows from persisted JSON assignments. */
+/** Build role rows from persisted JSON assignments. Only ever shows one role per user (the active one) - this predates multi-role. */
 export async function buildRoleSheetSyncRows(): Promise<RoleSheetSeedRow[]> {
   const localRoles = readRepoRoleAssignments();
   const names = buildUserNameMap();
 
   return Object.entries(localRoles)
-    .filter(([, role]) => VALID_ROLES.has(role))
-    .map(([email, role]) => ({
+    .map(([email, raw]) => ({
       email: email.toLowerCase().trim(),
       name: names[email.toLowerCase()] ?? "",
-      role,
+      role: getDisplayRoleFrom(raw),
     }))
+    .filter((row): row is RoleSheetSeedRow => row.role !== null)
     .sort((a, b) => a.email.localeCompare(b.email));
 }

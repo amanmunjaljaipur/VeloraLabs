@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { readJsonFile } from "@/lib/data-store";
 import { getAllManualUsers } from "@/lib/manual-users";
-import type { UserRolesConfig } from "@/lib/roles";
+import { getDisplayRoleFrom, type UserRolesConfig } from "@/lib/roles";
 import { ROLE_LABELS, type UserRole } from "@/types/roles";
 
 const ROLES_FILE = "user-roles.json";
@@ -57,11 +57,12 @@ export function buildUserRoleExportRows(): {
   const names = buildUserNameMap();
 
   return Object.entries(roles)
-    .map(([email, role]) => ({
+    .map(([email, raw]) => ({
       email: email.toLowerCase(),
       name: names[email.toLowerCase()] ?? "",
-      role,
-      roleLabel: ROLE_LABELS[role],
+      role: getDisplayRoleFrom(raw),
     }))
+    .filter((row): row is { email: string; name: string; role: UserRole } => row.role !== null)
+    .map((row) => ({ ...row, roleLabel: ROLE_LABELS[row.role] }))
     .sort((a, b) => a.email.localeCompare(b.email));
 }

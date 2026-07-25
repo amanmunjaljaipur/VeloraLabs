@@ -24,7 +24,7 @@ export interface RoleAssignment {
  *  - legacy string array:  ["admin", "student"]                     (no active role yet)
  *  - current shape:        { roles: ["admin","student"], activeRole: "student" }
  */
-type StoredAssignment = UserRole | UserRole[] | RoleAssignment | undefined | null;
+export type StoredAssignment = UserRole | UserRole[] | RoleAssignment | undefined | null;
 export type UserRolesConfig = Record<string, StoredAssignment>;
 
 const ROLES_FILE = "user-roles.json";
@@ -88,6 +88,17 @@ function normalizeAssignment(raw: StoredAssignment): RoleAssignment {
   const activeRole =
     raw.activeRole && roles.includes(raw.activeRole) ? raw.activeRole : highestOf(roles);
   return { roles, activeRole };
+}
+
+/**
+ * Normalizes any on-disk shape down to a single displayable role (the
+ * active one) - for legacy flat-list tooling (sheet export/seed rows) that
+ * predates multi-role and, by design, only ever shows one role per user.
+ * Returns null if the raw value has no valid role at all, so callers can
+ * filter those rows out the same way a bare invalid string used to.
+ */
+export function getDisplayRoleFrom(raw: StoredAssignment): UserRole | null {
+  return normalizeAssignment(raw).activeRole;
 }
 
 let cachedRoles: Record<string, RoleAssignment> | null = null;
