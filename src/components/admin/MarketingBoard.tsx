@@ -606,14 +606,15 @@ export function MarketingBoard() {
                         : "Not set up yet"}
                   </p>
                 </div>
-                {isSuperAdmin && (
-                  <a href={configured ? connectHref : undefined} className="shrink-0">
-                    <Button variant="secondary" size="sm" disabled={!configured}>
-                      <Link2 className="h-3.5 w-3.5" /> Connect
-                    </Button>
-                  </a>
-                )}
               </div>
+
+              {isSuperAdmin && (
+                <a href={configured ? connectHref : undefined} className="mt-3 block">
+                  <Button variant="secondary" size="sm" disabled={!configured} className="w-full">
+                    <Link2 className="h-3.5 w-3.5" /> Connect
+                  </Button>
+                </a>
+              )}
 
               {connectedAccounts.length > 0 && (
                 <ul className="mt-3 space-y-2 border-t border-border/60 pt-3">
