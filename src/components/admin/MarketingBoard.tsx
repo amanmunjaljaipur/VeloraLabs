@@ -17,11 +17,15 @@ import {
   Link2,
   Loader2,
   Megaphone,
+  PauseCircle,
+  PlayCircle,
   Send,
   Sparkles,
+  Target,
   Trash2,
   TrendingUp,
   Unlink,
+  Wallet,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -81,6 +85,50 @@ interface ScheduledPost {
   status: "scheduled" | "published" | "failed";
   error?: string;
 }
+
+type AdsPlatform = "meta" | "linkedin" | "x";
+type CampaignObjective = "awareness" | "traffic" | "engagement" | "leads" | "conversions";
+type AdCampaignStatus = "draft" | "activating" | "active" | "paused" | "failed" | "completed";
+
+interface AdAccountConfig {
+  platform: AdsPlatform;
+  adAccountId: string;
+  configured: boolean;
+}
+
+interface AdCampaign {
+  id: string;
+  platform: AdsPlatform;
+  name: string;
+  objective: CampaignObjective;
+  status: AdCampaignStatus;
+  budget: { type: "daily" | "lifetime"; amount: number; currency: string };
+  schedule: { startDate: string; endDate: string | null };
+  targeting: { locations: string[]; ageMin: number; ageMax: number; genders: "all" | "male" | "female"; interests: string[] };
+  creative: { headline: string; body: string; imageUrl: string | null; linkUrl: string; callToAction: string };
+  platformIds: Record<string, string>;
+  error: string | null;
+  createdAt: string;
+  activatedAt: string | null;
+}
+
+const AD_PLATFORMS = ["meta", "linkedin", "x"] as const;
+const AD_PLATFORM_LABELS: Record<AdsPlatform, string> = { meta: "Meta (Facebook/Instagram)", linkedin: "LinkedIn", x: "X" };
+const OBJECTIVE_LABELS: Record<CampaignObjective, string> = {
+  awareness: "Awareness",
+  traffic: "Traffic",
+  engagement: "Engagement",
+  leads: "Leads",
+  conversions: "Conversions",
+};
+const CAMPAIGN_STATUS_META: Record<AdCampaignStatus, { label: string; className: string }> = {
+  draft: { label: "Draft", className: "bg-muted text-text-secondary" },
+  activating: { label: "Activating…", className: "bg-amber-500/15 text-amber-600" },
+  active: { label: "Active", className: "bg-emerald-500/15 text-emerald-600" },
+  paused: { label: "Paused", className: "bg-amber-500/15 text-amber-600" },
+  failed: { label: "Failed", className: "bg-red-500/15 text-red-600" },
+  completed: { label: "Completed", className: "bg-sky-500/15 text-sky-600" },
+};
 
 const FORMAT_LABELS: Record<ViralIdea["format"], string> = {
   "single-image": "Single image",
@@ -160,7 +208,7 @@ export function MarketingBoard() {
   const [xConfigured, setXConfigured] = useState(false);
   const [rows, setRows] = useState<PerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"create" | "scheduled" | "performance" | "growth">("create");
+  const [activeTab, setActiveTab] = useState<"create" | "scheduled" | "performance" | "campaigns" | "growth">("create");
 
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -196,6 +244,35 @@ export function MarketingBoard() {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingCarousel, setDownloadingCarousel] = useState(false);
 
+  const [adAccounts, setAdAccounts] = useState<AdAccountConfig[]>([]);
+  const [adAccountInputs, setAdAccountInputs] = useState<Record<AdsPlatform, string>>({ meta: "", linkedin: "", x: "" });
+  const [savingAdAccount, setSavingAdAccount] = useState<AdsPlatform | null>(null);
+
+  const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
+  const [campaignsLoaded, setCampaignsLoaded] = useState(false);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+
+  const [campPlatform, setCampPlatform] = useState<AdsPlatform>("meta");
+  const [campName, setCampName] = useState("");
+  const [campObjective, setCampObjective] = useState<CampaignObjective>("awareness");
+  const [campBudgetType, setCampBudgetType] = useState<"daily" | "lifetime">("daily");
+  const [campBudgetAmount, setCampBudgetAmount] = useState("");
+  const [campStartDate, setCampStartDate] = useState("");
+  const [campEndDate, setCampEndDate] = useState("");
+  const [campLocations, setCampLocations] = useState("");
+  const [campAgeMin, setCampAgeMin] = useState("18");
+  const [campAgeMax, setCampAgeMax] = useState("65");
+  const [campGenders, setCampGenders] = useState<"all" | "male" | "female">("all");
+  const [campHeadline, setCampHeadline] = useState("");
+  const [campBody, setCampBody] = useState("");
+  const [campImageUrl, setCampImageUrl] = useState("");
+  const [campLinkUrl, setCampLinkUrl] = useState("https://www.verlinlabs.com");
+  const [campCta, setCampCta] = useState("LEARN_MORE");
+  const [creatingCampaign, setCreatingCampaign] = useState(false);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [pausingId, setPausingId] = useState<string | null>(null);
+  const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -226,6 +303,36 @@ export function MarketingBoard() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadCampaignsData = useCallback(async () => {
+    setCampaignsLoading(true);
+    try {
+      const [adAccountsRes, campaignsRes] = await Promise.all([
+        fetch("/api/admin/marketing/ad-accounts", { cache: "no-store" }),
+        fetch("/api/admin/marketing/campaigns", { cache: "no-store" }),
+      ]);
+      const adAccountsData = await adAccountsRes.json().catch(() => ({}));
+      const campaignsData = await campaignsRes.json().catch(() => ({}));
+      const configs: AdAccountConfig[] = adAccountsData.adAccounts ?? [];
+      setAdAccounts(configs);
+      setAdAccountInputs((prev) => {
+        const next = { ...prev };
+        for (const c of configs) next[c.platform] = c.adAccountId;
+        return next;
+      });
+      setCampaigns(campaignsData.campaigns ?? []);
+    } catch {
+      toast("Could not load campaigns", "error");
+    } finally {
+      setCampaignsLoading(false);
+      setCampaignsLoaded(true);
+    }
+  }, [toast]);
+
+  // Lazy-load paid campaign data only once the admin actually opens that tab.
+  useEffect(() => {
+    if (activeTab === "campaigns" && !campaignsLoaded) void loadCampaignsData();
+  }, [activeTab, campaignsLoaded, loadCampaignsData]);
 
   // Surface OAuth connect/callback results once, then clean the URL.
   useEffect(() => {
@@ -608,6 +715,171 @@ export function MarketingBoard() {
     }
   }
 
+  async function handleSaveAdAccount(platform: AdsPlatform) {
+    const adAccountId = adAccountInputs[platform].trim();
+    if (!adAccountId) {
+      toast("Enter an ad account ID first", "warning");
+      return;
+    }
+    setSavingAdAccount(platform);
+    try {
+      const res = await fetch("/api/admin/marketing/ad-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, adAccountId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not save the ad account", "error");
+        return;
+      }
+      toast(`${AD_PLATFORM_LABELS[platform]} ad account saved`, "success");
+      void loadCampaignsData();
+    } catch {
+      toast("Could not save the ad account", "error");
+    } finally {
+      setSavingAdAccount(null);
+    }
+  }
+
+  function resetCampaignForm() {
+    setCampName("");
+    setCampBudgetAmount("");
+    setCampStartDate("");
+    setCampEndDate("");
+    setCampLocations("");
+    setCampHeadline("");
+    setCampBody("");
+    setCampImageUrl("");
+  }
+
+  async function handleCreateCampaign() {
+    if (!campName.trim()) {
+      toast("Give the campaign a name", "warning");
+      return;
+    }
+    const amount = Number(campBudgetAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast("Enter a budget greater than 0", "warning");
+      return;
+    }
+    if (!campStartDate) {
+      toast("Pick a start date", "warning");
+      return;
+    }
+    if (!campBody.trim()) {
+      toast("Write the ad copy", "warning");
+      return;
+    }
+    const adAccountConfigured = adAccounts.find((a) => a.platform === campPlatform)?.configured;
+    if (!adAccountConfigured) {
+      toast(`Add a ${AD_PLATFORM_LABELS[campPlatform]} ad account ID below before creating a campaign for it`, "warning");
+      return;
+    }
+
+    setCreatingCampaign(true);
+    try {
+      const res = await fetch("/api/admin/marketing/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform: campPlatform,
+          name: campName.trim(),
+          objective: campObjective,
+          budget: { type: campBudgetType, amount, currency: "USD" },
+          schedule: { startDate: campStartDate, endDate: campEndDate || null },
+          targeting: {
+            locations: campLocations.split(",").map((l) => l.trim()).filter(Boolean),
+            ageMin: Number(campAgeMin) || 18,
+            ageMax: Number(campAgeMax) || 65,
+            genders: campGenders,
+            interests: [],
+          },
+          creative: {
+            headline: campHeadline,
+            body: campBody,
+            imageUrl: campImageUrl || null,
+            linkUrl: campLinkUrl,
+            callToAction: campCta,
+          },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not create the campaign", "error");
+        return;
+      }
+      toast("Campaign created as a draft - review it, then Activate when ready", "success");
+      resetCampaignForm();
+      void loadCampaignsData();
+    } catch {
+      toast("Could not create the campaign", "error");
+    } finally {
+      setCreatingCampaign(false);
+    }
+  }
+
+  async function handleActivateCampaign(campaign: AdCampaign) {
+    const confirmed = window.confirm(
+      `Activate "${campaign.name}"? This submits it to ${AD_PLATFORM_LABELS[campaign.platform]} and starts spending real ad budget (${campaign.budget.currency} ${campaign.budget.amount}/${campaign.budget.type === "daily" ? "day" : "total"}).`
+    );
+    if (!confirmed) return;
+
+    setActivatingId(campaign.id);
+    try {
+      const res = await fetch(`/api/admin/marketing/campaigns/${campaign.id}/activate`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not activate the campaign", "error");
+        void loadCampaignsData();
+        return;
+      }
+      toast("Campaign is live", "success");
+      void loadCampaignsData();
+    } catch {
+      toast("Could not activate the campaign", "error");
+    } finally {
+      setActivatingId(null);
+    }
+  }
+
+  async function handlePauseCampaign(id: string) {
+    setPausingId(id);
+    try {
+      const res = await fetch(`/api/admin/marketing/campaigns/${id}/pause`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not pause the campaign", "error");
+        return;
+      }
+      toast("Campaign paused", "success");
+      void loadCampaignsData();
+    } catch {
+      toast("Could not pause the campaign", "error");
+    } finally {
+      setPausingId(null);
+    }
+  }
+
+  async function handleDeleteCampaign(id: string) {
+    if (!window.confirm("Delete this campaign? This cannot be undone.")) return;
+    setDeletingCampaignId(id);
+    try {
+      const res = await fetch(`/api/admin/marketing/campaigns/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast(data.error || "Could not delete the campaign", "error");
+        return;
+      }
+      toast("Campaign deleted", "success");
+      void loadCampaignsData();
+    } catch {
+      toast("Could not delete the campaign", "error");
+    } finally {
+      setDeletingCampaignId(null);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -785,6 +1057,7 @@ export function MarketingBoard() {
             { key: "create", label: "Create", icon: Sparkles, count: 0 },
             { key: "scheduled", label: "Scheduled", icon: CalendarClock, count: scheduledPosts.length },
             { key: "performance", label: "Performance", icon: BarChart3, count: rows.length },
+            { key: "campaigns", label: "Paid Campaigns", icon: Wallet, count: campaigns.length },
             { key: "growth", label: "Growth", icon: TrendingUp, count: 0 },
           ] as const
         ).map((tab) => {
@@ -1407,6 +1680,329 @@ export function MarketingBoard() {
           </>
         )}
       </Card>
+      )}
+
+      {activeTab === "campaigns" && (
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-teal" aria-hidden="true" />
+              <h2 className="text-lg font-semibold text-foreground">Paid Campaigns</h2>
+            </div>
+            <p className="mt-1 text-sm text-text-secondary">
+              Full campaign builder for Meta, LinkedIn, and X - objective, budget, targeting, and creative,
+              submitted directly to each platform&apos;s Ads API. Every campaign is created paused; nothing
+              spends until you explicitly hit Activate.
+            </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {AD_PLATFORMS.map((platform) => {
+                const config = adAccounts.find((a) => a.platform === platform);
+                return (
+                  <div key={platform} className="rounded-lg border border-border p-3">
+                    <p className="text-xs font-semibold text-foreground">{AD_PLATFORM_LABELS[platform]} ad account</p>
+                    <div className="mt-2 flex gap-1.5">
+                      <input
+                        type="text"
+                        value={adAccountInputs[platform]}
+                        onChange={(e) => setAdAccountInputs((prev) => ({ ...prev, [platform]: e.target.value }))}
+                        placeholder={
+                          platform === "meta"
+                            ? "act_123..."
+                            : platform === "linkedin"
+                              ? "urn:li:sponsoredAccount:..."
+                              : "Numeric ads account ID"
+                        }
+                        className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-teal"
+                      />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        loading={savingAdAccount === platform}
+                        onClick={() => handleSaveAdAccount(platform)}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                    <p className={`mt-1.5 text-[11px] ${config?.configured ? "text-emerald-600" : "text-text-secondary"}`}>
+                      {config?.configured ? "Configured" : "Not set"}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-text-secondary">
+              Meta reuses the access token from the Connect button above (reconnect once to grant the new
+              ads_management scope). LinkedIn reuses its connected Company Page token (reconnect once for
+              r_ads/rw_ads - needs LinkedIn&apos;s Marketing Developer Platform product approved on the app).
+              X Ads needs four separate API keys from the X Developer Portal set as environment variables
+              (X_ADS_CONSUMER_KEY/SECRET, X_ADS_ACCESS_TOKEN/SECRET) - outside this dashboard.
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-base font-semibold text-foreground">New campaign</h3>
+            <div className="mt-4 space-y-4">
+              <div className="flex flex-wrap gap-1.5">
+                {AD_PLATFORMS.map((platform) => (
+                  <button
+                    key={platform}
+                    type="button"
+                    onClick={() => setCampPlatform(platform)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      campPlatform === platform
+                        ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                        : "border-border text-text-secondary hover:bg-muted"
+                    }`}
+                  >
+                    {AD_PLATFORM_LABELS[platform]}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  type="text"
+                  value={campName}
+                  onChange={(e) => setCampName(e.target.value)}
+                  placeholder="Campaign name"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <select
+                  value={campObjective}
+                  onChange={(e) => setCampObjective(e.target.value as CampaignObjective)}
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                >
+                  {Object.entries(OBJECTIVE_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <select
+                  value={campBudgetType}
+                  onChange={(e) => setCampBudgetType(e.target.value as "daily" | "lifetime")}
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                >
+                  <option value="daily">Daily budget</option>
+                  <option value="lifetime">Lifetime budget</option>
+                </select>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={campBudgetAmount}
+                  onChange={(e) => setCampBudgetAmount(e.target.value)}
+                  placeholder="Budget (USD)"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <input
+                  type="date"
+                  value={campStartDate}
+                  onChange={(e) => setCampStartDate(e.target.value)}
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  aria-label="Start date"
+                />
+              </div>
+              <input
+                type="date"
+                value={campEndDate}
+                onChange={(e) => setCampEndDate(e.target.value)}
+                className="w-full max-w-xs rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal sm:w-auto"
+                aria-label="End date (optional - leave blank to run continuously)"
+              />
+
+              <div className="rounded-lg border border-border p-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Target className="h-3.5 w-3.5" aria-hidden="true" /> Targeting
+                </div>
+                <input
+                  type="text"
+                  value={campLocations}
+                  onChange={(e) => setCampLocations(e.target.value)}
+                  placeholder={
+                    campPlatform === "meta"
+                      ? "Comma-separated ISO country codes, e.g. US, CA, GB"
+                      : campPlatform === "linkedin"
+                        ? "Comma-separated LinkedIn geo URNs, e.g. urn:li:geo:103644278"
+                        : "Comma-separated X location targeting IDs"
+                  }
+                  className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <input
+                    type="number"
+                    min="13"
+                    max="65"
+                    value={campAgeMin}
+                    onChange={(e) => setCampAgeMin(e.target.value)}
+                    placeholder="Min age"
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  />
+                  <input
+                    type="number"
+                    min="13"
+                    max="65"
+                    value={campAgeMax}
+                    onChange={(e) => setCampAgeMax(e.target.value)}
+                    placeholder="Max age"
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  />
+                </div>
+                <div className="mt-2 flex gap-1.5">
+                  {(["all", "male", "female"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setCampGenders(g)}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
+                        campGenders === g
+                          ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                          : "border-border text-text-secondary hover:bg-muted"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {campPlatform === "x" && (
+                  <p className="mt-2 text-[11px] text-text-secondary">
+                    Age/gender targeting isn&apos;t wired up for X yet - only location applies.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2 rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold text-foreground">Creative</p>
+                <input
+                  type="text"
+                  value={campHeadline}
+                  onChange={(e) => setCampHeadline(e.target.value)}
+                  placeholder="Headline"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <textarea
+                  value={campBody}
+                  onChange={(e) => setCampBody(e.target.value)}
+                  rows={3}
+                  placeholder="Ad copy"
+                  className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                />
+                <div className="flex flex-col gap-1.5 sm:flex-row">
+                  <input
+                    type="url"
+                    value={campImageUrl}
+                    onChange={(e) => setCampImageUrl(e.target.value)}
+                    placeholder="Image URL (optional - not used for X promoted tweets yet)"
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  />
+                  {imageUrl && (
+                    <Button variant="secondary" size="sm" onClick={() => setCampImageUrl(imageUrl)}>
+                      <ImagePlus className="h-3.5 w-3.5" /> Use composer image
+                    </Button>
+                  )}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input
+                    type="url"
+                    value={campLinkUrl}
+                    onChange={(e) => setCampLinkUrl(e.target.value)}
+                    placeholder="Destination link"
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  />
+                  <select
+                    value={campCta}
+                    onChange={(e) => setCampCta(e.target.value)}
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
+                  >
+                    {["LEARN_MORE", "SIGN_UP", "SHOP_NOW", "DOWNLOAD", "GET_QUOTE", "CONTACT_US"].map((cta) => (
+                      <option key={cta} value={cta}>
+                        {cta.replaceAll("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <Button variant="cta" size="lg" loading={creatingCampaign} onClick={handleCreateCampaign}>
+                <Sparkles className="h-4 w-4" /> Create campaign (draft)
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-base font-semibold text-foreground">Campaigns</h3>
+            {campaignsLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-5 w-5 animate-spin text-text-secondary" aria-hidden="true" />
+              </div>
+            ) : campaigns.length === 0 ? (
+              <div className="mt-6 flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
+                <Wallet className="h-8 w-8 text-text-secondary/50" aria-hidden="true" />
+                <p className="text-sm text-text-secondary">No campaigns yet - create one above.</p>
+              </div>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {campaigns.map((c) => {
+                  const statusMeta = CAMPAIGN_STATUS_META[c.status];
+                  return (
+                    <li key={c.id} className="rounded-xl border border-border p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <PlatformBadge platform={c.platform === "meta" ? "facebook" : c.platform} />
+                          <span className="font-semibold text-foreground">{c.name}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${statusMeta.className}`}>
+                            {statusMeta.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(c.status === "draft" || c.status === "paused" || c.status === "failed") && (
+                            <Button
+                              variant="cta"
+                              size="sm"
+                              loading={activatingId === c.id}
+                              onClick={() => handleActivateCampaign(c)}
+                            >
+                              <PlayCircle className="h-3.5 w-3.5" /> Activate
+                            </Button>
+                          )}
+                          {c.status === "active" && (
+                            <Button variant="secondary" size="sm" loading={pausingId === c.id} onClick={() => handlePauseCampaign(c.id)}>
+                              <PauseCircle className="h-3.5 w-3.5" /> Pause
+                            </Button>
+                          )}
+                          {c.status !== "active" && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCampaign(c.id)}
+                              disabled={deletingCampaignId === c.id}
+                              className="text-text-secondary transition-colors hover:text-red-600"
+                              aria-label="Delete campaign"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary">
+                        <span>{OBJECTIVE_LABELS[c.objective]}</span>
+                        <span>
+                          {c.budget.currency} {c.budget.amount}/{c.budget.type === "daily" ? "day" : "total"}
+                        </span>
+                        <span>From {new Date(c.schedule.startDate).toLocaleDateString()}</span>
+                        {c.activatedAt && <span>Activated {new Date(c.activatedAt).toLocaleDateString()}</span>}
+                      </div>
+                      {c.error && <p className="mt-2 text-xs text-red-600">{c.error}</p>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
+        </div>
       )}
 
       {activeTab === "growth" && <GrowthAdvisor />}

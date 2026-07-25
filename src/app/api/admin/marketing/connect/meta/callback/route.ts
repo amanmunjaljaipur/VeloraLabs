@@ -3,6 +3,7 @@ import { isHardcodedSuperAdmin } from "@/lib/roles";
 import { isSuperAdminRole } from "@/lib/session-access";
 import { discoverPages, exchangeCodeForUserToken, getLongLivedUserToken } from "@/lib/marketing/meta-client";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { saveMetaUserAccessToken } from "@/lib/marketing/ad-accounts-store";
 import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
 import { logError } from "@/lib/diagnostics/log-store";
@@ -55,6 +56,12 @@ export async function GET(req: NextRequest) {
 
   const connectedBy = session!.user!.email as string;
   const tenantId = await resolveTenantId(connectedBy);
+
+  // Paid campaigns (Phase 2) need a User token with ads_management scope -
+  // Page tokens derived below don't carry ad-account-level permissions.
+  // Stashed here so the Campaigns tab works the moment an admin enters an
+  // ad account ID, with no separate ads-specific connect flow.
+  await saveMetaUserAccessToken(tenantId, longLivedToken);
 
   for (const page of pages) {
     // Page access tokens derived from a long-lived user token effectively do not expire.

@@ -74,6 +74,10 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-prospects.json",
   /** Daily AI Growth Advisor memory - strategy history the LLM reads back for "learns daily" */
   "marketing-growth-memory.json",
+  /** Per-tenant ad account IDs + Meta's long-lived user token needed for paid campaign calls - sensitive, admin-only */
+  "marketing-ad-accounts.json",
+  /** Paid campaign definitions (objective/budget/targeting/creative) and per-platform submission status */
+  "marketing-campaigns.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -115,6 +119,10 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   // be strongly consistent so a just-added member sees their workspace
   // immediately rather than falling through to "default".
   "marketing-tenants.json",
+  "marketing-ad-accounts.json",
+  // A stale read here could double-activate (double-spend) or miss a pause
+  // across serverless instances - real money, must be strongly consistent.
+  "marketing-campaigns.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

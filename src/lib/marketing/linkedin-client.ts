@@ -30,8 +30,9 @@
  * at connect time, since this is exactly the kind of dependency that drifts.
  */
 
-const LINKEDIN_API_VERSION = "202506";
-const REST_BASE = "https://api.linkedin.com/rest";
+/** Exported so linkedin-ads-client.ts shares the same version/base/fetch helper rather than duplicating HTTP plumbing. */
+export const LINKEDIN_API_VERSION = "202506";
+export const REST_BASE = "https://api.linkedin.com/rest";
 const FETCH_TIMEOUT_MS = 15_000;
 
 function isConfigured(): boolean {
@@ -48,12 +49,25 @@ export function buildLinkedInOrgAuthUrl(state: string, redirectUri: string): str
     client_id: process.env.LINKEDIN_ORG_CLIENT_ID ?? "",
     redirect_uri: redirectUri,
     state,
-    scope: ["w_organization_social", "r_organization_social", "rw_organization_admin"].join(" "),
+    scope: [
+      "w_organization_social",
+      "r_organization_social",
+      "rw_organization_admin",
+      // Paid campaigns (Marketing Board Phase 2) - requires LinkedIn's
+      // Marketing Developer Platform product on the app, which is gated
+      // separately from Community Management API and often needs
+      // partner-level approval. Accounts connected before this scope
+      // existed must reconnect once these permissions are approved.
+      "r_ads",
+      "rw_ads",
+      "r_ads_reporting",
+    ].join(" "),
   });
   return `https://www.linkedin.com/oauth/v2/authorization?${params.toString()}`;
 }
 
-async function restFetch<T>(path: string, accessToken: string, init?: RequestInit): Promise<T | null> {
+/** Exported so linkedin-ads-client.ts can issue Campaign Group/Campaign/Creative calls through the same helper. */
+export async function restFetch<T>(path: string, accessToken: string, init?: RequestInit): Promise<T | null> {
   try {
     const res = await fetch(`${REST_BASE}${path}`, {
       ...init,

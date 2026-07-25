@@ -18,8 +18,9 @@
  * 6. Set META_APP_ID and META_APP_SECRET in the environment.
  */
 
-const GRAPH_VERSION = "v21.0";
-const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
+/** Exported so meta-ads-client.ts shares the same API version/base/fetch helper rather than duplicating HTTP plumbing. */
+export const GRAPH_VERSION = "v21.0";
+export const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 const FETCH_TIMEOUT_MS = 15_000;
 
 function isConfigured(): boolean {
@@ -41,13 +42,18 @@ export function buildMetaAuthUrl(state: string, redirectUri: string): string {
       "pages_read_engagement",
       "instagram_basic",
       "instagram_content_publish",
+      // Paid campaigns (Marketing Board Phase 2) - ad account access needs
+      // this in addition to the organic-posting scopes above. Accounts
+      // connected before this scope existed must reconnect once.
+      "ads_management",
     ].join(","),
     response_type: "code",
   });
   return `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth?${params.toString()}`;
 }
 
-async function graphFetch<T>(path: string, params: Record<string, string> = {}, init?: RequestInit): Promise<T | null> {
+/** Exported so meta-ads-client.ts can issue Campaign/AdSet/Ad/AdCreative calls through the same helper. */
+export async function graphFetch<T>(path: string, params: Record<string, string> = {}, init?: RequestInit): Promise<T | null> {
   try {
     const url = new URL(`${GRAPH_BASE}${path}`);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
