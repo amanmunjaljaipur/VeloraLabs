@@ -39,7 +39,25 @@ export async function GET(req: NextRequest) {
   if (!longLivedToken) return fail("meta_long_lived_exchange_failed");
 
   const pages = await discoverPages(longLivedToken);
-  if (pages.length === 0) return fail("meta_no_pages_found");
+  if (pages.length === 0) {
+    // TEMP DIAGNOSTIC (remove after root-causing the "no pages found" issue):
+    // discoverPages()/graphFetch() swallow the real Graph API error into an
+    // empty array, so hit /me/accounts again here and surface Meta's raw
+    // response in the redirect so it's visible without server log access.
+    try {
+      const diagRes = await fetch(
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,instagram_business_account&access_token=${encodeURIComponent(longLivedToken)}`
+      );
+      const diagJson: unknown = await diagRes.json().catch(() => null);
+      const diagObj = (diagJson ?? {}) as { error?: { message?: string }; data?: unknown[] };
+      const msg = diagObj.error?.message
+        ? `diag_err_${diagObj.error.message}`
+        : `diag_ok_count_${Array.isArray(diagObj.data) ? diagObj.data.length : "unknown"}`;
+      return fail(encodeURIComponent(msg).slice(0, 250));
+    } catch (e) {
+      return fail(`diag_threw_${encodeURIComponent(String(e)).slice(0, 200)}`);
+    }
+  }
 
   const connectedBy = session!.user!.email as string;
   const tenantId = await resolveTenantId(connectedBy);
