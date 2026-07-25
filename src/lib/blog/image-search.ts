@@ -19,6 +19,11 @@ import { put } from "@vercel/blob";
 const OPENVERSE_SEARCH_URL = "https://api.openverse.org/v1/images/";
 const MAX_BYTES = 8 * 1024 * 1024; // 8MB safety cap
 const FETCH_TIMEOUT_MS = 12_000;
+// This project's Blob store is private-only (fixed at store creation - see
+// https://vercel.com/docs/vercel-blob/private-storage), so uploads use
+// access:"private" and are served back out through /api/media/... instead
+// of the raw blob.url, which would 403 for a reader's browser.
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verlinlabs.com").replace(/\/$/, "");
 
 interface OpenverseResult {
   id: string;
@@ -124,13 +129,14 @@ export async function fetchBlogCoverImage(input: {
         ? "webp"
         : "jpg";
 
-    const blob = await put(`blog-images/${input.slug}.${ext}`, buffer, {
-      access: "public",
+    const key = `blog-images/${input.slug}.${ext}`;
+    await put(key, buffer, {
+      access: "private",
       contentType,
       addRandomSuffix: false,
     });
 
-    return blob.url;
+    return `${SITE_URL}/api/media/${key}`;
   } catch (error) {
     console.error("[blog] image search failed, using fallback image:", error);
     return null;

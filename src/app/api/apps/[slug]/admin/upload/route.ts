@@ -83,12 +83,15 @@ export async function POST(request: Request, context: Ctx) {
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
-      const blob = await put(key, buffer, {
-        access: "public",
+      // Store is private-only (see /api/media/[...path]/route.ts) - upload
+      // private and hand back the proxy URL instead of blob.url.
+      await put(key, buffer, {
+        access: "private",
         contentType,
         addRandomSuffix: false,
       });
-      return NextResponse.json({ url: blob.url, kind });
+      const origin = new URL(request.url).origin;
+      return NextResponse.json({ url: `${origin}/api/media/${key}`, kind });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Upload failed";
       return NextResponse.json({ error: msg }, { status: 500 });

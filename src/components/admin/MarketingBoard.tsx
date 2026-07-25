@@ -473,11 +473,14 @@ export function MarketingBoard() {
   async function handleFileUpload(file: File) {
     setUploading(true);
     try {
+      // Store is private-only (see /api/media/[...path]/route.ts) - upload
+      // private and use the proxy URL, since blob.url 403s for anyone
+      // without our Blob token (including Meta/X/LinkedIn's own fetchers).
       const blob = await upload(`marketing-media/${file.name}`, file, {
-        access: "public",
+        access: "private",
         handleUploadUrl: "/api/admin/marketing/upload",
       });
-      setImageUrl(blob.url);
+      setImageUrl(`${window.location.origin}/api/media/${blob.pathname}`);
       toast(
         file.type.startsWith("video/")
           ? "Video uploaded - Facebook supports it today; Instagram/LinkedIn/X video is coming"

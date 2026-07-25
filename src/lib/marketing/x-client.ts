@@ -31,6 +31,7 @@
 
 import { createHash, randomBytes } from "crypto";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { logError } from "@/lib/diagnostics/log-store";
 
 const API_BASE = "https://api.twitter.com/2";
 const TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
@@ -57,7 +58,7 @@ export function buildXAuthUrl(state: string, redirectUri: string, codeChallenge:
     response_type: "code",
     client_id: process.env.X_CLIENT_ID ?? "",
     redirect_uri: redirectUri,
-    scope: ["tweet.read", "tweet.write", "users.read", "offline.access"].join(" "),
+    scope: ["tweet.read", "tweet.write", "users.read", "offline.access", "media.write"].join(" "),
     state,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
@@ -216,18 +217,112 @@ export async function discoverXAccount(accessToken: string): Promise<DiscoveredX
   };
 }
 
+/**
+ * X's v2 chunked media upload: INIT -> APPEND -> FINALIZE. Images (our only
+ * caller today) fit in a single APPEND segment since our images are always
+ * well under X's own 5MB-per-image cap, which is also the max chunk size -
+ * no need for multi-chunk logic until this grows to cover video. Requires
+ * the media.write scope (added to buildXAuthUrl above) - an account
+ * connected before this scope existed must reconnect once for this to work.
+ */
+async function uploadMediaToX(
+  accessToken: string,
+  imageUrl: string
+): Promise<{ ok: true; mediaId: string } | { ok: false; error: string }> {
+  try {
+    const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    if (!imgRes.ok) return { ok: false, error: `Could not fetch image to upload (${imgRes.status})` };
+
+    const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) {
+      return { ok: false, error: `Unsupported media type for X: ${contentType}` };
+    }
+
+    const bytes = Buffer.from(await imgRes.arrayBuffer());
+    if (bytes.byteLength === 0) return { ok: false, error: "Image is empty" };
+    if (bytes.byteLength > 5 * 1024 * 1024) {
+      return { ok: false, error: "Image exceeds X's 5MB limit" };
+    }
+
+    const initRes = await fetch(`${API_BASE}/media/upload/initialize`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        media_type: contentType,
+        total_bytes: bytes.byteLength,
+        media_category: "tweet_image",
+      }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    const initData = await initRes.json().catch(() => null);
+    const mediaId: string | undefined = initData?.data?.id;
+    if (!initRes.ok || !mediaId) {
+      console.error("[marketing/x] media init failed", initRes.status, initData);
+      return { ok: false, error: initData?.detail || initData?.title || "X rejected the media upload (init)" };
+    }
+
+    const form = new FormData();
+    form.append("segment_index", "0");
+    form.append("media", new Blob([bytes], { type: contentType }));
+    const appendRes = await fetch(`${API_BASE}/media/upload/${mediaId}/append`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: form,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!appendRes.ok) {
+      const body = await appendRes.text().catch(() => "");
+      console.error("[marketing/x] media append failed", appendRes.status, body);
+      return { ok: false, error: "X rejected the media upload (append)" };
+    }
+
+    const finalizeRes = await fetch(`${API_BASE}/media/upload/${mediaId}/finalize`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    const finalizeData = await finalizeRes.json().catch(() => null);
+    if (!finalizeRes.ok) {
+      console.error("[marketing/x] media finalize failed", finalizeRes.status, finalizeData);
+      return { ok: false, error: finalizeData?.detail || finalizeData?.title || "X rejected the media upload (finalize)" };
+    }
+
+    // Images finalize synchronously (no processing_info) - only video/GIF
+    // need a poll loop, which this image-only path doesn't need yet.
+    return { ok: true, mediaId };
+  } catch (error) {
+    console.error("[marketing/x] media upload errored", error);
+    return { ok: false, error: "Media upload to X failed" };
+  }
+}
+
 export async function postToX(
   accessToken: string,
-  text: string
+  text: string,
+  imageUrl?: string | null
 ): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
   try {
+    let mediaId: string | null = null;
+    if (imageUrl) {
+      const media = await uploadMediaToX(accessToken, imageUrl);
+      if (media.ok) {
+        mediaId = media.mediaId;
+      } else {
+        // Degrade to a text-only post rather than losing the whole post
+        // over an image hiccup - but log it, since a silently-dropped image
+        // is exactly the kind of thing that used to be invisible.
+        void logError("marketing/x-media-upload", media.error, { imageUrl });
+      }
+    }
+
     const res = await fetch(`${API_BASE}/tweets`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(mediaId ? { text, media: { media_ids: [mediaId] } } : { text }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     const data = await res.json().catch(() => null);

@@ -95,13 +95,73 @@ function coerceIdea(raw: Record<string, unknown>, fallbackPlatform: ViralPlatfor
   };
 }
 
+/**
+ * The free LLMs used here (Groq/Gemini) reliably return valid JSON
+ * structurally, but routinely emit literal, unescaped control characters
+ * (real newlines, tabs) inside string values - e.g. the multi-line "content"
+ * field of a post - instead of the "\n" escape sequence the JSON spec
+ * requires. That makes JSON.parse throw "Bad control character in string
+ * literal" even though the payload is otherwise well-formed. This walks the
+ * text once, tracking whether we're inside a quoted string (respecting
+ * backslash-escapes so an escaped quote doesn't flip the state), and
+ * escapes any raw control character it finds there.
+ */
+function escapeControlCharsInStrings(text: string): string {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!;
+    const code = ch.charCodeAt(0);
+
+    if (inString && escaped) {
+      out += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (inString && ch === "\\") {
+      out += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      out += ch;
+      continue;
+    }
+
+    if (inString && code < 0x20) {
+      if (ch === "\n") out += "\\n";
+      else if (ch === "\r") out += "\\r";
+      else if (ch === "\t") out += "\\t";
+      else out += `\\u${code.toString(16).padStart(4, "0")}`;
+      continue;
+    }
+
+    out += ch;
+  }
+
+  return out;
+}
+
 /** Strip markdown fences if the model wrapped its JSON anyway. */
 function extractJsonArray(text: string): unknown {
   const trimmed = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
   const start = trimmed.indexOf("[");
   const end = trimmed.lastIndexOf("]");
   if (start === -1 || end === -1 || end <= start) throw new Error("No JSON array in response");
-  return JSON.parse(trimmed.slice(start, end + 1));
+  const raw = trimmed.slice(start, end + 1);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Fall back to the control-character sanitizer only on failure - it's
+    // extra work we don't need on the common case where the model already
+    // escaped everything correctly.
+    return JSON.parse(escapeControlCharsInStrings(raw));
+  }
 }
 
 export function isViralIdeasConfigured(): boolean {

@@ -154,7 +154,9 @@ export async function publishToAccounts(
         });
         continue;
       }
-      const result = await postToX(accessToken, content);
+      // X video posting isn't wired up yet (see isVideoUrl above) - skip
+      // the attempt entirely rather than logging an expected rejection.
+      const result = await postToX(accessToken, content, video ? null : imageUrl);
       targets.push({
         accountId,
         platform: "x",

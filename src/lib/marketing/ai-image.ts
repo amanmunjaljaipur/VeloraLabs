@@ -7,13 +7,19 @@ import { randomUUID } from "crypto";
  * this codebase's free-tier-first approach to AI features, same spirit as
  * the Groq/Gemini free LLM in chat/llm-client.ts).
  *
- * The generated image is re-hosted on Vercel Blob (public access) because
- * a Pollinations URL is a live-generation endpoint, not stable hosting -
- * Meta/LinkedIn/X's own servers need to fetch a durable URL when a post
- * with this image is published, potentially well after generation time.
+ * The generated image is re-hosted on Vercel Blob because a Pollinations
+ * URL is a live-generation endpoint, not stable hosting - Meta/LinkedIn/X's
+ * own servers need to fetch a durable URL when a post with this image is
+ * published, potentially well after generation time.
+ *
+ * This project's Blob store is private-only, so the upload uses
+ * access:"private" and the URL handed back points at /api/media/... (see
+ * that route) instead of the raw blob.url, which would 403 for anyone but
+ * us. See https://vercel.com/docs/vercel-blob/private-storage.
  */
 
 const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verlinlabs.com").replace(/\/$/, "");
 
 export function isAiImageConfigured(): boolean {
   // Pollinations itself needs no key; only Blob storage (already required
@@ -52,13 +58,14 @@ export async function generateMarketingImage(
       return { ok: false, error: "Image generation did not return a usable image - try a different prompt" };
     }
 
-    const blob = await put(`verlin-labs/marketing-ai-images/${randomUUID()}.${ext}`, bytes, {
-      access: "public",
+    const key = `verlin-labs/marketing-ai-images/${randomUUID()}.${ext}`;
+    await put(key, bytes, {
+      access: "private",
       addRandomSuffix: false,
       contentType,
     });
 
-    return { ok: true, url: blob.url };
+    return { ok: true, url: `${SITE_URL}/api/media/${key}` };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Image generation failed" };
   }
