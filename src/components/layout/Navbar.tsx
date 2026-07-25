@@ -16,6 +16,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
 const MY_COURSE_NAV = { label: "My Course", href: "/my-course" };
+const AVATAR_STUDIO_NAV = { label: "Avatar Studio", href: "/avatar-studio" };
 
 interface NavbarProps {
   nav: HeaderNavLink[];
@@ -146,13 +147,17 @@ export function Navbar({ nav }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const reduceMotion = useReducedMotion();
   const isEnrolled = session?.user?.enrolledLearner ?? false;
+  const isSignedIn = Boolean(session?.user);
   const baseNav = isEnrolled ? nav.filter((item) => item.href !== "/free-session") : nav;
   const learnerNav = isEnrolled ? [MY_COURSE_NAV] : [];
+  // Avatar Studio is a self-serve tool available to any signed-in user (not
+  // enrollment-gated - consent + per-user token metering handle access).
+  const accountToolsNav = isSignedIn ? [AVATAR_STUDIO_NAV] : [];
 
   // Group into Products / Learn dropdowns; everything else stays flat.
   const productItems = baseNav.filter((item) => item.navGroup === "products");
   const learnItems = baseNav.filter((item) => item.navGroup === "learn");
-  const flatItems = [...learnerNav, ...baseNav.filter((item) => !item.navGroup)];
+  const flatItems = [...learnerNav, ...accountToolsNav, ...baseNav.filter((item) => !item.navGroup)];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

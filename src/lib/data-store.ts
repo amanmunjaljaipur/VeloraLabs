@@ -78,6 +78,30 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-ad-accounts.json",
   /** Paid campaign definitions (objective/budget/targeting/creative) and per-platform submission status */
   "marketing-campaigns.json",
+  /** Avatar Studio: voice/face-clone + training-data-use consent records - sensitive */
+  "avatar-consent.json",
+  /** Avatar Studio: video category config (script tone/structure + moderation thresholds) */
+  "avatar-categories.json",
+  /** Avatar Studio: configurable model + token-cost catalog */
+  "avatar-model-catalog.json",
+  /** Avatar Studio: per-user token balances */
+  "avatar-token-balances.json",
+  /** Avatar Studio: token consumption/refund/grant ledger */
+  "avatar-token-ledger.json",
+  /** Avatar Studio: generation job records (script -> voice -> avatar -> QA -> delivery) */
+  "avatar-jobs.json",
+  /** Avatar Studio: user-cloned voice/avatar profiles */
+  "avatar-clone-profiles.json",
+  /** Avatar Studio: continuous correction/rating feedback log - source of the daily training pool */
+  "avatar-feedback.json",
+  /** Avatar Studio: permanent daily fine-tuning cycle history (data lineage, never auto-deleted) */
+  "avatar-training-batches.json",
+  /** Avatar Studio: training pause/resume control */
+  "avatar-training-settings.json",
+  /** Avatar Studio: per-user Google Drive OAuth tokens - sensitive */
+  "avatar-storage-connections.json",
+  /** Avatar Studio: log of every moderation check (approved + rejected) for the admin moderation queue view */
+  "avatar-moderation-log.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -123,6 +147,19 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   // A stale read here could double-activate (double-spend) or miss a pause
   // across serverless instances - real money, must be strongly consistent.
   "marketing-campaigns.json",
+  "avatar-consent.json",
+  // Token balance/ledger - a stale read could let a job spend tokens twice
+  // or refund incorrectly across serverless instances.
+  "avatar-token-balances.json",
+  "avatar-token-ledger.json",
+  // Job status drives the queue processor - a stale read risks double-
+  // processing the same job on two instances.
+  "avatar-jobs.json",
+  "avatar-storage-connections.json",
+  // Training batch history is the data-lineage record - must be durable
+  // and consistent the moment a cycle runs, not eventually.
+  "avatar-training-batches.json",
+  "avatar-training-settings.json",
 ]);
 
 const hydrationPromises = new Map<string, Promise<boolean>>();

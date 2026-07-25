@@ -40,6 +40,14 @@
     {
       "path": "/api/cron/prune-logs",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/avatar-studio-queue",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/avatar-studio-training",
+      "schedule": "30 5 * * *"
     }
   ]
 }

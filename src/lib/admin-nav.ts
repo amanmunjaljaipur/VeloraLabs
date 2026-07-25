@@ -135,6 +135,13 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     group: "Platform",
   },
   {
+    label: "Avatar Studio Training",
+    href: "/admin/avatar-studio",
+    description: "Pause/trigger the daily training cycle, batch history, and the moderation queue",
+    superAdminOnly: true,
+    group: "Platform",
+  },
+  {
     label: "Diagnostics",
     href: "/admin/diagnostics",
     description: "Critical error/warning logs by page, kept for ~3 months across deploys",
