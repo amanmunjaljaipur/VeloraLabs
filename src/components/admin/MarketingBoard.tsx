@@ -10,6 +10,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronDown,
+  Download,
   Flame,
   ImagePlus,
   Layers,
@@ -25,6 +26,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { upload } from "@vercel/blob/client";
+import JSZip from "jszip";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface PublicAccount {
@@ -191,6 +193,8 @@ export function MarketingBoard() {
   const [contentMode, setContentMode] = useState<"single" | "carousel" | "pdf-slides">("single");
   const [carouselUrlsText, setCarouselUrlsText] = useState("");
   const [slidesText, setSlidesText] = useState("");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingCarousel, setDownloadingCarousel] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -288,17 +292,7 @@ export function MarketingBoard() {
         contentMode === "carousel"
           ? carouselUrlsText.split("\n").map((l) => l.trim()).filter(Boolean)
           : [];
-      const slides =
-        contentMode === "pdf-slides"
-          ? slidesText
-              .split("\n")
-              .map((l) => l.trim())
-              .filter(Boolean)
-              .map((line) => {
-                const [heading, ...rest] = line.split("|");
-                return { heading: (heading ?? "").trim(), body: rest.join("|").trim() || undefined };
-              })
-          : [];
+      const slides = contentMode === "pdf-slides" ? parseSlides() : [];
 
       if (contentMode === "carousel" && carouselUrls.length < 2) {
         toast("Add at least 2 image URLs for a carousel (one per line)", "warning");
@@ -492,6 +486,97 @@ export function MarketingBoard() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function triggerBlobDownload(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function parseSlides() {
+    return slidesText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [heading, ...rest] = line.split("|");
+        return { heading: (heading ?? "").trim(), body: rest.join("|").trim() || undefined };
+      });
+  }
+
+  async function handleDownloadPdf() {
+    const slides = parseSlides();
+    if (slides.length < 2) {
+      toast("Add at least 2 slides first", "warning");
+      return;
+    }
+    setDownloadingPdf(true);
+    try {
+      const res = await fetch("/api/admin/marketing/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || "Could not generate the PDF", "error");
+        return;
+      }
+      const blob = await res.blob();
+      triggerBlobDownload(blob, "verlin-labs-slides.pdf");
+    } catch {
+      toast("Could not generate the PDF", "error");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
+  async function handleDownloadCarousel() {
+    const urls = carouselUrlsText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (urls.length === 0) {
+      toast("Add image URLs first", "warning");
+      return;
+    }
+    setDownloadingCarousel(true);
+    try {
+      const zip = new JSZip();
+      let count = 0;
+      await Promise.all(
+        urls.map(async (url, i) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const blob = await res.blob();
+            const ext = (blob.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
+            zip.file(`image-${i + 1}.${ext}`, blob);
+            count += 1;
+          } catch {
+            // Best-effort - a third-party URL with no CORS headers will fail
+            // to fetch client-side; skip it rather than aborting the whole zip.
+          }
+        })
+      );
+      if (count === 0) {
+        toast("Could not download any of those images", "error");
+        return;
+      }
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      triggerBlobDownload(zipBlob, "verlin-labs-carousel.zip");
+      toast(
+        count < urls.length ? `Downloaded ${count} of ${urls.length} images` : "Downloaded",
+        count < urls.length ? "warning" : "success"
+      );
+    } catch {
+      toast("Could not build the ZIP", "error");
+    } finally {
+      setDownloadingCarousel(false);
     }
   }
 
@@ -958,6 +1043,17 @@ export function MarketingBoard() {
                 // eslint-disable-next-line @next/next/no-img-element -- arbitrary/dynamic image URL, not a static local asset
                 <img src={imageUrl} alt="Post media preview" className="max-h-56 w-full object-contain" />
               )}
+              <div className="flex items-center justify-end border-t border-border/60 bg-card/60 px-3 py-1.5">
+                <a
+                  href={imageUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-medium text-teal hover:underline"
+                >
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" /> Download
+                </a>
+              </div>
             </div>
           )}
 
@@ -995,10 +1091,20 @@ export function MarketingBoard() {
                   placeholder={"One image URL per line (2-10 images)\nhttps://...\nhttps://..."}
                   className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
                 />
-                <p className="mt-1 text-xs text-text-secondary">
-                  Publishes as a native multi-image carousel on Instagram and Facebook. LinkedIn and X post
-                  the first image only.
-                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-text-secondary">
+                    Publishes as a native multi-image carousel on Instagram and Facebook. LinkedIn and X post
+                    the first image only.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={downloadingCarousel}
+                    onClick={handleDownloadCarousel}
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download all (ZIP)
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -1011,10 +1117,15 @@ export function MarketingBoard() {
                   placeholder={"One slide per line: Heading | Optional body text\nWhy most AI advice is wrong | Most tips assume you already understand the model\n..."}
                   className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal"
                 />
-                <p className="mt-1 text-xs text-text-secondary">
-                  Compiles a swipeable PDF document post for LinkedIn (2026&apos;s top-performing organic
-                  format). Other platforms fall back to the text content above.
-                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-text-secondary">
+                    Compiles a swipeable PDF document post for LinkedIn (2026&apos;s top-performing organic
+                    format). Other platforms fall back to the text content above.
+                  </p>
+                  <Button variant="secondary" size="sm" loading={downloadingPdf} onClick={handleDownloadPdf}>
+                    <Download className="h-3.5 w-3.5" /> Download PDF
+                  </Button>
+                </div>
               </div>
             )}
           </div>

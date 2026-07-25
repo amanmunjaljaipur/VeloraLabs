@@ -1,5 +1,6 @@
 import { put } from "@vercel/blob";
 import { randomUUID } from "crypto";
+import { applyBrandWatermark } from "@/lib/marketing/brand-watermark";
 
 /**
  * Free AI image generation for the Marketing Board composer, via
@@ -58,8 +59,10 @@ export async function generateMarketingImage(
       return { ok: false, error: "Image generation did not return a usable image - try a different prompt" };
     }
 
+    const watermarked = await applyBrandWatermark(Buffer.from(bytes), contentType);
+
     const key = `verlin-labs/marketing-ai-images/${randomUUID()}.${ext}`;
-    await put(key, bytes, {
+    await put(key, watermarked, {
       access: "private",
       addRandomSuffix: false,
       contentType,

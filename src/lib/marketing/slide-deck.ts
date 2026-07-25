@@ -1,4 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
+import fs from "fs";
+import path from "path";
 
 /**
  * Compiles a Marketing Board carousel into a square-slide PDF for
@@ -16,6 +18,22 @@ const BRAND = rgb(13 / 255, 148 / 255, 136 / 255);
 const TEXT = rgb(15 / 255, 23 / 255, 42 / 255);
 const MUTED = rgb(100 / 255, 116 / 255, 139 / 255);
 const WHITE = rgb(1, 1, 1);
+
+const BRAND_ICON_RELATIVE_PATH = ["public", "images", "verlin-brand-icon.png"];
+const BRAND_ICON_SIZE = 34;
+
+let brandIconBytesCache: Buffer | null = null;
+
+/** Loads the brand icon PNG bytes from disk, cached across calls. Returns null (never throws) if missing/unreadable so the PDF still builds with the text-only label as fallback. */
+function loadBrandIconBytes(): Buffer | null {
+  if (brandIconBytesCache) return brandIconBytesCache;
+  try {
+    brandIconBytesCache = fs.readFileSync(path.join(process.cwd(), ...BRAND_ICON_RELATIVE_PATH));
+    return brandIconBytesCache;
+  } catch {
+    return null;
+  }
+}
 
 export interface SlideInput {
   /** Short heading for the slide (the one idea it delivers) */
@@ -49,6 +67,9 @@ export async function buildSlideDeckPdf(input: {
   const doc = await PDFDocument.create();
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+
+  const iconBytes = loadBrandIconBytes();
+  const brandIcon = iconBytes ? await doc.embedPng(iconBytes).catch(() => null) : null;
 
   input.slides.forEach((slide, index) => {
     const page = doc.addPage([SIZE, SIZE]);
@@ -89,8 +110,17 @@ export async function buildSlideDeckPdf(input: {
       color: isHook ? WHITE : MUTED,
     });
     if (input.brandLabel) {
+      const labelX = brandIcon ? MARGIN + BRAND_ICON_SIZE + 10 : MARGIN;
+      if (brandIcon) {
+        page.drawImage(brandIcon, {
+          x: MARGIN,
+          y: 42,
+          width: BRAND_ICON_SIZE,
+          height: BRAND_ICON_SIZE,
+        });
+      }
       page.drawText(input.brandLabel, {
-        x: MARGIN,
+        x: labelX,
         y: 50,
         size: 16,
         font: bold,
