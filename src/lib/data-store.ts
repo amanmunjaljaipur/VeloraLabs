@@ -57,6 +57,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "marketing-scheduled-posts.json",
   /** Cached inbox metadata (tags/priority/AI summary) for the Email Suite */
   "marketing-inbox.json",
+  /** Connected mailbox IMAP/SMTP credentials for the Email Suite's multi-account inbox - sensitive, admin-only */
+  "marketing-mailboxes.json",
   /** Email Suite leads captured from inbox triage / manual entry / website */
   "marketing-leads.json",
   /** Email Suite campaign definitions and send results */
@@ -99,6 +101,7 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   "booking-slot-templates.json",
   "testimonial-submissions.json",
   "marketing-accounts.json",
+  "marketing-mailboxes.json",
   "marketing-posts.json",
   // Scheduler claims entries before publishing - a stale read across
   // instances would double-post to real social accounts.

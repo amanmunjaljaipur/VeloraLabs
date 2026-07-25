@@ -220,7 +220,7 @@ export async function executeGrowthActions(
           const untriaged = entries.filter((e) => !e.aiSummary).slice(0, 15);
           for (const entry of untriaged) {
             const triage = await triageEmail({ from: entry.from, subject: entry.subject, body: entry.bodyText });
-            await updateInboxEntry(entry.uid, tenantId, {
+            await updateInboxEntry(entry.id, tenantId, {
               aiSummary: triage.summary || null,
               tag: triage.tag,
               priority: triage.priority,

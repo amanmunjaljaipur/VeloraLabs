@@ -1,18 +1,46 @@
 import { ImapFlow, type FetchMessageObject } from "imapflow";
 import { simpleParser } from "mailparser";
+import nodemailer from "nodemailer";
 import { sendTransactionalEmail, type SendEmailInput } from "@/lib/send-email";
 
 /**
  * Email Suite's read path: connects to a real IMAP mailbox (Gmail, Zoho,
- * Outlook, any standard IMAP host work) to list and fetch messages so the
+ * Outlook, any standard IMAP host works) to list and fetch messages so the
  * Marketing Board can show a real inbox next to the social channels rather
- * than just being able to send. Sending is delegated straight to the
- * existing SMTP/Resend transactional sender - no need to reinvent that.
+ * than just being able to send.
  *
- * Credentials are a single mailbox, configured via env vars (IMAP_HOST,
- * IMAP_PORT, IMAP_USER, IMAP_PASS). Nothing here persists the password -
- * every call opens a fresh connection and logs out when done.
+ * Parameterized by MailboxCredentials rather than reading env vars directly
+ * - inbox-store.ts calls this once per connected mailbox (see
+ * mailboxes-store.ts) and merges the results into one unified inbox, the
+ * same way Gmail lets you add several accounts and see them in one place.
+ * Nothing here persists a connection - every call opens a fresh IMAP
+ * session and logs out when done.
+ *
+ * LEGACY_MAILBOX_ID: before per-mailbox credential storage existed, the
+ * whole suite ran off one mailbox configured via IMAP_HOST/IMAP_USER/
+ * IMAP_PASS env vars. That mailbox still works today - getLegacyMailbox()
+ * surfaces it as just another account (non-removable, since it's server
+ * config, not something stored per-tenant) so nothing that was already
+ * cached breaks when multi-mailbox support lands on top of it.
  */
+
+export const LEGACY_MAILBOX_ID = "legacy-env";
+
+export interface MailboxCredentials {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+}
+
+export interface SmtpCredentials {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+}
 
 export interface MailboxMessage {
   uid: number;
@@ -28,23 +56,30 @@ export interface MailboxMessage {
   flagged: boolean;
 }
 
-export function isMailboxConfigured(): boolean {
+export function isLegacyMailboxConfigured(): boolean {
   return Boolean(process.env.IMAP_HOST && process.env.IMAP_USER && process.env.IMAP_PASS);
 }
 
-function getClient(): ImapFlow {
-  const host = process.env.IMAP_HOST!;
-  const port = Number(process.env.IMAP_PORT ?? "993");
-  const secure = process.env.IMAP_SECURE !== "false";
+/** Back-compat alias - existing call sites (config route) ask "is the mailbox configured" without caring which one. */
+export const isMailboxConfigured = isLegacyMailboxConfigured;
 
+export function getLegacyCredentials(): MailboxCredentials | null {
+  if (!isLegacyMailboxConfigured()) return null;
+  return {
+    host: process.env.IMAP_HOST!,
+    port: Number(process.env.IMAP_PORT ?? "993"),
+    secure: process.env.IMAP_SECURE !== "false",
+    user: process.env.IMAP_USER!,
+    pass: process.env.IMAP_PASS!,
+  };
+}
+
+function getClient(creds: MailboxCredentials): ImapFlow {
   return new ImapFlow({
-    host,
-    port,
-    secure,
-    auth: {
-      user: process.env.IMAP_USER!,
-      pass: process.env.IMAP_PASS!,
-    },
+    host: creds.host,
+    port: creds.port,
+    secure: creds.secure,
+    auth: { user: creds.user, pass: creds.pass },
     logger: false,
   });
 }
@@ -72,11 +107,24 @@ async function parseMessage(uid: number, raw: FetchMessageObject): Promise<Mailb
   };
 }
 
-/** Most recent messages in the mailbox, newest first. */
-export async function listRecentMessages(limit = 50): Promise<MailboxMessage[]> {
-  if (!isMailboxConfigured()) return [];
+/** Opens a connection just to prove the credentials work - used by the "Test & connect" button before saving anything. */
+export async function testMailboxConnection(creds: MailboxCredentials): Promise<{ ok: boolean; error: string | null }> {
+  const client = getClient(creds);
+  try {
+    await client.connect();
+    const lock = await client.getMailboxLock("INBOX");
+    lock.release();
+    return { ok: true, error: null };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Could not connect" };
+  } finally {
+    await client.logout().catch(() => client.close());
+  }
+}
 
-  const client = getClient();
+/** Most recent messages in the mailbox, newest first. */
+export async function listRecentMessages(creds: MailboxCredentials, limit = 50): Promise<MailboxMessage[]> {
+  const client = getClient(creds);
   await client.connect();
   const messages: MailboxMessage[] = [];
 
@@ -105,10 +153,8 @@ export async function listRecentMessages(limit = 50): Promise<MailboxMessage[]> 
   return messages.sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export async function fetchMessageByUid(uid: number): Promise<MailboxMessage | null> {
-  if (!isMailboxConfigured()) return null;
-
-  const client = getClient();
+export async function fetchMessageByUid(creds: MailboxCredentials, uid: number): Promise<MailboxMessage | null> {
+  const client = getClient(creds);
   await client.connect();
 
   try {
@@ -130,9 +176,8 @@ export async function fetchMessageByUid(uid: number): Promise<MailboxMessage | n
   }
 }
 
-export async function markMessageSeen(uid: number): Promise<void> {
-  if (!isMailboxConfigured()) return;
-  const client = getClient();
+export async function markMessageSeen(creds: MailboxCredentials, uid: number): Promise<void> {
+  const client = getClient(creds);
   await client.connect();
   try {
     const lock = await client.getMailboxLock("INBOX");
@@ -146,7 +191,34 @@ export async function markMessageSeen(uid: number): Promise<void> {
   }
 }
 
-/** Reuses the site's existing SMTP/Resend transactional sender for outbound mail. */
-export async function sendMailboxMessage(input: SendEmailInput): Promise<boolean> {
-  return sendTransactionalEmail(input);
+/**
+ * Sends from a specific connected mailbox's own SMTP credentials when it has
+ * them, otherwise falls back to the site's existing SMTP/Resend transactional
+ * sender (the original single-mailbox behavior). This is what lets "reply
+ * from support@" actually come from support@ instead of always from the
+ * site's default sender.
+ */
+export async function sendMailboxMessage(input: SendEmailInput, smtp?: SmtpCredentials | null): Promise<boolean> {
+  if (!smtp) return sendTransactionalEmail(input);
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: { user: smtp.user, pass: smtp.pass },
+    });
+    await transporter.sendMail({
+      from: input.from ?? smtp.user,
+      to: input.to,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      html: input.html,
+      attachments: input.attachments?.map((a) => ({ filename: a.filename, content: a.content })),
+    });
+    return true;
+  } catch (error) {
+    console.error(`Mailbox send failed for ${input.to}:`, error);
+    return false;
+  }
 }

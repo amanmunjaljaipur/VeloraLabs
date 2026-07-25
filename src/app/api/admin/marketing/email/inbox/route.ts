@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       for (const entry of untriaged) {
         try {
           const triage = await triageEmail({ from: entry.from, subject: entry.subject, body: entry.bodyText });
-          await updateInboxEntry(entry.uid, tenantId, {
+          await updateInboxEntry(entry.id, tenantId, {
             aiSummary: triage.summary || null,
             tag: triage.tag,
             priority: triage.priority,
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             await upsertLead({ tenantId, email: entry.from, name: entry.fromName, source: "inbox" });
           }
         } catch (error) {
-          console.error(`Email triage failed for uid ${entry.uid}:`, error);
+          console.error(`Email triage failed for ${entry.id}:`, error);
         }
       }
     }
@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "update") {
-    const uid = Number(body?.uid);
-    if (!Number.isFinite(uid)) {
-      return NextResponse.json({ error: "uid required" }, { status: 400 });
+    const id = String(body?.id ?? "");
+    if (!id) {
+      return NextResponse.json({ error: "id required" }, { status: 400 });
     }
     const patch = body?.patch ?? {};
     const cleanPatch: Partial<Pick<InboxEntry, "tag" | "priority" | "read" | "archived">> = {};
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (typeof patch.priority === "string") cleanPatch.priority = patch.priority;
     if (typeof patch.read === "boolean") cleanPatch.read = patch.read;
     if (typeof patch.archived === "boolean") cleanPatch.archived = patch.archived;
-    const entry = await updateInboxEntry(uid, tenantId, cleanPatch);
+    const entry = await updateInboxEntry(id, tenantId, cleanPatch);
     if (!entry) return NextResponse.json({ error: "Message not found" }, { status: 404 });
     return NextResponse.json({ entry });
   }

@@ -8,20 +8,26 @@ import {
   CheckCircle2,
   Flame,
   Image as ImageIcon,
+  Inbox as InboxIcon,
   Loader2,
   Mail,
+  Plus,
   RefreshCw,
   Search,
   Send,
   Sparkles,
   Trash2,
+  Unlink,
   UserPlus,
   Users,
   XCircle,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
 interface InboxEntry {
+  id: string;
+  mailboxId: string;
   uid: number;
   from: string;
   fromName: string | null;
@@ -36,6 +42,19 @@ interface InboxEntry {
   read: boolean;
   archived: boolean;
 }
+
+interface PublicMailbox {
+  id: string;
+  email: string;
+  displayName: string;
+  color: string;
+  usesCustomSmtp: boolean;
+  status: "connected" | "error";
+  lastError: string | null;
+  lastSyncedAt: string | null;
+}
+
+const LEGACY_MAILBOX_ID = "legacy-env";
 
 interface Lead {
   id: string;
@@ -106,8 +125,26 @@ const TAG_COLORS: Record<InboxEntry["tag"], string> = {
 
 type Tab = "inbox" | "leads" | "prospects" | "templates" | "campaigns";
 
+const EMPTY_MAILBOX_FORM = {
+  email: "",
+  displayName: "",
+  imapHost: "",
+  imapPort: "993",
+  imapSecure: true,
+  imapUser: "",
+  imapPass: "",
+  useCustomSmtp: false,
+  smtpHost: "",
+  smtpPort: "465",
+  smtpSecure: true,
+  smtpUser: "",
+  smtpPass: "",
+};
+
 export function EmailSuite() {
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === "super_admin";
   const [tab, setTab] = useState<Tab>("inbox");
   const [config, setConfig] = useState<Config | null>(null);
   const [entries, setEntries] = useState<InboxEntry[]>([]);
@@ -117,6 +154,14 @@ export function EmailSuite() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+
+  // Multi-mailbox login - connect/switch between several inboxes, Gmail-style
+  const [mailboxes, setMailboxes] = useState<PublicMailbox[]>([]);
+  const [selectedMailboxId, setSelectedMailboxId] = useState<string>("all");
+  const [showAddMailbox, setShowAddMailbox] = useState(false);
+  const [mailboxForm, setMailboxForm] = useState(EMPTY_MAILBOX_FORM);
+  const [connectingMailbox, setConnectingMailbox] = useState(false);
+  const [removingMailboxId, setRemovingMailboxId] = useState<string | null>(null);
 
   // Campaign composer
   const [subject, setSubject] = useState("");
@@ -146,13 +191,14 @@ export function EmailSuite() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [configRes, inboxRes, leadsRes, campaignsRes, templatesRes, prospectsRes] = await Promise.all([
+      const [configRes, inboxRes, leadsRes, campaignsRes, templatesRes, prospectsRes, mailboxesRes] = await Promise.all([
         fetch("/api/admin/marketing/email/config"),
         fetch("/api/admin/marketing/email/inbox"),
         fetch("/api/admin/marketing/email/leads"),
         fetch("/api/admin/marketing/email/campaigns"),
         fetch("/api/admin/marketing/email/templates"),
         fetch("/api/admin/marketing/email/prospects"),
+        fetch("/api/admin/marketing/email/mailboxes"),
       ]);
       if (configRes.ok) setConfig(await configRes.json());
       if (inboxRes.ok) setEntries((await inboxRes.json()).entries ?? []);
@@ -160,6 +206,7 @@ export function EmailSuite() {
       if (campaignsRes.ok) setCampaigns((await campaignsRes.json()).campaigns ?? []);
       if (templatesRes.ok) setTemplates((await templatesRes.json()).templates ?? []);
       if (prospectsRes.ok) setProspects((await prospectsRes.json()).prospects ?? []);
+      if (mailboxesRes.ok) setMailboxes((await mailboxesRes.json()).mailboxes ?? []);
     } catch {
       toast("Could not load Email Suite data", "error");
     } finally {
@@ -189,6 +236,63 @@ export function EmailSuite() {
       setSyncing(false);
     }
   }, [load, toast]);
+
+  const handleAddMailbox = useCallback(async () => {
+    if (!mailboxForm.email.includes("@") || !mailboxForm.imapHost || !mailboxForm.imapUser || !mailboxForm.imapPass) {
+      toast("Email, IMAP host, username, and password are required", "error");
+      return;
+    }
+    setConnectingMailbox(true);
+    try {
+      const res = await fetch("/api/admin/marketing/email/mailboxes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: mailboxForm.email,
+          displayName: mailboxForm.displayName,
+          imapHost: mailboxForm.imapHost,
+          imapPort: Number(mailboxForm.imapPort) || 993,
+          imapSecure: mailboxForm.imapSecure,
+          imapUser: mailboxForm.imapUser,
+          imapPass: mailboxForm.imapPass,
+          useCustomSmtp: mailboxForm.useCustomSmtp,
+          smtpHost: mailboxForm.smtpHost,
+          smtpPort: Number(mailboxForm.smtpPort) || 465,
+          smtpSecure: mailboxForm.smtpSecure,
+          smtpUser: mailboxForm.smtpUser,
+          smtpPass: mailboxForm.smtpPass,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Could not connect that mailbox");
+      toast(`Connected ${mailboxForm.email}`, "success");
+      setMailboxForm(EMPTY_MAILBOX_FORM);
+      setShowAddMailbox(false);
+      await load();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not connect that mailbox", "error");
+    } finally {
+      setConnectingMailbox(false);
+    }
+  }, [mailboxForm, load, toast]);
+
+  const handleRemoveMailbox = useCallback(
+    async (id: string) => {
+      setRemovingMailboxId(id);
+      try {
+        const res = await fetch(`/api/admin/marketing/email/mailboxes?id=${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error();
+        if (selectedMailboxId === id) setSelectedMailboxId("all");
+        toast("Mailbox removed", "success");
+        await load();
+      } catch {
+        toast("Could not remove mailbox", "error");
+      } finally {
+        setRemovingMailboxId(null);
+      }
+    },
+    [selectedMailboxId, load, toast]
+  );
 
   const handleAiCompose = useCallback(async () => {
     if (!aiComposePrompt.trim()) {
@@ -449,6 +553,210 @@ export function EmailSuite() {
 
       {tab === "inbox" && (
         <div className="space-y-4">
+          {/* Account switcher - manage several mailboxes from one place, Gmail-style */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedMailboxId("all")}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                selectedMailboxId === "all"
+                  ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                  : "border-border text-text-secondary hover:bg-muted"
+              }`}
+            >
+              <InboxIcon className="h-3.5 w-3.5" /> All inboxes
+              {entries.length > 0 && <span className="opacity-70">{entries.filter((e) => !e.archived).length}</span>}
+            </button>
+            {mailboxes.map((m) => {
+              const count = entries.filter((e) => !e.archived && e.mailboxId === m.id).length;
+              const active = selectedMailboxId === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setSelectedMailboxId(m.id)}
+                  title={m.status === "error" ? m.lastError ?? "Connection error" : m.email}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-navy bg-navy text-white dark:border-white dark:bg-white dark:text-navy"
+                      : "border-border text-text-secondary hover:bg-muted"
+                  }`}
+                >
+                  <span
+                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                    style={{ backgroundColor: m.color }}
+                    aria-hidden="true"
+                  >
+                    {m.displayName.charAt(0).toUpperCase()}
+                  </span>
+                  {m.displayName}
+                  {m.status === "error" && <AlertTriangle className="h-3 w-3 text-amber-500" />}
+                  {count > 0 && <span className="opacity-70">{count}</span>}
+                </button>
+              );
+            })}
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowAddMailbox((v) => !v)}
+                className="flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-muted"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add email account
+              </button>
+            )}
+          </div>
+
+          {showAddMailbox && isSuperAdmin && (
+            <Card className="space-y-3 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Mail className="h-4 w-4" /> Connect a mailbox
+              </p>
+              <p className="text-xs text-text-secondary">
+                Works with Gmail, Outlook, Zoho, or any standard IMAP/SMTP mailbox. For Gmail, use an{" "}
+                <a
+                  href="https://support.google.com/accounts/answer/185833"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline"
+                >
+                  app password
+                </a>{" "}
+                rather than your normal password.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input
+                  type="email"
+                  value={mailboxForm.email}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="Email address (e.g. support@yourcompany.com)"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm sm:col-span-2"
+                />
+                <input
+                  type="text"
+                  value={mailboxForm.displayName}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, displayName: e.target.value }))}
+                  placeholder="Display name (optional, e.g. Support)"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm sm:col-span-2"
+                />
+                <input
+                  type="text"
+                  value={mailboxForm.imapHost}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, imapHost: e.target.value }))}
+                  placeholder="IMAP host (e.g. imap.gmail.com)"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                />
+                <input
+                  type="number"
+                  value={mailboxForm.imapPort}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, imapPort: e.target.value }))}
+                  placeholder="Port (993)"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                />
+                <input
+                  type="text"
+                  value={mailboxForm.imapUser}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, imapUser: e.target.value }))}
+                  placeholder="IMAP username"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                />
+                <input
+                  type="password"
+                  value={mailboxForm.imapPass}
+                  onChange={(e) => setMailboxForm((f) => ({ ...f, imapPass: e.target.value }))}
+                  placeholder="IMAP password / app password"
+                  className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                />
+                <label className="flex items-center gap-2 text-xs text-text-secondary sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={mailboxForm.imapSecure}
+                    onChange={(e) => setMailboxForm((f) => ({ ...f, imapSecure: e.target.checked }))}
+                  />
+                  Use TLS (leave on unless your provider says otherwise)
+                </label>
+                <label className="flex items-center gap-2 text-xs text-text-secondary sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={mailboxForm.useCustomSmtp}
+                    onChange={(e) => setMailboxForm((f) => ({ ...f, useCustomSmtp: e.target.checked }))}
+                  />
+                  Send from this mailbox&apos;s own SMTP (otherwise campaigns send from the site&apos;s default sender)
+                </label>
+                {mailboxForm.useCustomSmtp && (
+                  <>
+                    <input
+                      type="text"
+                      value={mailboxForm.smtpHost}
+                      onChange={(e) => setMailboxForm((f) => ({ ...f, smtpHost: e.target.value }))}
+                      placeholder="SMTP host (e.g. smtp.gmail.com)"
+                      className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      value={mailboxForm.smtpPort}
+                      onChange={(e) => setMailboxForm((f) => ({ ...f, smtpPort: e.target.value }))}
+                      placeholder="Port (465)"
+                      className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={mailboxForm.smtpUser}
+                      onChange={(e) => setMailboxForm((f) => ({ ...f, smtpUser: e.target.value }))}
+                      placeholder="SMTP username (defaults to IMAP username)"
+                      className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="password"
+                      value={mailboxForm.smtpPass}
+                      onChange={(e) => setMailboxForm((f) => ({ ...f, smtpPass: e.target.value }))}
+                      placeholder="SMTP password (defaults to IMAP password)"
+                      className="rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+                    />
+                  </>
+                )}
+              </div>
+              <Button size="sm" loading={connectingMailbox} onClick={handleAddMailbox}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Test &amp; connect
+              </Button>
+
+              {mailboxes.length > 0 && (
+                <div className="border-t border-border/60 pt-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">Connected mailboxes</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {mailboxes.map((m) => (
+                      <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                            style={{ backgroundColor: m.color }}
+                            aria-hidden="true"
+                          >
+                            {m.displayName.charAt(0).toUpperCase()}
+                          </span>
+                          <span className="truncate text-foreground">{m.displayName}</span>
+                          <span className="truncate text-xs text-text-secondary">{m.email}</span>
+                        </span>
+                        {m.id === LEGACY_MAILBOX_ID ? (
+                          <span className="shrink-0 text-xs text-text-secondary">via env config</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMailbox(m.id)}
+                            disabled={removingMailboxId === m.id}
+                            className="shrink-0 text-text-secondary hover:text-red-600"
+                            aria-label={`Remove ${m.displayName}`}
+                          >
+                            <Unlink className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
+          )}
+
           <div className="flex items-center justify-between">
             <p className="text-sm text-text-secondary">{entries.length} cached message(s)</p>
             <Button variant="secondary" size="sm" loading={syncing} onClick={handleSync}>
@@ -457,44 +765,61 @@ export function EmailSuite() {
           </div>
           {entries.length === 0 ? (
             <Card className="p-8 text-center text-sm text-text-secondary">
-              No messages yet. Click &quot;Sync inbox&quot; to pull from your connected mailbox.
+              No messages yet. Click &quot;Sync inbox&quot; to pull from your connected mailbox
+              {mailboxes.length > 1 ? "es" : ""}.
             </Card>
           ) : (
             <div className="space-y-2">
               {entries
-                .filter((e) => !e.archived)
-                .map((entry) => (
-                  <Card key={entry.uid} className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-foreground">{entry.fromName ?? entry.from}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TAG_COLORS[entry.tag]}`}>
-                            {TAG_LABELS[entry.tag]}
-                          </span>
-                          {entry.priority === "high" && (
-                            <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
-                              <Flame className="h-3 w-3" /> High priority
+                .filter((e) => !e.archived && (selectedMailboxId === "all" || e.mailboxId === selectedMailboxId))
+                .map((entry) => {
+                  const source = mailboxes.find((m) => m.id === entry.mailboxId);
+                  return (
+                    <Card key={entry.id} className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold text-foreground">{entry.fromName ?? entry.from}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TAG_COLORS[entry.tag]}`}>
+                              {TAG_LABELS[entry.tag]}
                             </span>
-                          )}
+                            {entry.priority === "high" && (
+                              <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                                <Flame className="h-3 w-3" /> High priority
+                              </span>
+                            )}
+                            {selectedMailboxId === "all" && source && mailboxes.length > 1 && (
+                              <span
+                                className="ml-auto flex items-center gap-1 text-[11px] text-text-secondary"
+                                title={source.email}
+                              >
+                                <span
+                                  className="h-2 w-2 shrink-0 rounded-full"
+                                  style={{ backgroundColor: source.color }}
+                                  aria-hidden="true"
+                                />
+                                {source.displayName}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 truncate text-sm text-foreground">{entry.subject}</p>
+                          <p className="mt-1 text-xs text-text-secondary">
+                            {entry.aiSummary ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Sparkles className="h-3 w-3" /> {entry.aiSummary}
+                              </span>
+                            ) : (
+                              entry.snippet
+                            )}
+                          </p>
                         </div>
-                        <p className="mt-1 truncate text-sm text-foreground">{entry.subject}</p>
-                        <p className="mt-1 text-xs text-text-secondary">
-                          {entry.aiSummary ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Sparkles className="h-3 w-3" /> {entry.aiSummary}
-                            </span>
-                          ) : (
-                            entry.snippet
-                          )}
-                        </p>
+                        <span className="shrink-0 text-xs text-text-secondary">
+                          {new Date(entry.date).toLocaleDateString()}
+                        </span>
                       </div>
-                      <span className="shrink-0 text-xs text-text-secondary">
-                        {new Date(entry.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
             </div>
           )}
         </div>
