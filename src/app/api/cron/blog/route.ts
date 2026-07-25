@@ -1,6 +1,7 @@
 import { verifyApiKey } from "@/lib/api-key-auth";
 import { ensureScheduledBlogQueue } from "@/lib/blog/auto-schedule";
 import { publishDueBlogPosts } from "@/lib/blog/store";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -27,26 +28,33 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, ...paused, publishedCount: 0, generatedCount: 0 });
   }
 
-  const published = await publishDueBlogPosts();
-  const generated = await ensureScheduledBlogQueue();
+  try {
+    const published = await publishDueBlogPosts();
+    const generated = await ensureScheduledBlogQueue();
 
-  return NextResponse.json({
-    success: true,
-    publishedCount: published.length,
-    posts: published.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      publishedAt: p.publishedAt,
-      sequenceId: p.sequenceId,
-    })),
-    generatedCount: generated.length,
-    generated: generated.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      scheduledAt: p.scheduledAt,
-      sequenceId: p.sequenceId,
-    })),
-  });
+    return NextResponse.json({
+      success: true,
+      publishedCount: published.length,
+      posts: published.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        publishedAt: p.publishedAt,
+        sequenceId: p.sequenceId,
+      })),
+      generatedCount: generated.length,
+      generated: generated.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        scheduledAt: p.scheduledAt,
+        sequenceId: p.sequenceId,
+      })),
+    });
+  } catch (error) {
+    console.error("[cron/blog] failed:", error);
+    const message = error instanceof Error ? error.message : "Blog cron failed";
+    void logError("cron/blog", "cron_failed", { error: message });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
 }

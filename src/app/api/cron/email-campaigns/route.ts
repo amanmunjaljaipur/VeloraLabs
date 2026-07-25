@@ -1,6 +1,7 @@
 import { verifyApiKey } from "@/lib/api-key-auth";
 import { claimDueCampaigns, completeCampaign } from "@/lib/marketing/campaigns-store";
 import { sendCampaignNow } from "@/lib/marketing/campaign-sender";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -36,6 +37,10 @@ export async function GET(request: NextRequest) {
       console.error(`Campaign ${campaign.id} failed:`, error);
       await completeCampaign(campaign.id, { status: "failed", sentCount: 0, failedCount: campaign.recipients.length });
       results.push({ id: campaign.id, sentCount: 0, failedCount: campaign.recipients.length });
+      void logError("cron/email-campaigns", "campaign_failed", {
+        campaignId: campaign.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

@@ -1,5 +1,6 @@
 import { verifyApiKey } from "@/lib/api-key-auth";
 import { publishWeeklyNewsletterViaMcp } from "@/lib/newsletter-publish-weekly";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("[cron/newsletter] failed:", error);
     const message = error instanceof Error ? error.message : "Publish failed";
+    void logError("cron/newsletter", "publish_failed", { error: message });
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

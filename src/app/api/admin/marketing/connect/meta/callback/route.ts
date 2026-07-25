@@ -5,14 +5,21 @@ import { discoverPages, exchangeCodeForUserToken, getLongLivedUserToken } from "
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
 import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+const LOG_PAGE = "marketing/meta-oauth-connect";
+
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
-  const fail = (reason: string) =>
-    NextResponse.redirect(new URL(`/admin/marketing?error=${reason}`, origin));
+  const fail = (reason: string, meta?: Record<string, unknown>) => {
+    // Every failure here is exactly the kind of thing that used to require a
+    // throwaway code change + redeploy to diagnose - now it's just a log entry.
+    void logError(LOG_PAGE, reason, meta);
+    return NextResponse.redirect(new URL(`/admin/marketing?error=${reason}`, origin));
+  };
 
   const session = await auth();
   const isSuperAdmin =
@@ -23,8 +30,9 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
   const oauthError = req.nextUrl.searchParams.get("error");
+  const oauthErrorDescription = req.nextUrl.searchParams.get("error_description");
 
-  if (oauthError) return fail("meta_denied");
+  if (oauthError) return fail("meta_denied", { oauthError, oauthErrorDescription });
   if (!code) return fail("meta_no_code");
 
   const stateOk = await verifyAndConsumeOAuthState("meta", state);
@@ -40,23 +48,9 @@ export async function GET(req: NextRequest) {
 
   const pages = await discoverPages(longLivedToken);
   if (pages.length === 0) {
-    // TEMP DIAGNOSTIC (remove after root-causing the "no pages found" issue):
-    // discoverPages()/graphFetch() swallow the real Graph API error into an
-    // empty array, so hit /me/accounts again here and surface Meta's raw
-    // response in the redirect so it's visible without server log access.
-    try {
-      const diagRes = await fetch(
-        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,instagram_business_account&access_token=${encodeURIComponent(longLivedToken)}`
-      );
-      const diagJson: unknown = await diagRes.json().catch(() => null);
-      const diagObj = (diagJson ?? {}) as { error?: { message?: string }; data?: unknown[] };
-      const msg = diagObj.error?.message
-        ? `diag_err_${diagObj.error.message}`
-        : `diag_ok_count_${Array.isArray(diagObj.data) ? diagObj.data.length : "unknown"}`;
-      return fail(encodeURIComponent(msg).slice(0, 250));
-    } catch (e) {
-      return fail(`diag_threw_${encodeURIComponent(String(e)).slice(0, 200)}`);
-    }
+    return fail("meta_no_pages_found", {
+      hint: "Graph API /me/accounts returned zero pages for this token - usually means the connecting Business Portfolio hasn't added this app under Business Settings > Apps, not a code bug.",
+    });
   }
 
   const connectedBy = session!.user!.email as string;

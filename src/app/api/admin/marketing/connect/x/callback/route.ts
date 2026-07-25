@@ -5,14 +5,17 @@ import { discoverXAccount, exchangeCodeForToken } from "@/lib/marketing/x-client
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
 import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { consumePkceVerifier, verifyAndConsumeOAuthState } from "@/lib/marketing/oauth-state";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
-  const fail = (reason: string) =>
-    NextResponse.redirect(new URL(`/admin/marketing?error=${reason}`, origin));
+  const fail = (reason: string, meta?: Record<string, unknown>) => {
+    void logError("marketing/x-oauth-connect", reason, meta);
+    return NextResponse.redirect(new URL(`/admin/marketing?error=${reason}`, origin));
+  };
 
   const session = await auth();
   const isSuperAdmin =

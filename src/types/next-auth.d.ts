@@ -6,7 +6,10 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      /** Role the user is currently acting as - drives every existing permission check. */
       role: UserRole | null;
+      /** Full set of roles assigned to this user (for the role switcher / admin panel). */
+      roles: UserRole[];
       rolePending: boolean;
       enrolledLearner: boolean;
       legalTermsVersion?: number;
@@ -21,6 +24,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role?: UserRole | null;
+    roles?: UserRole[];
     rolePending?: boolean;
     maxAge?: number;
     enrolledLearner?: boolean;

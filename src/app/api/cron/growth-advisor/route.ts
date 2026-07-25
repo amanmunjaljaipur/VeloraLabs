@@ -2,6 +2,7 @@ import { verifyApiKey } from "@/lib/api-key-auth";
 import { listTenants } from "@/lib/marketing/tenants-store";
 import { generateStrategy, executeGrowthActions, isGrowthAdvisorConfigured } from "@/lib/marketing/ai-growth-advisor";
 import { recordGrowthExecution } from "@/lib/marketing/growth-memory-store";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -47,6 +48,10 @@ export async function GET(request: NextRequest) {
       }
     } catch (error) {
       console.error(`Growth advisor failed for tenant ${tenant.id}:`, error);
+      void logError("cron/growth-advisor", "tenant_failed", {
+        tenantId: tenant.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

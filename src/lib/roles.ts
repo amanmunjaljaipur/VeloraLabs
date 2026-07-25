@@ -3,9 +3,29 @@ import {
   readJsonFile,
   writeJsonFileAsync,
 } from "@/lib/data-store";
-import { UserRole } from "@/types/roles";
+import { ROLE_HIERARCHY, USER_ROLES, UserRole } from "@/types/roles";
 
-export type UserRolesConfig = Record<string, UserRole>;
+/**
+ * A user can hold multiple roles at once (e.g. super_admin + student).
+ * `roles` is the full assigned set; `activeRole` is which one they're
+ * currently viewing/operating the app as (switchable via the top-nav
+ * role switcher). `activeRole` defaults to the highest-privilege role
+ * in `roles` until the user explicitly picks one.
+ */
+export interface RoleAssignment {
+  roles: UserRole[];
+  activeRole: UserRole | null;
+}
+
+/**
+ * On-disk shape is tolerant of every format this file has ever used, so old
+ * data is never rewritten/reset on deploy - it's just interpreted correctly:
+ *  - legacy string:        "admin"                                  (pre multi-role)
+ *  - legacy string array:  ["admin", "student"]                     (no active role yet)
+ *  - current shape:        { roles: ["admin","student"], activeRole: "student" }
+ */
+type StoredAssignment = UserRole | UserRole[] | RoleAssignment | undefined | null;
+export type UserRolesConfig = Record<string, StoredAssignment>;
 
 const ROLES_FILE = "user-roles.json";
 /** Short TTL for warm cache; writers always refresh carefully */
@@ -33,33 +53,85 @@ export function isHardcodedSuperAdmin(email: string | null | undefined): boolean
   return HARDCODED_SUPER_ADMIN_EMAILS.some((e) => e === n);
 }
 
-let cachedRoles: UserRolesConfig | null = null;
+function isValidRole(value: unknown): value is UserRole {
+  return typeof value === "string" && (USER_ROLES as readonly string[]).includes(value);
+}
+
+/** Highest-privilege role in a set, or null if the set is empty. */
+function highestOf(roles: UserRole[]): UserRole | null {
+  let best: UserRole | null = null;
+  let bestIdx = -1;
+  for (const r of roles) {
+    const idx = ROLE_HIERARCHY.indexOf(r);
+    if (idx > bestIdx) {
+      bestIdx = idx;
+      best = r;
+    }
+  }
+  return best;
+}
+
+/** Normalize any on-disk shape (legacy string / legacy array / current object) into RoleAssignment. */
+function normalizeAssignment(raw: StoredAssignment): RoleAssignment {
+  if (!raw) return { roles: [], activeRole: null };
+
+  if (typeof raw === "string") {
+    return isValidRole(raw) ? { roles: [raw], activeRole: raw } : { roles: [], activeRole: null };
+  }
+
+  if (Array.isArray(raw)) {
+    const roles = raw.filter(isValidRole);
+    return { roles, activeRole: highestOf(roles) };
+  }
+
+  const roles = Array.isArray(raw.roles) ? raw.roles.filter(isValidRole) : [];
+  const activeRole =
+    raw.activeRole && roles.includes(raw.activeRole) ? raw.activeRole : highestOf(roles);
+  return { roles, activeRole };
+}
+
+let cachedRoles: Record<string, RoleAssignment> | null = null;
 let cacheLoadedAt = 0;
 let loadPromise: Promise<void> | null = null;
 let writeChain: Promise<void> = Promise.resolve();
 let lastLocalWriteAt = 0;
 
-function readLocalRolesFile(): UserRolesConfig {
+function readLocalRolesFile(): Record<string, RoleAssignment> {
   try {
-    return readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
+    const raw = readJsonFile<UserRolesConfig>(ROLES_FILE, "{}");
+    const normalized: Record<string, RoleAssignment> = {};
+    for (const [email, value] of Object.entries(raw)) {
+      normalized[email] = normalizeAssignment(value);
+    }
+    return normalized;
   } catch {
     return {};
   }
 }
 
-async function writeLocalRolesFile(roles: UserRolesConfig): Promise<void> {
+/** Persist in the current object shape - legacy rows get upgraded lazily the moment they're touched. */
+async function writeLocalRolesFile(roles: Record<string, RoleAssignment>): Promise<void> {
   await writeJsonFileAsync(ROLES_FILE, roles, "{}");
 }
 
-function getRolesSnapshot(): UserRolesConfig {
+function getRolesSnapshot(): Record<string, RoleAssignment> {
   return cachedRoles ?? readLocalRolesFile();
 }
 
-/** Merge hardcoded super admins into a roles map (in-memory). */
-function withHardcodedSuperAdmins(roles: UserRolesConfig): UserRolesConfig {
+/** Merge hardcoded super admins into a roles map (in-memory) - additive, never removes their other roles. */
+function withHardcodedSuperAdmins(
+  roles: Record<string, RoleAssignment>
+): Record<string, RoleAssignment> {
   const next = { ...roles };
   for (const email of HARDCODED_SUPER_ADMIN_EMAILS) {
-    next[email] = "super_admin";
+    const existing = next[email] ?? { roles: [], activeRole: null };
+    const roleSet: UserRole[] = existing.roles.includes("super_admin")
+      ? existing.roles
+      : [...existing.roles, "super_admin" as const];
+    next[email] = {
+      roles: roleSet,
+      activeRole: existing.activeRole ?? "super_admin",
+    };
   }
   return next;
 }
@@ -85,7 +157,9 @@ function enqueueRoleWrite<T>(fn: () => Promise<T>): Promise<T> {
 /**
  * Ensure hardcoded owners exist in the map (in-memory + best-effort Blob).
  */
-function applyHardcoded(roles: UserRolesConfig): UserRolesConfig {
+function applyHardcoded(
+  roles: Record<string, RoleAssignment>
+): Record<string, RoleAssignment> {
   return withHardcodedSuperAdmins(roles);
 }
 
@@ -159,50 +233,87 @@ export async function ensureRolesLoaded(force = false): Promise<void> {
   }
 }
 
+/** Full assigned role set (warm cache). Empty array if the user has no assignment. */
+export function getRolesForEmail(email: string | null | undefined): UserRole[] {
+  if (!email) return [];
+  const normalized = normalizeEmail(email);
+  if (isHardcodedSuperAdmin(normalized)) {
+    const extra = getRolesSnapshot()[normalized]?.roles ?? [];
+    return extra.includes("super_admin") ? extra : [...extra, "super_admin"];
+  }
+  try {
+    return getRolesSnapshot()[normalized]?.roles ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Back-compat singular accessor - returns the role the user is currently
+ * *acting as* (their chosen active role, defaulting to their highest-privilege
+ * assigned role). Every existing gate in the app (isAdminRole, requireCmsEditor,
+ * etc.) keys off this, so switching "view as" genuinely changes what they see.
+ */
 export function getRoleForEmail(email: string | null | undefined): UserRole | null {
   if (!email) return null;
   const normalized = normalizeEmail(email);
   if (isHardcodedSuperAdmin(normalized)) {
+    const assignment = getRolesSnapshot()[normalized];
+    if (assignment?.activeRole && assignment.roles.includes(assignment.activeRole)) {
+      return assignment.activeRole;
+    }
     return "super_admin";
   }
   try {
-    const roles = getRolesSnapshot();
-    return roles[normalized] ?? null;
+    const assignment = getRolesSnapshot()[normalized];
+    if (!assignment) return null;
+    return assignment.activeRole ?? highestOf(assignment.roles);
   } catch {
     return null;
   }
 }
 
 /**
- * Fresh role from Blob/disk - used by session/JWT so promotions apply quickly.
+ * Fresh roles from Blob/disk - used by session/JWT so promotions apply quickly.
  * Hardcoded super_admin never depends on I/O.
  */
-export async function getRoleForEmailFresh(
+export async function getRolesForEmailFresh(
   email: string | null | undefined
-): Promise<UserRole | null> {
-  if (!email) return null;
+): Promise<UserRole[]> {
+  if (!email) return [];
   if (isHardcodedSuperAdmin(email)) {
     void ensureRolesLoaded(false).catch(() => undefined);
-    return "super_admin";
+    return getRolesForEmail(email);
   }
   try {
-    // Force reload so another instance's assign is visible ASAP
-    // (grace period only protects the *writing* instance from clobbering itself)
     const writingRecently =
       lastLocalWriteAt > 0 && Date.now() - lastLocalWriteAt < LOCAL_WRITE_GRACE_MS;
     await ensureRolesLoaded(!writingRecently);
-    // Extra pull if still missing (eventual consistency)
-    let role = getRoleForEmail(email);
-    if (!role) {
+    let roles = getRolesForEmail(email);
+    if (roles.length === 0) {
       lastLocalWriteAt = 0; // allow force hydrate past grace
       await ensureRolesLoaded(true);
-      role = getRoleForEmail(email);
+      roles = getRolesForEmail(email);
     }
-    return role;
+    return roles;
   } catch (e) {
-    console.warn("[roles] getRoleForEmailFresh failed", e);
-    return getRoleForEmail(email);
+    console.warn("[roles] getRolesForEmailFresh failed", e);
+    return getRolesForEmail(email);
   }
+}
+
+/** Fresh singular (active-role) lookup - same eventual-consistency handling as getRolesForEmailFresh. */
+export async function getRoleForEmailFresh(
+  email: string | null | undefined
+): Promise<UserRole | null> {
+  const roles = await getRolesForEmailFresh(email);
+  if (roles.length === 0) return null;
+  const normalized = email ? normalizeEmail(email) : "";
+  const assignment = getRolesSnapshot()[normalized];
+  if (assignment?.activeRole && roles.includes(assignment.activeRole)) {
+    return assignment.activeRole;
+  }
+  return highestOf(roles);
 }
 
 export function hasCustomRoleAssignment(email: string | null | undefined): boolean {
@@ -216,48 +327,63 @@ export function hasCustomRoleAssignment(email: string | null | undefined): boole
   }
 }
 
-export function getAllUserRoles(): { email: string; role: UserRole }[] {
+/** One row per user for the admin panel - `role` kept as the highest-privilege role for old UI, `roles` is the full set. */
+export function getAllUserRoles(): { email: string; role: UserRole; roles: UserRole[]; activeRole: UserRole | null }[] {
   const roles = applyHardcoded(getRolesSnapshot());
   return Object.entries(roles)
-    .map(([email, role]) => ({ email, role }))
+    .filter(([, assignment]) => assignment.roles.length > 0)
+    .map(([email, assignment]) => ({
+      email,
+      role: assignment.activeRole ?? (highestOf(assignment.roles) as UserRole),
+      roles: assignment.roles,
+      activeRole: assignment.activeRole,
+    }))
     .sort((a, b) => a.email.localeCompare(b.email));
 }
 
 /**
- * Assign/update a role and await Blob so other instances see it immediately.
+ * Replace a user's full role set and await Blob so other instances see it immediately.
  * Serialized + retry so concurrent assigns do not overwrite each other.
+ * If their current active role is no longer in the new set, it's reset to the
+ * new highest-privilege role.
  */
-export async function setUserRole(
+export async function setUserRoles(
   email: string,
-  role: UserRole,
+  roles: UserRole[],
   _updatedBy?: string
 ): Promise<void> {
   const normalized = normalizeEmail(email);
-  if (isHardcodedSuperAdmin(normalized) && role !== "super_admin") {
-    role = "super_admin";
+  let nextRoles = Array.from(new Set(roles.filter(isValidRole)));
+  if (isHardcodedSuperAdmin(normalized) && !nextRoles.includes("super_admin")) {
+    nextRoles = [...nextRoles, "super_admin"];
   }
 
   await enqueueRoleWrite(async () => {
     let lastError: unknown;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        // Attempt 0: use warm cache if any; later attempts force Blob reload
         lastLocalWriteAt = 0; // allow hydrate to see others' writes
         await ensureRolesLoaded(true);
 
-        const roles = applyHardcoded({ ...getRolesSnapshot() });
-        roles[normalized] = role;
+        const all = applyHardcoded({ ...getRolesSnapshot() });
+        const prevActive = all[normalized]?.activeRole ?? null;
+        all[normalized] = {
+          roles: nextRoles,
+          activeRole: prevActive && nextRoles.includes(prevActive) ? prevActive : highestOf(nextRoles),
+        };
 
-        cachedRoles = roles;
+        cachedRoles = all;
         cacheLoadedAt = Date.now();
         lastLocalWriteAt = Date.now();
 
-        // Await Blob put (user-roles is in AWAIT_BLOB_PERSIST_FILES)
-        await writeLocalRolesFile(roles);
+        await writeLocalRolesFile(all);
 
-        // Verify our assignment is still present after write
         const verify = applyHardcoded(readLocalRolesFile());
-        if (verify[normalized] === role) {
+        const verifyRoles = verify[normalized]?.roles ?? [];
+        if (
+          verifyRoles.length === nextRoles.length &&
+          nextRoles.every((r) => verifyRoles.includes(r))
+        ) {
           cachedRoles = applyHardcoded({ ...verify });
           cacheLoadedAt = Date.now();
           lastLocalWriteAt = Date.now();
@@ -266,13 +392,48 @@ export async function setUserRole(
         lastError = new Error("Role write verify failed");
       } catch (e) {
         lastError = e;
-        console.warn(`[roles] setUserRole attempt ${attempt + 1} failed`, e);
+        console.warn(`[roles] setUserRoles attempt ${attempt + 1} failed`, e);
         await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
       }
     }
     throw lastError instanceof Error
       ? lastError
       : new Error("Failed to save role assignment");
+  });
+}
+
+/** Deprecated single-role setter, kept for any external caller - just delegates to setUserRoles. */
+export async function setUserRole(
+  email: string,
+  role: UserRole,
+  updatedBy?: string
+): Promise<void> {
+  const current = getRolesForEmail(email);
+  const next = current.includes(role) ? current : [...current, role];
+  await setUserRoles(email, next, updatedBy);
+}
+
+/**
+ * Switch which of a user's already-assigned roles they're currently acting as.
+ * Refuses to switch to a role they don't hold.
+ */
+export async function setActiveRole(email: string, role: UserRole): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+
+  return enqueueRoleWrite(async () => {
+    lastLocalWriteAt = 0;
+    await ensureRolesLoaded(true);
+
+    const all = applyHardcoded({ ...getRolesSnapshot() });
+    const assignment = all[normalized];
+    if (!assignment || !assignment.roles.includes(role)) return false;
+
+    all[normalized] = { roles: assignment.roles, activeRole: role };
+    cachedRoles = all;
+    cacheLoadedAt = Date.now();
+    lastLocalWriteAt = Date.now();
+    await writeLocalRolesFile(all);
+    return true;
   });
 }
 
@@ -297,6 +458,43 @@ export async function removeUserRole(
     cacheLoadedAt = Date.now();
     lastLocalWriteAt = Date.now();
     await writeLocalRolesFile(roles);
+    return true;
+  });
+}
+
+/** Remove a single role from a user's set (used by the admin panel's per-role remove control). */
+export async function removeUserRoleFromSet(
+  email: string,
+  role: UserRole,
+  _updatedBy?: string
+): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+  if (isHardcodedSuperAdmin(normalized) && role === "super_admin") {
+    return false;
+  }
+
+  return enqueueRoleWrite(async () => {
+    lastLocalWriteAt = 0;
+    await ensureRolesLoaded(true);
+
+    const all = applyHardcoded({ ...getRolesSnapshot() });
+    const assignment = all[normalized];
+    if (!assignment || !assignment.roles.includes(role)) return false;
+
+    const nextRoles = assignment.roles.filter((r) => r !== role);
+    if (nextRoles.length === 0) {
+      delete all[normalized];
+    } else {
+      all[normalized] = {
+        roles: nextRoles,
+        activeRole: assignment.activeRole === role ? highestOf(nextRoles) : assignment.activeRole,
+      };
+    }
+
+    cachedRoles = all;
+    cacheLoadedAt = Date.now();
+    lastLocalWriteAt = Date.now();
+    await writeLocalRolesFile(all);
     return true;
   });
 }

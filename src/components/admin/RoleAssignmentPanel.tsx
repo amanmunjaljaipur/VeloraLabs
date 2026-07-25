@@ -4,16 +4,19 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/lib/utils";
 import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
-import { Mail, Save, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Assignment {
   email: string;
   role: UserRole;
+  roles: UserRole[];
+  activeRole: UserRole | null;
   label: string;
+  labels: string[];
 }
 
 interface UnassignedUser {
@@ -24,12 +27,8 @@ interface UnassignedUser {
   lastSeenAt: string;
 }
 
-function getAssignableRoles(actorRole: UserRole) {
-  const roles = actorRole === "super_admin" ? USER_ROLES : LEARNER_ROLES;
-  return roles.map((role) => ({
-    value: role,
-    label: ROLE_LABELS[role],
-  }));
+function getAssignableRoles(actorRole: UserRole): UserRole[] {
+  return actorRole === "super_admin" ? [...USER_ROLES] : [...LEARNER_ROLES];
 }
 
 function canManageAssignment(actorRole: UserRole, targetRole: UserRole): boolean {
@@ -50,6 +49,45 @@ const providerLabels = {
   credentials: "Email",
 } as const;
 
+/** Toggle-chip multi-select used everywhere a set of roles needs picking. */
+function RoleChips({
+  roles,
+  selected,
+  disabledRoles,
+  onToggle,
+}: {
+  roles: UserRole[];
+  selected: UserRole[];
+  disabledRoles?: UserRole[];
+  onToggle: (role: UserRole) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {roles.map((role) => {
+        const active = selected.includes(role);
+        const disabled = disabledRoles?.includes(role) ?? false;
+        return (
+          <button
+            key={role}
+            type="button"
+            disabled={disabled}
+            onClick={() => onToggle(role)}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              active
+                ? "border-accent-teal bg-accent-teal/10 text-accent-teal"
+                : "border-border text-text-secondary hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {active && <Check className="h-3 w-3" />}
+            {ROLE_LABELS[role]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function RoleAssignmentPanel({
   currentUserEmail,
   actorRole,
@@ -65,13 +103,12 @@ export function RoleAssignmentPanel({
   const [assigningEmail, setAssigningEmail] = useState<string | null>(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [email, setEmail] = useState("");
-  const roleOptions = getAssignableRoles(actorRole);
-  const [role, setRole] = useState<UserRole>(roleOptions[0]?.value ?? "student");
+  const assignableRoles = useMemo(() => getAssignableRoles(actorRole), [actorRole]);
+  const [newRoles, setNewRoles] = useState<Set<UserRole>>(new Set(["student"]));
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
-  const [rowRoles, setRowRoles] = useState<Record<string, UserRole>>({});
-  const [assignmentRoles, setAssignmentRoles] = useState<Record<string, UserRole>>({});
-  const [bulkRole, setBulkRole] = useState<UserRole>("student");
-  const [updatingEmail, setUpdatingEmail] = useState<string | null>(null);
+  const [rowRoles, setRowRoles] = useState<Record<string, Set<UserRole>>>({});
+  const [bulkRoles, setBulkRoles] = useState<Set<UserRole>>(new Set(["student"]));
+  const [busyEmail, setBusyEmail] = useState<string | null>(null);
   const isSuperAdmin = actorRole === "super_admin";
 
   const fetchAssignments = useCallback(async () => {
@@ -87,12 +124,9 @@ export function RoleAssignmentPanel({
     setAssignments(data.assignments);
     setUnassigned(data.unassigned ?? []);
     setSelectedEmails(new Set());
-    setAssignmentRoles(
-      Object.fromEntries(data.assignments.map((assignment) => [assignment.email, assignment.role]))
-    );
     setRowRoles(
       Object.fromEntries(
-        (data.unassigned ?? []).map((user) => [user.email, "student" as UserRole])
+        (data.unassigned ?? []).map((user) => [user.email, new Set<UserRole>(["student"])])
       )
     );
   }, [toast]);
@@ -106,11 +140,11 @@ export function RoleAssignmentPanel({
     [selectedEmails.size, unassigned.length]
   );
 
-  const assignRole = async (targetEmail: string, targetRole: UserRole) => {
+  const assignRoles = async (targetEmail: string, targetRoles: UserRole[]) => {
     const res = await fetch("/api/roles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: targetEmail, role: targetRole }),
+      body: JSON.stringify({ email: targetEmail, roles: targetRoles }),
     });
     const data = (await res.json()) as { error?: string; note?: string };
     if (!res.ok) {
@@ -119,19 +153,35 @@ export function RoleAssignmentPanel({
     return data.note;
   };
 
+  const removeOneRole = async (targetEmail: string, targetRole: UserRole) => {
+    const res = await fetch("/api/roles", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail, role: targetRole }),
+    });
+    const data = (await res.json()) as { error?: string };
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to remove role");
+    }
+  };
+
   const successToast = (msg: string, note?: string) => {
     toast(note ? `${msg} ${note}` : msg, "success");
   };
 
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newRoles.size === 0) {
+      toast("Pick at least one role", "error");
+      return;
+    }
     setSubmitting(true);
 
     try {
-      const note = await assignRole(email, role);
-      successToast(`Role updated for ${email}.`, note);
+      const note = await assignRoles(email, Array.from(newRoles));
+      successToast(`Role${newRoles.size > 1 ? "s" : ""} updated for ${email}.`, note);
       setEmail("");
-      setRole("student");
+      setNewRoles(new Set(["student"]));
       await fetchAssignments();
     } catch (error) {
       toast(error instanceof Error ? error.message : "Failed to assign role", "error");
@@ -141,12 +191,19 @@ export function RoleAssignmentPanel({
   };
 
   const handleQuickAssign = async (targetEmail: string) => {
-    const targetRole = rowRoles[targetEmail] ?? "student";
+    const targetRoles = Array.from(rowRoles[targetEmail] ?? new Set<UserRole>(["student"]));
+    if (targetRoles.length === 0) {
+      toast("Pick at least one role", "error");
+      return;
+    }
     setAssigningEmail(targetEmail);
 
     try {
-      const note = await assignRole(targetEmail, targetRole);
-      successToast(`Assigned ${ROLE_LABELS[targetRole]} to ${targetEmail}.`, note);
+      const note = await assignRoles(targetEmail, targetRoles);
+      successToast(
+        `Assigned ${targetRoles.map((r) => ROLE_LABELS[r]).join(" + ")} to ${targetEmail}.`,
+        note
+      );
       await fetchAssignments();
     } catch (error) {
       toast(error instanceof Error ? error.message : "Failed to assign role", "error");
@@ -160,17 +217,21 @@ export function RoleAssignmentPanel({
       toast("Select at least one user", "error");
       return;
     }
+    if (bulkRoles.size === 0) {
+      toast("Pick at least one role", "error");
+      return;
+    }
 
     setBulkAssigning(true);
     let successCount = 0;
 
     try {
       for (const targetEmail of selectedEmails) {
-        await assignRole(targetEmail, bulkRole);
+        await assignRoles(targetEmail, Array.from(bulkRoles));
         successCount += 1;
       }
       toast(
-        `Assigned ${ROLE_LABELS[bulkRole]} to ${successCount} user${successCount === 1 ? "" : "s"}`,
+        `Assigned ${Array.from(bulkRoles).map((r) => ROLE_LABELS[r]).join(" + ")} to ${successCount} user${successCount === 1 ? "" : "s"}`,
         "success"
       );
       await fetchAssignments();
@@ -187,24 +248,26 @@ export function RoleAssignmentPanel({
     }
   };
 
-  const handleUpdateAssignment = async (assignmentEmail: string) => {
-    const targetRole = assignmentRoles[assignmentEmail];
-    if (!targetRole) return;
-
-    setUpdatingEmail(assignmentEmail);
-
+  /** Toggle a single role on an existing user - add via POST, remove via DELETE. */
+  const handleToggleAssignmentRole = async (assignment: Assignment, role: UserRole) => {
+    setBusyEmail(assignment.email);
     try {
-      const note = await assignRole(assignmentEmail, targetRole);
-      successToast(`Updated ${assignmentEmail} to ${ROLE_LABELS[targetRole]}.`, note);
+      if (assignment.roles.includes(role)) {
+        await removeOneRole(assignment.email, role);
+        toast(`Removed ${ROLE_LABELS[role]} from ${assignment.email}.`, "success");
+      } else {
+        const note = await assignRoles(assignment.email, [...assignment.roles, role]);
+        successToast(`Added ${ROLE_LABELS[role]} to ${assignment.email}.`, note);
+      }
       await fetchAssignments();
     } catch (error) {
-      toast(error instanceof Error ? error.message : "Failed to update role", "error");
+      toast(error instanceof Error ? error.message : "Failed to update roles", "error");
     } finally {
-      setUpdatingEmail(null);
+      setBusyEmail(null);
     }
   };
 
-  const handleRemove = async (assignmentEmail: string) => {
+  const handleRemoveAll = async (assignmentEmail: string) => {
     try {
       const res = await fetch("/api/roles", {
         method: "DELETE",
@@ -218,7 +281,7 @@ export function RoleAssignmentPanel({
         return;
       }
 
-      toast(`Removed role assignment for ${assignmentEmail}`, "success");
+      toast(`Removed all roles for ${assignmentEmail}`, "success");
       await fetchAssignments();
     } catch {
       toast("Failed to remove assignment", "error");
@@ -245,6 +308,16 @@ export function RoleAssignmentPanel({
     setSelectedEmails(new Set(unassigned.map((user) => user.email)));
   };
 
+  const toggleSetRole = (set: Set<UserRole>, role: UserRole): Set<UserRole> => {
+    const next = new Set(set);
+    if (next.has(role)) {
+      next.delete(role);
+    } else {
+      next.add(role);
+    }
+    return next;
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 pb-16 md:px-8">
       {isSuperAdmin && (
@@ -259,8 +332,8 @@ export function RoleAssignmentPanel({
               </div>
               <p className="mt-2 max-w-2xl text-sm text-text-secondary">
                 These users have signed in or registered but don&apos;t have a role yet. They see
-                &quot;Role assignment pending&quot; until you assign Student, Engineer, or
-                Professional.
+                &quot;Role assignment pending&quot; until you assign at least one role. A user can
+                hold more than one role at a time - pick as many as apply.
               </p>
             </div>
             <Badge className="w-fit shrink-0 border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
@@ -287,15 +360,12 @@ export function RoleAssignmentPanel({
                     {selectedEmails.size} of {unassigned.length} selected
                   </p>
                 </div>
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-                  <div className="w-full sm:w-48">
-                    <Select
-                      label="Role for selected"
-                      options={roleOptions}
-                      value={bulkRole}
-                      onChange={(e) => setBulkRole(e.target.value as UserRole)}
-                    />
-                  </div>
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
+                  <RoleChips
+                    roles={assignableRoles}
+                    selected={Array.from(bulkRoles)}
+                    onToggle={(r) => setBulkRoles((prev) => toggleSetRole(prev, r))}
+                  />
                   <Button
                     type="button"
                     loading={bulkAssigning}
@@ -325,7 +395,7 @@ export function RoleAssignmentPanel({
                         <th className="px-4 py-3 font-medium">User</th>
                         <th className="px-4 py-3 font-medium">Sign-in</th>
                         <th className="px-4 py-3 font-medium">Last active</th>
-                        <th className="px-4 py-3 font-medium">Assign role</th>
+                        <th className="px-4 py-3 font-medium">Assign role(s)</th>
                         <th className="px-4 py-3 font-medium">Action</th>
                       </tr>
                     </thead>
@@ -356,22 +426,19 @@ export function RoleAssignmentPanel({
                             {formatDate(user.lastSeenAt)}
                           </td>
                           <td className="px-4 py-4 align-top">
-                            <select
-                              value={rowRoles[user.email] ?? "student"}
-                              onChange={(e) =>
+                            <RoleChips
+                              roles={assignableRoles}
+                              selected={Array.from(rowRoles[user.email] ?? [])}
+                              onToggle={(r) =>
                                 setRowRoles((prev) => ({
                                   ...prev,
-                                  [user.email]: e.target.value as UserRole,
+                                  [user.email]: toggleSetRole(
+                                    prev[user.email] ?? new Set(),
+                                    r
+                                  ),
                                 }))
                               }
-                              className="h-10 w-full min-w-[10rem] rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
-                            >
-                              {roleOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </td>
                           <td className="px-4 py-4 align-top">
                             <Button
@@ -398,11 +465,11 @@ export function RoleAssignmentPanel({
       <Card>
         <div className="flex items-center gap-2">
           <Mail className="h-5 w-5 text-teal" />
-          <h2 className="text-lg font-semibold text-foreground">Assign role by email</h2>
+          <h2 className="text-lg font-semibold text-foreground">Assign role(s) by email</h2>
         </div>
         <p className="mt-2 text-sm text-text-secondary">
-          Manually assign a role using an email address - useful if someone hasn&apos;t appeared in
-          the pending list yet.
+          Manually assign one or more roles using an email address - useful if someone hasn&apos;t
+          appeared in the pending list yet. A user can hold multiple roles at once.
         </p>
         <form onSubmit={handleAssign} className="mt-6 space-y-4">
           <Input
@@ -413,14 +480,16 @@ export function RoleAssignmentPanel({
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Select
-            label="Role"
-            options={roleOptions}
-            value={role}
-            onChange={(e) => setRole(e.target.value as UserRole)}
-          />
+          <div>
+            <p className="mb-2 text-sm font-medium text-foreground">Roles</p>
+            <RoleChips
+              roles={assignableRoles}
+              selected={Array.from(newRoles)}
+              onToggle={(r) => setNewRoles((prev) => toggleSetRole(prev, r))}
+            />
+          </div>
           <Button type="submit" loading={submitting} className="w-full sm:w-auto">
-            Assign Role
+            Assign Role{newRoles.size > 1 ? "s" : ""}
           </Button>
         </form>
       </Card>
@@ -428,7 +497,8 @@ export function RoleAssignmentPanel({
       <Card>
         <h2 className="text-lg font-semibold text-foreground">Current Assignments</h2>
         <p className="mt-2 text-sm text-text-secondary">
-          {assignments.length} user{assignments.length === 1 ? "" : "s"} with custom roles.
+          {assignments.length} user{assignments.length === 1 ? "" : "s"} with custom roles. Click a
+          role chip to add or remove it - a user can hold more than one.
           {isSuperAdmin && " As Super Admin, you can change any assignment below."}
         </p>
 
@@ -444,67 +514,57 @@ export function RoleAssignmentPanel({
           <ul className="mt-6 divide-y divide-border">
             {assignments.map((assignment) => {
               const isSelf = assignment.email === currentUserEmail.toLowerCase();
-              const canRemove = !isSelf && canManageAssignment(actorRole, assignment.role);
-              const canEdit =
-                isSuperAdmin && !isSelf && canManageAssignment(actorRole, assignment.role);
-              const selectedRole = assignmentRoles[assignment.email] ?? assignment.role;
-              const hasRoleChange = selectedRole !== assignment.role;
+              const editableRoles = assignment.roles.filter((r) => canManageAssignment(actorRole, r));
+              const lockedRoles = assignment.roles.filter((r) => !canManageAssignment(actorRole, r));
+              const canEdit = !isSelf;
+              const busy = busyEmail === assignment.email;
 
               return (
                 <li
                   key={assignment.email}
-                  className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-foreground">{assignment.email}</p>
                     {isSelf && (
                       <p className="mt-1 text-xs text-text-secondary">
-                        Your role cannot be changed here.
+                        Your own roles cannot be changed here.
                       </p>
                     )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {canEdit ? (
-                      <>
-                        <select
-                          value={selectedRole}
-                          onChange={(e) =>
-                            setAssignmentRoles((prev) => ({
-                              ...prev,
-                              [assignment.email]: e.target.value as UserRole,
-                            }))
-                          }
-                          aria-label={`Role for ${assignment.email}`}
-                          className="h-10 min-w-[10rem] rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
-                        >
-                          {roleOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          type="button"
-                          size="sm"
-                          loading={updatingEmail === assignment.email}
-                          disabled={!hasRoleChange}
-                          onClick={() => handleUpdateAssignment(assignment.email)}
-                        >
-                          <Save className="h-4 w-4" />
-                          Update
-                        </Button>
-                      </>
-                    ) : (
-                      <Badge>{assignment.label}</Badge>
+                    {lockedRoles.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {lockedRoles.map((r) => (
+                          <Badge key={r} className="opacity-70">
+                            {ROLE_LABELS[r]}
+                          </Badge>
+                        ))}
+                      </div>
                     )}
-                    {canRemove && (
+                  </div>
+                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                    {canEdit ? (
+                      <RoleChips
+                        roles={assignableRoles}
+                        selected={editableRoles}
+                        disabledRoles={busy ? assignableRoles : undefined}
+                        onToggle={(r) => handleToggleAssignmentRole(assignment, r)}
+                      />
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {assignment.roles.map((r) => (
+                          <Badge key={r}>{ROLE_LABELS[r]}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {canEdit && (
                       <button
                         type="button"
-                        onClick={() => handleRemove(assignment.email)}
-                        className="rounded-xl p-2 text-text-secondary transition-colors hover:bg-muted hover:text-red-500"
-                        aria-label={`Remove role for ${assignment.email}`}
+                        onClick={() => handleRemoveAll(assignment.email)}
+                        className="inline-flex items-center gap-1 rounded-xl px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-muted hover:text-red-500"
+                        aria-label={`Remove all roles for ${assignment.email}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remove all
                       </button>
                     )}
                   </div>

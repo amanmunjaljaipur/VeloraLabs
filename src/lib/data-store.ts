@@ -4,7 +4,8 @@ import fs from "fs";
 import path from "path";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
-const BLOB_PREFIX = "verlin-labs/data/";
+/** Exported so stores that need direct Blob list/delete (e.g. log-store's retention prune) share the same prefix. */
+export const BLOB_PREFIX = "verlin-labs/data/";
 
 /** Runtime data owned by production Blob - never seed from git on Vercel. */
 export const RUNTIME_DATA_FILES = new Set([

@@ -134,6 +134,13 @@ export const ADMIN_MENU_LINKS: AdminNavLink[] = [
     superAdminOnly: true,
     group: "Platform",
   },
+  {
+    label: "Diagnostics",
+    href: "/admin/diagnostics",
+    description: "Critical error/warning logs by page, kept for ~3 months across deploys",
+    superAdminOnly: true,
+    group: "Platform",
+  },
 ];
 
 export function getAdminMenuLinks(role: UserRole | undefined): AdminNavLink[] {

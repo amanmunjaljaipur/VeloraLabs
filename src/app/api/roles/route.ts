@@ -3,24 +3,34 @@ import { ensureKnownUsersLoaded, getUsersWithoutRoleAssignment } from "@/lib/kno
 import {
   ensureRolesLoaded,
   getAllUserRoles,
-  getRoleForEmail,
+  getRolesForEmail,
   hasCustomRoleAssignment,
   isHardcodedSuperAdmin,
   removeUserRole,
-  setUserRole,
+  removeUserRoleFromSet,
+  setUserRoles,
 } from "@/lib/roles";
 import { isAdminRole } from "@/lib/session-access";
 import { LEARNER_ROLES, ROLE_LABELS, USER_ROLES, type UserRole } from "@/types/roles";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-const assignSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(USER_ROLES),
-});
+// Accepts either the legacy singular `role` or the current `roles` array so
+// no existing caller breaks. At least one of the two must be present.
+const assignSchema = z
+  .object({
+    email: z.string().email(),
+    role: z.enum(USER_ROLES).optional(),
+    roles: z.array(z.enum(USER_ROLES)).optional(),
+  })
+  .refine((v) => v.role || (v.roles && v.roles.length > 0), {
+    message: "role or roles is required",
+  });
 
 const removeSchema = z.object({
   email: z.string().email(),
+  // Optional: remove a single role from the set. Omit to remove the whole assignment.
+  role: z.enum(USER_ROLES).optional(),
 });
 
 export const runtime = "nodejs";
@@ -53,10 +63,13 @@ export async function GET() {
   await ensureRolesLoaded(true);
   await ensureKnownUsersLoaded();
 
-  const assignments = getAllUserRoles().map(({ email, role }) => ({
+  const assignments = getAllUserRoles().map(({ email, role, roles, activeRole }) => ({
     email,
     role,
+    roles,
+    activeRole,
     label: ROLE_LABELS[role],
+    labels: roles.map((r) => ROLE_LABELS[r]),
   }));
 
   const payload: {
@@ -95,6 +108,9 @@ export async function POST(req: NextRequest) {
     }
 
     const email = parsed.data.email.toLowerCase().trim();
+    const requestedRoles = Array.from(
+      new Set(parsed.data.roles && parsed.data.roles.length > 0 ? parsed.data.roles : [parsed.data.role as UserRole])
+    );
     const actorRole =
       session.user.role ||
       (isHardcodedSuperAdmin(session.user.email) ? ("super_admin" as const) : null);
@@ -102,51 +118,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!canManageAssignment(actorRole, parsed.data.role)) {
+    if (!requestedRoles.every((r) => canManageAssignment(actorRole, r))) {
       return NextResponse.json(
         { error: "You can only assign Student, Engineer, or Professional roles" },
         { status: 403 }
       );
     }
 
-    if (hasCustomRoleAssignment(email)) {
-      const existingRole = getRoleForEmail(email);
-      if (!existingRole || !canManageAssignment(actorRole, existingRole)) {
+    const existingRoles = getRolesForEmail(email);
+    if (hasCustomRoleAssignment(email) && existingRoles.length > 0) {
+      if (!existingRoles.every((r) => canManageAssignment(actorRole, r))) {
         return NextResponse.json(
           { error: "You cannot change Admin or Super Admin assignments" },
-          { status: 403 }
-        );
-      }
-      if (!canManageAssignment(actorRole, parsed.data.role)) {
-        return NextResponse.json(
-          { error: "You cannot assign Admin or Super Admin roles" },
           { status: 403 }
         );
       }
     }
 
     const isSelf = email === session.user.email?.toLowerCase();
-    if (isSelf && parsed.data.role !== actorRole) {
-      return NextResponse.json({ error: "You cannot change your own role" }, { status: 400 });
+    if (isSelf && !requestedRoles.includes(actorRole)) {
+      return NextResponse.json({ error: "You cannot remove your own current role" }, { status: 400 });
     }
 
-    await setUserRole(email, parsed.data.role, session.user.email ?? "admin");
+    // Admins editing an existing (learner) assignment replace only the learner
+    // roles they're allowed to touch - any admin/super_admin roles already on
+    // the account are preserved rather than silently dropped.
+    const preserved = existingRoles.filter((r) => !canManageAssignment(actorRole, r));
+    const nextRoles = Array.from(new Set([...preserved, ...requestedRoles]));
+
+    await setUserRoles(email, nextRoles, session.user.email ?? "admin");
 
     // Confirm what is stored after Blob write
-    const confirmed = getRoleForEmail(email);
+    const confirmedRoles = getRolesForEmail(email);
 
     return NextResponse.json(
       {
         success: true,
         assignment: {
           email,
-          role: confirmed || parsed.data.role,
-          label: ROLE_LABELS[confirmed || parsed.data.role],
+          roles: confirmedRoles,
+          labels: confirmedRoles.map((r) => ROLE_LABELS[r]),
         },
-        note:
-          confirmed === "super_admin" || confirmed === "admin"
-            ? "Saved to Blob. They should refresh or re-open the site - powers load on next request."
-            : "Saved to Blob. Takes effect on their next page load (no long wait).",
+        note: confirmedRoles.some((r) => r === "super_admin" || r === "admin")
+          ? "Saved to Blob. They should refresh or re-open the site - powers load on next request."
+          : "Saved to Blob. Takes effect on their next page load (no long wait).",
       },
       {
         headers: { "Cache-Control": "no-store, max-age=0" },
@@ -182,9 +197,9 @@ export async function DELETE(req: NextRequest) {
     if (!actorRole) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    if (hasCustomRoleAssignment(email)) {
-      const existingRole = getRoleForEmail(email);
-      if (!existingRole || !canManageAssignment(actorRole, existingRole)) {
+    const existingRoles = getRolesForEmail(email);
+    if (hasCustomRoleAssignment(email) && existingRoles.length > 0) {
+      if (!existingRoles.every((r) => canManageAssignment(actorRole, r))) {
         return NextResponse.json(
           { error: "You cannot remove Admin or Super Admin assignments" },
           { status: 403 }
@@ -199,7 +214,9 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const removed = await removeUserRole(email, session.user.email ?? "admin");
+    const removed = parsed.data.role
+      ? await removeUserRoleFromSet(email, parsed.data.role, session.user.email ?? "admin")
+      : await removeUserRole(email, session.user.email ?? "admin");
     if (!removed) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }

@@ -5,9 +5,10 @@ import { getAdminMenuLinks } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import { ROLE_LABELS, ROLE_PENDING_LABEL, type UserRole } from "@/types/roles";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { Check, ChevronDown, LayoutDashboard, LogOut, Repeat } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 /** Hardcoded owners always treated as super_admin on the client if session role is empty. */
@@ -35,14 +36,46 @@ export function AuthButton({
   className?: string;
   compact?: boolean;
 }) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [switchingRole, setSwitchingRole] = useState<UserRole | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const role = useMemo(
     () => resolveClientRole(session?.user?.email, session?.user?.role),
     [session?.user?.email, session?.user?.role]
   );
+
+  // Full set of roles this user holds, independent of which one is currently
+  // active - always includes at least the active role so the switcher never
+  // renders empty for a single-role account.
+  const heldRoles = useMemo(() => {
+    const fromSession = session?.user?.roles ?? [];
+    if (role && !fromSession.includes(role)) return [...fromSession, role];
+    return fromSession;
+  }, [session?.user?.roles, role]);
+
+  const handleSwitchRole = async (nextRole: UserRole) => {
+    if (nextRole === role || switchingRole) return;
+    setSwitchingRole(nextRole);
+    try {
+      const res = await fetch("/api/account/active-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: nextRole }),
+      });
+      if (res.ok) {
+        await update();
+        setOpen(false);
+        router.refresh();
+      }
+    } catch {
+      /* keep the menu open, current role unchanged, so the person can retry */
+    } finally {
+      setSwitchingRole(null);
+    }
+  };
 
   const isAdmin = role === "admin" || role === "super_admin";
   const adminLinks = useMemo(
@@ -138,22 +171,53 @@ export function AuthButton({
               )}
             </div>
 
-            {roleLabel && (
+            {heldRoles.length > 1 ? (
               <div className="border-b border-border px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
-                  Role
+                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  <Repeat className="h-3 w-3" />
+                  Viewing as
                 </p>
-                <p
-                  className={cn(
-                    "mt-1 text-sm font-medium",
-                    session.user.rolePending && !isAdmin
-                      ? "text-amber-700 dark:text-amber-300"
-                      : "text-foreground"
-                  )}
-                >
-                  {roleLabel}
-                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {heldRoles.map((r) => {
+                    const active = r === role;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        disabled={switchingRole !== null}
+                        onClick={() => handleSwitchRole(r)}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
+                          active
+                            ? "border-accent-teal bg-accent-teal/10 text-accent-teal"
+                            : "border-border text-text-secondary hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        {active && <Check className="h-3 w-3" />}
+                        {switchingRole === r ? "Switching..." : ROLE_LABELS[r]}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+            ) : (
+              roleLabel && (
+                <div className="border-b border-border px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
+                    Role
+                  </p>
+                  <p
+                    className={cn(
+                      "mt-1 text-sm font-medium",
+                      session.user.rolePending && !isAdmin
+                        ? "text-amber-700 dark:text-amber-300"
+                        : "text-foreground"
+                    )}
+                  >
+                    {roleLabel}
+                  </p>
+                </div>
+              )
             )}
 
             {isAdmin ? (

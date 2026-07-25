@@ -14,6 +14,8 @@ import {
   ensureRolesLoaded,
   getRoleForEmail,
   getRoleForEmailFresh,
+  getRolesForEmail,
+  getRolesForEmailFresh,
   isHardcodedSuperAdmin,
 } from "@/lib/roles";
 import { verifyManualUserPasswordDetailed } from "@/lib/manual-users";
@@ -262,7 +264,11 @@ export const authOptions: NextAuthConfig = {
           const role = isHardcodedSuperAdmin(email)
             ? ("super_admin" as const)
             : getRoleForEmail(email);
+          const roles = isHardcodedSuperAdmin(email)
+            ? Array.from(new Set([...getRolesForEmail(email), "super_admin" as const]))
+            : getRolesForEmail(email);
           token.role = role;
+          token.roles = roles;
           token.rolePending = role === null;
           token.enrolledLearner = isEnrolledLearner(email, role ?? undefined);
         }
@@ -282,6 +288,7 @@ export const authOptions: NextAuthConfig = {
           (user && typeof user.email === "string" ? user.email : null);
         if (fallbackEmail && isHardcodedSuperAdmin(fallbackEmail)) {
           token.role = "super_admin";
+          token.roles = ["super_admin"];
           token.rolePending = false;
         }
       }
@@ -314,6 +321,7 @@ export const authOptions: NextAuthConfig = {
 
           // Fresh role - hardcoded super_admin is sync-safe even if Blob is down
           let role = await getRoleForEmailFresh(session.user.email);
+          let roles = await getRolesForEmailFresh(session.user.email);
           if (!role && isHardcodedSuperAdmin(session.user.email)) {
             role = "super_admin";
           }
@@ -321,7 +329,14 @@ export const authOptions: NextAuthConfig = {
           if (!role && token.role === "super_admin") {
             role = "super_admin";
           }
+          if (roles.length === 0 && Array.isArray(token.roles) && token.roles.length > 0) {
+            roles = token.roles;
+          }
+          if (isHardcodedSuperAdmin(session.user.email) && !roles.includes("super_admin")) {
+            roles = [...roles, "super_admin"];
+          }
           session.user.role = role;
+          session.user.roles = roles;
           session.user.rolePending = role === null;
           session.user.enrolledLearner =
             token.enrolledLearner === true ||
@@ -347,10 +362,14 @@ export const authOptions: NextAuthConfig = {
         // Platform owner must never lose admin after a partial session failure
         if (session.user?.email && isHardcodedSuperAdmin(session.user.email)) {
           session.user.role = "super_admin";
+          session.user.roles = ["super_admin"];
           session.user.rolePending = false;
         } else if (token.role === "super_admin" && session.user) {
           session.user.role = "super_admin";
+          session.user.roles = Array.isArray(token.roles) && token.roles.length > 0 ? token.roles : ["super_admin"];
           session.user.rolePending = false;
+        } else if (session.user) {
+          session.user.roles = Array.isArray(token.roles) ? token.roles : [];
         }
       }
       return session;

@@ -4,7 +4,10 @@ import {
   resolveFromAddress as pickFromAddress,
 } from "@/lib/brand-email";
 import { getResendFromAddress, getResendReplyTo } from "@/lib/resend-from";
+import { logError } from "@/lib/diagnostics/log-store";
 import nodemailer from "nodemailer";
+
+const LOG_PAGE = "email/send";
 
 export interface EmailAttachment {
   filename: string;
@@ -119,6 +122,7 @@ async function sendViaResend(input: SendEmailInput): Promise<boolean> {
   if (!res.ok) {
     const body = await res.text();
     console.error(`Resend email failed for ${input.to}:`, body);
+    void logError(LOG_PAGE, "resend_send_failed", { to: input.to, subject: input.subject, status: res.status });
     return false;
   }
 
@@ -137,6 +141,7 @@ export async function sendTransactionalEmail(input: SendEmailInput): Promise<boo
     }
 
     console.error("Email skipped: configure SMTP or RESEND_API_KEY");
+    void logError(LOG_PAGE, "no_provider_configured", { to: input.to, subject: input.subject });
     return false;
   } catch (error) {
     console.error(`Email failed for ${input.to}:`, error);
@@ -146,7 +151,19 @@ export async function sendTransactionalEmail(input: SendEmailInput): Promise<boo
         return await sendViaResend(input);
       } catch (fallbackError) {
         console.error(`Resend fallback failed for ${input.to}:`, fallbackError);
+        void logError(LOG_PAGE, "smtp_and_fallback_failed", {
+          to: input.to,
+          subject: input.subject,
+          error: error instanceof Error ? error.message : String(error),
+          fallbackError: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
+        });
       }
+    } else {
+      void logError(LOG_PAGE, "send_failed", {
+        to: input.to,
+        subject: input.subject,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return false;

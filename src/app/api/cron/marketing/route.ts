@@ -2,6 +2,7 @@ import { verifyApiKey } from "@/lib/api-key-auth";
 import { publishToAccounts } from "@/lib/marketing/publisher";
 import { recordMarketingPost } from "@/lib/marketing/posts-store";
 import { claimDueScheduledPosts, completeScheduledPost } from "@/lib/marketing/scheduled-posts-store";
+import { logError } from "@/lib/diagnostics/log-store";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -58,6 +59,11 @@ export async function GET(request: NextRequest) {
       const message = error instanceof Error ? error.message : "Publish failed";
       await completeScheduledPost(scheduled.id, { status: "failed", error: message });
       results.push({ id: scheduled.id, status: "failed", error: message });
+      void logError("cron/marketing-scheduler", "scheduled_post_failed", {
+        scheduledId: scheduled.id,
+        tenantId: scheduled.tenantId,
+        error: message,
+      });
     }
   }
 
