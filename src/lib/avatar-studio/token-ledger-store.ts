@@ -147,3 +147,39 @@ export async function getLedgerForUser(email: string, limit = 100): Promise<Toke
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, limit);
 }
+
+/**
+ * Net outstanding (not-yet-refunded) tokens for one job, computed from the
+ * ledger itself rather than trusting AvatarJob.tokensReserved. The job
+ * record's field is a single mutable value written by a read-modify-write
+ * (updateJob) that can race with the queue processor's near-immediate
+ * after()-triggered read on this platform's eventually-consistent Blob
+ * store - live testing showed a job created and processed within the same
+ * request lifecycle could see a stale tokensReserved of 0 and skip its
+ * refund entirely. The ledger is additive-only (never overwritten in
+ * place), so summing it is safe to call repeatedly - a job already fully
+ * refunded correctly returns 0, and calling this after issuing a refund
+ * immediately reflects that refund, making refund logic that uses this
+ * function naturally idempotent.
+ */
+export async function getReservedTokensForJob(jobId: string): Promise<number> {
+  const all = await readLedger();
+  const forJob = all.filter((e) => e.jobId === jobId);
+  const consumed = forJob.filter((e) => e.kind === "consume").reduce((sum, e) => sum + e.tokens, 0);
+  const refunded = forJob.filter((e) => e.kind === "refund").reduce((sum, e) => sum + e.tokens, 0);
+  return Math.max(0, consumed - refunded);
+}
+
+/**
+ * True if any refund (full or partial) has ever been logged for this job.
+ * Used by the cron reconciliation pass to tell "refund-on-failure never ran
+ * at all" (safe to refund the full outstanding balance) apart from "a
+ * correct partial refund already ran" (e.g. a long-form job that finished
+ * some segments before failing - the remaining balance is legitimately
+ * spent and must not be refunded again). Reconciliation only ever touches
+ * the first case.
+ */
+export async function hasAnyRefund(jobId: string): Promise<boolean> {
+  const all = await readLedger();
+  return all.some((e) => e.jobId === jobId && e.kind === "refund");
+}

@@ -120,6 +120,20 @@ export async function listQueuedJobs(): Promise<AvatarJob[]> {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+/**
+ * Terminal (failed/rejected) jobs updated within the lookback window - feeds
+ * the avatar-studio-queue cron's token-reconciliation pass, which
+ * double-checks the ledger and refunds anything the in-pipeline
+ * refund-on-failure logic missed (see token-ledger-store.ts's
+ * getReservedTokensForJob/hasAnyRefund). Bounded by time so this never
+ * turns into an unbounded scan of the whole jobs history as the file grows.
+ */
+export async function listRecentTerminalJobs(lookbackMs: number): Promise<AvatarJob[]> {
+  const all = await readAll();
+  const cutoff = Date.now() - lookbackMs;
+  return all.filter((j) => ["failed", "rejected"].includes(j.status) && new Date(j.updatedAt).getTime() >= cutoff);
+}
+
 export async function createJob(input: {
   email: string;
   categoryId: string;

@@ -1,5 +1,5 @@
 import { getJobById, updateJob } from "@/lib/avatar-studio/jobs-store";
-import { refundTokens } from "@/lib/avatar-studio/token-ledger-store";
+import { getReservedTokensForJob, refundTokens } from "@/lib/avatar-studio/token-ledger-store";
 import { generateVoice } from "@/lib/avatar-studio/agents/voice-agent";
 import { generateAvatarVideo } from "@/lib/avatar-studio/agents/avatar-agent";
 import { generateTranscript } from "@/lib/avatar-studio/agents/transcript-agent";
@@ -50,10 +50,18 @@ export async function processJob(jobId: string): Promise<void> {
 
   const fail = async (error: string) => {
     auditFailure(jobId, job.status, error, { email: job.email });
-    if (job.tokensReserved > 0) {
-      await refundTokens(job.email, job.tokensReserved, jobId, `Job failed at stage "${job.status}": ${error}`);
+    // Reads the outstanding amount from the token ledger rather than
+    // trusting job.tokensReserved captured above: that field is written by
+    // the job-creation route via a read-modify-write shortly before this
+    // function ever runs, and live testing showed processJob's entry read
+    // can land in the window before that write is visible, silently
+    // skipping the refund. The ledger is additive-only, so summing
+    // consume/refund entries for this job is immune to that race.
+    const outstanding = await getReservedTokensForJob(jobId);
+    if (outstanding > 0) {
+      await refundTokens(job.email, outstanding, jobId, `Job failed at stage "${job.status}": ${error}`);
     }
-    await updateJob(jobId, { status: "failed", error });
+    await updateJob(jobId, { status: "failed", error, tokensReserved: 0 });
   };
 
   try {

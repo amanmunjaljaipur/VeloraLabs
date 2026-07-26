@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getJob, updateJob } from "@/lib/avatar-studio/jobs-store";
-import { refundTokens } from "@/lib/avatar-studio/token-ledger-store";
+import { getReservedTokensForJob, refundTokens } from "@/lib/avatar-studio/token-ledger-store";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -24,8 +24,12 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Job has already finished and can't be cancelled" }, { status: 400 });
   }
 
-  if (job.tokensReserved > 0) {
-    await refundTokens(job.email, job.tokensReserved, job.id, "Cancelled by user");
+  // Ledger-sourced, not job.tokensReserved directly - see
+  // getReservedTokensForJob's doc comment for why the job record's own
+  // field can be a stale snapshot immediately after creation.
+  const outstanding = await getReservedTokensForJob(job.id);
+  if (outstanding > 0) {
+    await refundTokens(job.email, outstanding, job.id, "Cancelled by user");
   }
   const updated = await updateJob(id, { status: "failed", error: "Cancelled by user", tokensReserved: 0 });
 

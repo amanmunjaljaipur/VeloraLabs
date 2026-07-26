@@ -5,7 +5,7 @@ import { generateAvatarVideo } from "@/lib/avatar-studio/agents/avatar-agent";
 import { extractLastFrame, stitchClips } from "@/lib/avatar-studio/agents/video-stitch-agent";
 import { evaluateOutput } from "@/lib/avatar-studio/agents/qa-agent";
 import { auditStage, auditFailure } from "@/lib/avatar-studio/agents/audit-agent";
-import { refundTokens } from "@/lib/avatar-studio/token-ledger-store";
+import { getReservedTokensForJob, refundTokens } from "@/lib/avatar-studio/token-ledger-store";
 import { getJobById, updateJob, type AvatarJob, type LongFormSegmentState } from "@/lib/avatar-studio/jobs-store";
 
 /**
@@ -80,9 +80,14 @@ async function failLongFormJob(job: AvatarJob, segments: LongFormSegmentState[],
 
   const completedCount = nextSegments.filter((s) => s.status === "complete").length;
   const totalCount = nextSegments.length || 1;
-  const refundAmount = Math.round((job.tokensReserved * (totalCount - completedCount)) / totalCount);
+  // Sourced from the ledger, not job.tokensReserved - see the comment on
+  // getReservedTokensForJob for why the job record's own field can be a
+  // stale pre-reservation snapshot inside this same near-immediate
+  // after()-triggered run.
+  const totalReserved = await getReservedTokensForJob(job.id);
+  const refundAmount = Math.round((totalReserved * (totalCount - completedCount)) / totalCount);
 
-  auditFailure(job.id, "long_form", error, { completedCount, totalCount, refundAmount });
+  auditFailure(job.id, "long_form", error, { completedCount, totalCount, refundAmount, totalReserved });
   if (refundAmount > 0) {
     await refundTokens(job.email, refundAmount, job.id, `Long-form job failed after ${completedCount}/${totalCount} segments: ${error}`);
   }
@@ -90,7 +95,7 @@ async function failLongFormJob(job: AvatarJob, segments: LongFormSegmentState[],
     status: "failed",
     error,
     segments: nextSegments,
-    tokensReserved: Math.max(0, job.tokensReserved - refundAmount),
+    tokensReserved: Math.max(0, totalReserved - refundAmount),
   });
 }
 
