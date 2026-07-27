@@ -15,6 +15,7 @@
  *    "Web App, Automated App or Bot" (confidential client - it has a
  *    secret).
  * 3. Add a callback URI: https://www.verlinlabs.com/api/admin/marketing/connect/x/callback
+ *    (and apex without www if you use that host).
  * 4. Generate a Client ID and Client Secret and set X_CLIENT_ID /
  *    X_CLIENT_SECRET in the environment.
  * 5. Log in to developer.x.com AS the @verlin.labs X account (or add it as
@@ -31,12 +32,17 @@
 
 import { createHash, randomBytes } from "crypto";
 import { upsertConnectedAccount } from "@/lib/marketing/accounts-store";
+import { fetchMarketingMediaBytes } from "@/lib/marketing/media-fetch";
 import { logError } from "@/lib/diagnostics/log-store";
 
-const API_BASE = "https://api.twitter.com/2";
-const TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
+/** Prefer api.x.com (current docs); twitter.com still aliases for many routes. */
+const API_BASE = "https://api.x.com/2";
+const TOKEN_URL = "https://api.x.com/2/oauth2/token";
 const AUTHORIZE_URL = "https://x.com/i/oauth2/authorize";
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 20_000;
+const MEDIA_TIMEOUT_MS = 45_000;
+/** Free-tier post length. Paid/Premium is higher; we fail clear if over. */
+const X_FREE_CHAR_LIMIT = 280;
 
 function isConfigured(): boolean {
   return Boolean(process.env.X_CLIENT_ID && process.env.X_CLIENT_SECRET);
@@ -77,6 +83,54 @@ interface TokenResult {
   expiresInSeconds: number;
 }
 
+/** Unicode-aware length (matches how X counts most text better than string.length). */
+export function xPostCharCount(text: string): number {
+  return [...text].length;
+}
+
+export function validateXPostText(text: string): { ok: true; text: string } | { ok: false; error: string } {
+  const trimmed = text.trim();
+  if (!trimmed) return { ok: false, error: "Post text is empty" };
+  const len = xPostCharCount(trimmed);
+  if (len > X_FREE_CHAR_LIMIT) {
+    return {
+      ok: false,
+      error: `X free posts max ${X_FREE_CHAR_LIMIT} characters (yours is ${len}). Shorten the text and try again.`,
+    };
+  }
+  return { ok: true, text: trimmed };
+}
+
+function formatXApiError(status: number, data: unknown, fallback: string): string {
+  const d = data as {
+    detail?: string;
+    title?: string;
+    error?: string;
+    error_description?: string;
+    errors?: Array<{ message?: string; detail?: string; title?: string }>;
+  } | null;
+
+  const fromList = d?.errors?.[0]?.message || d?.errors?.[0]?.detail || d?.errors?.[0]?.title;
+  const detail = d?.detail || fromList || d?.title || d?.error_description || d?.error;
+  if (status === 401 || status === 403) {
+    if (detail && /duplicate|already posted/i.test(detail)) {
+      return `X rejected the post: ${detail}`;
+    }
+    if (detail && /rate.?limit|too many/i.test(detail)) {
+      return `X rate limit hit: ${detail}`;
+    }
+    if (status === 401) {
+      return detail
+        ? `X auth failed (${detail}) — reconnect X on Marketing Board`
+        : "X auth failed — reconnect X on Marketing Board";
+    }
+  }
+  if (status === 429) {
+    return "X rate limit — wait and try again (free tier is limited per day)";
+  }
+  return detail ? `X rejected the post: ${detail}` : fallback;
+}
+
 async function requestToken(body: URLSearchParams, logLabel: string): Promise<TokenResult | null> {
   if (!isConfigured()) return null;
   try {
@@ -92,16 +146,20 @@ async function requestToken(body: URLSearchParams, logLabel: string): Promise<To
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
       console.error(`[marketing/x] ${logLabel} failed`, res.status, errBody);
+      void logError("marketing/x-token", `${logLabel} failed: ${res.status}`, {
+        body: errBody.slice(0, 500),
+      });
       return null;
     }
     const data = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token ?? null,
-      expiresInSeconds: data.expires_in,
+      expiresInSeconds: data.expires_in || 7200,
     };
   } catch (error) {
     console.error(`[marketing/x] ${logLabel} errored`, error);
+    void logError("marketing/x-token", `${logLabel} errored`, { error: String(error) });
     return null;
   }
 }
@@ -111,6 +169,8 @@ export async function exchangeCodeForToken(
   redirectUri: string,
   codeVerifier: string
 ): Promise<TokenResult | null> {
+  // Confidential client: Basic auth is required. client_id in body is optional
+  // but kept for compatibility with X's examples.
   return requestToken(
     new URLSearchParams({
       grant_type: "authorization_code",
@@ -151,9 +211,15 @@ export async function getValidXAccessToken(account: {
   refreshToken?: string | null;
   connectedBy: string;
 }): Promise<string | null> {
-  const stillValid = !account.expiresAt || new Date(account.expiresAt).getTime() - Date.now() > 60_000;
-  if (stillValid) return account.accessToken;
-  if (!account.refreshToken) return null;
+  // X access tokens last ~2h. Refresh 5 minutes early to avoid mid-publish expiry.
+  const stillValid = !account.expiresAt || new Date(account.expiresAt).getTime() - Date.now() > 5 * 60_000;
+  if (stillValid && account.accessToken) return account.accessToken;
+  if (!account.refreshToken) {
+    void logError("marketing/x-token", "X token expired with no refresh_token — reconnect required", {
+      externalId: account.externalId,
+    });
+    return null;
+  }
 
   const refreshed = await refreshXAccessToken(account.refreshToken);
   if (!refreshed) return null;
@@ -166,10 +232,42 @@ export async function getValidXAccessToken(account: {
     picture: account.picture,
     accessToken: refreshed.accessToken,
     expiresAt: new Date(Date.now() + refreshed.expiresInSeconds * 1000).toISOString(),
+    // X rotates refresh tokens — always persist the newest when provided
     refreshToken: refreshed.refreshToken ?? account.refreshToken,
     connectedBy: account.connectedBy,
   });
 
+  return refreshed.accessToken;
+}
+
+/**
+ * Force-refresh even if expiresAt says the token is still valid.
+ * Used after a 401 from the tweets endpoint (clock skew / revoked token).
+ */
+export async function forceRefreshXAccessToken(account: {
+  tenantId: string;
+  externalId: string;
+  name: string;
+  picture?: string | null;
+  accessToken: string;
+  expiresAt: string | null;
+  refreshToken?: string | null;
+  connectedBy: string;
+}): Promise<string | null> {
+  if (!account.refreshToken) return null;
+  const refreshed = await refreshXAccessToken(account.refreshToken);
+  if (!refreshed) return null;
+  await upsertConnectedAccount({
+    tenantId: account.tenantId,
+    platform: "x",
+    externalId: account.externalId,
+    name: account.name,
+    picture: account.picture,
+    accessToken: refreshed.accessToken,
+    expiresAt: new Date(Date.now() + refreshed.expiresInSeconds * 1000).toISOString(),
+    refreshToken: refreshed.refreshToken ?? account.refreshToken,
+    connectedBy: account.connectedBy,
+  });
   return refreshed.accessToken;
 }
 
@@ -218,32 +316,49 @@ export async function discoverXAccount(accessToken: string): Promise<DiscoveredX
 }
 
 /**
- * X's v2 chunked media upload: INIT -> APPEND -> FINALIZE. Images (our only
- * caller today) fit in a single APPEND segment since our images are always
- * well under X's own 5MB-per-image cap, which is also the max chunk size -
- * no need for multi-chunk logic until this grows to cover video. Requires
- * the media.write scope (added to buildXAuthUrl above) - an account
- * connected before this scope existed must reconnect once for this to work.
+ * Upload an image for a tweet. Prefers one-shot POST /2/media/upload for images,
+ * falls back to chunked initialize/append/finalize.
+ * Requires media.write scope — reconnect X if connected before that scope existed.
  */
 async function uploadMediaToX(
   accessToken: string,
   imageUrl: string
 ): Promise<{ ok: true; mediaId: string } | { ok: false; error: string }> {
   try {
-    const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-    if (!imgRes.ok) return { ok: false, error: `Could not fetch image to upload (${imgRes.status})` };
+    const loaded = await fetchMarketingMediaBytes(imageUrl);
+    if ("error" in loaded) return { ok: false, error: loaded.error };
 
-    const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+    const { bytes, contentType: rawType } = loaded;
+    const contentType = rawType.startsWith("image/") ? rawType : "image/jpeg";
     if (!contentType.startsWith("image/")) {
       return { ok: false, error: `Unsupported media type for X: ${contentType}` };
     }
-
-    const bytes = Buffer.from(await imgRes.arrayBuffer());
     if (bytes.byteLength === 0) return { ok: false, error: "Image is empty" };
     if (bytes.byteLength > 5 * 1024 * 1024) {
       return { ok: false, error: "Image exceeds X's 5MB limit" };
     }
 
+    // One-shot upload (images only) — simpler and more reliable on Free tier
+    const oneShot = new FormData();
+    oneShot.append("media", new Blob([new Uint8Array(bytes)], { type: contentType }), "image");
+    oneShot.append("media_category", "tweet_image");
+    oneShot.append("media_type", contentType);
+
+    const oneShotRes = await fetch(`${API_BASE}/media/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: oneShot,
+      signal: AbortSignal.timeout(MEDIA_TIMEOUT_MS),
+    });
+    const oneShotData = await oneShotRes.json().catch(() => null);
+    const oneShotId: string | undefined =
+      oneShotData?.data?.id || oneShotData?.media_id_string || oneShotData?.media_id?.toString();
+    if (oneShotRes.ok && oneShotId) {
+      return { ok: true, mediaId: String(oneShotId) };
+    }
+    console.warn("[marketing/x] one-shot media upload failed, trying chunked", oneShotRes.status, oneShotData);
+
+    // Chunked fallback: INIT → APPEND → FINALIZE
     const initRes = await fetch(`${API_BASE}/media/upload/initialize`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
@@ -252,23 +367,28 @@ async function uploadMediaToX(
         total_bytes: bytes.byteLength,
         media_category: "tweet_image",
       }),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(MEDIA_TIMEOUT_MS),
     });
     const initData = await initRes.json().catch(() => null);
     const mediaId: string | undefined = initData?.data?.id;
     if (!initRes.ok || !mediaId) {
       console.error("[marketing/x] media init failed", initRes.status, initData);
-      return { ok: false, error: initData?.detail || initData?.title || "X rejected the media upload (init)" };
+      return {
+        ok: false,
+        error:
+          formatXApiError(initRes.status, initData, "X rejected the media upload (init)") +
+          " — reconnect X if you connected before media permissions were enabled",
+      };
     }
 
     const form = new FormData();
     form.append("segment_index", "0");
-    form.append("media", new Blob([bytes], { type: contentType }));
+    form.append("media", new Blob([new Uint8Array(bytes)], { type: contentType }), "image");
     const appendRes = await fetch(`${API_BASE}/media/upload/${mediaId}/append`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}` },
       body: form,
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(MEDIA_TIMEOUT_MS),
     });
     if (!appendRes.ok) {
       const body = await appendRes.text().catch(() => "");
@@ -280,60 +400,116 @@ async function uploadMediaToX(
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({}),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(MEDIA_TIMEOUT_MS),
     });
     const finalizeData = await finalizeRes.json().catch(() => null);
     if (!finalizeRes.ok) {
       console.error("[marketing/x] media finalize failed", finalizeRes.status, finalizeData);
-      return { ok: false, error: finalizeData?.detail || finalizeData?.title || "X rejected the media upload (finalize)" };
+      return {
+        ok: false,
+        error: formatXApiError(finalizeRes.status, finalizeData, "X rejected the media upload (finalize)"),
+      };
     }
 
-    // Images finalize synchronously (no processing_info) - only video/GIF
-    // need a poll loop, which this image-only path doesn't need yet.
     return { ok: true, mediaId };
   } catch (error) {
     console.error("[marketing/x] media upload errored", error);
+    void logError("marketing/x-media-upload", "Media upload threw", { error: String(error), imageUrl });
     return { ok: false, error: "Media upload to X failed" };
   }
+}
+
+async function createTweet(
+  accessToken: string,
+  text: string,
+  mediaId: string | null
+): Promise<{ ok: true; postId: string } | { ok: false; error: string; status?: number }> {
+  const res = await fetch(`${API_BASE}/tweets`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(mediaId ? { text, media: { media_ids: [mediaId] } } : { text }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.data?.id) {
+    console.error("[marketing/x] post failed", res.status, data);
+    void logError("marketing/x-post", `tweet create failed: ${res.status}`, {
+      body: JSON.stringify(data)?.slice(0, 800),
+    });
+    return {
+      ok: false,
+      status: res.status,
+      error: formatXApiError(res.status, data, "X did not accept the post"),
+    };
+  }
+  return { ok: true, postId: data.data.id as string };
 }
 
 export async function postToX(
   accessToken: string,
   text: string,
-  imageUrl?: string | null
+  imageUrl?: string | null,
+  options?: {
+    /** When set, a 401 triggers one forced refresh + retry */
+    accountForRetry?: {
+      tenantId: string;
+      externalId: string;
+      name: string;
+      picture?: string | null;
+      accessToken: string;
+      expiresAt: string | null;
+      refreshToken?: string | null;
+      connectedBy: string;
+    };
+  }
 ): Promise<{ ok: true; postId: string } | { ok: false; error: string }> {
   try {
+    const validated = validateXPostText(text);
+    if (!validated.ok) return validated;
+
+    let token = accessToken;
     let mediaId: string | null = null;
+    let mediaWarning: string | null = null;
+
     if (imageUrl) {
-      const media = await uploadMediaToX(accessToken, imageUrl);
+      const media = await uploadMediaToX(token, imageUrl);
       if (media.ok) {
         mediaId = media.mediaId;
       } else {
-        // Degrade to a text-only post rather than losing the whole post
-        // over an image hiccup - but log it, since a silently-dropped image
-        // is exactly the kind of thing that used to be invisible.
+        // Degrade to text-only rather than losing the whole post — but surface the reason
+        mediaWarning = media.error;
         void logError("marketing/x-media-upload", media.error, { imageUrl });
       }
     }
 
-    const res = await fetch(`${API_BASE}/tweets`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(mediaId ? { text, media: { media_ids: [mediaId] } } : { text }),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.data?.id) {
-      console.error("[marketing/x] post failed", res.status, data);
-      const detail = data?.detail || data?.title;
-      return { ok: false, error: detail ? `X rejected the post: ${detail}` : "X did not accept the post" };
+    let result = await createTweet(token, validated.text, mediaId);
+
+    // One forced refresh + retry on 401 (token revoked / skew / race after refresh)
+    if (!result.ok && result.status === 401 && options?.accountForRetry?.refreshToken) {
+      const fresh = await forceRefreshXAccessToken(options.accountForRetry);
+      if (fresh) {
+        token = fresh;
+        // Re-upload media with fresh token if we had planned to attach one
+        if (imageUrl && mediaId) {
+          const media = await uploadMediaToX(token, imageUrl);
+          mediaId = media.ok ? media.mediaId : null;
+        }
+        result = await createTweet(token, validated.text, mediaId);
+      }
     }
-    return { ok: true, postId: data.data.id as string };
+
+    if (!result.ok) {
+      const suffix = mediaWarning ? ` (image skipped: ${mediaWarning})` : "";
+      return { ok: false, error: `${result.error}${suffix}` };
+    }
+
+    return { ok: true, postId: result.postId };
   } catch (error) {
     console.error("[marketing/x] post errored", error);
+    void logError("marketing/x-post", "postToX threw", { error: String(error) });
     return { ok: false, error: "X request failed" };
   }
 }

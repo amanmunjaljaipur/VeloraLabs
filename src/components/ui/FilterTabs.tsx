@@ -11,14 +11,15 @@ interface FilterTabsProps {
 
 export function FilterTabs({ label, options, value, onChange }: FilterTabsProps) {
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       <p className="text-xs font-medium uppercase tracking-wider text-text-secondary">{label}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
         {options.map((opt) => (
           <button
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
+            aria-pressed={value === opt.value}
             className={cn(
               "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
               value === opt.value

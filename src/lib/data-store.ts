@@ -2,10 +2,26 @@ import { get, list, put } from "@vercel/blob";
 import { after } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getRuntimeDoc, putRuntimeDoc } from "@/lib/db/runtime-docs";
+import {
+  isDatabaseConfigured,
+  resolveDurableBackend,
+  type DurableBackend,
+} from "@/lib/db/postgres";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 /** Exported so stores that need direct Blob list/delete (e.g. log-store's retention prune) share the same prefix. */
 export const BLOB_PREFIX = "verlin-labs/data/";
+
+/**
+ * Persistence policy (deploy-safe, cost-aware):
+ * 1. DATABASE_URL set → Postgres is primary for all runtime JSON (cheap, survives deploys)
+ * 2. Else BLOB_READ_WRITE_TOKEN → Vercel Blob for JSON (legacy / fallback)
+ * 3. Local dev without either → content/ filesystem only
+ *
+ * Binary media (audio/video/images) should use Google Drive (user) or Blob media keys
+ * under verlin-labs/avatar-studio|marketing-ai-images — NOT runtime_docs JSON.
+ */
 
 /** Runtime data owned by production Blob - never seed from git on Vercel. */
 export const RUNTIME_DATA_FILES = new Set([
@@ -102,6 +118,8 @@ export const RUNTIME_DATA_FILES = new Set([
   "avatar-storage-connections.json",
   /** Avatar Studio: log of every moderation check (approved + rejected) for the admin moderation queue view */
   "avatar-moderation-log.json",
+  /** Avatar Studio: per-user freemium/custom generation endpoint settings */
+  "avatar-user-settings.json",
 ]);
 
 /** Writes that must complete Blob upload before returning (auth / user data). */
@@ -156,6 +174,8 @@ const AWAIT_BLOB_PERSIST_FILES = new Set([
   // processing the same job on two instances.
   "avatar-jobs.json",
   "avatar-storage-connections.json",
+  // User endpoint URLs / freemium mode - must be strongly consistent with jobs
+  "avatar-user-settings.json",
   // Training batch history is the data-lineage record - must be durable
   // and consistent the moment a cycle runs, not eventually.
   "avatar-training-batches.json",
@@ -170,6 +190,19 @@ function isVercelRuntime(): boolean {
 
 function isBlobEnabled(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+/** When Postgres is configured, skip writing JSON to Blob to cut cost (unless forced). */
+function shouldPersistJsonToBlob(): boolean {
+  if (!isBlobEnabled()) return false;
+  // Explicit dual-write for cutover: DURABLE_JSON_DUAL_WRITE=1
+  if (process.env.DURABLE_JSON_DUAL_WRITE === "1") return true;
+  // No DB → Blob is the only durable path
+  return !isDatabaseConfigured();
+}
+
+export function getDurableBackend(): DurableBackend {
+  return resolveDurableBackend();
 }
 
 function getRuntimeDir(): string {
@@ -268,15 +301,24 @@ function ensureRuntimeFile(filename: string, defaultContent: string): string {
 }
 
 /**
- * Load a runtime data file from Vercel Blob into /tmp.
- * @param force When true, always re-fetch Blob even if a local /tmp file exists.
- *              Required for multi-instance serverless (empty seed must not block Blob).
+ * Load a runtime data file from durable store (Postgres first, else Blob) into /tmp.
+ * @param force When true, always re-fetch even if a local /tmp file exists.
+ *              Required for multi-instance serverless (empty seed must not block durable).
  */
 export async function hydrateFileFromBlob(
   filename: string,
   force = false
 ): Promise<boolean> {
-  if (!isBlobEnabled() || !isVercelRuntime()) return false;
+  // Name kept for call-site compatibility; hydrates from Postgres or Blob.
+  return hydrateFileFromDurable(filename, force);
+}
+
+export async function hydrateFileFromDurable(
+  filename: string,
+  force = false
+): Promise<boolean> {
+  if (!isVercelRuntime()) return false;
+  if (!isDatabaseConfigured() && !isBlobEnabled()) return false;
 
   const runtimePath = getRuntimePath(filename);
   if (!force && fs.existsSync(runtimePath)) return true;
@@ -287,13 +329,32 @@ export async function hydrateFileFromBlob(
 
   const promise = (async () => {
     try {
-      const content = await readBlobContent(blobKey(filename));
-      if (!content) return false;
-      ensureRuntimeDir();
-      fs.writeFileSync(runtimePath, content, "utf8");
-      return true;
+      // 1) Postgres primary
+      if (isDatabaseConfigured()) {
+        const fromDb = await getRuntimeDoc(filename);
+        if (fromDb != null) {
+          ensureRuntimeDir();
+          fs.writeFileSync(runtimePath, fromDb, "utf8");
+          return true;
+        }
+      }
+
+      // 2) Blob fallback (legacy / media-adjacent JSON still on Blob)
+      if (isBlobEnabled()) {
+        const content = await readBlobContent(blobKey(filename));
+        if (!content) return false;
+        ensureRuntimeDir();
+        fs.writeFileSync(runtimePath, content, "utf8");
+        // Opportunistic migrate: if DB is configured but row missing, copy once
+        if (isDatabaseConfigured()) {
+          void putRuntimeDoc(filename, content).catch(() => null);
+        }
+        return true;
+      }
+
+      return false;
     } catch (error) {
-      console.error(`Failed to hydrate ${filename} from Vercel Blob:`, error);
+      console.error(`Failed to hydrate ${filename} from durable store:`, error);
       return false;
     } finally {
       hydrationPromises.delete(cacheKey);
@@ -311,12 +372,12 @@ export async function ensureDataFileHydrated(
 ): Promise<void> {
   if (!isVercelRuntime()) return;
 
-  // Critical runtime files must always re-pull Blob so a cold instance
+  // Critical runtime files must always re-pull durable store so a cold instance
   // does not keep an empty seed written by ensureRuntimeFile.
   const force =
     options?.force ?? AWAIT_BLOB_PERSIST_FILES.has(filename);
 
-  const hydrated = await hydrateFileFromBlob(filename, force);
+  const hydrated = await hydrateFileFromDurable(filename, force);
   if (!hydrated) {
     ensureRuntimeFile(filename, defaultContent);
   }
@@ -364,6 +425,40 @@ export function readJsonFile<T>(filename: string, defaultContent = "{}"): T {
   return JSON.parse(raw) as T;
 }
 
+async function persistDurableJson(filename: string, content: string, awaitCritical: boolean): Promise<void> {
+  // Postgres first (survives deploys, cheaper than many Blob rewrites)
+  if (isDatabaseConfigured()) {
+    const write = () =>
+      putRuntimeDoc(filename, content).then((ok) => {
+        if (!ok) {
+          console.error(`[data-store] Postgres put failed for ${filename}`);
+        }
+      });
+    if (awaitCritical || AWAIT_BLOB_PERSIST_FILES.has(filename)) {
+      await write();
+    } else {
+      try {
+        after(() => write());
+      } catch {
+        void write();
+      }
+    }
+  }
+
+  // Blob only when no DB, or dual-write during migration
+  if (shouldPersistJsonToBlob()) {
+    if (awaitCritical || AWAIT_BLOB_PERSIST_FILES.has(filename)) {
+      await persistToBlob(filename, content);
+    } else {
+      scheduleBlobPersist(filename, content);
+    }
+  } else if (isVercelRuntime() && !isDatabaseConfigured() && !isBlobEnabled()) {
+    console.warn(
+      `[data-store] No DATABASE_URL and no BLOB_READ_WRITE_TOKEN - ${filename} will be lost on the next deploy.`
+    );
+  }
+}
+
 export function writeJsonFile(filename: string, data: unknown, defaultContent = "{}"): void {
   const content = `${JSON.stringify(data, null, 2)}\n`;
   const filePath = ensureRuntimeFile(filename, defaultContent);
@@ -374,12 +469,9 @@ export function writeJsonFile(filename: string, data: unknown, defaultContent = 
     // chmod is best-effort (e.g. Windows, /tmp on Vercel)
   }
 
-  if (isVercelRuntime() && isBlobEnabled()) {
-    scheduleBlobPersist(filename, content);
-  } else if (isVercelRuntime() && !isBlobEnabled()) {
-    console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
-    );
+  if (isVercelRuntime() || isDatabaseConfigured()) {
+    // Fire-and-forget for sync API; critical files should use writeJsonFileAsync
+    void persistDurableJson(filename, content, false);
   }
 }
 
@@ -397,16 +489,8 @@ export async function writeJsonFileAsync(
     // chmod is best-effort
   }
 
-  if (isVercelRuntime() && isBlobEnabled()) {
-    if (AWAIT_BLOB_PERSIST_FILES.has(filename)) {
-      await persistToBlob(filename, content);
-    } else {
-      scheduleBlobPersist(filename, content);
-    }
-  } else if (isVercelRuntime() && !isBlobEnabled()) {
-    console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
-    );
+  if (isVercelRuntime() || isDatabaseConfigured()) {
+    await persistDurableJson(filename, content, AWAIT_BLOB_PERSIST_FILES.has(filename));
   }
 }
 
@@ -424,11 +508,7 @@ export function writeTextFile(filename: string, content: string, defaultContent 
     // chmod is best-effort
   }
 
-  if (isVercelRuntime() && isBlobEnabled()) {
-    scheduleBlobPersist(filename, content);
-  } else if (isVercelRuntime() && !isBlobEnabled()) {
-    console.warn(
-      `[data-store] BLOB_READ_WRITE_TOKEN is not set - ${filename} will be lost on the next deploy.`
-    );
+  if (isVercelRuntime() || isDatabaseConfigured()) {
+    void persistDurableJson(filename, content, false);
   }
 }

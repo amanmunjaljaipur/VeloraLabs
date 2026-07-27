@@ -24,6 +24,12 @@ export async function GET(req: NextRequest) {
   const { verifier, challenge } = createPkcePair();
   await issuePkceVerifier("x", verifier);
 
-  const redirectUri = new URL("/api/admin/marketing/connect/x/callback", req.nextUrl.origin).toString();
+  // Prefer AUTH_URL so callback matches the URI registered in the X developer
+  // portal (www vs apex mismatches are a common prod connect failure).
+  const publicOrigin = (process.env.AUTH_URL || process.env.NEXTAUTH_URL || req.nextUrl.origin).replace(
+    /\/$/,
+    ""
+  );
+  const redirectUri = `${publicOrigin}/api/admin/marketing/connect/x/callback`;
   return NextResponse.redirect(buildXAuthUrl(state, redirectUri, challenge));
 }

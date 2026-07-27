@@ -150,13 +150,27 @@ export async function publishToAccounts(
           platform: "x",
           status: "failed",
           platformPostId: null,
-          error: "X token expired and could not be refreshed - reconnect X",
+          error: "X token expired and could not be refreshed — disconnect & reconnect X on Marketing Board",
         });
         continue;
       }
-      // X video posting isn't wired up yet (see isVideoUrl above) - skip
-      // the attempt entirely rather than logging an expected rejection.
-      const result = await postToX(accessToken, content, video ? null : imageUrl);
+      // X video posting isn't wired up yet — post text only when media is video
+      // so the rest of the publish (caption) still lands.
+      const xImage = video ? null : imageUrl;
+      // Prefer carousel cover for X (single image) when multi-image was selected
+      const xImageResolved = xImage || (isCarousel ? carouselUrls[0] ?? null : null);
+      const result = await postToX(accessToken, content, xImageResolved, {
+        accountForRetry: {
+          tenantId: account.tenantId,
+          externalId: account.externalId,
+          name: account.name,
+          picture: account.picture,
+          accessToken: account.accessToken,
+          expiresAt: account.expiresAt,
+          refreshToken: account.refreshToken,
+          connectedBy: account.connectedBy,
+        },
+      });
       targets.push({
         accountId,
         platform: "x",

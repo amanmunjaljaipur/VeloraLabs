@@ -45,25 +45,139 @@ export interface ModelEntry {
 }
 
 const SEED_CATALOG: ModelEntry[] = [
-  // Avatar/lip-sync models
-  { id: "duix-avatar", kind: "avatar", label: "Duix-Avatar", tokenCostPerMinute: { standard: 4, high: 8, best: 16 }, freeTierFallback: false, endpointEnvVar: "AVATAR_DUIX_ENDPOINT_URL", licenseNote: "Commercial use permitted; requires a signed commercial agreement past 100,000 users or $10M annual revenue - track this threshold.", maxClipSeconds: 10 },
-  { id: "musetalk", kind: "avatar", label: "MuseTalk (real-time)", tokenCostPerMinute: { standard: 0, high: 3, best: 6 }, freeTierFallback: true, endpointEnvVar: "AVATAR_MUSETALK_ENDPOINT_URL", licenseNote: "Verify current license terms before commercial use.", maxClipSeconds: 10 },
-  { id: "wav2lip", kind: "avatar", label: "Wav2Lip (specialist/fallback)", tokenCostPerMinute: { standard: 2, high: 4, best: 8 }, freeTierFallback: false, endpointEnvVar: "AVATAR_WAV2LIP_ENDPOINT_URL", licenseNote: "Verify current license terms before commercial use.", maxClipSeconds: 15 },
-  // Voice/TTS models
-  { id: "xtts-v2", kind: "voice", label: "Coqui XTTS-v2", tokenCostPerMinute: { standard: 3, high: 6, best: 12 }, freeTierFallback: false, endpointEnvVar: "VOICE_XTTS_ENDPOINT_URL", licenseNote: "Verify current license terms at implementation time - has had changes." },
-  { id: "openvoice", kind: "voice", label: "OpenVoice", tokenCostPerMinute: { standard: 2, high: 5, best: 10 }, freeTierFallback: false, endpointEnvVar: "VOICE_OPENVOICE_ENDPOINT_URL", licenseNote: "Check current repo license before commercial use." },
-  { id: "f5-tts", kind: "voice", label: "F5-TTS", tokenCostPerMinute: { standard: 2, high: 5, best: 10 }, freeTierFallback: false, endpointEnvVar: "VOICE_F5TTS_ENDPOINT_URL", licenseNote: "Verify current license terms before commercial use." },
-  { id: "bark", kind: "voice", label: "Bark (expressive)", tokenCostPerMinute: { standard: 3, high: 7, best: 14 }, freeTierFallback: false, endpointEnvVar: "VOICE_BARK_ENDPOINT_URL", licenseNote: "Check current repo license before commercial use." },
-  { id: "piper", kind: "voice", label: "Piper (low-latency)", tokenCostPerMinute: { standard: 0, high: 2, best: 4 }, freeTierFallback: true, endpointEnvVar: "VOICE_PIPER_ENDPOINT_URL", licenseNote: "MIT - permissive." },
-  { id: "mms-tts", kind: "voice", label: "Meta MMS-TTS (max language coverage)", tokenCostPerMinute: { standard: 3, high: 6, best: 12 }, freeTierFallback: false, endpointEnvVar: "VOICE_MMS_ENDPOINT_URL", licenseNote: "Some components CC-BY-NC - verify non-commercial restriction before commercial use." },
+  // Avatar — free Presenter is the always-on freemium path (no GPU).
+  // Catalog names kept for product continuity; when endpoint env is unset,
+  // agents serve free Presenter for every avatar model (and custom URL from Setup wins).
+  {
+    id: "musetalk",
+    kind: "avatar",
+    label: "Free animated presenter (motion + voice)",
+    tokenCostPerMinute: { standard: 0, high: 0, best: 0 },
+    freeTierFallback: true,
+    endpointEnvVar: "AVATAR_MUSETALK_ENDPOINT_URL",
+    licenseNote:
+      "Free path: portrait + Ken Burns motion MP4 + voice (ffmpeg, no GPU). Optional MuseTalk GPU host via Setup for true lip-sync.",
+    maxClipSeconds: 60,
+  },
+  {
+    id: "wav2lip",
+    kind: "avatar",
+    label: "Lip-sync (custom host / Wav2Lip)",
+    tokenCostPerMinute: { standard: 2, high: 4, best: 8 },
+    freeTierFallback: false,
+    endpointEnvVar: "AVATAR_WAV2LIP_ENDPOINT_URL",
+    licenseNote: "Requires your own endpoint URL in Setup (or platform env). Falls back to Free Presenter if unset.",
+    maxClipSeconds: 15,
+  },
+  {
+    id: "duix-avatar",
+    kind: "avatar",
+    label: "Lip-sync (custom host / Duix)",
+    tokenCostPerMinute: { standard: 4, high: 8, best: 16 },
+    freeTierFallback: false,
+    endpointEnvVar: "AVATAR_DUIX_ENDPOINT_URL",
+    licenseNote: "Requires your own endpoint. Falls back to Free Presenter if unset.",
+    maxClipSeconds: 10,
+  },
+  // Voice — free Edge TTS when no custom host
+  {
+    id: "piper",
+    kind: "voice",
+    label: "Free multi-country neural voice",
+    tokenCostPerMinute: { standard: 0, high: 0, best: 0 },
+    freeTierFallback: true,
+    endpointEnvVar: "VOICE_PIPER_ENDPOINT_URL",
+    licenseNote:
+      "Free path uses Microsoft Edge neural TTS via msedge-tts (US/UK/IN/AU/IE/CA/ZA). Optional self-host clone URL in Setup for true sample cloning.",
+  },
+  {
+    id: "xtts-v2",
+    kind: "voice",
+    label: "Custom TTS / XTTS host",
+    tokenCostPerMinute: { standard: 3, high: 6, best: 12 },
+    freeTierFallback: false,
+    endpointEnvVar: "VOICE_XTTS_ENDPOINT_URL",
+    licenseNote: "Paste endpoint in Setup for clone-quality TTS. Falls back to free voice if unset.",
+  },
+  {
+    id: "openvoice",
+    kind: "voice",
+    label: "Custom TTS / OpenVoice host",
+    tokenCostPerMinute: { standard: 2, high: 5, best: 10 },
+    freeTierFallback: false,
+    endpointEnvVar: "VOICE_OPENVOICE_ENDPOINT_URL",
+    licenseNote: "Optional custom host. Free voice is used when unset.",
+  },
+  {
+    id: "f5-tts",
+    kind: "voice",
+    label: "Custom TTS / F5-TTS host",
+    tokenCostPerMinute: { standard: 2, high: 5, best: 10 },
+    freeTierFallback: false,
+    endpointEnvVar: "VOICE_F5TTS_ENDPOINT_URL",
+    licenseNote: "Optional custom host. Free voice is used when unset.",
+  },
+  {
+    id: "bark",
+    kind: "voice",
+    label: "Custom TTS / Bark host",
+    tokenCostPerMinute: { standard: 3, high: 7, best: 14 },
+    freeTierFallback: false,
+    endpointEnvVar: "VOICE_BARK_ENDPOINT_URL",
+    licenseNote: "Optional custom host. Free voice is used when unset.",
+  },
+  {
+    id: "mms-tts",
+    kind: "voice",
+    label: "Custom TTS / MMS host",
+    tokenCostPerMinute: { standard: 3, high: 6, best: 12 },
+    freeTierFallback: false,
+    endpointEnvVar: "VOICE_MMS_ENDPOINT_URL",
+    licenseNote: "Optional custom host. Free voice is used when unset.",
+  },
 ];
 
 async function readAll(): Promise<ModelEntry[]> {
   await ensureDataFileHydrated(CATALOG_FILE, DEFAULT_JSON, { force: true });
   const existing = readJsonFile<ModelEntry[]>(CATALOG_FILE, DEFAULT_JSON);
-  if (existing.length > 0) return existing;
-  await writeJsonFileAsync(CATALOG_FILE, SEED_CATALOG, DEFAULT_JSON);
-  return SEED_CATALOG;
+  if (existing.length === 0) {
+    await writeJsonFileAsync(CATALOG_FILE, SEED_CATALOG, DEFAULT_JSON);
+    return SEED_CATALOG;
+  }
+
+  // Soft-upgrade free fallback rows so older Blob catalogs pick up freemium
+  // labels/clip lengths without wiping admin cost overrides on paid models.
+  let changed = false;
+  const byId = new Map(SEED_CATALOG.map((m) => [m.id, m]));
+  const next = existing.map((row) => {
+    const seed = byId.get(row.id);
+    if (!seed || !seed.freeTierFallback) return row;
+    const upgraded: ModelEntry = {
+      ...row,
+      label: seed.label,
+      freeTierFallback: true,
+      tokenCostPerMinute: seed.tokenCostPerMinute,
+      maxClipSeconds: seed.maxClipSeconds ?? row.maxClipSeconds,
+      licenseNote: seed.licenseNote,
+    };
+    if (
+      upgraded.label !== row.label ||
+      upgraded.maxClipSeconds !== row.maxClipSeconds ||
+      upgraded.tokenCostPerMinute.standard !== row.tokenCostPerMinute.standard
+    ) {
+      changed = true;
+    }
+    return upgraded;
+  });
+  // Ensure free fallbacks always exist even if an older catalog dropped them.
+  for (const seed of SEED_CATALOG.filter((m) => m.freeTierFallback)) {
+    if (!next.some((m) => m.id === seed.id)) {
+      next.push(seed);
+      changed = true;
+    }
+  }
+  if (changed) await writeJsonFileAsync(CATALOG_FILE, next, DEFAULT_JSON);
+  return next;
 }
 
 export async function listModels(kind?: ModelKind): Promise<ModelEntry[]> {

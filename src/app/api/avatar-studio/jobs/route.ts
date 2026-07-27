@@ -57,10 +57,36 @@ export async function POST(req: NextRequest) {
   const avatarModelId = typeof body?.avatarModelId === "string" ? body.avatarModelId : "";
   const qualityTier = QUALITY_TIERS.has(body?.qualityTier) ? (body.qualityTier as QualityTier) : null;
   const avatarProfileId = typeof body?.avatarProfileId === "string" && body.avatarProfileId ? body.avatarProfileId : null;
+  const voiceProfileId = typeof body?.voiceProfileId === "string" && body.voiceProfileId ? body.voiceProfileId : null;
+  const castProfileIds = Array.isArray(body?.castProfileIds)
+    ? body.castProfileIds.filter((id: unknown): id is string => typeof id === "string" && id.length > 0).slice(0, 20)
+    : [];
   const mode = JOB_MODES.has(body?.mode) ? (body.mode as JobMode) : "single";
   const targetDurationMinutes =
     mode === "long_form" && typeof body?.targetDurationMinutes === "number" && Number.isFinite(body.targetDurationMinutes)
       ? Math.min(MAX_LONG_FORM_MINUTES, Math.max(MIN_LONG_FORM_MINUTES, Math.round(body.targetDurationMinutes)))
+      : null;
+
+  // Free video memes (script-aware placements)
+  const videoGenre = typeof body?.videoGenre === "string" ? body.videoGenre.slice(0, 40) : null;
+  const memePlacementsRaw = Array.isArray(body?.memePlacements) ? body.memePlacements : [];
+  const memePlacements =
+    memePlacementsRaw.length > 0
+      ? memePlacementsRaw
+          .slice(0, 5)
+          .map((p: Record<string, unknown>) => ({
+            placementId: typeof p.placementId === "string" ? p.placementId : `p-${Math.random()}`,
+            clipId: typeof p.clipId === "string" ? p.clipId : "",
+            positionRatio:
+              typeof p.positionRatio === "number" && Number.isFinite(p.positionRatio)
+                ? Math.min(0.95, Math.max(0.05, p.positionRatio))
+                : 0.5,
+            scriptSnippet: typeof p.scriptSnippet === "string" ? p.scriptSnippet.slice(0, 200) : "",
+            label: typeof p.label === "string" ? p.label.slice(0, 120) : "Meme insert",
+            mood: typeof p.mood === "string" ? p.mood.slice(0, 40) : "transition",
+            sourceUrl: typeof p.sourceUrl === "string" ? p.sourceUrl : undefined,
+          }))
+          .filter((p: { clipId: string }) => Boolean(p.clipId))
       : null;
 
   if (!categoryId || !script || !voiceModelId || !avatarModelId || !qualityTier) {
@@ -76,9 +102,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "targetDurationMinutes is required for long_form jobs" }, { status: 400 });
   }
 
-  // A profile means we're cloning a specific person's voice/face - that
-  // needs its own explicit consent, separate from the general ToS.
-  if (avatarProfileId) {
+  // Trained samples (real UUIDs) need consent. free:… system voices do not.
+  const needsCloneConsent =
+    Boolean(avatarProfileId) ||
+    Boolean(voiceProfileId && !voiceProfileId.startsWith("free:")) ||
+    castProfileIds.some((id: string) => !id.startsWith("free:"));
+  if (needsCloneConsent) {
     const consented = await hasCurrentConsent(email, "voice_face_clone");
     if (!consented) {
       return NextResponse.json({ error: "consent_required", detail: "Voice/face cloning consent is required to use a clone profile" }, { status: 403 });
@@ -125,10 +154,20 @@ export async function POST(req: NextRequest) {
     avatarModelId,
     qualityTier,
     avatarProfileId,
+    voiceProfileId,
+    castProfileIds: Array.from(
+      new Set([
+        ...castProfileIds,
+        ...(avatarProfileId ? [avatarProfileId] : []),
+        ...(voiceProfileId ? [voiceProfileId] : []),
+      ])
+    ),
     tokensReserved: 0,
     mode,
     targetDurationMinutes,
     segments,
+    memePlacements,
+    videoGenre,
   });
 
   const reservation = await checkAndReserveTokens(email, job.id, voiceModelId, avatarModelId, qualityTier, costEstimate.estimate);

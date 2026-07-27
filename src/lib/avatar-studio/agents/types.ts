@@ -11,11 +11,17 @@ export interface ModerationResult {
   flaggedTerms: string[];
 }
 
+export type OutputKind = "video" | "presenter";
+
 export interface GenerationResult {
   ok: boolean;
   storageRef: { provider: "blob" | "google_drive"; url: string; driveFileId?: string } | null;
   durationSeconds: number | null;
   error: string | null;
+  /** True video vs free presenter (audio + poster + captions). */
+  outputKind?: OutputKind;
+  audioRef?: { provider: "blob" | "google_drive"; url: string; driveFileId?: string } | null;
+  posterRef?: { provider: "blob" | "google_drive"; url: string; driveFileId?: string } | null;
 }
 
 export interface QaResult {

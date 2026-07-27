@@ -428,11 +428,18 @@ export function MarketingBoard() {
       const anyFailed = (data.post?.targets ?? []).some((t: PostTarget) => t.status === "failed");
 
       if (!res.ok) {
-        toast(data.error || "Could not publish", "error");
+        const xFail = (data.post?.targets as PostTarget[] | undefined)?.find(
+          (t) => t.platform === "x" && t.status === "failed"
+        );
+        toast(xFail?.error || data.error || data.failures?.[0] || "Could not publish", "error");
       } else if (data.scheduled) {
         toast(`Scheduled for ${new Date(data.scheduled.scheduledAt).toLocaleString()}`, "success");
       } else if (anyFailed) {
-        toast("Published to some platforms - check the table below for details", "warning");
+        const failDetail = (data.post?.targets as PostTarget[] | undefined)
+          ?.filter((t) => t.status === "failed")
+          .map((t) => `${t.platform}: ${t.error || "failed"}`)
+          .join(" · ");
+        toast(failDetail || "Published to some platforms — check the table below", "warning");
       } else {
         toast("Published", "success");
       }
@@ -1260,6 +1267,27 @@ export function MarketingBoard() {
             placeholder="What do you want to share?"
             className="w-full resize-none rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-teal"
           />
+          {(() => {
+            const selectedX = accounts.some((a) => selected.has(a.id) && a.platform === "x");
+            const chars = [...content].length;
+            if (!selectedX && !content) return null;
+            return (
+              <p
+                className={
+                  selectedX && chars > 280
+                    ? "text-xs text-red-600"
+                    : "text-xs text-text-secondary"
+                }
+              >
+                {chars} characters
+                {selectedX
+                  ? chars > 280
+                    ? " — X free posts max 280; shorten before publishing to X"
+                    : " · X free limit 280"
+                  : " / 3000"}
+              </p>
+            );
+          })()}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               type="url"

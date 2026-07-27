@@ -1,18 +1,18 @@
 import { randomUUID } from "crypto";
 import { ensureDataFileHydrated, readJsonFile, writeJsonFileAsync } from "@/lib/data-store";
+import { FREE_TIER_MONTHLY_TOKENS } from "@/lib/avatar-studio/freemium";
 
 /**
  * Per-user token balance + full consumption/refund ledger (Section 6/13).
  * Every job logs tokens consumed; failed jobs get refunded (Section 13's
  * new requirement). Balances reset on a period (monthly, matching the
  * site's existing usage-limit cadence) rather than accumulating forever.
+ * Monthly free allotment is shared with freemium.ts so UI + ledger stay in sync.
  */
 
 const BALANCES_FILE = "avatar-token-balances.json";
 const LEDGER_FILE = "avatar-token-ledger.json";
 const DEFAULT_JSON = "[]";
-
-const FREE_TIER_MONTHLY_TOKENS = 200;
 const MS_PER_MONTH = 30 * 24 * 60 * 60 * 1000;
 
 export interface TokenBalance {

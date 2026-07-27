@@ -38,7 +38,9 @@ export async function GET(req: NextRequest) {
   const codeVerifier = await consumePkceVerifier("x");
   if (!codeVerifier) return fail("x_pkce_missing");
 
-  const redirectUri = new URL("/api/admin/marketing/connect/x/callback", origin).toString();
+  // Must match the redirect_uri used in connect/x (AUTH_URL preferred for prod)
+  const publicOrigin = (process.env.AUTH_URL || process.env.NEXTAUTH_URL || origin).replace(/\/$/, "");
+  const redirectUri = `${publicOrigin}/api/admin/marketing/connect/x/callback`;
 
   const token = await exchangeCodeForToken(code, redirectUri, codeVerifier);
   if (!token) return fail("x_token_exchange_failed");

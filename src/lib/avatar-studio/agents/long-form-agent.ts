@@ -4,44 +4,33 @@ import { generateVoice } from "@/lib/avatar-studio/agents/voice-agent";
 import { generateAvatarVideo } from "@/lib/avatar-studio/agents/avatar-agent";
 import { extractLastFrame, stitchClips } from "@/lib/avatar-studio/agents/video-stitch-agent";
 import { evaluateOutput } from "@/lib/avatar-studio/agents/qa-agent";
+import { generateTranscript } from "@/lib/avatar-studio/agents/transcript-agent";
 import { auditStage, auditFailure } from "@/lib/avatar-studio/agents/audit-agent";
 import { getReservedTokensForJob, refundTokens } from "@/lib/avatar-studio/token-ledger-store";
 import { getJobById, updateJob, type AvatarJob, type LongFormSegmentState } from "@/lib/avatar-studio/jobs-store";
+import { getUserSettings } from "@/lib/avatar-studio/user-settings-store";
+import { FREE_MAX_CLIP_SECONDS } from "@/lib/avatar-studio/freemium";
 
 /**
- * Long-Form Agent: assembles a long video (up to ~20 min) from many short
- * clips, chained via last-frame continuity - "if a model only produces
- * 10-second clips, take the last frame of clip N and use it as the starting
- * frame for clip N+1, then stitch everything together." Each clip's
- * voice/avatar generation independently runs through the multi-model
- * failover helper (model-failover.ts), so a model running out of free
- * quota mid-job doesn't stall the whole video - the next model in the
- * catalog picks up the remaining clips.
- *
- * Processes segments incrementally and time-boxes itself (TIME_BUDGET_MS)
- * so one invocation never tries to render a 20-minute video (potentially
- * 100+ sequential clips against real GPU endpoints) in a single serverless
- * call. Progress is persisted to the job record after every segment, so the
- * avatar-studio-queue cron sweep safely resumes an in-progress long-form
- * job exactly where the last invocation left off - no separate queue needed.
+ * Long-Form Agent: freemium path produces one narrated Presenter package
+ * for the full script (no GPU stitch). Custom/paid lip-sync hosts still
+ * chain short clips via last-frame continuity + ffmpeg stitch URLs.
  */
 
 const WORDS_PER_MINUTE = 150;
-const DEFAULT_CLIP_SECONDS = 10;
-const TIME_BUDGET_MS = 45_000; // stays under a 60s function; cron resumes the rest
+const DEFAULT_CLIP_SECONDS = FREE_MAX_CLIP_SECONDS;
+const TIME_BUDGET_MS = 45_000;
 
-/**
- * Splits a script into segments sized to the avatar model's maxClipSeconds
- * (model-catalog.ts), grouping whole sentences so no clip cuts off
- * mid-sentence. A single very long sentence can still exceed the target -
- * accepted degradation rather than breaking mid-word.
- */
 export async function planSegments(script: string, avatarModelId: string): Promise<LongFormSegmentState[]> {
   const model = await getModel(avatarModelId);
   const clipSeconds = model?.maxClipSeconds ?? DEFAULT_CLIP_SECONDS;
   const wordsPerClip = Math.max(3, Math.round((clipSeconds / 60) * WORDS_PER_MINUTE));
 
-  const sentences = script.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  const sentences = script
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/(?<=[.!?])\s+/)
+    .filter(Boolean);
 
   const chunks: string[] = [];
   let current: string[] = [];
@@ -80,10 +69,6 @@ async function failLongFormJob(job: AvatarJob, segments: LongFormSegmentState[],
 
   const completedCount = nextSegments.filter((s) => s.status === "complete").length;
   const totalCount = nextSegments.length || 1;
-  // Sourced from the ledger, not job.tokensReserved - see the comment on
-  // getReservedTokensForJob for why the job record's own field can be a
-  // stale pre-reservation snapshot inside this same near-immediate
-  // after()-triggered run.
   const totalReserved = await getReservedTokensForJob(job.id);
   const refundAmount = Math.round((totalReserved * (totalCount - completedCount)) / totalCount);
 
@@ -99,6 +84,92 @@ async function failLongFormJob(job: AvatarJob, segments: LongFormSegmentState[],
   });
 }
 
+async function isFreePresenterPath(email: string): Promise<boolean> {
+  const settings = await getUserSettings(email);
+  if (settings.avatarMode === "custom_url" && settings.avatarEndpointUrl) return false;
+  const envHosted = Boolean(
+    process.env.AVATAR_MUSETALK_ENDPOINT_URL ||
+      process.env.AVATAR_DUIX_ENDPOINT_URL ||
+      process.env.AVATAR_WAV2LIP_ENDPOINT_URL
+  );
+  return !envHosted;
+}
+
+/** Free long-form: one full-script voice + presenter package (no multi-clip stitch). */
+async function processFreeLongFormAsSingle(job: AvatarJob): Promise<void> {
+  const jobId = job.id;
+  auditStage(jobId, "long_form_free_single", { reason: "freemium_presenter_no_gpu_stitch" });
+
+  const fail = async (error: string) => {
+    const outstanding = await getReservedTokensForJob(jobId);
+    if (outstanding > 0) {
+      await refundTokens(job.email, outstanding, jobId, `Long-form free path failed: ${error}`);
+    }
+    await updateJob(jobId, { status: "failed", error, tokensReserved: 0 });
+  };
+
+  try {
+    await updateJob(jobId, { status: "generating_voice" });
+    const voiceOutcome = await generateWithFailover("voice", job.voiceModelId, (modelId) =>
+      generateVoice(modelId, job.script, job.qualityTier, job.voiceProfileId, job.email)
+    );
+    if (!voiceOutcome.result.ok) {
+      await fail(voiceOutcome.result.error ?? "Voice generation failed");
+      return;
+    }
+
+    await updateJob(jobId, { status: "generating_avatar" });
+    const audioUrl = voiceOutcome.result.storageRef?.url ?? voiceOutcome.result.audioRef?.url ?? "";
+    const avatarOutcome = await generateWithFailover("avatar", job.avatarModelId, (modelId) =>
+      generateAvatarVideo(
+        modelId,
+        audioUrl,
+        job.qualityTier,
+        job.avatarProfileId,
+        null,
+        job.email,
+        voiceOutcome.result.durationSeconds
+      )
+    );
+    if (!avatarOutcome.result.ok) {
+      await fail(avatarOutcome.result.error ?? "Presenter generation failed");
+      return;
+    }
+
+    const avatarResult = avatarOutcome.result;
+    const transcriptSource =
+      avatarResult.audioRef?.url ?? voiceOutcome.result.audioRef?.url ?? avatarResult.storageRef?.url ?? null;
+    const transcriptSegments = await generateTranscript(job.script, transcriptSource);
+    const outputKind = avatarResult.outputKind ?? "presenter";
+
+    // Mark all planned segments complete for UI progress honesty.
+    const segments = (job.segments ?? []).map((s) => ({
+      ...s,
+      status: "complete" as const,
+      voiceModelIdUsed: voiceOutcome.modelIdUsed,
+      avatarModelIdUsed: avatarOutcome.modelIdUsed,
+      audioRef: voiceOutcome.result.storageRef,
+      videoRef: avatarResult.storageRef,
+    }));
+
+    await updateJob(jobId, {
+      status: "complete",
+      qaScore: 1,
+      outputVideo: avatarResult.storageRef,
+      outputAudio: avatarResult.audioRef ?? voiceOutcome.result.audioRef ?? null,
+      outputPoster: avatarResult.posterRef ?? avatarResult.storageRef,
+      outputKind,
+      transcriptSegments,
+      segments,
+      completedAt: new Date().toISOString(),
+      error: null,
+    });
+    auditStage(jobId, "long_form_free_complete", { outputKind });
+  } catch (error) {
+    await fail(error instanceof Error ? error.message : "Unexpected long-form free path error");
+  }
+}
+
 export async function processLongFormJob(jobId: string): Promise<void> {
   const job = await getJobById(jobId);
   if (!job) return;
@@ -106,6 +177,10 @@ export async function processLongFormJob(jobId: string): Promise<void> {
   if (!job.segments || job.segments.length === 0) {
     await updateJob(jobId, { status: "failed", error: "Long-form job has no planned segments" });
     return;
+  }
+
+  if (await isFreePresenterPath(job.email)) {
+    return processFreeLongFormAsSingle(job);
   }
 
   const totalSegments = job.segments.length;
@@ -121,23 +196,24 @@ export async function processLongFormJob(jobId: string): Promise<void> {
   for (let i = 0; i < segments.length; i++) {
     if (Date.now() - startedAt > TIME_BUDGET_MS) {
       auditStage(jobId, "long_form_time_budget_reached", { resumeAtIndex: i, of: totalSegments });
-      return; // job stays non-terminal; the cron sweep resumes from here
+      return;
     }
 
     const segment = segments[i]!;
     if (segment.status === "complete") continue;
 
-    // --- Voice, with multi-model failover ---
     segments = segments.map((s, idx) => (idx === i ? { ...s, status: "generating_voice" as const } : s));
     await updateJob(jobId, { segments, status: "generating_voice" });
 
     const voiceOutcome = await generateWithFailover("voice", job.voiceModelId, (modelId) =>
-      generateVoice(modelId, segment.text, job.qualityTier, job.avatarProfileId)
+      generateVoice(modelId, segment.text, job.qualityTier, job.voiceProfileId, job.email)
     );
 
     if (!voiceOutcome.result.ok || !voiceOutcome.modelIdUsed) {
       segments = segments.map((s, idx) =>
-        idx === i ? { ...s, attemptedModels: [...s.attemptedModels, ...voiceOutcome.attemptedModels.map((m) => `voice:${m}`)] } : s
+        idx === i
+          ? { ...s, attemptedModels: [...s.attemptedModels, ...voiceOutcome.attemptedModels.map((m) => `voice:${m}`)] }
+          : s
       );
       await failLongFormJob(job, segments, i, voiceOutcome.result.error ?? "Voice generation failed for this segment");
       return;
@@ -154,19 +230,28 @@ export async function processLongFormJob(jobId: string): Promise<void> {
         : s
     );
 
-    // --- Avatar, with multi-model failover + previous-frame continuity ---
     segments = segments.map((s, idx) => (idx === i ? { ...s, status: "generating_avatar" as const } : s));
     await updateJob(jobId, { segments, status: "generating_avatar" });
 
     const audioUrl = segments[i]!.audioRef?.url ?? "";
     const framePassedIn = previousFrameUrl;
     const avatarOutcome = await generateWithFailover("avatar", job.avatarModelId, (modelId) =>
-      generateAvatarVideo(modelId, audioUrl, job.qualityTier, job.avatarProfileId, framePassedIn)
+      generateAvatarVideo(
+        modelId,
+        audioUrl,
+        job.qualityTier,
+        job.avatarProfileId,
+        framePassedIn,
+        job.email,
+        voiceOutcome.result.durationSeconds
+      )
     );
 
     if (!avatarOutcome.result.ok || !avatarOutcome.modelIdUsed) {
       segments = segments.map((s, idx) =>
-        idx === i ? { ...s, attemptedModels: [...s.attemptedModels, ...avatarOutcome.attemptedModels.map((m) => `avatar:${m}`)] } : s
+        idx === i
+          ? { ...s, attemptedModels: [...s.attemptedModels, ...avatarOutcome.attemptedModels.map((m) => `avatar:${m}`)] }
+          : s
       );
       await failLongFormJob(job, segments, i, avatarOutcome.result.error ?? "Avatar generation failed for this segment");
       return;
@@ -183,17 +268,13 @@ export async function processLongFormJob(jobId: string): Promise<void> {
         : s
     );
 
-    // --- Extract this clip's last frame so the NEXT clip can chain from it ---
     const clipVideoUrl = segments[i]!.videoRef?.url;
     if (i < segments.length - 1 && clipVideoUrl) {
-      const frame = await extractLastFrame(clipVideoUrl);
+      const frame = await extractLastFrame(clipVideoUrl, job.email);
       if (frame.ok) {
         segments = segments.map((s, idx) => (idx === i ? { ...s, lastFrameRef: frame.ref } : s));
         previousFrameUrl = frame.ref.url;
       } else {
-        // Non-fatal: the next clip just won't visually chain from this one,
-        // rather than failing an otherwise-successful video over a frame
-        // extraction hiccup.
         auditStage(jobId, "long_form_frame_extract_failed", { segmentIndex: i, error: frame.error });
         previousFrameUrl = null;
       }
@@ -204,13 +285,17 @@ export async function processLongFormJob(jobId: string): Promise<void> {
     auditStage(jobId, "long_form_segment_complete", { segmentIndex: i, of: totalSegments });
   }
 
-  // --- Every segment done: stitch into the final video ---
   const clipUrls = segments.map((s) => s.videoRef?.url).filter((u): u is string => Boolean(u));
   const expectedMinutes = job.targetDurationMinutes ?? (totalSegments * DEFAULT_CLIP_SECONDS) / 60;
-  const stitched = await stitchClips(clipUrls);
+  const stitched = await stitchClips(clipUrls, job.email);
 
   if (!stitched.ok) {
-    await failLongFormJob(job, segments, segments.length - 1, `All ${totalSegments} clips generated, but stitching them into one video failed: ${stitched.error}`);
+    await failLongFormJob(
+      job,
+      segments,
+      segments.length - 1,
+      `All ${totalSegments} clips generated, but stitching them into one video failed: ${stitched.error}`
+    );
     return;
   }
 
@@ -219,12 +304,16 @@ export async function processLongFormJob(jobId: string): Promise<void> {
     avatarOk: true,
     durationSeconds: stitched.durationSeconds > 0 ? stitched.durationSeconds : null,
     expectedMinutes,
+    softMode: false,
   });
 
   await updateJob(jobId, {
     status: "complete",
     qaScore: qa.score,
     outputVideo: stitched.ref,
+    outputKind: "video",
+    outputAudio: null,
+    outputPoster: null,
     segments,
     completedAt: new Date().toISOString(),
     error: null,

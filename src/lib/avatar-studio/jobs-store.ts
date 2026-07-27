@@ -60,13 +60,31 @@ export interface AvatarJob {
   voiceModelId: string;
   avatarModelId: string;
   qualityTier: "standard" | "high" | "best";
+  /** Primary face / avatar training sample (optional). */
   avatarProfileId: string | null;
+  /** Primary voice training sample (optional — free TTS used when null). */
+  voiceProfileId: string | null;
+  /** All selected characters/voices for this job (multi-cast UI). */
+  castProfileIds: string[];
   status: JobStatus;
   tokensReserved: number;
   moderationNote: string | null;
   qaScore: number | null;
   qaRetryCount: number;
   outputVideo: JobStorageRef | null;
+  /** Free Presenter path: narrated audio (true lip-sync jobs leave this null). */
+  outputAudio: JobStorageRef | null;
+  /** Free Presenter path: portrait / still frame shown with the audio. */
+  outputPoster: JobStorageRef | null;
+  /**
+   * "video" = real MP4 (lip-sync host OR free animated presenter).
+   * "presenter" = legacy still + audio only (fallback if animation fails).
+   */
+  outputKind: "video" | "presenter" | null;
+  /** 0–100 live progress for UI (not only coarse status steps). */
+  progressPercent: number;
+  /** Human-readable step, e.g. "Synthesizing speech…". */
+  progressLabel: string | null;
   transcriptSegments: TranscriptSegment[] | null;
   error: string | null;
   createdAt: string;
@@ -78,6 +96,21 @@ export interface AvatarJob {
   targetDurationMinutes: number | null;
   /** Only set when mode is "long_form" - per-clip plan + progress. Processed incrementally (see long-form-agent.ts), safe to resume across multiple invocations/cron sweeps. */
   segments: LongFormSegmentState[] | null;
+  /**
+   * Optional free royalty-free meme / b-roll inserts (script-aware).
+   * Stitched after presenter video when present.
+   */
+  memePlacements: {
+    placementId: string;
+    clipId: string;
+    positionRatio: number;
+    scriptSnippet: string;
+    label: string;
+    mood: string;
+    sourceUrl?: string;
+  }[] | null;
+  /** Detected video tone for meme picks */
+  videoGenre: string | null;
 }
 
 export interface TranscriptSegment {
@@ -89,9 +122,47 @@ export interface TranscriptSegment {
   dirty: boolean;
 }
 
+function normalizeJob(job: AvatarJob): AvatarJob {
+  return {
+    ...job,
+    avatarProfileId: job.avatarProfileId ?? null,
+    voiceProfileId: job.voiceProfileId ?? null,
+    castProfileIds: Array.isArray(job.castProfileIds) ? job.castProfileIds : [],
+    outputAudio: job.outputAudio ?? null,
+    outputPoster: job.outputPoster ?? null,
+    outputKind: job.outputKind ?? null,
+    progressPercent: typeof job.progressPercent === "number" ? job.progressPercent : statusToProgress(job.status),
+    progressLabel: job.progressLabel ?? null,
+    memePlacements: Array.isArray(job.memePlacements) ? job.memePlacements : null,
+    videoGenre: job.videoGenre ?? null,
+  };
+}
+
+function statusToProgress(status: JobStatus): number {
+  switch (status) {
+    case "queued":
+      return 5;
+    case "moderating":
+      return 12;
+    case "generating_voice":
+      return 35;
+    case "generating_avatar":
+      return 70;
+    case "qa_check":
+      return 90;
+    case "complete":
+      return 100;
+    case "failed":
+    case "rejected":
+      return 100;
+    default:
+      return 0;
+  }
+}
+
 async function readAll(): Promise<AvatarJob[]> {
   await ensureDataFileHydrated(JOBS_FILE, DEFAULT_JSON, { force: true });
-  return readJsonFile<AvatarJob[]>(JOBS_FILE, DEFAULT_JSON);
+  return readJsonFile<AvatarJob[]>(JOBS_FILE, DEFAULT_JSON).map(normalizeJob);
 }
 async function writeAll(items: AvatarJob[]): Promise<void> {
   await writeJsonFileAsync(JOBS_FILE, items, DEFAULT_JSON);
@@ -142,10 +213,14 @@ export async function createJob(input: {
   avatarModelId: string;
   qualityTier: "standard" | "high" | "best";
   avatarProfileId: string | null;
+  voiceProfileId?: string | null;
+  castProfileIds?: string[];
   tokensReserved: number;
   mode?: JobMode;
   targetDurationMinutes?: number | null;
   segments?: LongFormSegmentState[] | null;
+  memePlacements?: AvatarJob["memePlacements"];
+  videoGenre?: string | null;
 }): Promise<AvatarJob> {
   const all = await readAll();
   const now = new Date().toISOString();
@@ -158,12 +233,19 @@ export async function createJob(input: {
     avatarModelId: input.avatarModelId,
     qualityTier: input.qualityTier,
     avatarProfileId: input.avatarProfileId,
+    voiceProfileId: input.voiceProfileId ?? null,
+    castProfileIds: input.castProfileIds ?? [],
     status: "queued",
     tokensReserved: input.tokensReserved,
     moderationNote: null,
     qaScore: null,
     qaRetryCount: 0,
     outputVideo: null,
+    outputAudio: null,
+    outputPoster: null,
+    outputKind: null,
+    progressPercent: 5,
+    progressLabel: "Queued — starting pipeline…",
     transcriptSegments: null,
     error: null,
     createdAt: now,
@@ -172,6 +254,8 @@ export async function createJob(input: {
     mode: input.mode ?? "single",
     targetDurationMinutes: input.targetDurationMinutes ?? null,
     segments: input.segments ?? null,
+    memePlacements: input.memePlacements ?? null,
+    videoGenre: input.videoGenre ?? null,
   };
   all.push(job);
   await writeAll(all);

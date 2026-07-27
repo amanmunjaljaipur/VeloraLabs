@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
   const fail = (reason: string, meta?: Record<string, unknown>) => {
     void logError(LOG_PAGE, reason, meta);
-    return NextResponse.redirect(new URL(`/avatar-studio?tab=settings&error=${reason}`, origin));
+    return NextResponse.redirect(new URL(`/avatar-studio?tab=train&error=${reason}`, origin));
   };
 
   const session = await auth();
@@ -47,5 +47,5 @@ export async function GET(req: NextRequest) {
     expiresAt: new Date(Date.now() + tokens.expiresInSeconds * 1000).toISOString(),
   });
 
-  return NextResponse.redirect(new URL("/avatar-studio?tab=settings&connected=drive", origin));
+  return NextResponse.redirect(new URL("/avatar-studio?tab=train&connected=drive", origin));
 }

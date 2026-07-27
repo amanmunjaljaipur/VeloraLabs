@@ -1,20 +1,22 @@
 /**
- * Direct integration with Google Drive (OAuth 2.0 + Drive API v3) so a user
- * can optionally store their generated videos and source samples in their
- * OWN Drive rather than the platform's shared Blob storage. Uses the
- * `drive.file` scope deliberately - the app can only see/manage files it
- * itself creates, not the user's whole Drive - the correct least-privilege
- * choice for an OAuth grant like this.
+ * Direct integration with Google Drive (OAuth 2.0 + Drive API v3).
  *
- * Setup required in Google Cloud Console (outside this codebase):
- * 1. Create a project, enable the Google Drive API.
- * 2. Configure an OAuth consent screen (External, or Internal if using
- *    Google Workspace).
- * 3. Create an OAuth 2.0 Client ID (Web application).
- * 4. Add an authorized redirect URI:
- *    https://www.verlinlabs.com/api/avatar-studio/storage/drive/callback
- * 5. Set GOOGLE_DRIVE_CLIENT_ID / GOOGLE_DRIVE_CLIENT_SECRET in the
- *    environment.
+ * Uses the SAME OAuth client as site Google login when possible:
+ *   GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET  (NextAuth Google provider)
+ * Optional override:
+ *   GOOGLE_DRIVE_CLIENT_ID + GOOGLE_DRIVE_CLIENT_SECRET
+ *
+ * Google Cloud Console (same Web client as login) — required once:
+ * 1. Enable **Google Drive API** on that project.
+ * 2. OAuth consent screen → add scope:
+ *      https://www.googleapis.com/auth/drive.file
+ *    (or keep in Testing + add your email as test user).
+ * 3. Credentials → that OAuth 2.0 Web client → Authorized redirect URIs:
+ *      http://localhost:3000/api/avatar-studio/storage/drive/callback
+ *      https://www.verlinlabs.com/api/avatar-studio/storage/drive/callback
+ *    (login already has /api/auth/callback/google — Drive needs its own URI.)
+ * 4. Env: set GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (same as login) in
+ *    .env.local and Vercel. No separate Drive keys required.
  */
 
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -24,17 +26,97 @@ const DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3";
 const FETCH_TIMEOUT_MS = 20_000;
 const APP_FOLDER_NAME = "Verlin Labs Avatar Studio";
 
+/** Normalize env values: strip quotes, reject empty / placeholder secrets. */
+function cleanEnv(value: string | undefined): string {
+  if (!value) return "";
+  let v = value.trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
+  // Treat common non-secrets as missing (empty quotes, redacted pulls, examples)
+  const lower = v.toLowerCase();
+  if (
+    !v ||
+    lower === "[sensitive]" ||
+    lower === "your_google_client_id.apps.googleusercontent.com" ||
+    lower === "your_google_client_secret" ||
+    lower.startsWith("your_") ||
+    lower === "undefined" ||
+    lower === "null"
+  ) {
+    return "";
+  }
+  return v;
+}
+
+function driveClientId(): string {
+  return cleanEnv(process.env.GOOGLE_DRIVE_CLIENT_ID) || cleanEnv(process.env.GOOGLE_CLIENT_ID);
+}
+function driveClientSecret(): string {
+  return cleanEnv(process.env.GOOGLE_DRIVE_CLIENT_SECRET) || cleanEnv(process.env.GOOGLE_CLIENT_SECRET);
+}
+
 function isConfigured(): boolean {
-  return Boolean(process.env.GOOGLE_DRIVE_CLIENT_ID && process.env.GOOGLE_DRIVE_CLIENT_SECRET);
+  const id = driveClientId();
+  const secret = driveClientSecret();
+  // Real Google web client IDs end with .apps.googleusercontent.com
+  const idLooksValid = id.includes(".apps.googleusercontent.com") || id.length > 20;
+  const secretLooksValid = secret.length >= 10;
+  return Boolean(idLooksValid && secretLooksValid);
 }
 
 export function isGoogleDriveConfigured(): boolean {
   return isConfigured();
 }
 
+/** Safe diagnostics for UI (no secrets). */
+export function getGoogleDriveConfigStatus(): {
+  configured: boolean;
+  credentialSource: "drive_specific" | "login_shared" | "none";
+  hasClientId: boolean;
+  hasClientSecret: boolean;
+  missingEnv: string[];
+  /** Redirect URI the user must add on the Google OAuth client */
+  redirectUriPath: string;
+  driveScope: string;
+} {
+  const dedicatedId = Boolean(cleanEnv(process.env.GOOGLE_DRIVE_CLIENT_ID));
+  const dedicatedSecret = Boolean(cleanEnv(process.env.GOOGLE_DRIVE_CLIENT_SECRET));
+  const loginId = Boolean(cleanEnv(process.env.GOOGLE_CLIENT_ID));
+  const loginSecret = Boolean(cleanEnv(process.env.GOOGLE_CLIENT_SECRET));
+  const hasId = Boolean(driveClientId());
+  const hasSecret = Boolean(driveClientSecret());
+  const configured = isConfigured();
+
+  let credentialSource: "drive_specific" | "login_shared" | "none" = "none";
+  if (dedicatedId && dedicatedSecret) credentialSource = "drive_specific";
+  else if (loginId && loginSecret) credentialSource = "login_shared";
+  else if (hasId && hasSecret) credentialSource = dedicatedId || dedicatedSecret ? "drive_specific" : "login_shared";
+
+  const missingEnv: string[] = [];
+  if (!hasId) missingEnv.push("GOOGLE_CLIENT_ID (or GOOGLE_DRIVE_CLIENT_ID)");
+  if (!hasSecret) missingEnv.push("GOOGLE_CLIENT_SECRET (or GOOGLE_DRIVE_CLIENT_SECRET)");
+  if (hasId && hasSecret && !configured) {
+    missingEnv.push("GOOGLE_CLIENT_ID/SECRET look invalid (need real OAuth Web client values from Google Cloud / Vercel)");
+  }
+
+  return {
+    configured,
+    credentialSource: configured ? credentialSource : "none",
+    hasClientId: hasId,
+    hasClientSecret: hasSecret,
+    missingEnv,
+    redirectUriPath: "/api/avatar-studio/storage/drive/callback",
+    driveScope: "https://www.googleapis.com/auth/drive.file",
+  };
+}
+
 export function buildGoogleDriveAuthUrl(state: string, redirectUri: string): string {
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_DRIVE_CLIENT_ID ?? "",
+    client_id: driveClientId(),
     redirect_uri: redirectUri,
     response_type: "code",
     // drive.file, not full drive scope - least privilege: only files this app creates.
@@ -60,8 +142,8 @@ export async function exchangeCodeForToken(code: string, redirectUri: string): P
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
-        client_id: process.env.GOOGLE_DRIVE_CLIENT_ID as string,
-        client_secret: process.env.GOOGLE_DRIVE_CLIENT_SECRET as string,
+        client_id: driveClientId(),
+        client_secret: driveClientSecret(),
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
@@ -87,8 +169,8 @@ export async function refreshDriveAccessToken(refreshToken: string): Promise<Tok
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         refresh_token: refreshToken,
-        client_id: process.env.GOOGLE_DRIVE_CLIENT_ID as string,
-        client_secret: process.env.GOOGLE_DRIVE_CLIENT_SECRET as string,
+        client_id: driveClientId(),
+        client_secret: driveClientSecret(),
         grant_type: "refresh_token",
       }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),

@@ -9,11 +9,15 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.email) {
-    return NextResponse.redirect(new URL("/login?callbackUrl=/avatar-studio?tab=settings", req.nextUrl.origin));
+    return NextResponse.redirect(new URL("/login?callbackUrl=/avatar-studio?tab=train", req.nextUrl.origin));
   }
 
   if (!isGoogleDriveConfigured()) {
-    return NextResponse.redirect(new URL("/avatar-studio?tab=settings&error=drive_not_configured", req.nextUrl.origin));
+    // Never start OAuth without real keys — return to Setup/Train with a clear error code
+    const dest = new URL("/avatar-studio", req.nextUrl.origin);
+    dest.searchParams.set("tab", "train");
+    dest.searchParams.set("error", "drive_not_configured");
+    return NextResponse.redirect(dest);
   }
 
   const state = await issueOAuthState("google_drive");

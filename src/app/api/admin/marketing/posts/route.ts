@@ -6,6 +6,8 @@ import { resolveTenantId } from "@/lib/marketing/tenant-context";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+/** Multi-platform publish (esp. X media + token refresh) needs headroom on Vercel. */
+export const maxDuration = 60;
 
 export async function GET() {
   const session = await requireCmsEditor();
@@ -92,5 +94,16 @@ export async function POST(req: NextRequest) {
   });
 
   const anyPublished = targets.some((t) => t.status === "published");
-  return NextResponse.json({ post }, { status: anyPublished ? 201 : 502 });
+  const failures = targets
+    .filter((t) => t.status === "failed")
+    .map((t) => `${t.platform}: ${t.error || "failed"}`);
+  return NextResponse.json(
+    {
+      post,
+      // Surface first failure so the UI can toast a concrete reason (esp. X on prod)
+      error: anyPublished ? undefined : failures[0] || "Publish failed on all selected accounts",
+      failures,
+    },
+    { status: anyPublished ? 201 : 502 }
+  );
 }

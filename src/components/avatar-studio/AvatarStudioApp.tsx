@@ -1,34 +1,79 @@
 "use client";
 
+/**
+ * Avatar Studio product UI — designed with `.grok/skills/avatar-studio-design`
+ * (shadcn composition on Verlin UI kit + AI-native agent status patterns).
+ */
+
+import { Alert } from "@/components/ui/Alert";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { useToast } from "@/components/ui/Toast";
 import {
-  AlertTriangle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/Field";
+import { FilterTabs } from "@/components/ui/FilterTabs";
+import { Input } from "@/components/ui/Input";
+import { Progress } from "@/components/ui/Progress";
+import { Select } from "@/components/ui/Select";
+import { Separator } from "@/components/ui/Separator";
+import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { Spinner } from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
+import { TrainCapturePanel } from "@/components/avatar-studio/TrainCapturePanel";
+import { SyncedMediaPlayer } from "@/components/avatar-studio/SyncedMediaPlayer";
+import { DriveConnectorCard } from "@/components/avatar-studio/DriveConnectorCard";
+import {
+  StudioHero,
+  StudioJourneyStrip,
+  StudioStepVisual,
+  StudioVisualTip,
+} from "@/components/avatar-studio/StudioVisualChrome";
+import {
+  MemeSuggestPanel,
+  type SelectedMemeForJob,
+} from "@/components/avatar-studio/MemeSuggestPanel";
+import { ChangeVoiceModal } from "@/components/avatar-studio/ChangeVoiceModal";
+import {
+  FacePickerList,
+  FreeVoiceList,
+  TrainedVoiceList,
+} from "@/components/avatar-studio/VoiceCharacterPicker";
+import { MotionReveal } from "@/components/ui/MotionReveal";
+import {
+  DEFAULT_FREE_VOICE_ID,
+  FREE_VOICE_PRESETS,
+  isFreeVoiceId,
+} from "@/lib/avatar-studio/free-voices";
+import { DURATION, EASE_OUT } from "@/lib/motion";
+import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
   Check,
-  Clapperboard,
-  Coins,
+  Eye,
   Film,
   FolderCog,
-  Loader2,
+  Mic,
   Play,
   RefreshCw,
   ShieldCheck,
   Sparkles,
-  Trash2,
-  Upload,
   Video,
   X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-/* ---------- Local types (mirror the server, kept client-side only) ---------- */
+/* ---------- Types ---------- */
 
-type TabId = "create" | "jobs" | "usage" | "profiles" | "settings";
+type TabId = "create" | "train" | "videos" | "credits" | "setup";
 type QualityTier = "standard" | "high" | "best";
 type JobMode = "single" | "long_form";
 type JobStatus =
@@ -41,12 +86,25 @@ type JobStatus =
   | "failed"
   | "rejected";
 type ConsentType = "voice_face_clone" | "training_data";
+type CreateStep = 1 | 2 | 3 | 4 | 5;
+
+const FREE_FACE = "__free_face__";
+
+interface CloneProfile {
+  id: string;
+  name: string;
+  kind: "voice" | "avatar" | "both";
+  status: "processing" | "ready" | "failed";
+  sourceMedia: { provider: "blob" | "google_drive"; url: string } | null;
+  mediaBank?: { id: string; url: string; kind: string; mimeType?: string }[];
+  coverMediaId?: string | null;
+  ttsVoiceHint?: string | null;
+  createdAt: string;
+}
 
 interface Category {
   id: string;
   label: string;
-  promptGuidance: string;
-  moderationLevel: "standard" | "elevated";
   isDefault?: boolean;
 }
 
@@ -54,9 +112,7 @@ interface ModelEntry {
   id: string;
   kind: "voice" | "avatar";
   label: string;
-  tokenCostPerMinute: Record<QualityTier, number>;
   freeTierFallback: boolean;
-  licenseNote: string;
   maxClipSeconds?: number;
 }
 
@@ -67,42 +123,32 @@ interface StorageRef {
 
 interface TranscriptSegment {
   id: string;
-  startMs: number;
-  endMs: number;
   text: string;
-  dirty: boolean;
 }
 
 interface LongFormSegmentState {
   index: number;
   text: string;
-  status: "pending" | "generating_voice" | "generating_avatar" | "complete" | "failed";
-  voiceModelIdUsed: string | null;
-  avatarModelIdUsed: string | null;
-  attemptedModels: string[];
+  status: string;
   error: string | null;
 }
 
 interface AvatarJob {
   id: string;
-  categoryId: string;
   script: string;
-  voiceModelId: string;
-  avatarModelId: string;
-  qualityTier: QualityTier;
-  avatarProfileId: string | null;
   status: JobStatus;
-  tokensReserved: number;
-  moderationNote: string | null;
-  qaScore: number | null;
-  qaRetryCount: number;
+  voiceProfileId?: string | null;
+  avatarProfileId?: string | null;
   outputVideo: StorageRef | null;
+  outputAudio: StorageRef | null;
+  outputPoster: StorageRef | null;
+  outputKind: "video" | "presenter" | null;
+  progressPercent?: number;
+  progressLabel?: string | null;
   transcriptSegments: TranscriptSegment[] | null;
   error: string | null;
   createdAt: string;
-  completedAt: string | null;
   mode: JobMode;
-  targetDurationMinutes: number | null;
   segments: LongFormSegmentState[] | null;
 }
 
@@ -114,59 +160,89 @@ interface TokenBalance {
 interface LedgerEntry {
   id: string;
   kind: "consume" | "refund" | "grant";
-  modelId: string | null;
   tokens: number;
   timestamp: string;
   note: string | null;
 }
 
-interface CloneProfile {
-  id: string;
-  name: string;
-  kind: "voice" | "avatar" | "both";
-  status: "processing" | "ready" | "failed";
-  sourceMedia: StorageRef | null;
-  createdAt: string;
+interface FreemiumPlan {
+  monthlyTokens: number;
+  freeVoice: { label: string; description: string };
+  freeAvatar: { label: string; description: string; maxClipSeconds: number };
+  customEndpoints: { voice: string; avatar: string };
+  paidNotes: string[];
+  longFormMinutesMax: number;
 }
 
-interface ConsentEntry {
-  granted: boolean;
+interface UserSettings {
+  voiceMode: "free" | "custom_url";
+  voiceEndpointUrl: string | null;
+  avatarMode: "free" | "custom_url";
+  avatarEndpointUrl: string | null;
+  stitchMode: "free_skip" | "custom_url";
+  frameExtractEndpointUrl: string | null;
+  stitchEndpointUrl: string | null;
+  presenterPortraitUrl: string | null;
+  presenterStylePrompt: string | null;
 }
 
-const TERMINAL_STATUSES = new Set<JobStatus>(["complete", "failed", "rejected"]);
+const TERMINAL = new Set<JobStatus>(["complete", "failed", "rejected"]);
 
 const STATUS_LABEL: Record<JobStatus, string> = {
   queued: "Queued",
-  moderating: "Moderating",
-  generating_voice: "Generating voice",
-  generating_avatar: "Generating avatar",
-  qa_check: "Quality check",
-  complete: "Complete",
+  moderating: "Checking script",
+  generating_voice: "Creating voice…",
+  generating_avatar: "Creating video…",
+  qa_check: "Quality check…",
+  complete: "Ready",
   failed: "Failed",
   rejected: "Rejected",
 };
 
-const STATUS_COLOR: Record<JobStatus, string> = {
-  queued: "bg-muted text-text-secondary",
-  moderating: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-  generating_voice: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
-  generating_avatar: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
-  qa_check: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
-  complete: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-  failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-  rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+const STATUS_VARIANT: Record<JobStatus, BadgeVariant> = {
+  queued: "secondary",
+  moderating: "warning",
+  generating_voice: "info",
+  generating_avatar: "info",
+  qa_check: "info",
+  complete: "success",
+  failed: "destructive",
+  rejected: "destructive",
 };
+
+const PROGRESS_BY_STATUS: Record<JobStatus, number> = {
+  queued: 8,
+  moderating: 12,
+  generating_voice: 35,
+  generating_avatar: 70,
+  qa_check: 92,
+  complete: 100,
+  failed: 100,
+  rejected: 100,
+};
+
+function jobProgressValue(job: AvatarJob): number {
+  if (typeof job.progressPercent === "number" && Number.isFinite(job.progressPercent)) {
+    return Math.max(0, Math.min(100, job.progressPercent));
+  }
+  return PROGRESS_BY_STATUS[job.status] ?? 0;
+}
+
+function jobProgressLabel(job: AvatarJob): string {
+  if (job.progressLabel?.trim()) return job.progressLabel;
+  return STATUS_LABEL[job.status];
+}
 
 const CONSENT_COPY: Record<ConsentType, { title: string; description: string }> = {
   voice_face_clone: {
-    title: "Voice & Face Cloning Authorization",
+    title: "Voice & face cloning (required for custom likeness)",
     description:
-      "Required before uploading a voice or face sample to create a clone profile, or using one in a job. You're confirming you have the right to use this likeness/voice (your own, or someone who has given you clear authorization).",
+      "You confirm you have the legal right to use any voice or face sample you upload or clone. Unauthorized deepfakes or impersonation are prohibited.",
   },
   training_data: {
-    title: "Model Improvement / Training Opt-In",
+    title: "Help improve models (optional)",
     description:
-      "Optional. When granted, your corrections and ratings (transcript edits, regenerate requests, thumbs up/down) may be included in future model training batches. You can withdraw at any time - this only affects future batches, not ones already run.",
+      "Ratings and transcript corrections may be included in future training batches. Withdraw anytime; past batches stay for audit lineage.",
   },
 };
 
@@ -174,30 +250,171 @@ async function parseJson(res: Response): Promise<any> {
   return res.json().catch(() => ({}));
 }
 
+function hasMediaOutput(job: AvatarJob): boolean {
+  if (job.outputKind === "presenter") return Boolean(job.outputAudio?.url || job.outputVideo?.url);
+  return Boolean(job.outputVideo?.url || job.outputAudio?.url);
+}
+
+/** Ready to watch: completed jobs, or mid re-voice while previous media still exists. */
+function hasPlayableOutput(job: AvatarJob): boolean {
+  if (job.status === "complete") return hasMediaOutput(job);
+  // Keep last version visible while re-voicing
+  if (!TERMINAL.has(job.status) && hasMediaOutput(job)) return true;
+  return false;
+}
+
+function canChangeVoice(job: AvatarJob): boolean {
+  return (job.status === "complete" || job.status === "failed") && Boolean(job.script?.trim());
+}
+
+function isRealVideoFile(url: string | undefined | null): boolean {
+  if (!url) return false;
+  return /\.(mp4|webm|mov)(\?|$)/i.test(url) || url.includes("presenter-") && url.includes(".mp4");
+}
+
+function StatusBadge({ status }: { status: JobStatus }) {
+  return <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
+}
+
+/* ---------- Player ---------- */
+
+function ResultPlayer({
+  job,
+  onChangeVoice,
+}: {
+  job: AvatarJob;
+  onChangeVoice?: (job: AvatarJob) => void;
+}) {
+  const video = job.outputVideo?.url;
+  const poster = job.outputPoster?.url;
+  const audio = job.outputAudio?.url;
+  const hasMp4 = isRealVideoFile(video) || (job.outputKind === "video" && Boolean(video));
+  const isStillFallback = !hasMp4 && Boolean(audio || poster);
+  const revoicing = !TERMINAL.has(job.status) && hasMediaOutput(job);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={hasMp4 ? "success" : "secondary"}>
+          {hasMp4 ? "Animated presenter · free" : "Still + audio fallback"}
+        </Badge>
+        {job.mode === "long_form" ? <Badge variant="outline">Long-form</Badge> : null}
+        {revoicing ? <Badge variant="warning">Updating voice…</Badge> : null}
+        {canChangeVoice(job) && onChangeVoice ? (
+          <Button type="button" size="sm" variant="secondary" onClick={() => onChangeVoice(job)}>
+            <Mic className="size-4" />
+            Change voice
+          </Button>
+        ) : null}
+      </div>
+
+      {hasMp4 && video ? (
+        <SyncedMediaPlayer
+          mode="video"
+          videoUrl={video}
+          posterUrl={poster}
+          caption="Progress bar follows playback time. Free path: motion zoom (not GPU lip-sync)."
+        />
+      ) : isStillFallback ? (
+        <SyncedMediaPlayer
+          mode="audio"
+          audioUrl={audio}
+          posterUrl={poster}
+          caption="Progress bar follows audio. Install/use ffmpeg for full motion MP4."
+        />
+      ) : (
+        <Alert variant="info" title="No playable file">
+          This job has no media yet.
+        </Alert>
+      )}
+
+      {job.transcriptSegments && job.transcriptSegments.length > 0 ? (
+        <div className="max-h-40 overflow-y-auto rounded-xl bg-muted p-3 text-sm text-text-secondary">
+          <div className="flex flex-col gap-1">
+            {job.transcriptSegments.map((s) => (
+              <p key={s.id}>{s.text}</p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-3 text-xs">
+        {video ? (
+          <a href={video} target="_blank" rel="noreferrer" className="text-accent-teal hover:underline">
+            Open file
+          </a>
+        ) : null}
+        {audio ? (
+          <a href={audio} target="_blank" rel="noreferrer" className="text-accent-teal hover:underline">
+            Open audio
+          </a>
+        ) : null}
+        {poster ? (
+          <a href={poster} target="_blank" rel="noreferrer" className="text-accent-teal hover:underline">
+            Open portrait
+          </a>
+        ) : null}
+        {canChangeVoice(job) && onChangeVoice ? (
+          <button
+            type="button"
+            className="font-medium text-accent-teal hover:underline"
+            onClick={() => onChangeVoice(job)}
+          >
+            Change full voice…
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Main ---------- */
+
 export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: string | null }) {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const reduceMotion = useReducedMotion();
 
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const t = searchParams.get("tab");
-    return t === "jobs" || t === "usage" || t === "profiles" || t === "settings" ? t : "create";
+    if (t === "train" || t === "profiles") return "train";
+    if (t === "videos" || t === "jobs") return "videos";
+    // Credits are not a primary tab — open Setup instead
+    if (t === "credits" || t === "usage" || t === "setup" || t === "settings") return "setup";
+    return "create";
   });
 
+  const [createStep, setCreateStep] = useState<CreateStep>(1);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [models, setModels] = useState<ModelEntry[]>([]);
-  const [consent, setConsent] = useState<Record<ConsentType, ConsentEntry> | null>(null);
+  const [consent, setConsent] = useState<Record<ConsentType, { granted: boolean }> | null>(null);
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [jobs, setJobs] = useState<AvatarJob[]>([]);
-  const [profiles, setProfiles] = useState<CloneProfile[]>([]);
-  const [driveStatus, setDriveStatus] = useState<{ configured: boolean; connected: boolean; connectedAt: string | null } | null>(null);
+  const [driveStatus, setDriveStatus] = useState<{
+    configured: boolean;
+    connected: boolean;
+    connectedAt: string | null;
+    credentialSource?: "drive_specific" | "login_shared" | "none";
+    missingEnv?: string[];
+    redirectUri?: string;
+    connectUrl?: string;
+    setupSteps?: string[];
+    driveScope?: string;
+  } | null>(null);
+  const [freemium, setFreemium] = useState<FreemiumPlan | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
 
   const voiceModels = useMemo(() => models.filter((m) => m.kind === "voice"), [models]);
   const avatarModels = useMemo(() => models.filter((m) => m.kind === "avatar"), [models]);
+  const freeVoice = useMemo(() => voiceModels.find((m) => m.freeTierFallback) ?? voiceModels[0], [voiceModels]);
+  const freeAvatar = useMemo(
+    () => avatarModels.find((m) => m.freeTierFallback) ?? avatarModels[0],
+    [avatarModels]
+  );
 
-  /* ---------- Composer state ---------- */
   const [categoryId, setCategoryId] = useState("");
   const [scriptSource, setScriptSource] = useState<"generate" | "paste">("generate");
   const [topic, setTopic] = useState("");
@@ -205,45 +422,72 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
   const [script, setScript] = useState("");
   const [generatingScript, setGeneratingScript] = useState(false);
   const [jobMode, setJobMode] = useState<JobMode>("single");
-  const [targetDurationMinutes, setTargetDurationMinutes] = useState(15);
+  const [targetDurationMinutes, setTargetDurationMinutes] = useState(10);
   const [voiceModelId, setVoiceModelId] = useState("");
   const [avatarModelId, setAvatarModelId] = useState("");
   const [qualityTier, setQualityTier] = useState<QualityTier>("standard");
-  const [avatarProfileId, setAvatarProfileId] = useState("");
   const [creatingJob, setCreatingJob] = useState(false);
   const [composerError, setComposerError] = useState<string | null>(null);
+  const [memesEnabled, setMemesEnabled] = useState(false);
+  const [memeSelections, setMemeSelections] = useState<SelectedMemeForJob[]>([]);
+  const [videoGenre, setVideoGenre] = useState<string | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [viewJobId, setViewJobId] = useState<string | null>(null);
 
-  /* ---------- Jobs tab state ---------- */
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? null;
-  const [transcriptDraft, setTranscriptDraft] = useState<TranscriptSegment[] | null>(null);
-  const [savingTranscript, setSavingTranscript] = useState(false);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  /** Change-voice popup for an existing completed video */
+  const [revoiceJobId, setRevoiceJobId] = useState<string | null>(null);
+  const [revoiceBusy, setRevoiceBusy] = useState(false);
+  const [revoiceError, setRevoiceError] = useState<string | null>(null);
 
-  /* ---------- Profiles tab state ---------- */
-  const [uploadName, setUploadName] = useState("");
-  const [uploadKind, setUploadKind] = useState<"voice" | "avatar" | "both">("both");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadingProfile, setUploadingProfile] = useState(false);
+  /** Trained samples from Train tab */
+  const [profiles, setProfiles] = useState<CloneProfile[]>([]);
+  /** Primary voice: free:en-US-JennyNeural or trained profile uuid */
+  const [primaryVoiceId, setPrimaryVoiceId] = useState(DEFAULT_FREE_VOICE_ID);
+  /** Multi-select voices in cast */
+  const [selectedVoiceIds, setSelectedVoiceIds] = useState<string[]>([DEFAULT_FREE_VOICE_ID]);
+  /** Primary face/character */
+  const [primaryFaceId, setPrimaryFaceId] = useState(FREE_FACE);
+  /** Multi-select faces/characters */
+  const [selectedFaceIds, setSelectedFaceIds] = useState<string[]>([FREE_FACE]);
 
-  /* ---------- Settings tab state ---------- */
+  const [setupVoiceMode, setSetupVoiceMode] = useState<"free" | "custom_url">("free");
+  const [setupVoiceUrl, setSetupVoiceUrl] = useState("");
+  const [setupAvatarMode, setSetupAvatarMode] = useState<"free" | "custom_url">("free");
+  const [setupAvatarUrl, setSetupAvatarUrl] = useState("");
+  const [setupStitchMode, setSetupStitchMode] = useState<"free_skip" | "custom_url">("free_skip");
+  const [setupFrameUrl, setSetupFrameUrl] = useState("");
+  const [setupStitchUrl, setSetupStitchUrl] = useState("");
+  const [setupPortraitUrl, setSetupPortraitUrl] = useState("");
+  const [setupStylePrompt, setSetupStylePrompt] = useState("");
+  const [savingSetup, setSavingSetup] = useState(false);
   const [consentBusy, setConsentBusy] = useState<ConsentType | null>(null);
+
+  const activeJob = jobs.find((j) => j.id === activeJobId) ?? null;
+  const viewJob = jobs.find((j) => j.id === viewJobId) ?? null;
+  const completedJobs = useMemo(() => jobs.filter((j) => j.status === "complete"), [jobs]);
 
   const loadCategories = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/categories");
     const data = await parseJson(res);
     if (res.ok) setCategories(data.categories ?? []);
   }, []);
+
   const loadModels = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/models");
     const data = await parseJson(res);
-    if (res.ok) setModels(data.models ?? []);
+    if (res.ok) {
+      setModels(data.models ?? []);
+      if (data.freemium) setFreemium(data.freemium);
+      if (data.settings) setUserSettings(data.settings);
+    }
   }, []);
+
   const loadConsent = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/consent");
     const data = await parseJson(res);
     if (res.ok) setConsent(data.consent ?? null);
   }, []);
+
   const loadTokens = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/tokens");
     const data = await parseJson(res);
@@ -252,75 +496,126 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
       setLedger(data.ledger ?? []);
     }
   }, []);
+
   const loadJobs = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/jobs");
     const data = await parseJson(res);
     if (res.ok) setJobs(data.jobs ?? []);
   }, []);
-  const loadProfiles = useCallback(async () => {
-    const res = await fetch("/api/avatar-studio/profiles");
-    const data = await parseJson(res);
-    if (res.ok) setProfiles(data.profiles ?? []);
-  }, []);
+
   const loadDriveStatus = useCallback(async () => {
     const res = await fetch("/api/avatar-studio/storage/drive/status");
     const data = await parseJson(res);
     if (res.ok) setDriveStatus(data);
   }, []);
 
+  const loadProfiles = useCallback(async () => {
+    const res = await fetch("/api/avatar-studio/profiles");
+    const data = await parseJson(res);
+    if (res.ok) setProfiles(data.profiles ?? []);
+  }, []);
+
+  const loadSettings = useCallback(async () => {
+    const res = await fetch("/api/avatar-studio/settings");
+    const data = await parseJson(res);
+    if (!res.ok) return;
+    if (data.settings) {
+      setUserSettings(data.settings);
+      setSetupVoiceMode(data.settings.voiceMode ?? "free");
+      setSetupVoiceUrl(data.settings.voiceEndpointUrl ?? "");
+      setSetupAvatarMode(data.settings.avatarMode ?? "free");
+      setSetupAvatarUrl(data.settings.avatarEndpointUrl ?? "");
+      setSetupStitchMode(data.settings.stitchMode ?? "free_skip");
+      setSetupFrameUrl(data.settings.frameExtractEndpointUrl ?? "");
+      setSetupStitchUrl(data.settings.stitchEndpointUrl ?? "");
+      setSetupPortraitUrl(data.settings.presenterPortraitUrl ?? "");
+      setSetupStylePrompt(data.settings.presenterStylePrompt ?? "");
+    }
+    if (data.freemium) setFreemium(data.freemium);
+  }, []);
+
   useEffect(() => {
     void (async () => {
       setLoadingInitial(true);
-      await Promise.all([loadCategories(), loadModels(), loadConsent(), loadTokens(), loadJobs(), loadProfiles(), loadDriveStatus()]);
+      await Promise.all([
+        loadCategories(),
+        loadModels(),
+        loadConsent(),
+        loadTokens(),
+        loadJobs(),
+        loadDriveStatus(),
+        loadSettings(),
+        loadProfiles(),
+      ]);
       setLoadingInitial(false);
     })();
-  }, [loadCategories, loadModels, loadConsent, loadTokens, loadJobs, loadProfiles, loadDriveStatus]);
+  }, [loadCategories, loadModels, loadConsent, loadTokens, loadJobs, loadDriveStatus, loadSettings, loadProfiles]);
 
-  // Poll job statuses while anything is still in flight.
   useEffect(() => {
-    const hasActive = jobs.some((j) => !TERMINAL_STATUSES.has(j.status));
-    if (!hasActive) return;
-    const interval = setInterval(() => void loadJobs(), 5000);
-    return () => clearInterval(interval);
+    if (!jobs.some((j) => !TERMINAL.has(j.status))) return;
+    // Faster poll so progress % and labels feel live during generation
+    const id = setInterval(() => void loadJobs(), 1500);
+    return () => clearInterval(id);
   }, [jobs, loadJobs]);
 
-  // Default category once loaded.
   useEffect(() => {
     if (!categoryId && categories.length > 0) {
       setCategoryId(categories.find((c) => c.isDefault)?.id ?? categories[0]!.id);
     }
   }, [categories, categoryId]);
-  useEffect(() => {
-    if (!voiceModelId && voiceModels.length > 0) setVoiceModelId(voiceModels[0]!.id);
-  }, [voiceModels, voiceModelId]);
-  useEffect(() => {
-    if (!avatarModelId && avatarModels.length > 0) setAvatarModelId(avatarModels[0]!.id);
-  }, [avatarModels, avatarModelId]);
 
-  // Drive OAuth redirect feedback.
+  useEffect(() => {
+    if (!voiceModelId && freeVoice) setVoiceModelId(freeVoice.id);
+  }, [freeVoice, voiceModelId]);
+
+  useEffect(() => {
+    if (!avatarModelId && freeAvatar) setAvatarModelId(freeAvatar.id);
+  }, [freeAvatar, avatarModelId]);
+
   useEffect(() => {
     const connected = searchParams.get("connected");
     const error = searchParams.get("error");
     if (connected === "drive") {
-      toast("Google Drive connected", "success");
+      toast("Google Drive connected — uploads will use your Drive", "success");
       void loadDriveStatus();
     }
-    if (error) toast(`Drive connection issue: ${error.replace(/_/g, " ")}`, "error");
-    if (connected || error) router.replace("/avatar-studio?tab=settings");
+    if (error) {
+      const normalized = error.trim().toLowerCase().replace(/\s+/g, "_");
+      const friendly: Record<string, string> = {
+        drive_not_configured:
+          "Google OAuth is not set up locally. Add real GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET to .env.local (copy from Vercel Production), set AUTH_URL=http://localhost:3000, restart npm run dev.",
+        drive_denied: "Google permission was denied. Click Connect with Google again and press Allow.",
+        drive_no_code: "Google did not return a code. Try Connect with Google again.",
+        state_mismatch: "Security check failed. Try Connect with Google again.",
+        drive_token_exchange_failed:
+          "Could not finish Google login. In Google Cloud, add redirect URI: /api/avatar-studio/storage/drive/callback",
+        drive_no_refresh_token:
+          "Google did not return offline access. Revoke the app at myaccount.google.com/permissions and connect again.",
+        unauthorized: "Please sign in first, then connect Drive.",
+      };
+      toast(
+        friendly[normalized] ?? friendly[error] ?? `Google Drive: ${error.replace(/_/g, " ")}`,
+        "error"
+      );
+      void loadDriveStatus();
+    }
+    // Land on Train after Drive OAuth — that's where the connector lives.
+    if (connected || error) router.replace("/avatar-studio?tab=train");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
-    if (selectedJob?.transcriptSegments) setTranscriptDraft(selectedJob.transcriptSegments);
-    else setTranscriptDraft(null);
-  }, [selectedJob]);
+    if (activeJob?.status === "complete") {
+      setCreateStep(5);
+      setViewJobId(activeJob.id);
+    }
+  }, [activeJob?.status, activeJob?.id]);
 
   function switchTab(tab: TabId) {
     setActiveTab(tab);
-    router.replace(`/avatar-studio?tab=${tab}`);
+    // Keep scroll position — default router navigation jumps to top (useless for in-page tabs).
+    router.replace(`/avatar-studio?tab=${tab}`, { scroll: false });
   }
-
-  /* ---------- Composer handlers ---------- */
 
   async function handleGenerateScript() {
     if (!categoryId) return;
@@ -328,7 +623,13 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
     setComposerError(null);
     try {
       const body: Record<string, unknown> =
-        scriptSource === "paste" ? { categoryId, rawScript } : { categoryId, topic, targetDurationMinutes: jobMode === "long_form" ? targetDurationMinutes : undefined };
+        scriptSource === "paste"
+          ? { categoryId, rawScript }
+          : {
+              categoryId,
+              topic,
+              targetDurationMinutes: jobMode === "long_form" ? targetDurationMinutes : undefined,
+            };
       const res = await fetch("/api/avatar-studio/scripts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -340,7 +641,7 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
         return;
       }
       setScript(data.draft.script);
-      toast("Draft ready - review and edit before creating a job", "success");
+      toast("Script ready — edit if needed, then continue", "success");
     } catch {
       toast("Could not generate a script", "error");
     } finally {
@@ -348,14 +649,87 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
     }
   }
 
+  const voiceProfiles = useMemo(
+    () => profiles.filter((p) => p.status === "ready" && (p.kind === "voice" || p.kind === "both")),
+    [profiles]
+  );
+  const faceProfiles = useMemo(
+    () => profiles.filter((p) => p.status === "ready" && (p.kind === "avatar" || p.kind === "both")),
+    [profiles]
+  );
+
+  function toggleVoiceSelect(id: string) {
+    setSelectedVoiceIds((prev) => {
+      const has = prev.includes(id);
+      if (has) {
+        if (prev.length === 1) return prev; // keep at least one
+        const next = prev.filter((x) => x !== id);
+        if (primaryVoiceId === id) setPrimaryVoiceId(next[0]!);
+        return next;
+      }
+      // Always make newly added voice primary so Create uses it
+      setPrimaryVoiceId(id);
+      return [...prev, id];
+    });
+  }
+
+  function toggleFaceSelect(id: string) {
+    setSelectedFaceIds((prev) => {
+      const has = prev.includes(id);
+      if (has) {
+        if (prev.length === 1) return prev;
+        const next = prev.filter((x) => x !== id);
+        if (primaryFaceId === id) setPrimaryFaceId(next[0]!);
+        return next;
+      }
+      return [...prev, id];
+    });
+    if (!selectedFaceIds.includes(id)) setPrimaryFaceId(id);
+  }
+
+  function configSummary() {
+    let voiceLabel = "Voice";
+    if (isFreeVoiceId(primaryVoiceId)) {
+      const preset = FREE_VOICE_PRESETS.find((v) => v.id === primaryVoiceId);
+      voiceLabel = preset
+        ? `${preset.label} · ${preset.region}`
+        : primaryVoiceId.replace(/^free:/, "");
+    } else {
+      const p = voiceProfiles.find((x) => x.id === primaryVoiceId);
+      const hint = p?.ttsVoiceHint
+        ? FREE_VOICE_PRESETS.find((v) => v.edgeVoice === p.ttsVoiceHint)?.label
+        : null;
+      voiceLabel = p
+        ? `${p.name}${hint ? ` → ${hint}` : ""}`
+        : "Voice sample";
+    }
+    const faceLabel =
+      primaryFaceId === FREE_FACE
+        ? "Auto portrait"
+        : faceProfiles.find((p) => p.id === primaryFaceId)?.name ?? "Face sample";
+    return { voiceLabel, faceLabel };
+  }
+
   async function handleCreateJob() {
     if (!script.trim() || !categoryId || !voiceModelId || !avatarModelId) {
-      setComposerError("Fill in a category, script, and both models before creating a job.");
+      setComposerError("Add a script in Step 1 first.");
       return;
     }
     setCreatingJob(true);
     setComposerError(null);
     try {
+      // Primary selection is authoritative: free:en-US-GuyNeural | trained UUID
+      const voiceProfileId = (primaryVoiceId || selectedVoiceIds[0] || DEFAULT_FREE_VOICE_ID).trim();
+      const avatarProfileId = primaryFaceId === FREE_FACE ? null : primaryFaceId;
+      const castProfileIds = Array.from(
+        new Set([
+          voiceProfileId,
+          ...selectedVoiceIds,
+          ...selectedFaceIds.filter((id) => id !== FREE_FACE),
+          ...(avatarProfileId ? [avatarProfileId] : []),
+        ])
+      );
+
       const res = await fetch("/api/avatar-studio/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -364,142 +738,95 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
           script,
           voiceModelId,
           avatarModelId,
-          qualityTier,
-          avatarProfileId: avatarProfileId || undefined,
-          mode: jobMode,
-          targetDurationMinutes: jobMode === "long_form" ? targetDurationMinutes : undefined,
+          qualityTier: "standard" as QualityTier,
+          mode: "single" as JobMode,
+          targetDurationMinutes: undefined,
+          // Always send — free: presets and trained UUIDs both go here
+          voiceProfileId,
+          avatarProfileId: avatarProfileId ?? undefined,
+          castProfileIds,
+          videoGenre: memesEnabled ? videoGenre : null,
+          memePlacements: memesEnabled && memeSelections.length > 0 ? memeSelections : null,
         }),
       });
       const data = await parseJson(res);
       if (!res.ok) {
         if (res.status === 422 && data.error === "moderation_rejected") {
-          setComposerError(`This script was flagged and can't be rendered: ${data.reason ?? "policy violation"}`);
+          setComposerError(`Script blocked: ${data.reason ?? "policy"}`);
         } else if (res.status === 402) {
-          setComposerError(`${data.error} ${data.fallback ? "A free-tier model pair is available if you want to switch." : ""}`);
+          setComposerError(`${data.error} Try free models or wait for credit reset.`);
         } else if (res.status === 403 && data.error === "consent_required") {
-          setComposerError("Using a clone profile requires Voice/Face Cloning consent - grant it in Settings first.");
+          setComposerError("Using trained voice/face requires consent — grant it on the Train tab.");
         } else {
-          setComposerError(data.error || "Could not create the job");
+          setComposerError(data.error || "Could not start generation");
         }
         return;
       }
-      toast(jobMode === "long_form" ? "Long-form job queued - it renders in bursts, check the Jobs tab for progress" : "Job queued", "success");
-      setScript("");
-      setTopic("");
-      setRawScript("");
+      setActiveJobId(data.job?.id ?? null);
+      setCreateStep(5);
+      toast("Generation started", "success");
       void loadJobs();
       void loadTokens();
-      switchTab("jobs");
     } catch {
-      setComposerError("Could not create the job");
+      setComposerError("Could not start generation");
     } finally {
       setCreatingJob(false);
     }
   }
 
-  /* ---------- Jobs handlers ---------- */
-
   async function handleCancelJob(id: string) {
-    setCancellingId(id);
     try {
       const res = await fetch(`/api/avatar-studio/jobs/${id}/cancel`, { method: "POST" });
       const data = await parseJson(res);
       if (!res.ok) {
-        toast(data.error || "Could not cancel the job", "error");
+        toast(data.error || "Could not cancel", "error");
         return;
       }
-      toast("Job cancelled, tokens refunded", "success");
+      toast("Cancelled — tokens refunded", "success");
       void loadJobs();
       void loadTokens();
     } catch {
-      toast("Could not cancel the job", "error");
-    } finally {
-      setCancellingId(null);
+      toast("Could not cancel", "error");
     }
   }
 
-  async function handleSaveTranscript() {
-    if (!selectedJob || !transcriptDraft) return;
-    setSavingTranscript(true);
-    try {
-      const res = await fetch(`/api/avatar-studio/jobs/${selectedJob.id}/transcript`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ segments: transcriptDraft }),
-      });
-      const data = await parseJson(res);
-      if (!res.ok) {
-        toast(data.error || "Could not save the transcript", "error");
-        return;
-      }
-      toast("Transcript saved", "success");
-      void loadJobs();
-    } catch {
-      toast("Could not save the transcript", "error");
-    } finally {
-      setSavingTranscript(false);
-    }
+  function openChangeVoice(job: AvatarJob) {
+    setRevoiceError(null);
+    setRevoiceJobId(job.id);
+    void loadProfiles();
   }
 
-  async function handleQuickFeedback(job: AvatarJob, type: "thumbs_up" | "thumbs_down") {
+  async function handleRevoice(voiceProfileId: string) {
+    if (!revoiceJobId) return;
+    setRevoiceBusy(true);
+    setRevoiceError(null);
     try {
-      await fetch(`/api/avatar-studio/jobs/${job.id}/feedback`, {
+      const res = await fetch(`/api/avatar-studio/jobs/${revoiceJobId}/revoice`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correctionType: type }),
+        body: JSON.stringify({ voiceProfileId }),
       });
-      toast("Thanks - feedback recorded", "success");
-    } catch {
-      toast("Could not record feedback", "error");
-    }
-  }
-
-  /* ---------- Profiles handlers ---------- */
-
-  async function handleUploadProfile() {
-    if (!uploadFile || !uploadName.trim()) {
-      toast("Add a name and choose a file first", "error");
-      return;
-    }
-    setUploadingProfile(true);
-    try {
-      const form = new FormData();
-      form.set("file", uploadFile);
-      form.set("name", uploadName.trim());
-      form.set("kind", uploadKind);
-      const res = await fetch("/api/avatar-studio/profiles", { method: "POST", body: form });
       const data = await parseJson(res);
       if (!res.ok) {
-        toast(data.error || "Could not upload the sample", "error");
+        if (res.status === 403 && data.error === "consent_required") {
+          setRevoiceError("Grant voice/face consent on Train before using a trained sample.");
+        } else {
+          setRevoiceError(data.error || data.detail || "Could not start re-voice");
+        }
         return;
       }
-      toast("Sample uploaded", "success");
-      setUploadName("");
-      setUploadFile(null);
-      void loadProfiles();
+      setRevoiceJobId(null);
+      toast("Updating full voice — keep this page open", "success");
+      void loadJobs();
+      // Stay on current tab / job; create step 5 if this was the active job
+      if (activeJobId === revoiceJobId) setCreateStep(5);
+      if (viewJobId === revoiceJobId || !viewJobId) setViewJobId(revoiceJobId);
     } catch {
-      toast("Could not upload the sample", "error");
+      setRevoiceError("Could not start re-voice");
     } finally {
-      setUploadingProfile(false);
+      setRevoiceBusy(false);
     }
   }
-
-  async function handleDeleteProfile(id: string) {
-    if (!window.confirm("Delete this clone profile?")) return;
-    try {
-      const res = await fetch(`/api/avatar-studio/profiles/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        toast("Could not delete the profile", "error");
-        return;
-      }
-      toast("Profile deleted", "success");
-      void loadProfiles();
-    } catch {
-      toast("Could not delete the profile", "error");
-    }
-  }
-
-  /* ---------- Settings handlers ---------- */
 
   async function handleConsentToggle(type: ConsentType, action: "grant" | "withdraw") {
     setConsentBusy(type);
@@ -509,8 +836,8 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type, action }),
       });
-      const data = await parseJson(res);
       if (!res.ok) {
+        const data = await parseJson(res);
         toast(data.error || "Could not update consent", "error");
         return;
       }
@@ -523,471 +850,787 @@ export function AvatarStudioApp({ userEmail }: { userEmail: string; userName: st
     }
   }
 
-  async function handleDisconnectDrive() {
-    if (!window.confirm("Disconnect Google Drive? New uploads will go to standard storage instead.")) return;
-    try {
-      await fetch("/api/avatar-studio/storage/drive/disconnect", { method: "POST" });
-      toast("Google Drive disconnected", "success");
-      void loadDriveStatus();
-    } catch {
-      toast("Could not disconnect Drive", "error");
-    }
+  async function grantCloneConsentFromTrain() {
+    await handleConsentToggle("voice_face_clone", "grant");
   }
 
   const hasCloneConsent = consent?.voice_face_clone?.granted ?? false;
-  const hasTrainingConsent = consent?.training_data?.granted ?? false;
 
-  const tabs: { id: TabId; label: string; icon: typeof Clapperboard }[] = [
+  async function handleSaveSetup() {
+    setSavingSetup(true);
+    try {
+      const res = await fetch("/api/avatar-studio/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          voiceMode: setupVoiceMode,
+          voiceEndpointUrl: setupVoiceUrl || null,
+          avatarMode: setupAvatarMode,
+          avatarEndpointUrl: setupAvatarUrl || null,
+          stitchMode: setupStitchMode,
+          frameExtractEndpointUrl: setupFrameUrl || null,
+          stitchEndpointUrl: setupStitchUrl || null,
+          presenterPortraitUrl: setupPortraitUrl || null,
+          presenterStylePrompt: setupStylePrompt || null,
+        }),
+      });
+      const data = await parseJson(res);
+      if (!res.ok) {
+        toast(data.error || "Could not save setup", "error");
+        return;
+      }
+      setUserSettings(data.settings);
+      if (data.freemium) setFreemium(data.freemium);
+      toast("Setup saved", "success");
+      void loadModels();
+    } catch {
+      toast("Could not save setup", "error");
+    } finally {
+      setSavingSetup(false);
+    }
+  }
+
+  async function handleDisconnectDrive() {
+    if (!window.confirm("Disconnect Google Drive?")) return;
+    try {
+      await fetch("/api/avatar-studio/storage/drive/disconnect", { method: "POST" });
+      toast("Drive disconnected", "success");
+      void loadDriveStatus();
+    } catch {
+      toast("Could not disconnect", "error");
+    }
+  }
+
+  const tabs: { id: TabId; label: string; icon: typeof Sparkles }[] = [
     { id: "create", label: "Create", icon: Sparkles },
-    { id: "jobs", label: "Jobs", icon: Film },
-    { id: "usage", label: "Usage", icon: Coins },
-    { id: "profiles", label: "Profiles", icon: Video },
-    { id: "settings", label: "Settings", icon: FolderCog },
+    { id: "train", label: "Train", icon: Mic },
+    { id: "videos", label: "My videos", icon: Film },
+    { id: "setup", label: "Setup", icon: FolderCog },
   ];
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy text-white dark:bg-white dark:text-navy">
-            <Clapperboard className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Avatar Studio</h1>
-            <p className="text-sm text-text-secondary">Script to AI avatar video - single clips or long-form, chained and stitched.</p>
-            <p className="text-xs text-text-secondary/70">Signed in as {userEmail}</p>
-          </div>
-        </div>
-        <Card className="flex items-center gap-3 !p-3">
-          <Coins className="h-5 w-5 text-accent-teal" />
-          <div>
-            <p className="text-xs text-text-secondary">Token balance</p>
-            <p className="text-lg font-semibold text-foreground">{tokenBalance ? tokenBalance.balance : "-"}</p>
-          </div>
-        </Card>
-      </div>
+  const stepLabels = ["Script", "Voice", "Face", "Generate", "Watch"] as const;
+  const cfg = configSummary();
 
-      <div className="mb-8 flex flex-wrap gap-2 border-b border-border pb-2">
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-6 md:py-10">
+      <StudioHero
+        onCreate={() => {
+          switchTab("create");
+          setCreateStep(1);
+        }}
+        onTrain={() => switchTab("train")}
+      />
+
+      <StudioJourneyStrip activeTab={activeTab} onSelect={(tab) => switchTab(tab)} />
+
+      {/* Tabs — visual pills */}
+      <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-border bg-muted/40 p-1.5">
         {tabs.map((t) => {
           const Icon = t.icon;
+          const active = activeTab === t.id;
           return (
-            <button
+            <motion.button
               key={t.id}
               type="button"
               onClick={() => switchTab(t.id)}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === t.id ? "bg-navy text-white dark:bg-white dark:text-navy" : "text-text-secondary hover:bg-muted"
-              }`}
+              className={cn(
+                "inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium min-w-[6.5rem]",
+                active
+                  ? "bg-navy text-white shadow-sm dark:bg-white dark:text-navy"
+                  : "text-text-secondary hover:bg-card"
+              )}
+              whileHover={reduceMotion || active ? undefined : { scale: 1.02 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+              transition={{ duration: DURATION.hover, ease: EASE_OUT }}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="size-4" />
               {t.label}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
       {loadingInitial ? (
-        <div className="flex justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-accent-teal" />
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SkeletonCard />
+            <Skeleton className="h-40 w-full" />
+          </div>
         </div>
       ) : (
         <>
+          {/* CREATE — systematic voice/face selection + live config */}
           {activeTab === "create" && (
-            <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-              <Card className="space-y-5">
-                <div>
-                  <Select
-                    label="Category"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    options={categories.map((c) => ({ value: c.id, label: c.label }))}
-                  />
-                </div>
+            <div className="flex flex-col gap-5">
+              {/* Free video memes — top of creation (script-aware) */}
+              <MotionReveal>
+                <MemeSuggestPanel
+                  script={script}
+                  enabled={memesEnabled}
+                  onEnabledChange={setMemesEnabled}
+                  selected={memeSelections}
+                  onSelectedChange={setMemeSelections}
+                  videoGenre={videoGenre}
+                  onVideoGenreChange={setVideoGenre}
+                />
+              </MotionReveal>
 
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setJobMode("single")}
-                    className={`flex-1 rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
-                      jobMode === "single" ? "border-accent-teal bg-accent-teal/10" : "border-border"
-                    }`}
-                  >
-                    <p className="font-medium text-foreground">Single clip</p>
-                    <p className="text-xs text-text-secondary">One short video from your script</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setJobMode("long_form")}
-                    className={`flex-1 rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
-                      jobMode === "long_form" ? "border-accent-teal bg-accent-teal/10" : "border-border"
-                    }`}
-                  >
-                    <p className="font-medium text-foreground">Long-form (up to 30 min)</p>
-                    <p className="text-xs text-text-secondary">Chains many short clips into one long video</p>
-                  </button>
-                </div>
-
-                {jobMode === "long_form" && (
-                  <Input
-                    label="Target length (minutes)"
-                    type="number"
-                    min={1}
-                    max={30}
-                    value={targetDurationMinutes}
-                    onChange={(e) => setTargetDurationMinutes(Number(e.target.value) || 1)}
-                  />
-                )}
-
-                <div className="flex gap-2 text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setScriptSource("generate")}
-                    className={`rounded-full border px-3.5 py-1.5 font-medium ${scriptSource === "generate" ? "border-accent-teal bg-accent-teal/10 text-accent-teal" : "border-border text-text-secondary"}`}
-                  >
-                    Generate from a topic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScriptSource("paste")}
-                    className={`rounded-full border px-3.5 py-1.5 font-medium ${scriptSource === "paste" ? "border-accent-teal bg-accent-teal/10 text-accent-teal" : "border-border text-text-secondary"}`}
-                  >
-                    Paste my own script
-                  </button>
-                </div>
-
-                {scriptSource === "generate" ? (
-                  <Input label="Topic / prompt" placeholder="e.g. why async/await beats callbacks" value={topic} onChange={(e) => setTopic(e.target.value)} />
-                ) : (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Paste script</label>
-                    <textarea
-                      className="h-32 w-full rounded-xl border border-border bg-card p-4 text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
-                      value={rawScript}
-                      onChange={(e) => setRawScript(e.target.value)}
+              {/* Live cast — face + voice only */}
+              <MotionReveal>
+                <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+                  <div className="relative size-14 overflow-hidden rounded-xl bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        primaryFaceId !== FREE_FACE
+                          ? faceProfiles.find((p) => p.id === primaryFaceId)?.sourceMedia?.url ||
+                            faceProfiles.find((p) => p.id === primaryFaceId)?.mediaBank?.find((m) => m.kind === "image")
+                              ?.url ||
+                            "/images/avatar-priya-sharma.jpg"
+                          : "/images/avatar-sarah-chen.jpg"
+                      }
+                      alt=""
+                      className="size-full object-cover"
                     />
                   </div>
-                )}
-
-                <Button variant="secondary" onClick={handleGenerateScript} loading={generatingScript} disabled={scriptSource === "generate" && !topic.trim()}>
-                  <Sparkles className="h-4 w-4" />
-                  {scriptSource === "generate" ? "Generate draft" : "Use this script"}
-                </Button>
-
-                {script && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">
-                      Script draft ({script.trim().split(/\s+/).filter(Boolean).length} words - review and edit before rendering)
-                    </label>
-                    <textarea className="h-56 w-full rounded-xl border border-border bg-card p-4 text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20" value={script} onChange={(e) => setScript(e.target.value)} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Your cast</p>
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {cfg.faceLabel}
+                      <span className="font-normal text-text-secondary"> · {cfg.voiceLabel}</span>
+                    </p>
                   </div>
-                )}
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Select label="Voice model" value={voiceModelId} onChange={(e) => setVoiceModelId(e.target.value)} options={voiceModels.map((m) => ({ value: m.id, label: `${m.label}${m.freeTierFallback ? " (free)" : ""}` }))} />
-                  <Select label="Avatar model" value={avatarModelId} onChange={(e) => setAvatarModelId(e.target.value)} options={avatarModels.map((m) => ({ value: m.id, label: `${m.label}${m.freeTierFallback ? " (free)" : ""}` }))} />
-                  <Select label="Quality" value={qualityTier} onChange={(e) => setQualityTier(e.target.value as QualityTier)} options={[{ value: "standard", label: "Standard" }, { value: "high", label: "High" }, { value: "best", label: "Best" }]} />
-                  <Select
-                    label="Clone profile (optional)"
-                    value={avatarProfileId}
-                    onChange={(e) => setAvatarProfileId(e.target.value)}
-                    options={[{ value: "", label: "None - use stock model" }, ...profiles.map((p) => ({ value: p.id, label: `${p.name} (${p.status})` }))]}
-                    disabled={!hasCloneConsent}
-                  />
-                </div>
-                {!hasCloneConsent && <p className="text-xs text-text-secondary">Grant Voice/Face Cloning consent in Settings to use a clone profile.</p>}
-
-                {composerError && (
-                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <p>{composerError}</p>
-                  </div>
-                )}
-
-                <Button onClick={handleCreateJob} loading={creatingJob} disabled={!script.trim()} className="w-full">
-                  <Play className="h-4 w-4" />
-                  Create {jobMode === "long_form" ? "long-form " : ""}job
-                </Button>
-              </Card>
-
-              <div className="space-y-4">
-                <Card>
-                  <h3 className="mb-2 text-sm font-semibold text-foreground">How this works</h3>
-                  <p className="text-sm text-text-secondary">
-                    Your script is moderated before anything renders. Long-form videos are split into clip-sized
-                    segments, chained by feeding each clip&apos;s last frame into the next, then stitched together. If a
-                    model runs out of free quota mid-job, the next available model is tried automatically.
-                  </p>
-                </Card>
-                {tokenBalance && (
-                  <Card>
-                    <h3 className="mb-1 text-sm font-semibold text-foreground">This month</h3>
-                    <p className="text-2xl font-semibold text-foreground">{tokenBalance.balance} tokens</p>
-                    <p className="text-xs text-text-secondary">Resets {new Date(tokenBalance.periodResetAt).toLocaleDateString()}</p>
-                  </Card>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "jobs" && (
-            <div className="grid gap-6 md:grid-cols-[380px_1fr]">
-              <div className="space-y-3">
-                {jobs.length === 0 && <EmptyBlock text="No jobs yet - create one from the Create tab." />}
-                {jobs.map((job) => (
-                  <Card key={job.id} hover onClick={() => setSelectedJobId(job.id)} className={`cursor-pointer !p-4 ${selectedJobId === job.id ? "ring-2 ring-accent-teal" : ""}`}>
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <Badge className={STATUS_COLOR[job.status]}>{STATUS_LABEL[job.status]}</Badge>
-                      {job.mode === "long_form" && <Badge>Long-form</Badge>}
-                    </div>
-                    <p className="line-clamp-2 text-sm text-foreground">{job.script.slice(0, 140)}</p>
-                    {job.mode === "long_form" && job.segments && (
-                      <p className="mt-2 text-xs text-text-secondary">
-                        {job.segments.filter((s) => s.status === "complete").length}/{job.segments.length} segments
-                      </p>
-                    )}
-                    <p className="mt-2 text-xs text-text-secondary">{new Date(job.createdAt).toLocaleString()}</p>
-                  </Card>
-                ))}
-              </div>
-
-              <div>
-                {!selectedJob ? (
-                  <EmptyBlock text="Select a job to see details." />
-                ) : (
-                  <Card className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <Badge className={STATUS_COLOR[selectedJob.status]}>{STATUS_LABEL[selectedJob.status]}</Badge>
-                      {!TERMINAL_STATUSES.has(selectedJob.status) && (
-                        <Button variant="secondary" size="sm" loading={cancellingId === selectedJob.id} onClick={() => handleCancelJob(selectedJob.id)}>
-                          <X className="h-3.5 w-3.5" /> Cancel
-                        </Button>
-                      )}
-                    </div>
-
-                    {selectedJob.error && (
-                      <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300">
-                        {selectedJob.error}
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="mb-1 text-sm font-semibold text-foreground">Script</h4>
-                      <p className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-xl bg-muted p-3 text-sm text-text-secondary">{selectedJob.script}</p>
-                    </div>
-
-                    {selectedJob.mode === "long_form" && selectedJob.segments && (
-                      <div>
-                        <h4 className="mb-2 text-sm font-semibold text-foreground">
-                          Segments ({selectedJob.segments.filter((s) => s.status === "complete").length}/{selectedJob.segments.length})
-                        </h4>
-                        <div className="max-h-48 space-y-1 overflow-y-auto">
-                          {selectedJob.segments.map((seg) => (
-                            <div key={seg.index} className="flex items-center justify-between rounded-lg bg-muted px-3 py-1.5 text-xs">
-                              <span className="text-text-secondary">#{seg.index + 1} - {seg.text.slice(0, 50)}...</span>
-                              <span className={seg.status === "complete" ? "text-emerald-600" : seg.status === "failed" ? "text-red-600" : "text-text-secondary"}>
-                                {seg.status}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedJob.outputVideo && (
-                      <div>
-                        <h4 className="mb-1 text-sm font-semibold text-foreground">Output</h4>
-                        <video controls className="w-full rounded-xl bg-black" src={selectedJob.outputVideo.url} />
-                        <a href={selectedJob.outputVideo.url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-accent-teal hover:underline">
-                          Open video directly
-                        </a>
-                      </div>
-                    )}
-
-                    {selectedJob.status === "complete" && (
-                      <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => handleQuickFeedback(selectedJob, "thumbs_up")}>
-                          <Check className="h-3.5 w-3.5" /> Good
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleQuickFeedback(selectedJob, "thumbs_down")}>
-                          <X className="h-3.5 w-3.5" /> Not quite
-                        </Button>
-                      </div>
-                    )}
-
-                    {selectedJob.status === "complete" && transcriptDraft && (
-                      <div>
-                        <h4 className="mb-2 text-sm font-semibold text-foreground">Transcript</h4>
-                        <div className="max-h-64 space-y-2 overflow-y-auto">
-                          {transcriptDraft.map((seg, idx) => (
-                            <textarea
-                              key={seg.id}
-                              value={seg.text}
-                              onChange={(e) => {
-                                const next = [...transcriptDraft];
-                                next[idx] = { ...seg, text: e.target.value, dirty: e.target.value !== selectedJob.transcriptSegments?.[idx]?.text };
-                                setTranscriptDraft(next);
-                              }}
-                              className="w-full rounded-lg border border-border bg-card p-2 text-sm text-foreground focus:border-accent-teal focus:outline-none"
-                              rows={2}
-                            />
-                          ))}
-                        </div>
-                        <Button size="sm" className="mt-2" loading={savingTranscript} onClick={handleSaveTranscript}>
-                          Save transcript edits
-                        </Button>
-                      </div>
-                    )}
-                  </Card>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "usage" && (
-            <div className="space-y-6">
-              <Card>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-text-secondary">Current balance</p>
-                    <p className="text-3xl font-semibold text-foreground">{tokenBalance?.balance ?? "-"} tokens</p>
-                  </div>
-                  <Button variant="secondary" size="sm" onClick={() => void loadTokens()}>
-                    <RefreshCw className="h-3.5 w-3.5" /> Refresh
+                  <Button size="sm" variant="secondary" onClick={() => switchTab("train")}>
+                    <Mic className="size-4" /> Train
                   </Button>
                 </div>
-                {tokenBalance && <p className="mt-2 text-xs text-text-secondary">Free-tier allowance resets {new Date(tokenBalance.periodResetAt).toLocaleDateString()}</p>}
-              </Card>
+              </MotionReveal>
 
-              <Card>
-                <h3 className="mb-3 text-sm font-semibold text-foreground">Recent activity</h3>
-                {ledger.length === 0 ? (
-                  <p className="text-sm text-text-secondary">No activity yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {ledger.map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between border-b border-border/60 py-2 text-sm last:border-0">
-                        <div>
-                          <span className="font-medium capitalize text-foreground">{entry.kind}</span>
-                          {entry.modelId && <span className="ml-2 text-text-secondary">{entry.modelId}</span>}
-                          {entry.note && <p className="text-xs text-text-secondary">{entry.note}</p>}
-                        </div>
-                        <div className="text-right">
-                          <p className={entry.kind === "consume" ? "text-red-600" : "text-emerald-600"}>
-                            {entry.kind === "consume" ? "-" : "+"}
-                            {entry.tokens}
+              <div className="flex flex-wrap items-center gap-2">
+                {stepLabels.map((label, i) => {
+                  const n = (i + 1) as CreateStep;
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setCreateStep(n)}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                        createStep === n
+                          ? "bg-accent-teal text-white"
+                          : createStep > n
+                            ? "bg-accent-teal/15 text-teal"
+                            : "bg-muted text-text-secondary"
+                      )}
+                    >
+                      <span className="flex size-5 items-center justify-center rounded-full bg-black/10 text-[10px]">
+                        {n}
+                      </span>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {createStep === 1 && (
+                <StudioStepVisual step={1} title="Script" image="/images/brand-courses-tracks.jpg">
+                    <FieldGroup>
+                      <Select
+                        label="Category"
+                        value={categoryId}
+                        onChange={(e) => setCategoryId(e.target.value)}
+                        options={categories.map((c) => ({ value: c.id, label: c.label }))}
+                      />
+                      <FilterTabs
+                        label="Source"
+                        value={scriptSource}
+                        onChange={(v) => setScriptSource(v as "generate" | "paste")}
+                        options={[
+                          { value: "generate", label: "Generate from topic" },
+                          { value: "paste", label: "Paste script" },
+                        ]}
+                      />
+                      {scriptSource === "generate" ? (
+                        <Input
+                          label="Topic"
+                          placeholder="e.g. 3 tips for async/await"
+                          value={topic}
+                          onChange={(e) => setTopic(e.target.value)}
+                        />
+                      ) : (
+                        <Field>
+                          <FieldLabel>Paste script</FieldLabel>
+                          <textarea
+                            className="min-h-36 w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
+                            value={rawScript}
+                            onChange={(e) => setRawScript(e.target.value)}
+                            placeholder="Paste the words your presenter will say…"
+                          />
+                        </Field>
+                      )}
+                      <Button
+                        variant="secondary"
+                        loading={generatingScript}
+                        disabled={scriptSource === "generate" ? !topic.trim() : !rawScript.trim()}
+                        onClick={handleGenerateScript}
+                      >
+                        <Sparkles className="size-4" />
+                        {scriptSource === "generate" ? "Generate draft" : "Use pasted script"}
+                      </Button>
+                      {script ? (
+                        <Field>
+                          <FieldLabel>
+                            Script ({script.trim().split(/\s+/).filter(Boolean).length} words)
+                          </FieldLabel>
+                          <textarea
+                            className="min-h-48 w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:border-accent-teal focus:outline-none focus:ring-2 focus:ring-accent-teal/20"
+                            value={script}
+                            onChange={(e) => setScript(e.target.value)}
+                          />
+                        </Field>
+                      ) : null}
+                    </FieldGroup>
+                    <div className="flex justify-end pt-2">
+                      <Button onClick={() => setCreateStep(2)} disabled={!script.trim()}>
+                        Next: voice
+                        <ArrowRight className="size-4" />
+                      </Button>
+                    </div>
+                </StudioStepVisual>
+              )}
+
+              {createStep === 2 && (
+                <StudioStepVisual step={2} title="Choose voice" image="/images/workshop.jpg">
+                    <div className="flex flex-col gap-5">
+                      <FreeVoiceList
+                        selectedIds={selectedVoiceIds}
+                        primaryId={primaryVoiceId}
+                        onToggle={toggleVoiceSelect}
+                        onSetPrimary={setPrimaryVoiceId}
+                      />
+                      <TrainedVoiceList
+                        profiles={voiceProfiles}
+                        selectedIds={selectedVoiceIds}
+                        primaryId={primaryVoiceId}
+                        onToggle={toggleVoiceSelect}
+                        onSetPrimary={setPrimaryVoiceId}
+                      />
+                      {voiceProfiles.length === 0 ? (
+                        <StudioVisualTip image="/images/avatar-david-okonkwo.jpg" title="Train a new voice">
+                          <p>
+                            Free catalogue voices are above. To use <strong>your</strong> voice: open Train, record
+                            15–30s, Save &amp; train, then come back and select it here.
                           </p>
-                          <p className="text-xs text-text-secondary">{new Date(entry.timestamp).toLocaleString()}</p>
+                          <Button size="sm" className="mt-2" onClick={() => switchTab("train")}>
+                            <Mic className="size-4" /> Train new voice
+                          </Button>
+                        </StudioVisualTip>
+                      ) : null}
+                      {!hasCloneConsent && selectedVoiceIds.some((id) => !isFreeVoiceId(id)) ? (
+                        <Alert variant="warning" title="Consent needed">
+                          Grant consent on Train before using a recorded sample.
+                        </Alert>
+                      ) : null}
+                    </div>
+                    <div className="flex justify-between gap-2 pt-2">
+                      <Button variant="secondary" onClick={() => setCreateStep(1)}>
+                        <ArrowLeft className="size-4" /> Back
+                      </Button>
+                      <Button onClick={() => setCreateStep(3)}>
+                        Next: face
+                        <ArrowRight className="size-4" />
+                      </Button>
+                    </div>
+                </StudioStepVisual>
+              )}
+
+              {createStep === 3 && (
+                <StudioStepVisual step={3} title="Choose face" image="/images/avatar-maria-gonzalez.jpg">
+                    <FacePickerList
+                      freeId={FREE_FACE}
+                      profiles={faceProfiles}
+                      selectedIds={selectedFaceIds}
+                      primaryId={primaryFaceId}
+                      onToggle={toggleFaceSelect}
+                      onSetPrimary={setPrimaryFaceId}
+                    />
+                    {faceProfiles.length === 0 ? (
+                      <StudioVisualTip image="/images/avatar-arjun-mehta.jpg" title="Add a character face">
+                        <p>Upload photos or a multi-angle video in Train.</p>
+                        <Button size="sm" variant="secondary" className="mt-2" onClick={() => switchTab("train")}>
+                          Train face
+                        </Button>
+                      </StudioVisualTip>
+                    ) : null}
+                    <div className="flex justify-between gap-2 pt-2">
+                      <Button variant="secondary" onClick={() => setCreateStep(2)}>
+                        <ArrowLeft className="size-4" /> Back
+                      </Button>
+                      <Button onClick={() => setCreateStep(4)}>
+                        Next: generate
+                        <ArrowRight className="size-4" />
+                      </Button>
+                    </div>
+                </StudioStepVisual>
+              )}
+
+              {createStep === 4 && (
+                <StudioStepVisual step={4} title="Review & generate" image="/images/presentation.jpg">
+                    <div className="flex flex-col gap-4">
+                      <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
+                        <div className="relative mx-auto aspect-[3/4] w-28 overflow-hidden rounded-2xl border border-border shadow-md sm:mx-0 sm:w-full">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={
+                              primaryFaceId !== FREE_FACE
+                                ? faceProfiles.find((p) => p.id === primaryFaceId)?.sourceMedia?.url ||
+                                  "/images/avatar-priya-sharma.jpg"
+                                : "/images/avatar-sarah-chen.jpg"
+                            }
+                            alt=""
+                            className="size-full object-cover"
+                          />
+                        </div>
+                        <div className="rounded-xl border border-border bg-muted/40 p-4 text-sm">
+                          <p className="font-semibold text-foreground">Ready to generate</p>
+                          <ul className="mt-2 flex list-none flex-col gap-2 text-text-secondary">
+                            <li>
+                              <strong className="text-foreground">Voice:</strong> {cfg.voiceLabel}
+                            </li>
+                            <li>
+                              <strong className="text-foreground">Face:</strong> {cfg.faceLabel}
+                            </li>
+                          </ul>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
+                      <div className="rounded-xl bg-muted p-4 text-sm text-text-secondary">
+                        <p className="mb-1 text-xs font-medium text-text-secondary">Script preview</p>
+                        <p className="line-clamp-4 whitespace-pre-wrap text-foreground">{script.slice(0, 480)}</p>
+                      </div>
+                      {composerError ? (
+                        <Alert variant="destructive" title="Could not start">
+                          {composerError}
+                        </Alert>
+                      ) : null}
+                    </div>
+                    <div className="flex justify-between gap-2 pt-2">
+                      <Button variant="secondary" onClick={() => setCreateStep(3)}>
+                        <ArrowLeft className="size-4" /> Back
+                      </Button>
+                      <Button onClick={handleCreateJob} loading={creatingJob}>
+                        <Play className="size-4" />
+                        Create video
+                      </Button>
+                    </div>
+                </StudioStepVisual>
+              )}
+
+              {createStep === 5 && (
+                <StudioStepVisual step={5} title="Watch result" image="/images/hero-premium.jpg">
+                    {activeJob ? (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <StatusBadge status={activeJob.status} />
+                          {!TERMINAL.has(activeJob.status) ? (
+                            <Button variant="secondary" size="sm" onClick={() => handleCancelJob(activeJob.id)}>
+                              Cancel & refund
+                            </Button>
+                          ) : null}
+                          <Button variant="secondary" size="sm" onClick={() => void loadJobs()}>
+                            <RefreshCw className="size-4" />
+                            Refresh
+                          </Button>
+                        </div>
+                        {!TERMINAL.has(activeJob.status) ? (
+                          <div className="flex flex-col gap-2">
+                            <Progress value={jobProgressValue(activeJob)} label={jobProgressLabel(activeJob)} />
+                          </div>
+                        ) : null}
+                        {activeJob.error ? (
+                          <Alert variant="destructive" title="Generation failed">
+                            {activeJob.error}
+                          </Alert>
+                        ) : null}
+                        {hasPlayableOutput(activeJob) ? (
+                          <ResultPlayer job={activeJob} onChangeVoice={openChangeVoice} />
+                        ) : null}
+                      </div>
+                    ) : (
+                      <StudioVisualTip image="/images/presentation.jpg" title="No active job yet">
+                        <p>Generate from step 4, or open My videos.</p>
+                      </StudioVisualTip>
+                    )}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setCreateStep(1);
+                          setActiveJobId(null);
+                          setScript("");
+                          setTopic("");
+                        }}
+                      >
+                        Create another
+                      </Button>
+                      <Button onClick={() => switchTab("videos")}>
+                        <Film className="size-4" />
+                        All my videos
+                      </Button>
+                    </div>
+                </StudioStepVisual>
+              )}
             </div>
           )}
 
-          {activeTab === "profiles" && (
-            <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-              <div className="space-y-3">
-                {profiles.length === 0 && <EmptyBlock text="No clone profiles yet." />}
-                {profiles.map((p) => (
-                  <Card key={p.id} className="flex items-center justify-between !p-4">
-                    <div>
-                      <p className="font-medium text-foreground">{p.name}</p>
-                      <p className="text-xs text-text-secondary capitalize">{p.kind} - {p.status}</p>
-                    </div>
-                    <Button variant="secondary" size="sm" onClick={() => handleDeleteProfile(p.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
+          {/* TRAIN — camera / laptop upload / Drive connector */}
+          {activeTab === "train" && (
+            <TrainCapturePanel
+              hasCloneConsent={hasCloneConsent}
+              onRequestConsent={() => void grantCloneConsentFromTrain()}
+              driveStatus={driveStatus}
+              onDriveChange={() => void loadDriveStatus()}
+            />
+          )}
+
+          {/* VIDEOS */}
+          {activeTab === "videos" && (
+            <div className="flex flex-col gap-6">
+              <StudioVisualTip
+                image="/images/hero-premium.jpg"
+                title="My videos"
+                cta={
+                  <Button size="sm" onClick={() => switchTab("create")}>
+                    <Sparkles className="size-4" /> New video
+                  </Button>
+                }
+              >
+                <p>Watch finished jobs, scrub progress, and re-open any cast you made.</p>
+              </StudioVisualTip>
+            <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">Library</h2>
+                  <Button variant="secondary" size="sm" onClick={() => void loadJobs()}>
+                    <RefreshCw className="size-4" />
+                  </Button>
+                </div>
+                {jobs.length === 0 ? (
+                  <StudioVisualTip image="/images/presentation.jpg" title="No videos yet">
+                    <p className="mb-2">Create a free presenter video from a short script.</p>
+                    <Button size="sm" onClick={() => switchTab("create")}>
+                      <Sparkles className="size-4" /> Start create
                     </Button>
-                  </Card>
-                ))}
+                  </StudioVisualTip>
+                ) : (
+                  jobs.map((job) => (
+                    <Card
+                      key={job.id}
+                      hover
+                      flush
+                      onClick={() => setViewJobId(job.id)}
+                      className={cn("cursor-pointer overflow-hidden", viewJobId === job.id && "ring-2 ring-accent-teal")}
+                    >
+                      <div className="relative h-16 w-full bg-navy">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/images/hero-neural-poster.jpg"
+                          alt=""
+                          className="size-full object-cover opacity-60"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
+                          <StatusBadge status={job.status} />
+                          {hasPlayableOutput(job) ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-white">
+                              <Eye className="size-3" /> Play
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <CardContent className="gap-1 p-3">
+                        <p className="line-clamp-2 text-sm text-foreground">{job.script.slice(0, 100)}</p>
+                        <p className="text-xs text-text-secondary">{new Date(job.createdAt).toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
-              <Card className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground">Add a clone profile</h3>
-                {!hasCloneConsent ? (
-                  <p className="text-sm text-text-secondary">Grant Voice/Face Cloning consent in Settings before uploading a sample.</p>
+
+              <Card flush className="min-h-[300px] overflow-hidden">
+                {!viewJob ? (
+                  <div className="relative flex min-h-[320px] flex-col items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/hero-home-visual.jpg"
+                      alt=""
+                      className="absolute inset-0 size-full object-cover opacity-30"
+                    />
+                    <div className="relative z-10 flex flex-col items-center gap-2 px-6 text-center">
+                      <Film className="size-10 text-accent-teal" />
+                      <p className="font-semibold text-foreground">Pick a video to watch</p>
+                      <p className="text-sm text-text-secondary">
+                        {completedJobs.length > 0
+                          ? `${completedJobs.length} ready`
+                          : "Your player appears here"}
+                      </p>
+                    </div>
+                  </div>
                 ) : (
                   <>
-                    <Input label="Name" value={uploadName} onChange={(e) => setUploadName(e.target.value)} />
-                    <Select label="Type" value={uploadKind} onChange={(e) => setUploadKind(e.target.value as "voice" | "avatar" | "both")} options={[{ value: "both", label: "Voice + Face" }, { value: "voice", label: "Voice only" }, { value: "avatar", label: "Face only" }]} />
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-foreground">Sample (audio or video)</label>
-                      <input type="file" accept="audio/*,video/*" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} className="text-sm text-text-secondary" />
-                    </div>
-                    <Button onClick={handleUploadProfile} loading={uploadingProfile} className="w-full">
-                      <Upload className="h-4 w-4" /> Upload
-                    </Button>
+                    <CardHeader>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <StatusBadge status={viewJob.status} />
+                        {!TERMINAL.has(viewJob.status) ? (
+                          <Button variant="secondary" size="sm" onClick={() => handleCancelJob(viewJob.id)}>
+                            Cancel & refund
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {viewJob.error ? (
+                        <Alert variant="destructive" title="Failed">
+                          {viewJob.error}
+                        </Alert>
+                      ) : null}
+                      {!TERMINAL.has(viewJob.status) ? (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-xs font-medium text-text-secondary">Generation progress</p>
+                          <Progress value={jobProgressValue(viewJob)} label={jobProgressLabel(viewJob)} />
+                        </div>
+                      ) : null}
+                      {hasPlayableOutput(viewJob) ? (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-xs font-medium text-text-secondary">Playback</p>
+                          <ResultPlayer job={viewJob} onChangeVoice={openChangeVoice} />
+                        </div>
+                      ) : TERMINAL.has(viewJob.status) ? (
+                        <Alert variant="info" title="No playable output">
+                          This job finished without media.
+                          {canChangeVoice(viewJob) ? (
+                            <div className="mt-2">
+                              <Button size="sm" variant="secondary" onClick={() => openChangeVoice(viewJob)}>
+                                <Mic className="size-4" /> Change voice &amp; regenerate
+                              </Button>
+                            </div>
+                          ) : null}
+                        </Alert>
+                      ) : (
+                        <p className="text-sm text-text-secondary">Still generating…</p>
+                      )}
+                      <Separator />
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm font-semibold text-foreground">Script</p>
+                        <p className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl bg-muted p-3 text-sm text-text-secondary">
+                          {viewJob.script}
+                        </p>
+                      </div>
+                      {canChangeVoice(viewJob) ? (
+                        <div className="pt-2">
+                          <Button type="button" variant="secondary" onClick={() => openChangeVoice(viewJob)}>
+                            <Mic className="size-4" />
+                            Change voice
+                          </Button>
+                        </div>
+                      ) : null}
+                    </CardContent>
                   </>
                 )}
               </Card>
             </div>
+            </div>
           )}
 
-          {activeTab === "settings" && (
-            <div className="space-y-6">
-              <Card>
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <ShieldCheck className="h-4 w-4" /> Consent
-                </h3>
-                <div className="space-y-4">
+          {/* SETUP */}
+          {activeTab === "setup" && (
+            <div className="flex flex-col gap-6">
+              <Card flush>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="size-5 text-accent-teal" />
+                    Generation backends
+                  </CardTitle>
+                  <CardDescription>
+                    Freemium works with no GPU. Prefer a paid host or machine on your desk? Paste the endpoint URL.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="flex flex-col gap-3 rounded-xl border border-border p-4">
+                      <p className="font-medium text-foreground">Voice</p>
+                      <FilterTabs
+                        label="Mode"
+                        value={setupVoiceMode}
+                        onChange={(v) => setSetupVoiceMode(v as "free" | "custom_url")}
+                        options={[
+                          { value: "free", label: "Free neural voice" },
+                          { value: "custom_url", label: "Custom / local URL" },
+                        ]}
+                      />
+                      {setupVoiceMode === "custom_url" ? (
+                        <>
+                          <Input
+                            label="Voice endpoint URL"
+                            placeholder="https://host/tts or http://localhost:8090/tts"
+                            value={setupVoiceUrl}
+                            onChange={(e) => setSetupVoiceUrl(e.target.value)}
+                          />
+                          <FieldDescription>{freemium?.customEndpoints.voice}</FieldDescription>
+                        </>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-col gap-3 rounded-xl border border-border p-4">
+                      <p className="font-medium text-foreground">Avatar / lip-sync</p>
+                      <FilterTabs
+                        label="Mode"
+                        value={setupAvatarMode}
+                        onChange={(v) => setSetupAvatarMode(v as "free" | "custom_url")}
+                        options={[
+                          { value: "free", label: "Free Presenter" },
+                          { value: "custom_url", label: "Custom / local URL" },
+                        ]}
+                      />
+                      {setupAvatarMode === "custom_url" ? (
+                        <>
+                          <Input
+                            label="Avatar endpoint URL"
+                            placeholder="https://host/lipsync or http://localhost:8091/avatar"
+                            value={setupAvatarUrl}
+                            onChange={(e) => setSetupAvatarUrl(e.target.value)}
+                          />
+                          <FieldDescription>{freemium?.customEndpoints.avatar}</FieldDescription>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            label="Portrait URL (optional)"
+                            placeholder="https://…/face.jpg — blank auto-generates"
+                            value={setupPortraitUrl}
+                            onChange={(e) => setSetupPortraitUrl(e.target.value)}
+                          />
+                          <Input
+                            label="Portrait style (optional)"
+                            placeholder="professional presenter, navy blazer…"
+                            value={setupStylePrompt}
+                            onChange={(e) => setSetupStylePrompt(e.target.value)}
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 rounded-xl border border-border p-4">
+                    <p className="font-medium text-foreground">Long-form stitch (ffmpeg, no GPU)</p>
+                    <FilterTabs
+                      label="Mode"
+                      value={setupStitchMode}
+                      onChange={(v) => setSetupStitchMode(v as "free_skip" | "custom_url")}
+                      options={[
+                        { value: "free_skip", label: "Free single package" },
+                        { value: "custom_url", label: "Custom stitch URLs" },
+                      ]}
+                    />
+                    {setupStitchMode === "custom_url" ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Input
+                          label="Frame extract URL"
+                          value={setupFrameUrl}
+                          onChange={(e) => setSetupFrameUrl(e.target.value)}
+                        />
+                        <Input
+                          label="Stitch URL"
+                          value={setupStitchUrl}
+                          onChange={(e) => setSetupStitchUrl(e.target.value)}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <Button onClick={handleSaveSetup} loading={savingSetup}>
+                    <Check className="size-4" />
+                    Save generation setup
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <DriveConnectorCard
+                driveStatus={driveStatus}
+                onDisconnect={async () => {
+                  await fetch("/api/avatar-studio/storage/drive/disconnect", { method: "POST" });
+                  toast("Drive disconnected", "success");
+                  void loadDriveStatus();
+                }}
+              />
+
+              <Card flush>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="size-4" />
+                    Consent & legal addendum
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   {(Object.keys(CONSENT_COPY) as ConsentType[]).map((type) => {
                     const granted = consent?.[type]?.granted ?? false;
                     return (
-                      <div key={type} className="rounded-xl border border-border p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="font-medium text-foreground">{CONSENT_COPY[type].title}</p>
-                            <p className="mt-1 text-sm text-text-secondary">{CONSENT_COPY[type].description}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={granted ? "secondary" : "primary"}
-                            loading={consentBusy === type}
-                            onClick={() => handleConsentToggle(type, granted ? "withdraw" : "grant")}
-                          >
-                            {granted ? "Withdraw" : "Grant"}
-                          </Button>
+                      <div
+                        key={type}
+                        className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border p-4"
+                      >
+                        <div className="max-w-xl">
+                          <p className="font-medium text-foreground">{CONSENT_COPY[type].title}</p>
+                          <p className="mt-1 text-sm text-text-secondary">{CONSENT_COPY[type].description}</p>
                         </div>
+                        <Button
+                          size="sm"
+                          variant={granted ? "secondary" : "primary"}
+                          loading={consentBusy === type}
+                          onClick={() => handleConsentToggle(type, granted ? "withdraw" : "grant")}
+                        >
+                          {granted ? "Withdraw" : "I agree"}
+                        </Button>
                       </div>
                     );
                   })}
-                </div>
-              </Card>
-
-              <Card>
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <FolderCog className="h-4 w-4" /> Storage
-                </h3>
-                {!driveStatus?.configured ? (
-                  <p className="text-sm text-text-secondary">Google Drive isn&apos;t configured on this deployment yet.</p>
-                ) : driveStatus.connected ? (
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-foreground">Connected {driveStatus.connectedAt ? `since ${new Date(driveStatus.connectedAt).toLocaleDateString()}` : ""}</p>
-                    <Button variant="secondary" size="sm" onClick={handleDisconnectDrive}>
-                      Disconnect
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-text-secondary">Connect your Google Drive so large generated videos use your own storage instead of the shared pool.</p>
-                    <a href="/api/avatar-studio/storage/drive/connect">
-                      <Button size="sm">Connect Drive</Button>
-                    </a>
-                  </div>
-                )}
+                  <FieldDescription>
+                    Sitewide privacy version bump is not forced here (avoids re-prompting every user). This page carries
+                    the voice/face addendum until dedicated legal pages ship.
+                  </FieldDescription>
+                </CardContent>
               </Card>
             </div>
           )}
         </>
       )}
-    </div>
-  );
-}
 
-function EmptyBlock({ text }: { text: string }) {
-  return (
-    <Card className="flex items-center justify-center py-12 text-center">
-      <p className="text-sm text-text-secondary">{text}</p>
-    </Card>
+      <ChangeVoiceModal
+        open={Boolean(revoiceJobId)}
+        onClose={() => {
+          if (!revoiceBusy) {
+            setRevoiceJobId(null);
+            setRevoiceError(null);
+          }
+        }}
+        currentVoiceId={
+          revoiceJobId ? (jobs.find((j) => j.id === revoiceJobId)?.voiceProfileId ?? null) : null
+        }
+        profiles={profiles}
+        hasCloneConsent={hasCloneConsent}
+        submitting={revoiceBusy}
+        error={revoiceError}
+        onSubmit={(voiceId) => void handleRevoice(voiceId)}
+        onTrainNew={() => {
+          setRevoiceJobId(null);
+          setRevoiceError(null);
+          switchTab("train");
+        }}
+      />
+
+      <p className="mt-8 text-center text-xs text-text-secondary/70">Signed in as {userEmail}</p>
+    </div>
   );
 }
